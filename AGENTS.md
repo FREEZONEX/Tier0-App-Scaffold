@@ -42,7 +42,7 @@ src/
 prisma/
   schema.prisma       ← Add your models here (start with ~5, max 10)
   seed.ts             ← Seed script skeleton (fill in with adapter pattern)
-public/               ← Put UNS.json here
+public/
 ```
 
 ## CRITICAL — Do NOT Modify These Files
@@ -57,7 +57,7 @@ public/               ← Put UNS.json here
 - `lucide-react` — Icons
 - `recharts` — Charts: BarChart, LineChart, AreaChart, PieChart, RadarChart, RadialBarChart, ScatterChart, ComposedChart, Treemap, Funnel
 - `@radix-ui/react-*` — Dialog, Select, Tabs, Tooltip, DropdownMenu, Separator, ScrollArea
-- `shadcn` components in `src/components/ui/` — Button, Card, Table, Badge, Dialog, Tabs, Select, Input, Label, Textarea, Tooltip, Skeleton, Sheet, Avatar, DropdownMenu, Separator, ScrollArea
+- `shadcn` components in `src/components/ui/` — Button, Card, Table, Badge, Dialog, Tabs, Select, Input, Label, Textarea, Tooltip, Skeleton, Sheet, Avatar, DropdownMenu, Separator, ScrollArea, Progress, Switch, Popover
 - `@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities` — Drag-and-drop
 - `@tanstack/react-table` — Headless data table with sorting, filtering, pagination
 - `sonner` — Toast notifications
@@ -77,8 +77,15 @@ public/               ← Put UNS.json here
 | `DataTable` | Enhanced table with sorting, search, pagination | `columns` (ColumnDef[]), `data`, `searchPlaceholder`, `pageSize` |
 | `TimelineView` | Vertical timeline for audit logs / events | `items` (id, timestamp, title, description, variant) |
 | `Toaster` | Global toast container (add to root layout) | — |
+| `MetricCard` | KPI card with trend indicator | `label`, `value`, `unit?`, `trend?`, `invertTrend?`, `icon?` |
+| `MiniSparkline` | Tiny inline area chart for cards/tables | `data` (number[]), `color?`, `height?`, `width?` |
+| `AlarmBanner` | Factory alarm/alert notification strip | `severity` (critical/warning/info), `message`, `source?`, `timestamp?`, `onDismiss?` |
+| `ShiftBar` | Horizontal shift schedule with time marker | `shifts` (label, start, end, color)[], `currentHour?` |
+| `ProgressRing` | Single-metric circular progress | `value` (0-100), `label?`, `size?`, `strokeWidth?`, `color?` |
+| `HeatmapGrid` | 2D color-intensity grid (machines × hours, etc.) | `rows`, `cols`, `data` (number[][]), `label?`, `colorScale?` |
+| `CountdownTimer` | Live countdown/elapsed timer for batches | `targetTime` (Date), `mode?`, `label?`, `compact?` |
 
-Import: `import { OEEGauge, DataTable } from "@/components/mes"`
+Import: `import { OEEGauge, DataTable, MetricCard } from "@/components/mes"`
 
 ## Rich UI — Component Usage Requirements
 
@@ -134,12 +141,7 @@ Build **visually rich, interactive pages** — not bare CRUD tables. Each module
 - Create pages under `src/app/` (e.g., `src/app/orders/page.tsx`)
 - Do NOT run `npm run build` here — write ALL pages first, build once at Step 7
 
-### Step 6: Integration (UNS + Flow)
-- Generate `public/UNS.json` (see §UNS.json)
-- Generate `public/flow.json` (see §flow.json)
-- Do NOT run `npm run build` here
-
-### Step 7: Final Build (the ONLY time you run build)
+### Step 6: Final Build (the ONLY time you run build)
 - Run `npm run build` — fix errors and retry, max 3 attempts
 
 ## Database Rules
@@ -208,9 +210,6 @@ Build **visually rich, interactive pages** — not bare CRUD tables. Each module
 - When a child record is created/updated/deleted, update the parent in the **same API handler**
 - Centralize in `src/lib/server-helpers.ts`
 
-### File generation (UNS.json, flow.json)
-- Do NOT generate via `node -e '...'` — shell escaping breaks. Use the `write` tool directly.
-
 ## TailwindCSS 4 (CRITICAL)
 
 - Config: `@import "tailwindcss"` in globals.css with `@theme inline` block
@@ -218,37 +217,6 @@ Build **visually rich, interactive pages** — not bare CRUD tables. Each module
 - NO `@tailwind base/components/utilities`
 - NO new `.css` files — keep all styles as Tailwind utility classes in TSX
 - NO global CSS with `*` selector
-
-## UNS.json — Integration Points (REQUIRED)
-
-Generate `public/UNS.json` with **external integration points** — data flowing between the MES app and outside systems (PLCs, SCADA, ERP, MQTT brokers). Aim for 8-20 topics.
-
-Directions:
-- **Southbound (inbound):** `type: "metric"` or `"state"` — external → app (sensor readings, PLC status)
-- **Northbound (outbound):** `type: "action"` or `"info"` — app → external (commands, event notifications)
-
-```json
-{
-  "version": "v1", "site": "SG01",
-  "topics": [
-    { "id": "unique_id", "path": "v1/SG01/Area/Equipment/Type/name", "type": "metric|state|action|info", "label": "Human label", "payloadSchema": { "value": "number", "unit": "string", "ts": "number" } }
-  ]
-}
-```
-
-## flow.json — Node-RED Integration Flow (REQUIRED)
-
-Generate `public/flow.json` — Node-RED flow for each UNS topic with MQTT ↔ API bridges.
-
-**CRITICAL:** The flow tab ID MUST be the session folder name (hex ID from working directory path).
-
-Rules:
-- **Southbound** (`metric`/`state`): `mqtt in` → `function` → `http request` (POST/PATCH to API)
-- **Northbound** (`action`/`info`): `inject` (timer) → `http request` (GET from API) → `function` → `mqtt out`
-- Add `debug` node after every `function` node
-- MQTT topic = UNS `path` field exactly — write directly into node's `topic` property
-- All nodes must have `"z"` set to the flow tab ID
-- Include `"wires"` arrays to connect nodes
 
 ## Preview & Publish
 
@@ -285,6 +253,4 @@ The preview dev server catches errors live via HMR. Never do write→build→fix
 - [ ] Client components use `apiUrl()` for all fetch calls — never plain `/api/`
 - [ ] No `"use client"` + `export const dynamic` in the same file
 - [ ] Toast feedback on all mutations and invalid state transitions
-- [ ] `public/UNS.json` with 8-20 topics
-- [ ] `public/flow.json` with MQTT↔API bridges
 - [ ] `npm run build` passes with zero errors
