@@ -1,0 +1,12 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Agent: add your models below (MAX 3 tables) ───
+// Do NOT add @@schema() — the connection URL already sets the correct schema via search_path.
+// After editing: npx prisma db push --accept-data-loss && npx prisma generate
