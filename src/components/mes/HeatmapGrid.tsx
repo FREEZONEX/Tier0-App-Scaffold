@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Fragment } from "react";
 
 /**
  * HeatmapGrid — 2D color-intensity grid for visualizing metrics across two dimensions
@@ -69,8 +70,8 @@ export function HeatmapGrid({
 
         {/* Data rows */}
         {rows.map((row, ri) => (
-          <>
-            <div key={`label-${ri}`} className="flex items-center pr-2 text-[10px] text-muted-foreground whitespace-nowrap">
+          <Fragment key={`row-${ri}`}>
+            <div className="flex items-center pr-2 text-[10px] text-muted-foreground whitespace-nowrap">
               {row}
             </div>
             {cols.map((col, ci) => {
@@ -80,13 +81,11 @@ export function HeatmapGrid({
               const textColor = t > 0.55 ? "#fff" : "#18181b";
               return (
                 <Tooltip key={`${ri}-${ci}`}>
-                  <TooltipTrigger asChild>
-                    <div
-                      className="flex h-8 min-w-[32px] items-center justify-center rounded-sm text-[10px] tabular-nums font-medium transition-transform hover:scale-110 cursor-default"
-                      style={{ backgroundColor: bg, color: textColor }}
-                    >
-                      {val}
-                    </div>
+                  <TooltipTrigger
+                    className="flex h-8 min-w-[32px] items-center justify-center rounded-sm text-[10px] tabular-nums font-medium transition-transform hover:scale-110 cursor-default"
+                    style={{ backgroundColor: bg, color: textColor }}
+                  >
+                    {val}
                   </TooltipTrigger>
                   <TooltipContent>
                     <span className="text-xs">{row} / {col}: {label} = {val}</span>
@@ -94,7 +93,7 @@ export function HeatmapGrid({
                 </Tooltip>
               );
             })}
-          </>
+          </Fragment>
         ))}
       </div>
 
