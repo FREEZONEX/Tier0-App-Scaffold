@@ -213,8 +213,3 @@ npm run start     # Start production server / 启动生产服务器
 npm run lint      # ESLint
 ```
 
----
-
-## License / 许可证
-
-Private — internal use only. / 私有 — 仅限内部使用。
