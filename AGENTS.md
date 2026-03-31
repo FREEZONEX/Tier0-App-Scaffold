@@ -34,7 +34,7 @@ src/
     api/health/route.ts   ← Health check example
   components/
     Shell.tsx             ← Left navigation rail (update defaultModules array, supports icon prop)
-    ui/                   ← 20 shadcn components — Base UI primitives (see §UI Component API)
+    ui/                   ← 29 shadcn components — Base UI primitives (see §UI Component API)
     mes/                  ← 15 pre-built MES components (see §Available MES Components)
   db/
     index.ts              ← Drizzle client with pg pool (DO NOT modify)
@@ -68,6 +68,7 @@ drizzle.config.ts         ← Drizzle Kit config (DO NOT modify)
 - `lucide-react` — Icons (see §Lucide Icon Reference for verified MES-relevant icons)
 - `recharts` — Charts: BarChart, LineChart, AreaChart, PieChart, RadarChart, RadialBarChart, ScatterChart, ComposedChart, Treemap, Funnel
 - `@base-ui/react` — Headless primitives (used internally by shadcn v4 components — do NOT import directly)
+- `cmdk` — Command menu primitive (used internally by Command component — do NOT import directly)
 - `shadcn` components in `src/components/ui/` — see §UI Component API for full props reference
 - `@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities` — Drag-and-drop
 - `@tanstack/react-table` — Headless data table with sorting, filtering, pagination
@@ -130,6 +131,15 @@ Import: `import { OEEGauge, DataTable, MetricCard } from "@/components/mes"`
 | `Skeleton` | Standard div props | `data-slot="skeleton"`. Pulse animation. |
 | `Table` | Standard table props | Sub: `TableHeader`, `TableBody`, `TableRow`, `TableHead`, `TableCell`, `TableFooter`, `TableCaption` |
 | `Popover` | `defaultOpen?` | `PopoverTrigger` has `asChild?`. `PopoverContent` has `align?: "start"` \| `"center"` \| `"end"`, `sideOffset?`. Custom implementation (not Base UI). |
+| `AlertDialog` | `open?`, `defaultOpen?`, `onOpenChange?(open, eventDetails)` | Sub: `AlertDialogTrigger`, `AlertDialogContent` (`size?: "default"` \| `"sm"`), `AlertDialogHeader`, `AlertDialogFooter`, `AlertDialogTitle`, `AlertDialogDescription`, `AlertDialogMedia`, `AlertDialogAction` (= Button), `AlertDialogCancel` (= Close + outline Button). Use `render` prop on Trigger, NOT `asChild`. |
+| `Checkbox` | `checked?`, `defaultChecked?`, `onCheckedChange?(checked, eventDetails)`, `indeterminate?` | Base UI Checkbox. Renders check icon automatically. |
+| `RadioGroup` | `value?`, `defaultValue?`, `onValueChange?(value, eventDetails)`, `orientation?` | Sub: `RadioGroupItem` with `value` prop. Base UI Radio. |
+| `Accordion` | `value?`, `defaultValue?`, `onValueChange?(value, eventDetails)` | Sub: `AccordionItem` (`value` required), `AccordionTrigger`, `AccordionContent`. Base UI Accordion. Chevron icons built-in. |
+| `Collapsible` | `open?`, `defaultOpen?`, `onOpenChange?(open, eventDetails)` | Sub: `CollapsibleTrigger`, `CollapsibleContent`. Base UI Collapsible. Minimal wrapper — no built-in styling. |
+| `Command` | Standard `cmdk` props | Built on `cmdk` (NOT Base UI). Sub: `CommandDialog` (pre-wrapped in Dialog), `CommandInput`, `CommandList`, `CommandEmpty`, `CommandGroup`, `CommandItem`, `CommandSeparator`, `CommandShortcut`. |
+| `ToggleGroup` | `value?`, `defaultValue?`, `onValueChange?`, `spacing?` (number), `orientation?: "horizontal"` \| `"vertical"` | Sub: `ToggleGroupItem` with `value` prop. `variant?: "default"` \| `"outline"`, `size?: "default"` \| `"sm"` \| `"lg"`. Base UI ToggleGroup. |
+| `Toggle` | `pressed?`, `defaultPressed?`, `onPressedChange?` | `variant?: "default"` \| `"outline"`, `size?: "default"` \| `"sm"` \| `"lg"`. Base UI Toggle. |
+| `InputGroup` | Standard div props | Sub: `InputGroupInput` (use instead of raw Input inside group), `InputGroupTextarea`, `InputGroupAddon` (`align?: "inline-start"` \| `"inline-end"` \| `"block-start"` \| `"block-end"`), `InputGroupButton`, `InputGroupText`. |
 
 ### Common Mistakes to Avoid
 
@@ -186,7 +196,7 @@ Build **visually rich, interactive pages** — not bare CRUD tables. Each module
 - ALL status transitions must use valid state machines; reject invalid transitions with `toast.error()`
 - Hover/press transitions on interactive elements
 - Loading **Skeleton** components while data fetches
-- Confirmation dialogs before destructive actions (delete, reject)
+- `AlertDialog` for confirmation before destructive actions (delete, reject)
 - `can()` permission checks to conditionally disable buttons with Tooltip explaining required role
 
 ## Build Order (MANDATORY — sequential, no skipping)

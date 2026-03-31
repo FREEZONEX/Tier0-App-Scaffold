@@ -71,7 +71,7 @@ Open / 打开 [http://localhost:3000](http://localhost:3000)
 │   │   └── api/                ← API routes (health check, external APIs only) / API 路由
 │   ├── components/
 │   │   ├── Shell.tsx           ← Left nav rail / 左侧导航栏
-│   │   ├── ui/                 ← 20 shadcn/Base UI components / 20 个通用 UI 组件
+│   │   ├── ui/                 ← 29 shadcn/Base UI components / 29 个通用 UI 组件
 │   │   └── mes/                ← 15 MES-specific components / 15 个 MES 专用组件
 │   ├── db/
 │   │   ├── index.ts            ← DB client (DO NOT modify) / 数据库客户端（勿改）
@@ -150,7 +150,7 @@ src/db/schema.ts (single source of truth / 唯一真相源)
 
 ## UI Components / 通用 UI 组件 (`src/components/ui/`)
 
-20 pre-installed components / 20 个预制组件：
+29 pre-installed components / 29 个预制组件：
 
 | Component / 组件 | Description / 说明 |
 |-----------|-------------|
@@ -174,6 +174,15 @@ src/db/schema.ts (single source of truth / 唯一真相源)
 | Progress | Horizontal progress bar with custom color / 水平进度条 |
 | Switch | Toggle switch / 开关切换 |
 | Popover | Click-triggered floating panel / 点击弹出浮层 |
+| AlertDialog | Destructive action confirmation with Cancel/Confirm / 破坏性操作确认对话框 |
+| Checkbox | Checkable input with check icon / 复选框 |
+| RadioGroup | Single-selection radio buttons / 单选按钮组 |
+| Accordion | Expandable sections, one-at-a-time / 手风琴折叠面板 |
+| Collapsible | Expandable/collapsible section / 可折叠区块 |
+| Command | Searchable command menu (cmdk) / 可搜索命令菜单 |
+| ToggleGroup | Multi-option toggle buttons / 多选项切换按钮组 |
+| Toggle | Single pressable toggle / 单个切换按钮 |
+| InputGroup | Composed input with addons, buttons, text / 组合输入框 |
 
 ---
 
