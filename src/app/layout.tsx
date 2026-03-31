@@ -3,7 +3,6 @@ import "@fontsource/ibm-plex-mono/400.css";
 import "@fontsource/ibm-plex-mono/500.css";
 import "@fontsource/ibm-plex-mono/600.css";
 import "./globals.css";
-import { Shell } from "@/components/Shell";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 
@@ -22,7 +21,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={cn("h-full antialiased", "font-sans", geist.variable)}>
       <body className="min-h-full font-mono">
-        <Shell>{children}</Shell>
+        {children}
       </body>
     </html>
   );
