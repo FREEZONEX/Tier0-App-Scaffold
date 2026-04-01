@@ -60,7 +60,7 @@ export function Shell({
           })}
         </div>
 
-        {/* Agent: add user info + auth controls here in Step 2 */}
+        {/* Agent: show current user (displayName + role badge) and a logout button here */}
         <div className="border-t border-border px-4 py-3">
           <p className="text-[10px] text-muted-foreground">MES v1.0</p>
         </div>
