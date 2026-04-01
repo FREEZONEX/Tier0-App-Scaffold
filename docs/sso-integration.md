@@ -114,7 +114,7 @@ inject into user header as JSON
 | `src/app/api/auth/callback/route.ts` | SSO callback: verify token → write cookie → redirect                                    |
 | `src/app/api/auth/logout/route.ts`   | Clear cookie, optionally redirect to gateway logout                                     |
 | `src/app/api/manifest/route.ts`      | Expose role list from `PERMISSION_MATRIX`                                               |
-| `src/middleware.ts`                  | Auto-create session from gateway `user` header                                          |
+| `src/proxy.ts`                       | Auth proxy: auto-create session from gateway `user` header                              |
 
 
 ### Files the Agent Generates (unchanged from standard flow)
@@ -176,7 +176,7 @@ GATEWAY_CHECK_TOKEN_URL=http://gateway-internal:8795/api/bff/auth/check-token
 | Component                | Knows mode? | How?                                           |
 | ------------------------ | ----------- | ---------------------------------------------- |
 | `src/lib/sso.ts`         | Yes         | Reads `GATEWAY_URL` env var                    |
-| `src/middleware.ts`      | Yes         | Checks for `user` header                       |
+| `src/proxy.ts`           | Yes         | Checks for `user` header                       |
 | `/login` page            | Yes         | Calls `isSSOEnabled()` to show/hide SSO button |
 | `/api/auth/callback`     | Yes         | Only used in SSO flow                          |
 | `src/lib/auth.ts`        | **No**      | Only reads `mes-session` cookie                |
@@ -204,7 +204,7 @@ Production (AUTH_MODE=sso):
 
   Path B: Gateway direct proxy (user already logged in)
   Browser → gateway → inject user header → monoapp
-  → middleware.ts detects header, no cookie
+  → proxy.ts detects header, no cookie
   → parse header → write mes-session cookie → continue
   → auth.ts reads cookie → normal operation
 ```
@@ -247,7 +247,7 @@ Production (AUTH_MODE=sso):
 | `src/app/api/auth/callback/route.ts`               | ~30 lines        |
 | `src/app/api/auth/logout/route.ts`                 | ~15 lines        |
 | `src/app/api/manifest/route.ts`                    | ~15 lines        |
-| `src/middleware.ts` — auto session                 | ~30 lines        |
+| `src/proxy.ts` — auth proxy                       | ~30 lines        |
 | AGENTS.md — mention SSO button in Step 2           | ~10 lines added  |
 
 

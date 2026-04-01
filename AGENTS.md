@@ -55,7 +55,7 @@ src/
     permissions.ts          ← Permission matrix skeleton (define your actions & roles)
     auth.ts                 ← getCurrentUser() & requireAuth() helpers (DO NOT modify)
     sso.ts                  ← SSO adapter: isSSOEnabled(), getLoginURL(), etc. (DO NOT modify)
-  middleware.ts             ← Auth middleware: auto-session from gateway header (DO NOT modify)
+  proxy.ts                  ← Auth proxy: auto-session from gateway header (DO NOT modify)
 drizzle.config.ts           ← Drizzle Kit config (DO NOT modify)
 ```
 
@@ -71,7 +71,7 @@ drizzle.config.ts           ← Drizzle Kit config (DO NOT modify)
 - `src/lib/auth.ts` — Pre-configured auth helpers using cookies (supports both local and SSO users).
 - `src/lib/hooks.ts` — Pre-built `usePolling()` hook for dashboard polling.
 - `src/lib/sso.ts` — SSO adapter layer. Reads gateway env vars, provides helpers for login page.
-- `src/middleware.ts` — Auth middleware. Auto-creates session from gateway `user` header in production.
+- `src/proxy.ts` — Auth proxy (Next.js 16 convention). Auto-creates session from gateway `user` header in production.
 - `src/app/api/auth/callback/route.ts` — SSO callback handler.
 - `src/app/api/auth/logout/route.ts` — Logout handler.
 - `src/app/api/manifest/route.ts` — Exposes role list from `PERMISSION_MATRIX` to platform.
@@ -95,7 +95,9 @@ drizzle.config.ts           ← Drizzle Kit config (DO NOT modify)
 - `pg` — PostgreSQL driver (used by Drizzle)
 - `@fontsource/ibm-plex-mono` — IBM Plex Mono font
 
-## Available MES Components (pre-built in `src/components/mes/`)
+## Optional MES Components (pre-built in `src/components/mes/`)
+
+These are convenience components you may use to save time. You can also build equivalent UI from shadcn primitives + recharts directly — choose whatever fits the page best.
 
 
 | Component        | Purpose                                                 | Props                                                                                |
@@ -104,11 +106,11 @@ drizzle.config.ts           ← Drizzle Kit config (DO NOT modify)
 | `OEEGauge`       | Three-ring donut (Availability / Performance / Quality) | `availability`, `performance`, `quality` (0-100)                                     |
 | `SPCChart`       | Statistical Process Control chart with UCL/LCL/CL       | `data`, `ucl`, `lcl`, `cl`, `label`                                                  |
 | `GanttChart`     | CSS-based Gantt for scheduling                          | `tasks` (id, label, resource, start, end, status), `dayStart`, `dayEnd`              |
-| `KanbanBoard`    | Multi-column drag-and-drop board                        | `columns`, `onMove(itemId, fromCol, toCol)`, `renderCard(item)`                      |
+| `KanbanBoard`    | Multi-column drag-and-drop board                        | `columns` ({id, title, items[], color?}[]), `onMove(itemId, fromColumnId, toColumnId)`, `renderCard(item)` — each item must have `id: string` |
 | `DataTable`      | Enhanced table with sorting, search, pagination         | `columns` (ColumnDef[]), `data`, `searchPlaceholder`, `pageSize`                     |
 | `TimelineView`   | Vertical timeline for audit logs / events               | `items` (id, timestamp, title, description, variant)                                 |
 | `Toaster`        | Global toast container (add to root layout)             | —                                                                                    |
-| `MetricCard`     | KPI card with trend indicator                           | `label`, `value`, `unit?`, `trend?`, `invertTrend?`, `icon?`                         |
+| `MetricCard`     | KPI card with trend indicator                           | `label`, `value` (string), `unit?`, `trend?` (number — positive=up, negative=down, displayed as %), `invertTrend?`, `icon?` |
 | `MiniSparkline`  | Tiny inline area chart for cards/tables                 | `data` (number[]), `color?`, `height?`, `width?`                                     |
 | `AlarmBanner`    | Factory alarm/alert notification strip                  | `severity` (critical/warning/info), `message`, `source?`, `timestamp?`, `onDismiss?` |
 | `ShiftBar`       | Horizontal shift schedule with time marker              | `shifts` (label, start, end, color)[], `currentHour?`                                |
@@ -138,8 +140,8 @@ Import: `import { OEEGauge, DataTable, MetricCard } from "@/components/mes"`
 | `Dialog`       | `open?`, `defaultOpen?`, `onOpenChange?(open, eventDetails)`, `modal?`                                                                                                                             | Sub: `DialogTrigger`, `DialogContent` (`showCloseButton?`), `DialogHeader`, `DialogFooter` (`showCloseButton?`), `DialogTitle`, `DialogDescription`, `DialogClose`                                                                                                                                                      |
 | `Sheet`        | Same as Dialog                                                                                                                                                                                     | `SheetContent` adds `side?: "top"` | `"right"` | `"bottom"` | `"left"`                                                                                                                                                                                                                                                  |
 | `Tabs`         | `value?`, `defaultValue?`, `onValueChange?(value, eventDetails)`, `orientation?`                                                                                                                   | `TabsList` has `variant?: "default"` | `"line"`. `TabsTrigger` = Base UI `Tab`. `TabsContent` = Base UI `Panel`. Active state: `data-active`                                                                                                                                                                            |
-| `Select`       | `value?`, `defaultValue?`, `onValueChange?(value, eventDetails)`                                                                                                                                   | `SelectTrigger` has `size?: "sm"` | `"default"`. `SelectContent` accepts `side`, `sideOffset`, `align`, `alignOffset`. `SelectItem` accepts `value` (string).                                                                                                                                                           |
-| `DropdownMenu` | `open?`, `onOpenChange?(open, eventDetails)`                                                                                                                                                       | `DropdownMenuItem` has `variant?: "default"` | `"destructive"`, `inset?`. Sub-menus: `DropdownMenuSub`, `DropdownMenuSubTrigger`, `DropdownMenuSubContent`                                                                                                                                                              |
+| `Select`       | `value?`, `defaultValue?`, `onValueChange?(value \| null, eventDetails)`                                                                                                                           | **`value` can be `null`** on single select (cleared). Do NOT write `onValueChange={setFoo}` directly — handle null. `SelectTrigger` has `size?: "sm"` | `"default"`. `SelectItem` accepts `value` (string).                                                                                                            |
+| `DropdownMenu` | `open?`, `onOpenChange?(open, eventDetails)`                                                                                                                                                       | `DropdownMenuTrigger` uses `render` prop (not `asChild`). Use `nativeButton={false}` when rendering a custom Button. `DropdownMenuItem` has `variant?: "default"` | `"destructive"`, `inset?`. Sub-menus: `DropdownMenuSub`, `DropdownMenuSubTrigger`, `DropdownMenuSubContent`                                           |
 | `Tooltip`      | `TooltipProvider` wraps app (`delay?` default 0). `Tooltip` root has `open?`, `onOpenChange?`.                                                                                                     | `TooltipContent` accepts `side`, `sideOffset`, `align`, `alignOffset`. Has built-in arrow.                                                                                                                                                                                                                              |
 | `Input`        | Standard `<input>` props                                                                                                                                                                           | `data-slot="input"`. No extra Base UI props exposed.                                                                                                                                                                                                                                                                    |
 | `Textarea`     | Standard `<textarea>` props                                                                                                                                                                        | `data-slot="textarea"`.                                                                                                                                                                                                                                                                                                 |
@@ -176,13 +178,21 @@ Import: `import { OEEGauge, DataTable, MetricCard } from "@/components/mes"`
   Open
 </DialogTrigger>
 
-// WRONG — onValueChange has two args, not one
-<Select onValueChange={(value) => setValue(value)}>
+// WRONG — Select value can be null, this causes TS error
+<Select onValueChange={setStatus}>
 
-// CORRECT — second arg is eventDetails (can be ignored)
-<Select onValueChange={(value) => setValue(value)}>
-// This works because JS ignores extra args. But if you destructure:
-<Select onValueChange={(value, _details) => setValue(value)}>
+// CORRECT — handle null explicitly
+<Select onValueChange={(value) => { if (value !== null) setStatus(value); }}>
+
+// WRONG — DropdownMenuTrigger with asChild
+<DropdownMenuTrigger asChild>
+  <Button>Menu</Button>
+</DropdownMenuTrigger>
+
+// CORRECT — use render + nativeButton={false}
+<DropdownMenuTrigger render={<Button />} nativeButton={false}>
+  Menu
+</DropdownMenuTrigger>
 
 // WRONG — checking data-state for active tab
 className={`data-[state=active]:bg-white`}
@@ -212,9 +222,9 @@ Only use icons from this list to avoid name errors. All are valid `lucide-react`
 
 Import: `import { Factory, Gauge, Package, Wrench } from "lucide-react"`
 
-## Rich UI — Component Usage Requirements
+## Rich UI — Design Requirements
 
-Build **visually rich, interactive pages** — not bare CRUD tables. Each module should use a mix of components.
+Build **visually rich, interactive pages** — not bare CRUD tables. You have shadcn primitives, recharts, pre-built MES components, and plain HTML/Tailwind at your disposal — use whatever combination produces the best result.
 
 ### Interactivity Requirements
 
@@ -243,6 +253,7 @@ This step is pure configuration — no UI, no route handlers.
 - Populate `src/lib/users.ts` with 5+ user accounts covering all roles
 - Define actions and role→actions mapping in `src/lib/permissions.ts`
 - Edit `src/db/seed.ts` — add data operations inside `main()` only, do NOT change the imports or pool setup
+- seed.ts is excluded from tsconfig — use **relative imports only** (e.g., `import * as schema from "./schema"`), NOT `@/` aliases
 - Use `db.insert(schema.table).values([...]).onConflictDoUpdate()` for idempotency
 - Seed data must tell a coherent story: cross-references between tables, realistic status distributions (mix of pending/active/completed/failed), timestamps spanning past 2 weeks
 - Run ONCE: `npx tsx src/db/seed.ts`
@@ -644,8 +655,8 @@ The preview dev server catches errors live via HMR. Never do write→build→fix
 - Login page with SSO button (conditional on `isSSOEnabled()`) + quick-login cards
 - Full CRUD API routes with `requireAuth()` on writes; Zod `.parse()` on inputs; server-helpers.ts for state validation + aggregation
 - Full CRUD UI per entity: DataTable list + summary cards + create/edit forms + delete confirmation
-- Dashboard: OEEGauge + 2+ recharts types + KPI cards + status indicators (6+ visual elements)
-- Entity pages use Tabs, DropdownMenu, Sheet/Dialog, Tooltip, Skeleton — not just bare tables
+- Dashboard with KPI summary, charts, and status indicators — visually rich, not placeholder cards
+- Entity pages use a mix of UI patterns (Tabs, DropdownMenu, Sheet/Dialog, Tooltip, Skeleton, etc.) — not just bare tables
 - All recharts wrapped in `<ResponsiveContainer>` inside a container with explicit height
 - All pages are `"use client"` — do NOT use `export const dynamic` in page components
 - All fetch calls use `apiUrl()` from `@/lib/utils` — never plain `/api/`
