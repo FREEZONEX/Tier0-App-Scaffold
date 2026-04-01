@@ -1,13 +1,15 @@
+/**
+ * Dashboard page skeleton.
+ *
+ * Agent: replace this entire file with your dashboard implementation.
+ * Use MetricCard, OEEGauge, recharts (wrapped in ResponsiveContainer),
+ * and other MES components. See AGENTS.md §Rich UI for requirements.
+ */
+"use client";
+
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
-// ─── Agent: replace this entire page with your dashboard ───
-// Use Server Component data fetching (db.select), MetricCard, OEEGauge,
-// recharts (wrapped in ResponsiveContainer), and other MES components.
-// See AGENTS.md §Rich UI and §Dashboard for requirements.
-
-export const dynamic = "force-dynamic";
-
-export default async function DashboardPage() {
+export default function DashboardPage() {
   return (
     <div className="p-6">
       <h2 className="text-lg font-semibold">Dashboard</h2>

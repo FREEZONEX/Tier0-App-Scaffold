@@ -5,15 +5,29 @@ const SESSION_COOKIE = "mes-session";
 
 /**
  * Read the current user from the session cookie (server-side).
- * Returns null if not authenticated.
+ *
+ * Tries getUserById() first (matches local dev users from users.ts).
+ * Falls back to constructing an AppUser from the cookie payload itself,
+ * which supports SSO users that don't exist in the static users array.
  */
 export async function getCurrentUser(): Promise<AppUser | null> {
   try {
     const cookieStore = await cookies();
     const raw = cookieStore.get(SESSION_COOKIE)?.value;
     if (!raw) return null;
-    const { userId } = JSON.parse(raw);
-    return getUserById(userId);
+    const session = JSON.parse(raw);
+    const localUser = getUserById(session.userId);
+    if (localUser) return localUser;
+    if (session.userId && session.role) {
+      return {
+        id: session.userId,
+        username: session.username || session.userId,
+        displayName: session.displayName || session.username || session.userId,
+        password: "",
+        role: session.role,
+      };
+    }
+    return null;
   } catch {
     return null;
   }
