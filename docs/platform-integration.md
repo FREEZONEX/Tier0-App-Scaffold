@@ -2,33 +2,32 @@
 
 ## 环境变量
 
+没有模式开关。变量不设就是本地行为，设了就启用对应能力。
+
 ### 必填
 
-
-| 变量             | 示例                                                         | 说明                               |
-| -------------- | ---------------------------------------------------------- | -------------------------------- |
-| `DATABASE_URL` | `postgresql://appbuilder:appbuilder@host:5432/proj-abc123` | PostgreSQL 连接串，数据库名 = project ID |
-
-
-### 平台注入（部署时由平台设置）
-
-
-| 变量                               | 示例                                                 | 说明                                                                              |
-| -------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------- |
-| `DB_SCHEMA`                      | `session-abc123`                                   | PostgreSQL schema 名。不设则用 `public`                                               |
-| `APP_ID`                         | `session-abc123`                                   | 应用标识，与 `DB_SCHEMA` 一致（一个 session 就是一个 app）。`/api/manifest` 返回时使用。默认 `"monoapp"` |
-| `NEXT_PUBLIC_BASE_PATH`          | `/session-abc123`                                  | URL 前缀，`apiUrl()` 和 `next.config.ts` 的 `basePath` 读取。空则无前缀                      |
-| `NEXT_PUBLIC_GATEWAY_URL`        | `https://gateway.example.com`                      | 网关公网地址。设了则 SSO 按钮显示，不设则隐藏                                                       |
-| `NEXT_PUBLIC_GATEWAY_LOGIN_PATH` | `/login`                                           | 网关登录页路径。默认 `/login`                                                             |
-| `GATEWAY_CHECK_TOKEN_URL`        | `http://gw-internal:8795/api/bff/auth/check-token` | 网关 token 验证接口（服务端调用，无 `NEXT_PUBLIC_`）                                           |
-
+| 变量 | 说明 |
+|------|------|
+| `DATABASE_URL` | PostgreSQL 连接串，数据库名 = project ID |
 
 ### 可选
 
-
-| 变量                    | 说明                                              |
-| --------------------- | ----------------------------------------------- |
+| 变量 | 说明 |
+|------|------|
 | `DIRECT_DATABASE_URL` | 直连地址（绕过连接池），`drizzle-kit push` 和 `seed.ts` 优先使用 |
+
+### 平台注入（不设则不生效，本地开发不需要）
+
+| 变量 | 不设时的行为 | 设了之后 |
+|------|------------|--------|
+| `DB_SCHEMA` | 使用 `public` schema | 所有查询在指定 schema 下执行 |
+| `APP_ID` | 默认 `"monoapp"` | `/api/manifest` 返回对应 appId |
+| `NEXT_PUBLIC_BASE_PATH` | 无 URL 前缀 | `apiUrl()` 和 `basePath` 加前缀 |
+| `NEXT_PUBLIC_GATEWAY_URL` | SSO 按钮隐藏，只有本地登录 | SSO 按钮显示，可跳转网关登录 |
+| `NEXT_PUBLIC_GATEWAY_LOGIN_PATH` | — | 网关登录页路径（默认 `/login`） |
+| `GATEWAY_CHECK_TOKEN_URL` | — | SSO 回调时服务端验证 token |
+
+`DB_SCHEMA` 和 `APP_ID` 设为同一个值（session ID）。
 
 
 ---
