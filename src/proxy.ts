@@ -1,15 +1,15 @@
 /**
- * Next.js middleware — auto-creates session from gateway `user` header.
+ * Next.js 16 proxy — auto-creates session from gateway `user` header.
  *
  * When deployed behind the gwsvr gateway, authenticated requests arrive
  * with a `user` JSON header but no `mes-session` cookie (on first visit).
- * This middleware bridges the gap:
+ * This proxy bridges the gap:
  *
  *   1. If mes-session cookie exists → pass through (already logged in)
  *   2. If `user` header exists (gateway injected) → parse it, write cookie, continue
  *   3. Neither → redirect to /login (unless the path is public)
  *
- * Scaffold-provided. DO NOT modify unless extending auth middleware.
+ * Scaffold-provided. DO NOT modify unless extending auth proxy.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -28,7 +28,7 @@ function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p));
 }
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   if (

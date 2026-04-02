@@ -3,10 +3,13 @@ import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "./schema";
 
+const dbSchema = process.env.DB_SCHEMA;
+
 const pool = new Pool({
   connectionString:
     process.env.DIRECT_DATABASE_URL || process.env.DATABASE_URL,
   max: 5,
+  ...(dbSchema ? { options: `-csearch_path=${dbSchema}` } : {}),
 });
 const db = drizzle(pool, { schema });
 

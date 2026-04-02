@@ -9,7 +9,13 @@ const globalForDb = globalThis as unknown as {
 const connectionString =
   process.env.DATABASE_URL || process.env.DIRECT_DATABASE_URL;
 
-const pool = globalForDb.pool ?? new Pool({ connectionString, max: 5 });
+const dbSchema = process.env.DB_SCHEMA;
+
+const pool = globalForDb.pool ?? new Pool({
+  connectionString,
+  max: 5,
+  ...(dbSchema ? { options: `-csearch_path=${dbSchema}` } : {}),
+});
 
 export const db = drizzle(pool, { schema });
 
