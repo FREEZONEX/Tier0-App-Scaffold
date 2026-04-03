@@ -1,0 +1,40 @@
+# MonoApp — UNSSWE 部署配置
+#
+# 本文件由 Build-Deploy 服务解析，决定如何构建、运行、健康检查。
+# 优先级：App deploy_config (DB 覆写) > 本文件 > 平台硬编码默认值。
+#
+# 环境变量注入（自动）:
+#   DATABASE_URL  — Backend 按 Project schema 自动注入到 build_env / run_env
+#   PORT          — RuntimeManager 按 localPort 自动注入
+
+[deployment]
+deploymentTarget = "autoscale"
+
+[[services]]
+name = "web"
+paths = ["/"]
+localPort = 3000
+
+[services.production]
+serve = "dynamic"
+
+[services.production.build]
+args = [
+  "sh", "-c",
+  "npm ci && npm run build && mkdir -p .next/standalone/.next && cp -r .next/static .next/standalone/.next/static && (cp -r public .next/standalone/public 2>/dev/null || true)",
+]
+
+[services.production.build.env]
+NODE_ENV = "production"
+
+[services.production.run]
+args = ["node", ".next/standalone/server.js"]
+image = "node:20-alpine"
+
+[services.production.run.env]
+NODE_ENV = "production"
+HOSTNAME = "0.0.0.0"
+
+[services.production.health.startup]
+path = "/api/health"
+timeout = 120
