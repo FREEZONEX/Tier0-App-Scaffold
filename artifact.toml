@@ -20,15 +20,16 @@ serve = "dynamic"
 
 [services.production.build]
 args = [
-  "npm", "install", "--prefer-offline", "&&",
+  "npm", "install", "&&",
   "npm", "run", "build", "&&",
   "mkdir", "-p", ".next/standalone/.next", "&&",
   "cp", "-r", ".next/static", ".next/standalone/.next/static", "&&",
   "(cp", "-r", "public", ".next/standalone/public", "2>/dev/null", "||", "true)",
 ]
+outputDir = ".next/standalone"
 
 [services.production.run]
-args = ["node", ".next/standalone/server.js"]
+args = ["node", "server.js"]
 image = "node:20-alpine"
 
 [services.production.run.env]
