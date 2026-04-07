@@ -20,15 +20,12 @@ serve = "dynamic"
 
 [services.production.build]
 args = [
-  "npm", "ci",
-  "&&", "npm", "run", "build",
-  "&&", "mkdir", "-p", ".next/standalone/.next",
-  "&&", "cp", "-r", ".next/static", ".next/standalone/.next/static",
-  "&&", "cp", "-r", "public", ".next/standalone/public",
+  "npm", "install", "--prefer-offline", "&&",
+  "npm", "run", "build", "&&",
+  "mkdir", "-p", ".next/standalone/.next", "&&",
+  "cp", "-r", ".next/static", ".next/standalone/.next/static", "&&",
+  "(cp", "-r", "public", ".next/standalone/public", "2>/dev/null", "||", "true)",
 ]
-
-[services.production.build.env]
-NODE_ENV = "production"
 
 [services.production.run]
 args = ["node", ".next/standalone/server.js"]
