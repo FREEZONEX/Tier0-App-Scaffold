@@ -20,8 +20,11 @@ serve = "dynamic"
 
 [services.production.build]
 args = [
-  "sh", "-c",
-  "npm ci && npm run build && mkdir -p .next/standalone/.next && cp -r .next/static .next/standalone/.next/static && (cp -r public .next/standalone/public 2>/dev/null || true)",
+  "npm", "ci",
+  "&&", "npm", "run", "build",
+  "&&", "mkdir", "-p", ".next/standalone/.next",
+  "&&", "cp", "-r", ".next/static", ".next/standalone/.next/static",
+  "&&", "cp", "-r", "public", ".next/standalone/public",
 ]
 
 [services.production.build.env]
