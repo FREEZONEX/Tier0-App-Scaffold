@@ -1,27 +1,84 @@
 /**
  * Permission system — role-based access control.
- *
- * Agent: define your actions and permission matrix here.
- *
- * 1. Define an Action type with all permissioned operations.
- * 2. Create PERMISSION_MATRIX mapping each role to its allowed actions.
- * 3. Use can(role, action) everywhere to check permissions.
  */
 
-// ─── Agent: replace with your app's actions ───
-// Example: type Action = "view_dashboard" | "create_order" | "approve_order" | "manage_equipment" | ...
-export type Action = string;
+export type Action =
+  | "view_dashboard"
+  | "work_centers:read"
+  | "work_centers:write"
+  | "work_centers:delete"
+  | "items:read"
+  | "items:write"
+  | "items:delete"
+  | "equipment:read"
+  | "equipment:write"
+  | "equipment:delete"
+  | "work_orders:read"
+  | "work_orders:write"
+  | "work_orders:delete"
+  | "operations:read"
+  | "operations:write"
+  | "quality:read"
+  | "quality:write"
+  | "inventory:read"
+  | "inventory:write";
 
-// ─── Agent: replace with your role → actions mapping ───
-// Example:
-// export const PERMISSION_MATRIX: Record<string, Action[]> = {
-//   admin: ["view_dashboard", "create_order", "approve_order", "manage_equipment"],
-//   operator: ["view_dashboard", "create_order"],
-//   viewer: ["view_dashboard"],
-// };
-export const PERMISSION_MATRIX: Record<string, Action[]> = {};
+const allActions: Action[] = [
+  "view_dashboard",
+  "work_centers:read",
+  "work_centers:write",
+  "work_centers:delete",
+  "items:read",
+  "items:write",
+  "items:delete",
+  "equipment:read",
+  "equipment:write",
+  "equipment:delete",
+  "work_orders:read",
+  "work_orders:write",
+  "work_orders:delete",
+  "operations:read",
+  "operations:write",
+  "quality:read",
+  "quality:write",
+  "inventory:read",
+  "inventory:write",
+];
 
-/** Check whether a role is allowed to perform an action. */
+const readOnly: Action[] = [
+  "view_dashboard",
+  "work_centers:read",
+  "items:read",
+  "equipment:read",
+  "work_orders:read",
+  "operations:read",
+  "quality:read",
+  "inventory:read",
+];
+
+const operatorActions: Action[] = Array.from(
+  new Set<Action>([
+    ...readOnly,
+    "work_orders:write",
+    "operations:write",
+    "quality:write",
+  ]),
+);
+
+const supervisorActions: Action[] = allActions.filter(
+  (a) =>
+    a !== "work_centers:delete" &&
+    a !== "equipment:delete" &&
+    a !== "items:delete",
+);
+
+export const PERMISSION_MATRIX: Record<string, Action[]> = {
+  admin: allActions,
+  supervisor: supervisorActions,
+  operator: operatorActions,
+  viewer: readOnly,
+};
+
 export function can(role: string, action: Action): boolean {
   const allowed = PERMISSION_MATRIX[role];
   if (!allowed) return false;

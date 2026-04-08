@@ -3,8 +3,16 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { type ReactNode, type ElementType, useEffect, useState } from "react";
-import { cn } from "@/lib/utils";
-import { apiUrl } from "@/lib/utils";
+import {
+  LayoutDashboard,
+  Factory,
+  Package,
+  Cpu,
+  ClipboardList,
+  ShieldCheck,
+  Boxes,
+} from "lucide-react";
+import { cn, apiUrl } from "@/lib/utils";
 
 export interface NavModule {
   key: string;
@@ -13,9 +21,14 @@ export interface NavModule {
   icon?: ElementType;
 }
 
-// ─── Agent: update this array with your app's modules and lucide-react icons ───
 export const defaultModules: NavModule[] = [
-  { key: "dashboard", label: "Dashboard", href: "/" },
+  { key: "dashboard", label: "Dashboard", href: "/", icon: LayoutDashboard },
+  { key: "work-centers", label: "Work Centers", href: "/work-centers", icon: Factory },
+  { key: "items", label: "Items", href: "/items", icon: Package },
+  { key: "equipment", label: "Equipment", href: "/equipment", icon: Cpu },
+  { key: "work-orders", label: "Work Orders", href: "/work-orders", icon: ClipboardList },
+  { key: "quality", label: "Quality", href: "/quality", icon: ShieldCheck },
+  { key: "inventory", label: "Inventory", href: "/inventory", icon: Boxes },
 ];
 
 interface UserInfo {
@@ -80,7 +93,7 @@ export function Shell({
                   "mb-0.5 flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-xs font-medium transition-colors",
                   isActive
                     ? "bg-[var(--accent)] text-foreground"
-                    : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
+                    : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
                 )}
               >
                 {Icon && <Icon className="size-4 shrink-0" />}
@@ -90,7 +103,7 @@ export function Shell({
           })}
         </div>
 
-        <div className="border-t border-border px-4 py-3 space-y-2">
+        <div className="space-y-2 border-t border-border px-4 py-3">
           {user && (
             <div className="flex items-center justify-between">
               <div className="min-w-0">
@@ -103,15 +116,17 @@ export function Shell({
           )}
           <div className="flex gap-2">
             <button
+              type="button"
               onClick={handleSwitchRole}
-              className="text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+              className="text-[10px] text-muted-foreground transition-colors hover:text-foreground"
             >
               Switch Role
             </button>
             <span className="text-[10px] text-muted-foreground">·</span>
             <button
+              type="button"
               onClick={handleLogout}
-              className="text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+              className="text-[10px] text-muted-foreground transition-colors hover:text-foreground"
             >
               Logout
             </button>
