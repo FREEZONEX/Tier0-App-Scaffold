@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { type ReactNode, type ElementType } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { type ReactNode, type ElementType, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { apiUrl } from "@/lib/utils";
 
 export interface NavModule {
   key: string;
@@ -17,6 +18,22 @@ export const defaultModules: NavModule[] = [
   { key: "dashboard", label: "Dashboard", href: "/" },
 ];
 
+interface UserInfo {
+  displayName: string;
+  role: string;
+}
+
+function useCurrentUser() {
+  const [user, setUser] = useState<UserInfo | null>(null);
+  useEffect(() => {
+    fetch(apiUrl("/api/auth/me"))
+      .then((r) => (r.ok ? r.json() : null))
+      .then(setUser)
+      .catch(() => setUser(null));
+  }, []);
+  return user;
+}
+
 export function Shell({
   modules = defaultModules,
   children,
@@ -25,6 +42,19 @@ export function Shell({
   children: ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const user = useCurrentUser();
+
+  async function handleLogout() {
+    await fetch(apiUrl("/api/auth/logout"), { method: "POST" });
+    router.push("/login");
+  }
+
+  function handleSwitchRole() {
+    fetch(apiUrl("/api/auth/logout"), { method: "POST" }).then(() => {
+      router.push("/login");
+    });
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -60,9 +90,32 @@ export function Shell({
           })}
         </div>
 
-        {/* Agent: show current user (displayName + role badge) and a logout button here */}
-        <div className="border-t border-border px-4 py-3">
-          <p className="text-[10px] text-muted-foreground">MES v1.0</p>
+        <div className="border-t border-border px-4 py-3 space-y-2">
+          {user && (
+            <div className="flex items-center justify-between">
+              <div className="min-w-0">
+                <p className="truncate text-xs font-medium">{user.displayName}</p>
+                <span className="inline-block rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                  {user.role}
+                </span>
+              </div>
+            </div>
+          )}
+          <div className="flex gap-2">
+            <button
+              onClick={handleSwitchRole}
+              className="text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Switch Role
+            </button>
+            <span className="text-[10px] text-muted-foreground">·</span>
+            <button
+              onClick={handleLogout}
+              className="text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </nav>
 

@@ -1,19 +1,17 @@
 /**
- * Next.js 16 proxy — auto-creates session from gateway `user` header.
+ * Next.js 16 proxy — gateway auth bridge.
  *
- * When deployed behind the gwsvr gateway, authenticated requests arrive
- * with a `user` JSON header but no `mes-session` cookie (on first visit).
- * This proxy bridges the gap:
+ * All traffic arrives through the UNS-SWE App Gateway, which injects
+ * a user identity header for authenticated platform users.
  *
- *   1. If mes-session cookie exists → pass through (already logged in)
- *   2. If `user` header exists (gateway injected) → parse it, write cookie, continue
- *   3. Neither → redirect to /login (unless the path is public)
- *
- * Scaffold-provided. DO NOT modify unless extending auth proxy.
+ * Flow:
+ *   1. Has mes-session cookie → pass through (already selected a role)
+ *   2. Has gateway user header but no cookie → redirect to /login (role selection)
+ *   3. Neither → 401 (not a platform user, blocked)
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { parsePlatformUser, mapToAppUser } from "@/lib/sso";
+import { parseGatewayUser } from "@/lib/gateway";
 
 const SESSION_COOKIE = "mes-session";
 
@@ -44,29 +42,17 @@ export function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const userHeader = req.headers.get("user");
-  const platformUser = parsePlatformUser(userHeader);
-
-  if (platformUser) {
-    const appUser = mapToAppUser(platformUser);
-    const response = NextResponse.next();
-    response.cookies.set(SESSION_COOKIE, JSON.stringify({
-      userId: appUser.id,
-      role: appUser.role,
-      displayName: appUser.displayName,
-      username: appUser.username,
-    }), {
-      path: "/",
-      httpOnly: true,
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7,
-    });
-    return response;
+  const gatewayUser = parseGatewayUser(req.headers);
+  if (gatewayUser) {
+    const loginUrl = new URL("/login", req.url);
+    loginUrl.searchParams.set("from", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
-  const loginUrl = new URL("/login", req.url);
-  loginUrl.searchParams.set("from", pathname);
-  return NextResponse.redirect(loginUrl);
+  return new NextResponse(
+    JSON.stringify({ error: "Platform authentication required" }),
+    { status: 401, headers: { "Content-Type": "application/json" } },
+  );
 }
 
 export const config = {

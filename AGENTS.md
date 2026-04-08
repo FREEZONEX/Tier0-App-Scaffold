@@ -36,12 +36,15 @@ src/
       loading.tsx           ← Suspense loading spinner (DO NOT remove)
       error.tsx             ← Error boundary (DO NOT remove)
     (auth)/                 ← Route group: pages WITHOUT Shell (login, etc.)
-      login/page.tsx        ← Login page skeleton (build the login UI here)
+      login/
+        page.tsx            ← Role selection page (server component, reads gateway header)
+        role-selector.tsx   ← Role selection UI (client component)
     api/
       health/route.ts      ← Health check example
       auth/
-        callback/route.ts  ← SSO callback handler (DO NOT modify)
-        logout/route.ts    ← Logout handler (DO NOT modify)
+        select-role/route.ts ← Role selection endpoint (DO NOT modify)
+        me/route.ts          ← Current user info endpoint (DO NOT modify)
+        logout/route.ts      ← Logout handler (DO NOT modify)
       manifest/route.ts    ← Role manifest for platform (DO NOT modify)
   components/
     Shell.tsx               ← Left navigation rail (update defaultModules array)
@@ -54,13 +57,34 @@ src/
   lib/
     utils.ts                ← cn() for classNames, apiUrl() for client-side fetch paths
     hooks.ts                ← usePolling() hook for dashboard real-time data (DO NOT modify)
-    users.ts                ← User registry skeleton (populate with your users)
+    users.ts                ← AppUser type definition (DO NOT modify)
     permissions.ts          ← Permission matrix skeleton (define your actions & roles)
     auth.ts                 ← getCurrentUser() & requireAuth() helpers (DO NOT modify)
-    sso.ts                  ← SSO adapter: isSSOEnabled(), getLoginURL(), etc. (DO NOT modify)
-  proxy.ts                  ← Auth proxy: auto-session from gateway header (DO NOT modify)
+    gateway.ts              ← Gateway header parser (DO NOT modify)
+  proxy.ts                  ← Auth proxy: gateway header → role selection → session (DO NOT modify)
 drizzle.config.ts           ← Drizzle Kit config (DO NOT modify)
 ```
+
+## Authentication Model
+
+Authentication is handled by the platform gateway. The app does NOT manage passwords or user accounts.
+
+**Flow:**
+1. Platform gateway authenticates the user and injects a `user` header (JSON) or `X-App-User-*` headers
+2. `proxy.ts` detects the gateway header and redirects unauthenticated users to `/login`
+3. `/login` shows available roles from `PERMISSION_MATRIX` — user picks one
+4. `POST /api/auth/select-role` writes the `mes-session` cookie with identity + chosen role
+5. `requireAuth("admin")` checks the cookie role in API route handlers
+
+**What you (the Agent) need to do:**
+- Define roles and permissions in `permissions.ts` (`PERMISSION_MATRIX`)
+- Use `requireAuth("admin")` / `requireAuth("operator")` in API routes to enforce access
+- Use `can(role, action)` for fine-grained permission checks
+
+**What you must NOT do:**
+- Do NOT create login/register API routes — authentication is gateway-managed
+- Do NOT create a users database table for auth — identity comes from the gateway header
+- Do NOT modify `proxy.ts`, `gateway.ts`, `auth.ts`, or any file in `api/auth/`
 
 ## Available Libraries (already installed, just import)
 
@@ -165,8 +189,7 @@ className={`data-[active]:bg-white`}
 
 Pure configuration — no UI, no route handlers.
 
-- Populate `src/lib/users.ts` with 5+ user accounts covering all roles
-- Define actions and role→actions mapping in `src/lib/permissions.ts`
+- Define actions and role→actions mapping in `src/lib/permissions.ts` (`PERMISSION_MATRIX`)
 - Edit `src/db/seed.ts` — add data inside `main()` only, do NOT change imports or pool setup
 - seed.ts is excluded from tsconfig — use **relative imports only** (e.g., `import * as schema from "./schema"`), NOT `@/` aliases
 - Use `db.insert(schema.table).values([...]).onConflictDoUpdate()` for idempotency
@@ -176,7 +199,6 @@ Pure configuration — no UI, no route handlers.
 ### Step 3: API Routes & Server Helpers
 
 - Create `src/lib/server-helpers.ts` with `isValidTransition(entity, from, to)` and `recalcParentTotals(parentId)`
-- Create `src/app/api/auth/login/route.ts`: validate via `findUser()`, write `mes-session` cookie as `{ userId, role, displayName, username }`. Note: `/api/auth/callback` and `/api/auth/logout` already exist — do NOT recreate.
 - Create `src/app/api/[resource]/route.ts` for each entity with full CRUD: `GET` (list + single), `POST`, `PATCH`, `DELETE`
 - Use `requireAuth()` on all write handlers, validate with Zod `.parse()`, return 400/409 on errors
 - Standard error handling pattern:
@@ -197,11 +219,6 @@ try {
 ### Step 4: Frontend (all UI in one step)
 
 - Update `src/components/Shell.tsx` `defaultModules` array with icons
-- Show current user info and logout button in Shell footer
-- Build login page at `src/app/(auth)/login/page.tsx` (`"use client"`):
-  - SSO button: `import { isSSOEnabled, getLoginURL } from "@/lib/sso"` — only render if `isSSOEnabled()`
-  - Quick Login panel: clickable user cards (always visible)
-  - Username/password form: local login via `POST /api/auth/login`
 - Build dashboard at `src/app/(app)/page.tsx` — real KPIs, charts, status indicators
 - Build each module page independently — choose UI patterns that fit **that entity's workflow**
 - All pages are `"use client"` components under `src/app/(app)/`
@@ -249,8 +266,8 @@ try {
 
 - Schema: 5-10 tables with createdAt/updatedAt, Zod schemas via `createInsertSchema`/`createUpdateSchema`, types via `$inferSelect`
 - Seed: 5-10 records/table, interlinked, coherent business story
-- 5+ users across all roles; permissions matrix defined
-- Login page with SSO button (conditional) + quick-login cards
+- Roles and permissions matrix defined in `permissions.ts`
+- Role selection page functional (reads gateway header, shows role cards)
 - Full CRUD API routes with `requireAuth()` on writes, Zod validation, server-helpers for state transitions
 - Full CRUD UI per entity with forms, status transitions, delete confirmation
 - Dashboard with KPI summary, charts, and status indicators

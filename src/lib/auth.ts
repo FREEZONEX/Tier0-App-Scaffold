@@ -1,14 +1,11 @@
 import { cookies } from "next/headers";
-import { getUserById, type AppUser } from "./users";
+import type { AppUser } from "./users";
 
 const SESSION_COOKIE = "mes-session";
 
 /**
  * Read the current user from the session cookie (server-side).
- *
- * Tries getUserById() first (matches local dev users from users.ts).
- * Falls back to constructing an AppUser from the cookie payload itself,
- * which supports SSO users that don't exist in the static users array.
+ * Returns null if no valid session exists.
  */
 export async function getCurrentUser(): Promise<AppUser | null> {
   try {
@@ -16,15 +13,13 @@ export async function getCurrentUser(): Promise<AppUser | null> {
     const raw = cookieStore.get(SESSION_COOKIE)?.value;
     if (!raw) return null;
     const session = JSON.parse(raw);
-    const localUser = getUserById(session.userId);
-    if (localUser) return localUser;
     if (session.userId && session.role) {
       return {
         id: session.userId,
         username: session.username || session.userId,
         displayName: session.displayName || session.username || session.userId,
-        password: "",
         role: session.role,
+        email: session.email,
       };
     }
     return null;
