@@ -1,0 +1,23 @@
+# Local PostgreSQL for MES — matches DATABASE_URL in .env by default.
+# Usage: npm run db:up
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: mes-postgres-local
+    environment:
+      POSTGRES_USER: appbuilder
+      POSTGRES_PASSWORD: appbuilder
+      POSTGRES_DB: proj-abc123
+    ports:
+      - "5432:5432"
+    volumes:
+      - mes_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appbuilder -d proj-abc123"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mes_pgdata:
