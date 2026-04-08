@@ -49,7 +49,7 @@ src/
   components/
     Shell.tsx               ← Left navigation rail (update defaultModules array)
     ui/                     ← 29 shadcn components (Base UI primitives, NOT Radix)
-    mes/                    ← 15 optional MES components (see §Optional MES Components)
+    mes/                    ← Toaster only; build your own domain components as needed
   db/
     index.ts                ← Drizzle client (DO NOT modify)
     schema.ts               ← Define tables + Zod schemas here (see examples in file comments)
@@ -86,6 +86,22 @@ Authentication is handled by the platform gateway. The app does NOT manage passw
 - Do NOT create a users database table for auth — identity comes from the gateway header
 - Do NOT modify `proxy.ts`, `gateway.ts`, `auth.ts`, or any file in `api/auth/`
 
+## proxy.ts — the Middleware
+
+`src/proxy.ts` is the Next.js 16 middleware file. It is NOT imported by anything — Next.js discovers it by convention (similar to how `middleware.ts` worked in earlier versions, but in Next.js 16 the convention is `proxy.ts` and the exported function is named `proxy`).
+
+**What it does:**
+- Has session cookie → pass through (authenticated)
+- Has gateway user header but no cookie → redirect to `/login` (needs role selection)
+- Neither → 401 (not a platform user)
+- Public paths (`/login`, `/api/auth/*`, `/api/health`, `/api/manifest`, `/_next/*`) are always allowed through
+
+**Local development implications:**
+When running locally, there is no platform gateway. Direct requests to `localhost:3000` will have no gateway header and no session cookie, triggering a 401 on all non-public routes. To develop locally, you need a reverse proxy that injects the `X-App-User-ID` header before forwarding to Next.js.
+
+> **⚠ WARNING: If you build a gateway proxy for local development, it MUST support WebSocket upgrade (`server.on("upgrade", ...)`).**
+> Next.js 16 + Turbopack uses WebSocket for HMR (Hot Module Replacement). A plain HTTP proxy that does not forward WebSocket upgrades will cause React hydration to **silently fail** — the page HTML will render, but all client-side JavaScript (useEffect, event handlers, state) will be completely dead. There are NO console errors when this happens. If you see a page that renders but has no interactivity, check WebSocket connectivity first.
+
 ## Available Libraries (already installed, just import)
 
 - `drizzle-orm` — pgTable, pgEnum, eq, and, or, desc, asc, sql, count, sum, avg
@@ -99,32 +115,14 @@ Authentication is handled by the platform gateway. The app does NOT manage passw
 - `sonner` — Toast notifications via `toast()` / `toast.error()` / `toast.success()`
 - `date-fns` — Date manipulation and formatting
 
-## Optional MES Components (pre-built in `src/components/mes/`)
+## shadcn / Base UI — CRITICAL Differences from Radix
 
-Use these to save time, or build equivalent UI yourself — whatever fits the page best.
+> **⚠ READ THIS BEFORE WRITING ANY COMPONENT CODE.**
+> These components use `@base-ui/react`, NOT `@radix-ui/react-*`.
+> If you write `asChild`, it WILL fail at build time. Every Trigger, every Dialog, every DropdownMenu — use `render` prop.
+> Re-check this section EVERY TIME you create a new page with dialog/trigger/select components.
 
-| Component | Purpose | Key Props |
-|-----------|---------|-----------|
-| `StateBadge` | Color-coded status indicator | `state`, `label?`, `colorMap?` |
-| `OEEGauge` | Three-ring donut (A/P/Q) | `availability`, `performance`, `quality` (0-100) |
-| `SPCChart` | SPC chart with UCL/LCL/CL | `data`, `ucl`, `lcl`, `cl`, `label` |
-| `GanttChart` | CSS-based Gantt | `tasks` (id, label, resource, start, end, status), `dayStart`, `dayEnd` |
-| `KanbanBoard` | Drag-and-drop board | `columns` ({id, title, items[], color?}[]), `onMove(itemId, fromColumnId, toColumnId)`, `renderCard(item)` |
-| `DataTable` | Table with sorting/search/pagination | `columns` (ColumnDef[]), `data`, `searchPlaceholder`, `pageSize` |
-| `TimelineView` | Vertical timeline | `items` (id, timestamp, title, description, variant) |
-| `MetricCard` | KPI card with trend | `label`, `value` (string), `unit?`, `trend?` (number, displayed as %), `icon?` |
-| `MiniSparkline` | Tiny inline area chart | `data` (number[]), `color?`, `height?` |
-| `AlarmBanner` | Alert notification strip | `severity` (critical/warning/info), `message`, `onDismiss?` |
-| `ShiftBar` | Shift schedule with time marker | `shifts` (label, start, end, color)[], `currentHour?` |
-| `ProgressRing` | Circular progress | `value` (0-100), `label?`, `size?` |
-| `HeatmapGrid` | 2D color-intensity grid | `rows`, `cols`, `data` (number[][]), `colorScale?` |
-| `CountdownTimer` | Live countdown/elapsed timer | `targetTime` (Date), `mode?`, `label?` |
-
-Import: `import { OEEGauge, DataTable, MetricCard } from "@/components/mes"`
-
-## shadcn / Base UI — Critical Differences from Radix
-
-These components use `@base-ui/react`, NOT `@radix-ui/react-*`. Three things are different:
+Three things are different:
 
 1. **No `asChild`** — use the `render` prop: `render={<MyComponent />}`
 2. **Callbacks take two args** — `onValueChange(value, eventDetails)`, `onOpenChange(open, eventDetails)`
@@ -143,7 +141,7 @@ For full component props, read the source files in `src/components/ui/`.
 ```tsx
 // WRONG — asChild does not exist on Base UI
 <DialogTrigger asChild><Button>Open</Button></DialogTrigger>
-// CORRECT
+// CORRECT — use render prop on ALL trigger-like components
 <DialogTrigger render={<Button />}>Open</DialogTrigger>
 
 // WRONG — Select value can be null
@@ -161,6 +159,8 @@ className={`data-[state=active]:bg-white`}
 // CORRECT
 className={`data-[active]:bg-white`}
 ```
+
+**Remember**: this applies to DialogTrigger, AlertDialogTrigger, DropdownMenuTrigger, PopoverTrigger (except Popover which supports asChild), TooltipTrigger, SheetTrigger, CollapsibleTrigger — ALL of them use `render`, not `asChild`.
 
 ## Lucide Icon Reference (verified names)
 
