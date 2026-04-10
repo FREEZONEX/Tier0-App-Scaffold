@@ -48,8 +48,8 @@ src/
       manifest/route.ts    ← Role manifest for platform (DO NOT modify)
   components/
     Shell.tsx               ← Left navigation rail (update defaultModules array)
-    ui/                     ← 29 shadcn components (Base UI primitives, NOT Radix)
-    mes/                    ← 15 optional MES components (see §Optional MES Components)
+    ui/                     ← 29 shadcn components + BorderBeam (Base UI primitives, NOT Radix)
+    mes/                    ← 16 optional MES components (see §Optional MES Components)
   db/
     index.ts                ← Drizzle client (DO NOT modify)
     schema.ts               ← Define tables + Zod schemas here (see examples in file comments)
@@ -98,6 +98,7 @@ Authentication is handled by the platform gateway. The app does NOT manage passw
 - `@tanstack/react-table` — Headless data table with sorting, filtering, pagination
 - `sonner` — Toast notifications via `toast()` / `toast.error()` / `toast.success()`
 - `date-fns` — Date manipulation and formatting
+- `motion` (framer-motion v11+) — Animation library. Import from `@/lib/motion` (NOT directly from `motion/react`). Exports: `motion`, `AnimatePresence`, `useSpring`, `useTransform`, `useMotionValue`, `MotionConfig`
 
 ## Optional MES Components (pre-built in `src/components/mes/`)
 
@@ -105,20 +106,21 @@ Use these to save time, or build equivalent UI yourself — whatever fits the pa
 
 | Component | Purpose | Key Props |
 |-----------|---------|-----------|
-| `StateBadge` | Color-coded status indicator | `state`, `label?`, `colorMap?` |
-| `OEEGauge` | Three-ring donut (A/P/Q) | `availability`, `performance`, `quality` (0-100) |
+| `AnimatedNumber` | Animated number with spring interpolation | `value` (number), `format?`, `className?` |
+| `StateBadge` | Color-coded status indicator (ping animation on active states) | `state`, `label?`, `colorMap?` |
+| `OEEGauge` | Three-ring donut (A/P/Q) — pure SVG + spring animation | `availability`, `performance`, `quality` (0-100) |
 | `SPCChart` | SPC chart with UCL/LCL/CL | `data`, `ucl`, `lcl`, `cl`, `label` |
-| `GanttChart` | CSS-based Gantt | `tasks` (id, label, resource, start, end, status), `dayStart`, `dayEnd` |
-| `KanbanBoard` | Drag-and-drop board | `columns` ({id, title, items[], color?}[]), `onMove(itemId, fromColumnId, toColumnId)`, `renderCard(item)` |
+| `GanttChart` | CSS-based Gantt with optional drag-and-drop scheduling | `tasks` (id, label, resource, start, end, status), `dayStart?`, `dayEnd?`, `onTaskMove?(taskId, newStart, newEnd, newResource)`, `snapMinutes?` (default 15) |
+| `KanbanBoard` | Drag-and-drop board with elevated drag feedback | `columns` ({id, title, items[], color?}[]), `onMove(itemId, fromColumnId, toColumnId)`, `renderCard(item)` |
 | `DataTable` | Table with sorting/search/pagination | `columns` (ColumnDef[]), `data`, `searchPlaceholder`, `pageSize` |
-| `TimelineView` | Vertical timeline | `items` (id, timestamp, title, description, variant) |
-| `MetricCard` | KPI card with trend | `label`, `value` (string), `unit?`, `trend?` (number, displayed as %), `icon?` |
-| `MiniSparkline` | Tiny inline area chart | `data` (number[]), `color?`, `height?` |
-| `AlarmBanner` | Alert notification strip | `severity` (critical/warning/info), `message`, `onDismiss?` |
+| `TimelineView` | Vertical timeline with staggered entry animation | `items` (id, timestamp, title, description, variant) |
+| `MetricCard` | KPI card with animated values, elevation, accent bar | `label`, `value` (string), `unit?`, `trend?` (number, displayed as %), `icon?` |
+| `MiniSparkline` | Tiny inline area chart — pure SVG with draw-in animation | `data` (number[]), `color?`, `height?` |
+| `AlarmBanner` | Alert strip with enter/exit animation + critical glow | `severity` (critical/warning/info), `message`, `onDismiss?`, `animate?` |
 | `ShiftBar` | Shift schedule with time marker | `shifts` (label, start, end, color)[], `currentHour?` |
-| `ProgressRing` | Circular progress | `value` (0-100), `label?`, `size?` |
-| `HeatmapGrid` | 2D color-intensity grid | `rows`, `cols`, `data` (number[][]), `colorScale?` |
-| `CountdownTimer` | Live countdown/elapsed timer | `targetTime` (Date), `mode?`, `label?` |
+| `ProgressRing` | Circular progress with spring animation | `value` (0-100), `label?`, `size?` |
+| `HeatmapGrid` | 2D color-intensity grid (OKLch interpolation) | `rows`, `cols`, `data` (number[][]), `colorScale?` |
+| `CountdownTimer` | Live countdown with flip-digit animation | `targetTime` (Date), `mode?`, `label?` |
 
 Import: `import { OEEGauge, DataTable, MetricCard } from "@/components/mes"`
 
@@ -254,6 +256,10 @@ try {
 - Black-and-white palette, `#B2ED1D` as accent (`var(--accent)`)
 - IBM Plex Mono is the only font (already loaded)
 - No dark mode
+- Elevation tokens: `--shadow-sm`, `--shadow-md`, `--shadow-lg` for depth hierarchy
+- Glow tokens: `--glow-critical`, `--glow-accent`, `--glow-warning` for state emphasis
+- Use `BorderBeam` from `@/components/ui/border-beam` for highlighted cards
+- All MES components use spring-based animations from `@/lib/motion` — never import `motion/react` directly
 
 ### Commands
 - `npm run build` — run ONCE at Step 5

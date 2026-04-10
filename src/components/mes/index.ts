@@ -1,3 +1,4 @@
+export { AnimatedNumber } from "./AnimatedNumber";
 export { StateBadge } from "./StateBadge";
 export { OEEGauge } from "./OEEGauge";
 export { SPCChart } from "./SPCChart";

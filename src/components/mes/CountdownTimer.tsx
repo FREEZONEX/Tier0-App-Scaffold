@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
+import { AnimatePresence, motion } from "@/lib/motion";
 
 /**
  * CountdownTimer — live countdown/count-up display for batch timers,
- * cycle times, or shift remaining time.
+ * cycle times, or shift remaining time. Features animated digit transitions.
  *
  * Usage:
  *   <CountdownTimer targetTime={new Date("2025-01-15T14:30:00")} label="Batch ETA" />
@@ -32,6 +33,35 @@ function formatDuration(totalSeconds: number): { h: string; m: string; s: string
   const m = String(Math.floor((abs % 3600) / 60)).padStart(2, "0");
   const s = String(Math.floor(abs % 60)).padStart(2, "0");
   return { h, m, s };
+}
+
+function FlipDigit({ value, className }: { value: string; className?: string }) {
+  return (
+    <span className={cn("relative inline-flex overflow-hidden", className)} style={{ width: "1.2em" }}>
+      <AnimatePresence mode="popLayout" initial={false}>
+        <motion.span
+          key={value}
+          className="inline-block tabular-nums"
+          initial={{ y: "100%", opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: "-100%", opacity: 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.8 }}
+        >
+          {value}
+        </motion.span>
+      </AnimatePresence>
+    </span>
+  );
+}
+
+function FlipGroup({ value, className }: { value: string; className?: string }) {
+  return (
+    <span className={cn("inline-flex", className)}>
+      {value.split("").map((digit, i) => (
+        <FlipDigit key={i} value={digit} className={className} />
+      ))}
+    </span>
+  );
 }
 
 export function CountdownTimer({
@@ -71,7 +101,7 @@ export function CountdownTimer({
         )}
       >
         {label && <span className="text-muted-foreground">{label}</span>}
-        {h}:{m}:{s}
+        <FlipGroup value={h} />:<FlipGroup value={m} />:<FlipGroup value={s} />
       </span>
     );
   }
@@ -89,17 +119,12 @@ export function CountdownTimer({
       )}
     >
       <div className="flex items-baseline gap-0.5">
-        <span className={cn("text-2xl font-semibold tabular-nums", isExpired && "text-red-700", isWarning && "text-amber-700")}>
-          {h}
-        </span>
-        <span className="text-lg text-muted-foreground">:</span>
-        <span className={cn("text-2xl font-semibold tabular-nums", isExpired && "text-red-700", isWarning && "text-amber-700")}>
-          {m}
-        </span>
-        <span className="text-lg text-muted-foreground">:</span>
-        <span className={cn("text-2xl font-semibold tabular-nums", isExpired && "text-red-700", isWarning && "text-amber-700")}>
-          {s}
-        </span>
+        {([h, m, s] as const).map((v, i) => (
+          <span key={i} className="contents">
+            {i > 0 && <span className="text-lg text-muted-foreground">:</span>}
+            <FlipGroup value={v} className={cn("text-2xl font-semibold", isExpired && "text-red-700", isWarning && "text-amber-700")} />
+          </span>
+        ))}
       </div>
       {label && (
         <span className="mt-1 text-[10px] uppercase tracking-[0.1em] text-muted-foreground">

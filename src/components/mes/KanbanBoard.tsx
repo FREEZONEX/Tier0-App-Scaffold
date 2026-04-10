@@ -70,8 +70,8 @@ function SortableCard<T extends KanbanItem>({
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
-        "cursor-grab rounded-lg border border-[var(--border)] bg-white p-3 shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing",
-        isDragging && "opacity-50"
+        "cursor-grab rounded-lg border border-[var(--border)] bg-white p-3 shadow-[var(--shadow-sm)] transition-all hover:shadow-[var(--shadow-md)] active:cursor-grabbing",
+        isDragging && "scale-[1.02] rotate-[1deg] shadow-[var(--shadow-lg)] opacity-90"
       )}
       {...attributes}
       {...listeners}
