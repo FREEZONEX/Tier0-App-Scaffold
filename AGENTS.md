@@ -293,10 +293,11 @@ try {
 
 ### Step 4: Frontend (all UI in one step)
 
-- Update `src/components/Shell.tsx` `defaultModules` array with icons
+- Update `src/components/Shell.tsx`: add modules to `defaultModules`, implement collapsible sidebar + mobile overlay
 - Build dashboard at `src/app/(app)/page.tsx` — real KPIs, charts, status indicators
-- Build each module page independently — choose UI patterns that fit **that entity's workflow**
+- Build each module page independently — vary UI patterns across modules (don't repeat the same layout everywhere)
 - All pages are `"use client"` components under `src/app/(app)/`
+- All pages must be responsive — test at mobile (375px), tablet (768px), desktop (1024px+)
 - **ALWAYS** use `apiUrl("/api/...")` from `@/lib/utils` — plain `"/api/..."` breaks in production
 - Use `usePolling()` from `@/lib/hooks` for dashboard polling
 
@@ -329,7 +330,7 @@ try {
 - NO new `.css` files — keep all styles as Tailwind utility classes
 - Theme uses CSS custom properties (oklch color space) — override via `globals.css` only
 
-### Visual Style
+### Visual Style & UI/UX
 - Black-and-white palette, `#B2ED1D` as accent (`var(--accent)`, `var(--accent-strong)` for hover)
 - IBM Plex Mono is the only font (already loaded via `@fontsource`)
 - No dark mode
@@ -338,6 +339,10 @@ try {
 - Surfaces: `--surface-raised` (cards), `--surface-inset` (inset areas)
 - Use `BorderBeam` from `@/components/ui/border-beam` for highlighted cards
 - All MES components use spring-based animations from `@/lib/motion` — never import `motion/react` directly
+- **Be creative with layout and interaction.** Don't settle for plain list→detail CRUD pages. Mix card grids, split views, inline editing, expandable rows, contextual drawers, drag-and-drop reordering — pick the pattern that best serves the data. Vary layouts across modules so the app feels rich, not repetitive.
+- **Use motion intentionally.** Staggered list entrances, spring-based number transitions, smooth tab crossfades, subtle hover lifts — small animations add polish. Avoid walls of static content.
+- **Responsive / mobile-first.** All pages must work on mobile (≥375px). Use responsive grid (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`), stack layouts vertically on small screens, and hide non-essential columns in tables on mobile. Test with Tailwind breakpoints: `sm` (640), `md` (768), `lg` (1024).
+- **Shell sidebar must be collapsible.** Add a toggle button to collapse the sidebar to icon-only mode (~w-14). On mobile (<md), the sidebar should be hidden by default and openable as an overlay. Persist collapse state in `localStorage`.
 
 ### Commands
 - `npm run build` — run ONCE at Step 5
@@ -360,6 +365,6 @@ try {
 - Seed: 5-10 records/table, idempotent (`onConflictDoUpdate`), interlinked, coherent business story
 - Auth: `PERMISSION_MATRIX` defined, `requireAuth()` on all write routes
 - API: full CRUD per entity, Zod validation, standard error handling pattern
-- UI: all pages `"use client"`, all fetch via `apiUrl()`, recharts in `<ResponsiveContainer>`, toast on mutations, empty states with actions
+- UI: all pages `"use client"`, all fetch via `apiUrl()`, recharts in `<ResponsiveContainer>`, toast on mutations, empty states with actions, responsive at 375px+, Shell collapsible + mobile overlay
 - Hydration: no date/browser-API in server components, motion from `@/lib/motion`, valid HTML nesting, all async APIs awaited
 - Build: `npm run build` passes with zero errors
