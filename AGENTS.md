@@ -49,7 +49,7 @@ src/
   components/
     Shell.tsx               ← Left navigation rail (update defaultModules array)
     ui/                     ← 29 shadcn components + BorderBeam (Base UI primitives, NOT Radix)
-    mes/                    ← 16 optional MES components (see §Optional MES Components)
+    mes/                    ← 28 optional MES components (see §Optional MES Components)
   db/
     index.ts                ← Drizzle client (DO NOT modify)
     schema.ts               ← Define tables + Zod schemas here (see examples in file comments)
@@ -114,15 +114,27 @@ Use these to save time, or build equivalent UI yourself — whatever fits the pa
 | `KanbanBoard` | Drag-and-drop board with elevated drag feedback | `columns` ({id, title, items[], color?}[]), `onMove(itemId, fromColumnId, toColumnId)`, `renderCard(item)` |
 | `DataTable` | Table with sorting/search/pagination | `columns` (ColumnDef[]), `data`, `searchPlaceholder`, `pageSize` |
 | `TimelineView` | Vertical timeline with staggered entry animation | `items` (id, timestamp, title, description, variant) |
-| `MetricCard` | KPI card with animated values, elevation, accent bar | `label`, `value` (string), `unit?`, `trend?` (number, displayed as %), `icon?` |
+| `MetricCard` | KPI card with animated values, elevation, accent bar, footer slot | `label`, `value` (string), `unit?`, `trend?`, `icon?`, `footer?` (ReactNode for sparkline etc.) |
 | `MiniSparkline` | Tiny inline area chart — pure SVG with draw-in animation | `data` (number[]), `color?`, `height?` |
 | `AlarmBanner` | Alert strip with enter/exit animation + critical glow | `severity` (critical/warning/info), `message`, `onDismiss?`, `animate?` |
 | `ShiftBar` | Shift schedule with time marker | `shifts` (label, start, end, color)[], `currentHour?` |
 | `ProgressRing` | Circular progress with spring animation | `value` (0-100), `label?`, `size?` |
 | `HeatmapGrid` | 2D color-intensity grid (OKLch interpolation) | `rows`, `cols`, `data` (number[][]), `colorScale?` |
 | `CountdownTimer` | Live countdown with flip-digit animation | `targetTime` (Date), `mode?`, `label?` |
+| `PageHeader` | Page top with title, breadcrumbs, badge, action slot | `title`, `description?`, `breadcrumbs?`, `badge?` (ReactNode), `actions?` (ReactNode) |
+| `TabbedCard` | Card with built-in tab navigation + crossfade | `tabs` ({id, label, icon?, content: ReactNode}[]), `defaultTab?`, `size?` |
+| `StepIndicator` | Horizontal process stage tracker | `steps` ({label, description?, status: completed/active/pending/error}[]), `size?` |
+| `TargetBar` | Compact actual vs target comparison bar | `label`, `actual` (number), `target` (number), `unit?`, `invertColor?` |
+| `Leaderboard` | Ranked list with visual bars | `items` ({label, value, meta?}[]), `title?`, `unit?`, `maxItems?` |
+| `ParetoChart` | Bar + cumulative line (quality analysis) | `data` ({label, count}[]), `height?`, `label?` |
+| `FleetGrid` | Dense grid of machine/device status tiles with optional sparkline | `items` ({id, label, status, metric?, sparkline?, icon?}[]), `columns?`, `onItemClick?` |
+| `ProcessFlow` | Horizontal pipeline with animated connectors | `stages` ({id, label, status, count?, icon?}[]) |
+| `FormSection` | Form region with title, description, field grid | `title`, `description?`, `columns?` (1/2/3), `children` |
+| `SummaryStrip` | Compact horizontal KPI summary bar | `items` ({label, value, color?, unit?}[]) |
+| `EmptyState` | Rich empty placeholder with icon and action | `title`, `description?`, `icon?`, `action?`, `compact?` |
+| `DetailDrawer` | Right-sliding detail panel (wraps Sheet) | `open`, `onOpenChange`, `title?`, `footer?`, `children` |
 
-Import: `import { OEEGauge, DataTable, MetricCard } from "@/components/mes"`
+Import: `import { OEEGauge, DataTable, MetricCard, PageHeader, FleetGrid } from "@/components/mes"`
 
 ## shadcn / Base UI — Critical Differences from Radix
 

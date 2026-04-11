@@ -25,6 +25,8 @@ interface MetricCardProps {
   invertTrend?: boolean;
   /** Optional icon (Lucide component) */
   icon?: React.ComponentType<{ className?: string }>;
+  /** Optional footer slot — e.g. a MiniSparkline, ProgressRing, or any ReactNode */
+  footer?: React.ReactNode;
   className?: string;
 }
 
@@ -41,6 +43,7 @@ export function MetricCard({
   trend,
   invertTrend = false,
   icon: Icon,
+  footer,
   className,
 }: MetricCardProps) {
   const trendColor = trend === undefined || trend === 0
@@ -98,6 +101,12 @@ export function MetricCard({
           <TrendIcon className="h-3 w-3" />
           <span className="tabular-nums">{Math.abs(trend).toFixed(1)}%</span>
           <span className="text-muted-foreground">vs prev</span>
+        </div>
+      )}
+
+      {footer && (
+        <div className="mt-3 -mx-4 -mb-4 border-t border-[var(--border)] px-4 py-2.5 bg-[var(--surface-inset)]">
+          {footer}
         </div>
       )}
     </div>
