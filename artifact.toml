@@ -39,3 +39,17 @@ HOSTNAME = "0.0.0.0"
 [services.production.health.startup]
 path = "/api/health"
 timeout = 120
+
+# Live preview（Executor Pod 内运行的 dev server）
+[services.preview]
+install = ["npm", "install"]
+args = ["npm", "run", "dev", "--", "--port", "3000", "--hostname", "0.0.0.0"]
+port = 3000
+
+[services.preview.health]
+path = "/api/health"
+timeout = 180
+
+[services.preview.env]
+NODE_ENV = "development"
+HOSTNAME = "0.0.0.0"
