@@ -1,7 +1,8 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { type ReactNode } from "react";
+import { type ReactNode, useRef } from "react";
+import { motion } from "@/lib/motion";
 
 /**
  * TimelineView — vertical timeline for audit logs, equipment events, etc.
@@ -39,9 +40,15 @@ const dotColors: Record<string, string> = {
 };
 
 export function TimelineView({ items, className }: TimelineViewProps) {
+  const hasMounted = useRef(false);
+
   if (!items.length) {
     return <p className="py-8 text-center text-xs text-muted-foreground">No events</p>;
   }
+
+  // Only animate on first mount
+  const shouldAnimate = !hasMounted.current;
+  if (!hasMounted.current) hasMounted.current = true;
 
   return (
     <div className={cn("relative", className)}>
@@ -50,7 +57,13 @@ export function TimelineView({ items, className }: TimelineViewProps) {
         const variant = item.variant ?? "default";
 
         return (
-          <div key={item.id} className="flex gap-3">
+          <motion.div
+            key={item.id}
+            className="flex gap-3"
+            initial={shouldAnimate ? { opacity: 0, x: -12 } : false}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: shouldAnimate ? idx * 0.03 : 0, duration: 0.25, ease: "easeOut" }}
+          >
             {/* Timestamp gutter */}
             <div className="w-14 shrink-0 pt-0.5 text-right text-[10px] text-muted-foreground">
               {item.timestamp}
@@ -78,7 +91,7 @@ export function TimelineView({ items, className }: TimelineViewProps) {
                 </p>
               )}
             </div>
-          </div>
+          </motion.div>
         );
       })}
     </div>

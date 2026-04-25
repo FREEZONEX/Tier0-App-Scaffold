@@ -31,17 +31,12 @@ interface HeatmapGridProps {
   className?: string;
 }
 
+/**
+ * OKLch-based color interpolation for perceptually uniform gradients.
+ * Falls back to CSS color-mix() which handles the colorspace conversion natively.
+ */
 function interpolateColor(low: string, high: string, t: number): string {
-  const parse = (hex: string) => {
-    const h = hex.replace("#", "");
-    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
-  };
-  const [lr, lg, lb] = parse(low);
-  const [hr, hg, hb] = parse(high);
-  const r = Math.round(lr + (hr - lr) * t);
-  const g = Math.round(lg + (hg - lg) * t);
-  const b = Math.round(lb + (hb - lb) * t);
-  return `rgb(${r},${g},${b})`;
+  return `color-mix(in oklch, ${high} ${Math.round(t * 100)}%, ${low})`;
 }
 
 export function HeatmapGrid({

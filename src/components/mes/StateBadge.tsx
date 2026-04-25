@@ -66,7 +66,15 @@ export function StateBadge({ state, label, colorMap, size = "md", className }: S
         className
       )}
     >
-      <span className={cn("shrink-0 rounded-full", colors.dot, dotSizes[size])} />
+      <span className="relative inline-flex shrink-0">
+        <span className={cn("rounded-full", colors.dot, dotSizes[size])} />
+        {(state.toLowerCase() === "running" || state.toLowerCase() === "active") && (
+          <span
+            className={cn("absolute inset-0 rounded-full", colors.dot)}
+            style={{ animation: "ping-dot 1.5s cubic-bezier(0, 0, 0.2, 1) infinite" }}
+          />
+        )}
+      </span>
       {displayLabel}
     </span>
   );

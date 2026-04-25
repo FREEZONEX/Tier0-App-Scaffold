@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { AnimatedNumber } from "./AnimatedNumber";
 
 /**
  * MetricCard — KPI card with large value, trend indicator, and optional sparkline area.
@@ -24,7 +25,15 @@ interface MetricCardProps {
   invertTrend?: boolean;
   /** Optional icon (Lucide component) */
   icon?: React.ComponentType<{ className?: string }>;
+  /** Optional footer slot — e.g. a MiniSparkline, ProgressRing, or any ReactNode */
+  footer?: React.ReactNode;
   className?: string;
+}
+
+function parseNumeric(value: string): number | null {
+  const cleaned = value.replace(/[,%]/g, "");
+  const n = Number(cleaned);
+  return Number.isFinite(n) ? n : null;
 }
 
 export function MetricCard({
@@ -34,6 +43,7 @@ export function MetricCard({
   trend,
   invertTrend = false,
   icon: Icon,
+  footer,
   className,
 }: MetricCardProps) {
   const trendColor = trend === undefined || trend === 0
@@ -48,13 +58,22 @@ export function MetricCard({
       ? TrendingUp
       : TrendingDown;
 
+  const numericValue = parseNumeric(value);
+  const hasDecimals = value.includes(".");
+  const formatFn = hasDecimals
+    ? (n: number) => n.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+    : (n: number) => Math.round(n).toLocaleString();
+
   return (
     <div
       className={cn(
-        "flex flex-col justify-between rounded-lg border border-[var(--border)] bg-white p-4 transition-shadow hover:shadow-sm",
+        "relative flex flex-col justify-between overflow-hidden rounded-lg border border-[var(--border)] bg-white p-4 shadow-[var(--shadow-sm)] transition-shadow hover:shadow-[var(--shadow-md)]",
         className
       )}
     >
+      {/* Left accent bar */}
+      <div className="absolute inset-y-0 left-0 w-[2px] bg-[var(--accent)]" />
+
       <div className="flex items-center justify-between">
         <span className="text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
           {label}
@@ -63,17 +82,31 @@ export function MetricCard({
       </div>
 
       <div className="mt-2 flex items-baseline gap-1.5">
-        <span className="text-2xl font-semibold tabular-nums">{value}</span>
+        {numericValue !== null ? (
+          <AnimatedNumber
+            value={numericValue}
+            format={formatFn}
+            className="text-2xl font-semibold"
+          />
+        ) : (
+          <span className="text-2xl font-semibold tabular-nums">{value}</span>
+        )}
         {unit && (
           <span className="text-xs text-muted-foreground">{unit}</span>
         )}
       </div>
 
       {trend !== undefined && (
-        <div className={cn("mt-2 flex items-center gap-1 text-xs", trendColor)}>
+        <div className={cn("mt-2 flex items-center gap-1 text-xs transition-transform", trendColor)}>
           <TrendIcon className="h-3 w-3" />
           <span className="tabular-nums">{Math.abs(trend).toFixed(1)}%</span>
           <span className="text-muted-foreground">vs prev</span>
+        </div>
+      )}
+
+      {footer && (
+        <div className="mt-3 -mx-4 -mb-4 border-t border-[var(--border)] px-4 py-2.5 bg-[var(--surface-inset)]">
+          {footer}
         </div>
       )}
     </div>

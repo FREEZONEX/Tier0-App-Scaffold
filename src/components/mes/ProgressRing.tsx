@@ -1,10 +1,12 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { motion } from "@/lib/motion";
+import { AnimatedNumber } from "./AnimatedNumber";
 
 /**
  * ProgressRing — single-metric circular progress indicator.
- * Lighter-weight than OEEGauge for simple completion/utilization metrics.
+ * Uses spring animation for natural deceleration feel.
  *
  * Usage:
  *   <ProgressRing value={72} label="Yield" />
@@ -53,7 +55,7 @@ export function ProgressRing({
           strokeWidth={strokeWidth}
         />
         {/* Value */}
-        <circle
+        <motion.circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
@@ -62,13 +64,18 @@ export function ProgressRing({
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          className="transition-[stroke-dashoffset] duration-500 ease-out"
+          initial={{ strokeDashoffset: circumference }}
+          animate={{ strokeDashoffset: offset }}
+          transition={{ type: "spring", stiffness: 60, damping: 15 }}
         />
       </svg>
 
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-sm font-semibold tabular-nums">{Math.round(value)}%</span>
+        <AnimatedNumber
+          value={Math.round(value)}
+          format={(n) => `${Math.round(n)}%`}
+          className="text-sm font-semibold"
+        />
         {label && (
           <span className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground">
             {label}

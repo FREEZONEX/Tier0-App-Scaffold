@@ -1,11 +1,12 @@
 "use client";
 
-import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { cn } from "@/lib/utils";
+import { motion } from "@/lib/motion";
+import { AnimatedNumber } from "./AnimatedNumber";
 
 /**
  * OEEGauge — three-ring donut showing Availability / Performance / Quality
- * with a center OEE value.
+ * with a center OEE value. Pure SVG + motion — no recharts dependency.
  *
  * Usage:
  *   <OEEGauge availability={92} performance={87} quality={98} />
@@ -23,11 +24,57 @@ interface OEEGaugeProps {
   className?: string;
 }
 
-function ring(value: number, color: string) {
-  return [
-    { value, fill: color },
-    { value: 100 - value, fill: "transparent" },
-  ];
+interface RingProps {
+  value: number;
+  color: string;
+  radius: number;
+  strokeWidth: number;
+  center: number;
+}
+
+const trackColor = "#f4f4f5";
+
+const springTransition = {
+  type: "spring" as const,
+  stiffness: 60,
+  damping: 15,
+};
+
+function Ring({ value, color, radius, strokeWidth, center }: RingProps) {
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference * (1 - Math.min(Math.max(value, 0), 100) / 100);
+
+  return (
+    <>
+      {/* Track */}
+      <circle
+        cx={center}
+        cy={center}
+        r={radius}
+        fill="none"
+        stroke={trackColor}
+        strokeWidth={strokeWidth}
+      />
+      {/* Value */}
+      <motion.circle
+        cx={center}
+        cy={center}
+        r={radius}
+        fill="none"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeDasharray={circumference}
+        initial={{ strokeDashoffset: circumference }}
+        animate={{ strokeDashoffset: offset }}
+        transition={springTransition}
+        style={{
+          transform: `rotate(-90deg)`,
+          transformOrigin: `${center}px ${center}px`,
+        }}
+      />
+    </>
+  );
 }
 
 export function OEEGauge({
@@ -38,45 +85,27 @@ export function OEEGauge({
   className,
 }: OEEGaugeProps) {
   const oee = Math.round((availability * performance * quality) / 10000);
-  const trackColor = "#f4f4f5"; // gray-100
+  const center = size / 2;
+  const strokeWidth = size * 0.06;
+  const gap = size * 0.04;
+
+  const outerR = center - strokeWidth / 2 - 2;
+  const midR = outerR - strokeWidth - gap;
+  const innerR = midR - strokeWidth - gap;
 
   return (
     <div className={cn("relative", className)} style={{ width: size, height: size }}>
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          {/* Track rings (background) */}
-          <Pie data={[{ value: 100 }]} dataKey="value" cx="50%" cy="50%" innerRadius="78%" outerRadius="88%" startAngle={90} endAngle={-270} stroke="none">
-            <Cell fill={trackColor} />
-          </Pie>
-          <Pie data={[{ value: 100 }]} dataKey="value" cx="50%" cy="50%" innerRadius="60%" outerRadius="70%" startAngle={90} endAngle={-270} stroke="none">
-            <Cell fill={trackColor} />
-          </Pie>
-          <Pie data={[{ value: 100 }]} dataKey="value" cx="50%" cy="50%" innerRadius="42%" outerRadius="52%" startAngle={90} endAngle={-270} stroke="none">
-            <Cell fill={trackColor} />
-          </Pie>
-
-          {/* Value rings */}
-          <Pie data={ring(availability, "var(--accent)")} dataKey="value" cx="50%" cy="50%" innerRadius="78%" outerRadius="88%" startAngle={90} endAngle={-270} stroke="none" cornerRadius={4}>
-            {ring(availability, "").map((_, i) => (
-              <Cell key={i} fill={i === 0 ? "var(--accent)" : "transparent"} />
-            ))}
-          </Pie>
-          <Pie data={ring(performance, "#71717a")} dataKey="value" cx="50%" cy="50%" innerRadius="60%" outerRadius="70%" startAngle={90} endAngle={-270} stroke="none" cornerRadius={4}>
-            {ring(performance, "").map((_, i) => (
-              <Cell key={i} fill={i === 0 ? "#71717a" : "transparent"} />
-            ))}
-          </Pie>
-          <Pie data={ring(quality, "#27272a")} dataKey="value" cx="50%" cy="50%" innerRadius="42%" outerRadius="52%" startAngle={90} endAngle={-270} stroke="none" cornerRadius={4}>
-            {ring(quality, "").map((_, i) => (
-              <Cell key={i} fill={i === 0 ? "#27272a" : "transparent"} />
-            ))}
-          </Pie>
-        </PieChart>
-      </ResponsiveContainer>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <Ring value={availability} color="var(--accent)" radius={outerR} strokeWidth={strokeWidth} center={center} />
+        <Ring value={performance} color="#71717a" radius={midR} strokeWidth={strokeWidth} center={center} />
+        <Ring value={quality} color="#27272a" radius={innerR} strokeWidth={strokeWidth} center={center} />
+      </svg>
 
       {/* Center label */}
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-2xl font-semibold">{oee}%</span>
+        <span className="text-2xl font-semibold">
+          <AnimatedNumber value={oee} format={(n) => `${Math.round(n)}%`} />
+        </span>
         <span className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">OEE</span>
       </div>
 
