@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { type ReactNode, type ElementType, useEffect, useState } from "react";
-import { cn } from "@/lib/utils";
-import { apiUrl } from "@/lib/utils";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { type ReactNode, type ElementType } from "react";
+import { cn, apiUrl } from "@/lib/utils";
+import type { AppUser } from "@/lib/users";
 
 export interface NavModule {
   key: string;
@@ -18,41 +17,26 @@ export const defaultModules: NavModule[] = [
   { key: "dashboard", label: "Dashboard", href: "/" },
 ];
 
-interface UserInfo {
-  displayName: string;
-  role: string;
-}
-
-function useCurrentUser() {
-  const [user, setUser] = useState<UserInfo | null>(null);
-  useEffect(() => {
-    fetch(apiUrl("/api/auth/me"))
-      .then((r) => (r.ok ? r.json() : null))
-      .then(setUser)
-      .catch(() => setUser(null));
-  }, []);
-  return user;
-}
-
 export function Shell({
   modules = defaultModules,
+  user,
   children,
 }: {
   modules?: NavModule[];
+  user: AppUser;
   children: ReactNode;
 }) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const user = useCurrentUser();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
 
   async function handleLogout() {
     await fetch(apiUrl("/api/auth/logout"), { method: "POST" });
-    router.push("/login");
+    navigate({ to: "/login" });
   }
 
   function handleSwitchRole() {
     fetch(apiUrl("/api/auth/logout"), { method: "POST" }).then(() => {
-      router.push("/login");
+      navigate({ to: "/login" });
     });
   }
 
@@ -75,12 +59,16 @@ export function Shell({
             return (
               <Link
                 key={mod.key}
-                href={mod.href}
+                // `as never`: defaultModules is mutated by the Agent at build time,
+                // so the router-typed `to` prop cannot statically know the routes
+                // an agent will introduce. Type-safety is preserved everywhere
+                // else Link is used directly.
+                to={mod.href as never}
                 className={cn(
                   "mb-0.5 flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-xs font-medium transition-colors",
                   isActive
                     ? "bg-[var(--accent)] text-foreground"
-                    : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
+                    : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
                 )}
               >
                 {Icon && <Icon className="size-4 shrink-0" />}
@@ -91,16 +79,14 @@ export function Shell({
         </div>
 
         <div className="border-t border-border px-4 py-3 space-y-2">
-          {user && (
-            <div className="flex items-center justify-between">
-              <div className="min-w-0">
-                <p className="truncate text-xs font-medium">{user.displayName}</p>
-                <span className="inline-block rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                  {user.role}
-                </span>
-              </div>
+          <div className="flex items-center justify-between">
+            <div className="min-w-0">
+              <p className="truncate text-xs font-medium">{user.displayName}</p>
+              <span className="inline-block rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                {user.role}
+              </span>
             </div>
-          )}
+          </div>
           <div className="flex gap-2">
             <button
               onClick={handleSwitchRole}

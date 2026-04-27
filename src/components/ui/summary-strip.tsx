@@ -1,7 +1,6 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { AnimatedNumber } from "./AnimatedNumber";
 
 /**
  * SummaryStrip — horizontal compact KPI summary bar.
@@ -21,11 +20,11 @@ import { AnimatedNumber } from "./AnimatedNumber";
 interface SummaryItem {
   label: string;
   value: number;
-  /** Optional color accent for the value. */
+  /** Optional color accent for the underline. */
   color?: string;
-  /** Unit suffix */
+  /** Unit suffix shown under the value. */
   unit?: string;
-  /** Number format function */
+  /** Number format function. Defaults to `n.toLocaleString()`. */
   format?: (n: number) => string;
 }
 
@@ -41,24 +40,30 @@ export function SummaryStrip({ items, className }: SummaryStripProps) {
     <div
       className={cn(
         "flex flex-wrap items-center divide-x divide-[var(--border)] rounded-lg border border-[var(--border)] bg-white shadow-[var(--shadow-sm)]",
-        className
+        className,
       )}
     >
       {items.map((item, i) => (
-        <div key={i} className="flex flex-1 flex-col items-center gap-0.5 px-4 py-3 min-w-[100px]">
-          <AnimatedNumber
-            value={item.value}
-            format={item.format ?? defaultFormat}
-            className="text-lg font-bold tabular-nums"
-          />
+        <div
+          key={i}
+          className="flex flex-1 flex-col items-center gap-0.5 px-4 py-3 min-w-[100px]"
+        >
+          <span className="text-lg font-bold tabular-nums">
+            {(item.format ?? defaultFormat)(item.value)}
+          </span>
           {item.unit && (
-            <span className="text-[10px] text-muted-foreground">{item.unit}</span>
+            <span className="text-[10px] text-muted-foreground">
+              {item.unit}
+            </span>
           )}
           <span className="text-[10px] text-muted-foreground whitespace-nowrap">
             {item.label}
           </span>
           {item.color && (
-            <span className="mt-0.5 h-[2px] w-6 rounded-full" style={{ backgroundColor: item.color }} />
+            <span
+              className="mt-0.5 h-[2px] w-6 rounded-full"
+              style={{ backgroundColor: item.color }}
+            />
           )}
         </div>
       ))}

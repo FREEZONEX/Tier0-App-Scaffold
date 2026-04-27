@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "@tanstack/react-router";
 import { apiUrl } from "@/lib/utils";
 
 export function RoleSelector({
@@ -11,7 +11,7 @@ export function RoleSelector({
   roles: string[];
   redirectTo: string;
 }) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState("");
 
@@ -30,7 +30,7 @@ export function RoleSelector({
         setLoading(null);
         return;
       }
-      router.push(redirectTo);
+      navigate({ to: redirectTo as never });
     } catch {
       setError("Network error");
       setLoading(null);
@@ -62,9 +62,7 @@ export function RoleSelector({
           </button>
         ))}
       </div>
-      {error && (
-        <p className="text-xs text-red-600">{error}</p>
-      )}
+      {error && <p className="text-xs text-red-600">{error}</p>}
     </div>
   );
 }

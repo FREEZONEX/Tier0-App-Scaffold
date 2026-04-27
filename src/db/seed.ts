@@ -13,13 +13,20 @@ const pool = new Pool({
 });
 const db = drizzle(pool, { schema });
 
+// Re-export so the example block below stays self-contained when uncommented.
+void db;
+
 async function main() {
   console.log("Seeding database...");
 
   // ─── Agent: add your seed data here ───
   //
+  // Until you replace this block, the script throws — a no-op seed is almost
+  // always a bug (you ran it, nothing happened, you assumed it worked).
+  // Delete the throw once you've added at least one insert below.
+  //
   // Use db.insert().values([...]).onConflictDoUpdate() for idempotency.
-  // Include 5-10 records per table with interlinked references.
+  // Include 5–10 records per table with interlinked references.
   //
   // Example with nullable + JSON fields:
   //
@@ -61,6 +68,11 @@ async function main() {
   //     },
   //   });
 
+  throw new Error(
+    "src/db/seed.ts is unconfigured — add your insert statements and remove this throw.",
+  );
+
+  // eslint-disable-next-line no-unreachable
   console.log("Seeding complete.");
 }
 
