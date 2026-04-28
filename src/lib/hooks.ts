@@ -40,6 +40,8 @@ export function usePolling<T>(
 
   useEffect(() => {
     if (!enabled) {
+      // Clear loading when the consumer disables the poll.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsLoading(false);
       return;
     }

@@ -155,7 +155,7 @@ export function GanttChart({
     const timelineArea = container.querySelector("[data-gantt-rows]") as HTMLElement;
     if (!timelineArea) return;
 
-    const rect = timelineArea.getBoundingClientRect();
+    const _rect = timelineArea.getBoundingClientRect();
     const barEl = (e.currentTarget as HTMLElement);
     const barRect = barEl.getBoundingClientRect();
 
@@ -210,6 +210,8 @@ export function GanttChart({
 
       setDrag((prev) => prev ? { ...prev, previewWidth: newWidth } : null);
     }
+    // snapMinutes is read inside but is a stable prop; intentional omit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [drag, pxToMinutes, minToPercent, totalMinutes, yToResource]);
 
   const handlePointerUp = useCallback(() => {
@@ -270,7 +272,7 @@ export function GanttChart({
 
       {/* Rows */}
       <div data-gantt-rows="" className="relative">
-        {resources.map(([resource, rTasks], rowIndex) => (
+        {resources.map(([resource, rTasks], _rowIndex) => (
           <div key={resource} className="flex border-b border-[var(--border)] last:border-b-0">
             <div className="flex w-28 shrink-0 items-center border-r border-[var(--border)] px-3 text-xs font-medium" style={{ height: ROW_HEIGHT }}>
               {resource}

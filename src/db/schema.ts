@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars --
+ * The imports below are intentional templates for the agent to consume when
+ * defining schemas. They become "used" the moment the agent adds the first table.
+ */
 import { pgTable, pgEnum, text, integer, boolean, timestamp, json, real } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-zod";
 

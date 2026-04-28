@@ -252,50 +252,55 @@ Authentication is handled by the platform gateway. The app does NOT manage passw
 - `date-fns` — Date manipulation and formatting
 - `motion` — Import from `@/lib/motion` (NOT `motion/react`). Exports: `motion`, `AnimatePresence`, `useSpring`, `useTransform`, `useMotionValue`, `MotionConfig`
 
-## Optional MES Components (`src/components/mes/`)
+## Optional MES Components
 
-Import: `import { OEEGauge, DataTable, MetricCard } from "@/components/mes"`
+> **READ THE SOURCE BEFORE USING.** This list deliberately does NOT enumerate props — they evolve, and a stale prop table is worse than no table. Before you write a `<MetricCard ...>` JSX call, **`Read` the component file** so you ground on the actual `interface`. A typical MES page touches 5–8 components; batch-read all of them up front, **then** write the page. Skipping this step costs more in fix-up cycles than it saves up front.
+>
+> **Common drift traps you will hit if you trust prior knowledge:** props like `onClose` vs `onOpenChange`, `action` shape (object vs ReactNode), `trend` shape (object vs number), variant names (`"error"/"info"` vs `"destructive"/"default"`), event-handler signatures (full item vs just `id`), and missing-prop hallucinations (e.g. there is no `onRowClick` on `DataTable`).
 
-These are MES-shaped (manufacturing-domain) visualizations and patterns. Generic UI primitives (drawers, page headers, toasts, empty states, etc.) live in `@/components/ui/*` — see the second table below.
+### MES-shaped (manufacturing domain) — `src/components/mes/`
 
-| Component | Purpose | Key Props |
-|-----------|---------|-----------|
-| `MetricCard` | KPI card with trend, accent bar, footer slot | `label`, `value`, `unit?`, `trend?`, `icon?`, `footer?` (ReactNode) |
-| `AnimatedNumber` | Spring-interpolated number (used by MetricCard, OEEGauge, etc.) | `value`, `format?`, `className?` |
-| `MiniSparkline` | Tiny inline SVG area chart (~40px) | `data` (number[]), `color?`, `height?` |
-| `OEEGauge` | Three-ring donut (A/P/Q) — pure SVG | `availability`, `performance`, `quality` (0-100), `size?` |
-| `ProgressRing` | Circular progress with spring animation | `value` (0-100), `label?`, `size?` |
-| `TargetBar` | Actual vs target comparison bar | `label`, `actual`, `target`, `unit?`, `invertColor?` |
-| `SPCChart` | SPC chart with UCL/LCL/CL (Recharts) | `data`, `ucl`, `lcl`, `cl`, `label?` |
-| `ParetoChart` | Bar + cumulative % line (Recharts) | `data` ({label, count}[]), `height?`, `label?` |
-| `HeatmapGrid` | 2D color-intensity grid (OKLch) | `rows`, `cols`, `data` (number[][]), `colorScale?` |
-| `GanttChart` | CSS Gantt, optional drag-to-reschedule | `tasks` (GanttTask[]), `dayStart?`, `dayEnd?`, `onTaskMove?`, `snapMinutes?` |
-| `KanbanBoard` | Drag-and-drop multi-column board (@dnd-kit) | `columns` (KanbanColumn[]), `onMove`, `renderCard` |
-| `TimelineView` | Vertical timeline with staggered animation | `items` (TimelineItem[]) |
-| `ProcessFlow` | Horizontal pipeline with animated connectors | `stages` ({id, label, status, count?, icon?}[]) |
-| `StepIndicator` | Horizontal step tracker | `steps` ({label, description?, status}[]), `size?` |
-| `ShiftBar` | Shift schedule bar with time marker | `shifts` ({label, start, end, color}[]), `currentHour?` |
-| `DataTable` | Table: sorting, search, pagination (@tanstack/react-table) | `columns` (ColumnDef[]), `data`, `searchPlaceholder?`, `pageSize?` |
-| `FleetGrid` | Dense machine status tile grid | `items` ({id, label, status, metric?, sparkline?}[]), `columns?`, `onItemClick?` |
-| `Leaderboard` | Ranked list with visual bars | `items` ({label, value, meta?}[]), `title?`, `unit?` |
-| `StateBadge` | Color-coded status with optional ping animation | `state`, `label?`, `colorMap?` |
-| `AlarmBanner` | Alert strip with animation + critical glow | `severity`, `message`, `onDismiss?` |
+Import via the barrel: `import { OEEGauge, DataTable, MetricCard } from "@/components/mes"`.
 
-### UI primitives in `src/components/ui/` (not MES-specific)
+| Component | What it is |
+|-----------|------------|
+| `MetricCard` | KPI card with trend indicator, accent bar, footer slot |
+| `AnimatedNumber` | Spring-interpolated number (also used internally by other MES components) |
+| `MiniSparkline` | Tiny inline SVG area chart (~40px) for embedding in cards/rows |
+| `OEEGauge` | Three-ring donut for Availability / Performance / Quality |
+| `ProgressRing` | Single-metric circular progress |
+| `TargetBar` | Actual-vs-target horizontal comparison bar |
+| `SPCChart` | Statistical process control chart with UCL/LCL/CL (Recharts) |
+| `ParetoChart` | Bar + cumulative-percent line for quality analysis (Recharts) |
+| `HeatmapGrid` | 2D color-intensity grid for shift / fleet metrics |
+| `GanttChart` | CSS Gantt with optional drag-to-reschedule |
+| `KanbanBoard` | Multi-column drag-and-drop board (@dnd-kit) |
+| `TimelineView` | Vertical timeline for audit logs and event streams |
+| `ProcessFlow` | Horizontal pipeline visualization with stage connectors |
+| `StepIndicator` | Horizontal process / workflow step tracker |
+| `ShiftBar` | Shift schedule bar with current-hour marker |
+| `DataTable` | Sortable / searchable / paginated table (@tanstack/react-table). Note: does not emit row clicks; use cell renderers if you need per-row actions |
+| `FleetGrid` | Dense machine / device status tile grid |
+| `Leaderboard` | Ranked list with proportional bars |
+| `StateBadge` | Color-coded state pill with optional ping |
+| `AlarmBanner` | Severity alert strip with animation |
+
+### Project-level UI primitives — `src/components/ui/`
 
 Imported per-file (shadcn convention): `import { PageHeader } from "@/components/ui/page-header"`.
 
-| Component | File | Purpose |
-|-----------|------|---------|
-| `PageHeader` | `ui/page-header.tsx` | Title + breadcrumbs + action slot |
-| `SummaryStrip` | `ui/summary-strip.tsx` | Horizontal compact KPI bar |
-| `TabbedCard` | `ui/tabbed-card.tsx` | Card with tab navigation + crossfade |
-| `DetailDrawer` | `ui/detail-drawer.tsx` | Right-sliding panel (wraps Sheet) |
-| `FormSection` | `ui/form-section.tsx` | Form region with column grid |
-| `EmptyState` | `ui/empty-state.tsx` | Empty placeholder with icon + action |
+| Component | File | What it is |
+|-----------|------|------------|
+| `PageHeader` | `ui/page-header.tsx` | Page top — title, breadcrumbs, badge, actions slot |
+| `SummaryStrip` | `ui/summary-strip.tsx` | Horizontal compact KPI summary bar |
+| `TabbedCard` | `ui/tabbed-card.tsx` | Card with built-in tab navigation |
+| `DetailDrawer` | `ui/detail-drawer.tsx` | Right-sliding detail panel (wraps `Sheet`) |
+| `FormSection` | `ui/form-section.tsx` | Form region with title + column grid |
+| `EmptyState` | `ui/empty-state.tsx` | Empty placeholder with icon and action slot |
 | `Toaster` | `ui/toaster.tsx` | Already mounted in `__root.tsx`. Just call `toast()`, `toast.success()`, `toast.error()` from `sonner` |
+| `ClientOnly` | `ui/client-only.tsx` | Render children only after hydration — see `§Hydration Pitfalls` |
 
-Plus the standard shadcn primitives (button, card, dialog, input, etc.) — see the file listing under `src/components/ui/`.
+Plus the standard shadcn primitives (button, card, dialog, input, etc.) — listed under `src/components/ui/`. Same rule: `Read` the source before using.
 
 ## shadcn / Base UI — Critical Differences from Radix
 
@@ -365,6 +370,40 @@ const navigate = useNavigate(); navigate({ to: "/x" });
 
 ## Hydration Pitfalls
 
+### `"use client"` is a no-op here
+
+Unlike Next.js, TanStack Start does **not** split server/client bundles via the `"use client"` directive — it's harmless legacy. Every component runs through SSR by default. That means libraries that touch React context at module scope, or `window` / `document` in render, will crash during the SSR pass with errors like:
+
+- `Cannot read properties of null (reading 'useContext')` ← **this is recharts**
+- `document is not defined` ← dnd-kit, `motion` with layout features
+- silent hydration mismatches (Date, Math.random, etc.)
+
+### Use `<ClientOnly>` for libraries that can't SSR
+
+Wrap recharts (and any other client-context-dependent subtree) in the shipped `ClientOnly` helper. It returns the `fallback` during SSR and swaps to children after `useEffect` fires post-hydration.
+
+```tsx
+import { ClientOnly } from "@/components/ui/client-only";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ResponsiveContainer, LineChart, Line } from "recharts";
+
+// Recharts MUST be inside ClientOnly — without it, every page that imports
+// a chart will SSR-crash with "Cannot read properties of null (reading 'useContext')".
+<div className="h-72">
+  <ClientOnly fallback={<Skeleton className="h-full w-full" />}>
+    <ResponsiveContainer width="100%" height="100%">
+      <LineChart data={data}>
+        <Line dataKey="value" />
+      </LineChart>
+    </ResponsiveContainer>
+  </ClientOnly>
+</div>
+```
+
+A common pattern: extract the chart into its own file (`dashboard-charts.tsx`) and `<ClientOnly>` the whole import in the page. Keeps the page SSR-friendly while charts stay isolated.
+
+### Other hydration footguns
+
 ```tsx
 // 1. Date/Time — WRONG: mismatch between server SSR and client timezones
 <span>{new Date().toLocaleString()}</span>
@@ -373,7 +412,7 @@ const [time, setTime] = useState(""); useEffect(() => setTime(new Date().toLocal
 
 // 2. Browser APIs — WRONG: window/localStorage don't exist during SSR
 <div>{window.innerWidth}</div>
-// CORRECT: guard with useEffect
+// CORRECT: guard with useEffect, or wrap in <ClientOnly>
 const [width, setWidth] = useState(0); useEffect(() => setWidth(window.innerWidth), []);
 
 // 3. Random values — WRONG: different on server vs client
@@ -384,15 +423,14 @@ const [width, setWidth] = useState(0); useEffect(() => setWidth(window.innerWidt
 <p><div>X</div></p>
 // CORRECT: valid nesting only
 
-// 5. motion import — WRONG: missing client boundary
+// 5. motion import — WRONG: bypasses the shared client wrapper
 import { motion } from "motion/react";
 // CORRECT:
 import { motion } from "@/lib/motion";
 
-// 6. Recharts — WRONG: zero-height container
+// 6. Recharts — WRONG: zero-height container OR no ClientOnly
 <div style={{ height: 0 }}><ResponsiveContainer>...</ResponsiveContainer></div>
-// CORRECT: explicit height wrapper
-<div style={{ height: 300 }}><ResponsiveContainer width="100%" height={300}>...</ResponsiveContainer></div>
+// CORRECT: explicit height wrapper + ClientOnly (see above)
 
 // 7. TanStack Router params/search — WRONG: do NOT await, they are sync
 export const Route = createFileRoute("/_app/work-orders/$id")({ component: Page });
@@ -407,7 +445,7 @@ import { getCookie } from "@tanstack/react-start/server";
 // createServerFn handler bodies, or src/start.ts middleware.
 ```
 
-**Shell safety:** `useCurrentUser()` returns `null` initially then fetches via `/api/auth/me`. Do NOT render user info synchronously — it will break hydration.
+**Shell + user identity:** the parent `_app.tsx` route loads the user via `beforeLoad` (server-side, cookie-signed) and passes it as a prop to `Shell`. Read the user from any nested page via `Route.useRouteContext()` — synchronous, type-safe, no fetch round-trip. Do NOT add a separate `/api/auth/me` fetch in nested pages.
 
 ## Build Order (MANDATORY — sequential, no skipping)
 
@@ -599,9 +637,10 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 - Use `<Link to="/path">` from `@tanstack/react-router` for navigation, `useNavigate()` for programmatic
 - Use `useRouterState({ select: s => s.location.pathname })` if you need the current pathname
 
-### Step 5: Final Build
+### Step 5: Final Build & Lint
 
 - Run `npm run build` — fix errors and retry, max 3 attempts
+- Run `npm run lint` — must report **0 errors AND 0 warnings**. Most warnings come from unused imports / unused vars left over from intermediate iterations; clean them up before declaring done. (`npm run lint -- --fix` will auto-fix most.) Treat warnings as failures here even though ESLint exits 0 — they are exactly the residue that masks real problems on the next change.
 
 ## Key Rules
 
@@ -647,6 +686,7 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 
 ### Commands
 - `npm run build` — run ONCE at Step 5 (vite build → `dist/{client,server}`)
+- `npm run lint` — run at Step 5; required **0 warnings** to declare done. `npm run lint -- --fix` auto-fixes most.
 - `npx drizzle-kit push` — run ONCE at Step 1
 - `npx tsx src/db/seed.ts` — run ONCE at Step 2
 - NEVER start dev servers manually (use `preview_start` MCP), NEVER run interactive commands
@@ -669,6 +709,6 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 - Auth: `PERMISSION_MATRIX` defined, `requireAuth()` on all write routes
 - Services: one file per domain entity in `src/services/`, all multi-step writes wrapped in `db.transaction`, state machines defined as transition tables, throw `{ status, message }` for caller-facing errors. **No `db` imports outside `src/services/` and `src/db/seed.ts`.**
 - API: full CRUD per entity via `createFileRoute(...).server.handlers`, every handler wrapped in `withErrors`, body ≤ 10 lines (auth → parse → service call → Response.json). No business logic in handlers.
-- UI: all pages mounted under `_app.tsx` via `createFileRoute("/_app/...")`, all fetch via `apiUrl()`, recharts in `<ResponsiveContainer>`, toast on mutations, empty states with actions, responsive at 375px+, Shell collapsible + mobile overlay
-- Hydration: no date/browser-API at first render, motion from `@/lib/motion`, valid HTML nesting, `Route.useParams()` / `Route.useSearch()` (never awaited), no server-only imports in client components
-- Build: `npm run build` passes with zero errors
+- UI: all pages mounted under `_app.tsx` via `createFileRoute("/_app/...")`, all fetch via `apiUrl()`, recharts wrapped in `<ClientOnly>` AND `<ResponsiveContainer>`, toast on mutations, empty states with actions, responsive at 375px+, Shell collapsible + mobile overlay. Component props were verified against source via `Read` before use (no guessing prop shapes).
+- Hydration: no date/browser-API at first render, motion from `@/lib/motion`, valid HTML nesting, `Route.useParams()` / `Route.useSearch()` (never awaited), no server-only imports in client components, recharts/dnd-kit subtrees wrapped in `<ClientOnly>`
+- Build: `npm run build` passes with **0 errors** AND `npm run lint` reports **0 warnings, 0 errors**
