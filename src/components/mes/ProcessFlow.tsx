@@ -79,11 +79,11 @@ export function ProcessFlow({ stages, className }: ProcessFlowProps) {
             {/* Stage node */}
             <div
               className={cn(
-                "relative flex min-w-[100px] flex-col items-center gap-1 rounded-lg border-2 px-4 py-3 transition-shadow",
+                "relative flex min-w-[100px] flex-col items-center gap-1 rounded-sm border-2 px-3 py-2.5 transition-colors",
                 style.bg,
                 style.border,
                 style.text,
-                isActive && "shadow-glow-accent"
+                isActive && "ring-2 ring-foreground/15 ring-offset-1 ring-offset-background",
               )}
             >
               {Icon && <Icon className="h-4 w-4" />}

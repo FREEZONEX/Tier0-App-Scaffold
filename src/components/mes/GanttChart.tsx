@@ -53,8 +53,8 @@ interface GanttChartProps {
 }
 
 const statusColors: Record<string, string> = {
-  running:   "bg-[var(--accent)]",
-  active:    "bg-[var(--accent)]",
+  running:   "bg-[var(--state-running-fg)]",
+  active:    "bg-[var(--state-running-fg)]",
   completed: "bg-emerald-500",
   done:      "bg-emerald-500",
   pending:   "bg-gray-300",
@@ -334,7 +334,7 @@ export function GanttChart({
         {drag && dragPreviewRowIndex >= 0 && (
           <div
             className={cn(
-              "pointer-events-none absolute h-6 rounded px-1.5 text-[10px] font-medium leading-6 text-white truncate ring-2 ring-[var(--accent)] shadow-[var(--shadow-lg)]",
+              "pointer-events-none absolute h-6 rounded-sm px-1.5 text-[10px] font-medium leading-6 text-white truncate ring-2 ring-foreground/30 shadow-[var(--shadow-lg)]",
               statusColors[(drag.originalTask.status ?? "").toLowerCase()] ?? "bg-gray-400"
             )}
             style={{

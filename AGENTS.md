@@ -670,19 +670,62 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 - NO new `.css` files — keep all styles as Tailwind utility classes
 - Theme uses CSS custom properties (oklch color space) — override via `globals.css` only
 
-### Visual Style & UI/UX
-- Black-and-white palette, `#B2ED1D` as accent (`var(--accent)`, `var(--accent-strong)` for hover)
-- IBM Plex Mono is the only font (already loaded via `@fontsource`)
-- No dark mode
-- Elevation: `--shadow-sm` (subtle), `--shadow-md` (cards), `--shadow-lg` (dialogs/drawers)
-- State glows: `--glow-critical` (red), `--glow-accent` (green), `--glow-warning` (amber)
-- Surfaces: `--surface-raised` (cards), `--surface-inset` (inset areas)
-- Use `BorderBeam` from `@/components/ui/border-beam` for highlighted cards
-- All MES components use spring-based animations from `@/lib/motion` — never import `motion/react` directly
-- **Be creative with layout and interaction.** Don't settle for plain list→detail CRUD pages. Mix card grids, split views, inline editing, expandable rows, contextual drawers, drag-and-drop reordering — pick the pattern that best serves the data. Vary layouts across modules so the app feels rich, not repetitive.
-- **Use motion intentionally.** Staggered list entrances, spring-based number transitions, smooth tab crossfades, subtle hover lifts — small animations add polish. Avoid walls of static content.
-- **Responsive / mobile-first.** All pages must work on mobile (≥375px). Use responsive grid (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`), stack layouts vertically on small screens, and hide non-essential columns in tables on mobile. Test with Tailwind breakpoints: `sm` (640), `md` (768), `lg` (1024).
-- **Shell sidebar must be collapsible.** Add a toggle button to collapse the sidebar to icon-only mode (~w-14). On mobile (<md), the sidebar should be hidden by default and openable as an overlay. Persist collapse state in `localStorage`.
+### Visual Style & UI/UX — Industrial Functional
+
+This scaffold targets factory / control-room / shop-floor apps. The visual language borrows from SCADA HMIs and industrial control panels: **high contrast, strong borders, status colors with icon redundancy, minimal decoration**. Don't reach for SaaS-y aesthetics (gradient hero, soft shadows everywhere, branded color blocks) — they read as visual noise to operators who need to see status at a glance.
+
+**Palette** (defined in `src/styles/globals.css`)
+- Background `#FAFAFA`, foreground near-black. No pure white (eye fatigue), no light gray text (poor contrast).
+- Accent is **near-black** (`var(--accent)`) — not a brand color. UI chrome stays grayscale; semantic color is reserved for status.
+- Status tokens (use these for ALL state coloring):
+  - `state-running` (deep green)  — running, active, completed, passed
+  - `state-idle` (charcoal gray)   — idle, pending, draft
+  - `state-paused` (deep amber)    — paused, warning
+  - `state-error` (deep red)       — down, failed, rejected, blocked
+  - `state-info` (signal blue)     — maintenance, info
+- Apply via the `state-*` Tailwind utility class (`<div className="state-running border ...">`) which sets fg/bg/border together, OR use individual CSS vars (`text-[var(--state-error-fg)]`, `bg-[var(--state-running-bg)]`).
+- **Color is never the only signal.** Every state must also have a distinct icon and a text label. Operators with deuteranopia must be able to read your UI; so must black-and-white printouts.
+
+**Typography**
+- UI chrome (labels, headings, buttons, body text) → **system Sans** (`font-sans`, default). Reads cleanly at distance.
+- Numerics, tabular data, code → **IBM Plex Mono** (`font-mono`). Tabular numbers align in columns.
+- Numbers in `<table>` cells get `font-variant-numeric: tabular-nums` automatically.
+- Add `tabular-nums` class on any standalone number that may change (KPIs, counters) so the layout doesn't shift digit-by-digit.
+
+**Geometry & spacing**
+- Default radius `0.375rem` (6px). Industrial = rectilinear. Don't use `rounded-xl`/`rounded-2xl` for control-panel UI.
+- Borders are stronger than typical SaaS (1px `var(--border)`). Use `border-strong` for emphasized boundaries.
+- Use **borders for separation, shadows for true overlays** (drawers, dialogs, popovers). Cards = bordered, not floating.
+- Density: card padding `p-3`, grid gaps `gap-2` to `gap-3`, body text `text-sm` (14px), small labels `text-xs` (12px). Leading 1.45.
+
+**Motion** — minimal and purposeful
+- Reserve animation for **state changes** the operator needs to see: a metric that just updated, a state badge that flipped, a task moving columns.
+- DO NOT animate page entrances, list entries (no staggered `motion.div` parents), card hovers, or component mounts. Operators glance at dashboards continuously; constant motion is fatigue.
+- `AnimatedNumber` is tuned for fast settle (~250ms, no bounce) — use it for KPI cards.
+- All `motion` imports go through `@/lib/motion` (which re-exports `motion/react`); never import `motion/react` directly — keeps the client-boundary marker centralized.
+- `BorderBeam` is **NOT recommended** for industrial UI. Don't sprinkle it on cards.
+
+**State communication patterns**
+- Status pill: use `<StateBadge state="running" />` — handles color + icon + label + optional live ping.
+- Critical alarm: use `<AlarmBanner severity="critical" pulse />` — only for genuine critical events (E-stop, line-down, OOC). Pulsing more than 1–2 things on screen creates visual fatigue.
+- Trend (KPI direction): green for "good direction", red for "bad direction". Use `invertTrend` on metrics where lower = better (downtime, defects, scrap).
+
+**Charts**
+- Use the status palette consistently: green for healthy, amber for warning, red for fault, blue for informational.
+- Chart axes/gridlines: keep them subtle (`var(--border)`). The data should pop, not the chrome.
+- Chart fonts: `font-mono` + `tabular-nums` so axis ticks align.
+- Wrap recharts in `<ClientOnly>` (see §Hydration Pitfalls).
+
+**Layout & responsiveness**
+- All pages must work on mobile (≥375px). Use responsive grid (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`), stack vertically on small screens, hide non-essential columns in tables on mobile. Breakpoints: `sm` 640, `md` 768, `lg` 1024.
+- Shell sidebar must be collapsible: toggle to icon-only mode (~w-14). On mobile (<md), hidden by default, openable as overlay. Persist collapse state in `localStorage`.
+- Industrial dashboards favor **information density** over whitespace luxury. A typical dashboard fits ~8–12 KPI cards above the fold on a 1080p screen. Don't waste viewport on hero areas.
+
+**Don't do this**
+- ❌ Gradient backgrounds on cards. ❌ Glass morphism. ❌ Tinted hover states using brand color (`hover:bg-[var(--accent)]/10` was the old pattern — use `hover:bg-[var(--surface-inset)]` instead). ❌ Animated entrance staggers on every list. ❌ Branded green for "good" — use `state-running-fg`. ❌ More than 1 spinning/pulsing/flashing element per viewport.
+
+**Do this**
+- ✅ Heavy use of `<StateBadge>` — every status field. ✅ Mono numerics in cards/tables. ✅ Strong borders for visual separation. ✅ One source of truth per metric (don't repeat the same KPI in 3 places). ✅ Dense grids. ✅ Quiet, decisive interactions.
 
 ### Commands
 - `npm run build` — run ONCE at Step 5 (vite build → `dist/{client,server}`)

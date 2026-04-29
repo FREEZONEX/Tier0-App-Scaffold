@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { ChevronRight } from "lucide-react";
 import { apiUrl } from "@/lib/utils";
 
 export function RoleSelector({
@@ -39,30 +40,38 @@ export function RoleSelector({
 
   if (roles.length === 0) {
     return (
-      <p className="text-xs text-muted-foreground">
-        No roles defined. Add roles to PERMISSION_MATRIX in permissions.ts.
+      <p className="rounded-sm border border-border bg-[var(--surface-inset)] px-3 py-2 text-xs text-muted-foreground">
+        No roles defined. Add roles to{" "}
+        <code className="font-mono">PERMISSION_MATRIX</code> in{" "}
+        <code className="font-mono">src/lib/permissions.ts</code>.
       </p>
     );
   }
 
   return (
-    <div className="space-y-3">
-      <div className="grid gap-2">
+    <div className="space-y-2">
+      <div className="grid gap-1.5">
         {roles.map((role) => (
           <button
             key={role}
             onClick={() => selectRole(role)}
             disabled={loading !== null}
-            className="flex items-center justify-between rounded-lg border border-border px-4 py-3 text-left text-sm font-medium transition-colors hover:bg-[var(--accent)] hover:text-foreground disabled:opacity-50"
+            className="group flex items-center justify-between rounded-sm border border-border bg-card px-3 py-2.5 text-left text-sm font-medium transition-colors hover:border-border-strong hover:bg-[var(--surface-inset)] disabled:opacity-50"
           >
             <span className="capitalize">{role}</span>
-            {loading === role && (
-              <span className="text-xs text-muted-foreground">...</span>
+            {loading === role ? (
+              <span className="font-mono text-[11px] text-muted-foreground">…</span>
+            ) : (
+              <ChevronRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
             )}
           </button>
         ))}
       </div>
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && (
+        <p className="rounded-sm border border-[var(--state-error-border)] bg-[var(--state-error-bg)] px-2.5 py-1.5 text-xs text-[var(--state-error-fg)]">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

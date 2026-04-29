@@ -4,108 +4,193 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ─────────────────────────────────────────────────────────────────────────
+ * Industrial functional design tokens
+ *
+ * Principles:
+ *   - High contrast: near-black on near-white, no muted-gray-on-white pairs.
+ *   - Color is reserved for semantic state (running / idle / paused / error /
+ *     info). Brand chrome is grayscale only — black accent, no tinted hover.
+ *   - Borders carry separation; shadow only for true overlays (drawer/dialog).
+ *   - Less rounding (industrial control panels are rectilinear).
+ *   - Font split: system Sans for UI chrome (legible at distance), IBM Plex
+ *     Mono for tabular numerics and code (alignment + density).
+ * ─────────────────────────────────────────────────────────────────────────── */
+
 :root {
-  --accent: #B2ED1D;
-  --accent-strong: #9AD416;
-  --muted: oklch(0.97 0 0);
-  --border: oklch(0.922 0 0);
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
+  /* Core palette */
+  --background:           oklch(0.985 0 0);   /* #FAFAFA — slight warmth, less eye fatigue than pure white */
+  --foreground:           oklch(0.13 0 0);    /* near-black */
+  --muted:                oklch(0.96 0 0);
+  --muted-foreground:     oklch(0.40 0 0);    /* tightened from 0.556 — readable secondary text */
+  --border:               oklch(0.86 0 0);    /* heavier than typical SaaS hairlines */
+  --border-strong:        oklch(0.74 0 0);    /* for emphasized boundaries */
+  --input:                oklch(0.86 0 0);
+  --ring:                 oklch(0.40 0 0);
+
+  /* Surfaces */
+  --card:                 oklch(1 0 0);
+  --card-foreground:      var(--foreground);
+  --popover:              oklch(1 0 0);
+  --popover-foreground:   var(--foreground);
+  --surface-raised:       oklch(1 0 0);       /* above background */
+  --surface-inset:        oklch(0.96 0 0);    /* below background */
+
+  /* Sidebar */
+  --sidebar:              oklch(0.98 0 0);
+  --sidebar-foreground:   var(--foreground);
+  --sidebar-border:       oklch(0.86 0 0);
+  --sidebar-primary:      var(--foreground);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-accent:       oklch(0.93 0 0);
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-ring:         var(--ring);
 
-  /* Elevation scale */
-  --shadow-sm: 0 1px 2px 0 oklch(0 0 0 / 0.03);
-  --shadow-md: 0 2px 8px -1px oklch(0 0 0 / 0.06), 0 1px 2px -1px oklch(0 0 0 / 0.03);
-  --shadow-lg: 0 8px 24px -4px oklch(0 0 0 / 0.08);
+  /* Brand accent — near-black. All semantic color is delegated to state tokens. */
+  --accent:               oklch(0.18 0 0);    /* dark gray, not pure black, for subtle separation from text */
+  --accent-strong:        oklch(0.13 0 0);    /* near-black for hover */
+  --accent-foreground:    oklch(0.985 0 0);   /* white text on dark accent */
 
-  /* State glow tokens */
-  --glow-critical: 0 0 0 1px oklch(0.577 0.245 27.325 / 0.15), 0 0 12px -2px oklch(0.577 0.245 27.325 / 0.2);
-  --glow-accent: 0 0 0 1px oklch(0.75 0.2 128 / 0.15), 0 0 12px -2px oklch(0.75 0.2 128 / 0.2);
-  --glow-warning: 0 0 0 1px oklch(0.75 0.15 75 / 0.15), 0 0 12px -2px oklch(0.75 0.15 75 / 0.2);
+  /* Primary / secondary — used by shadcn primitives (button, etc.) */
+  --primary:              var(--foreground);
+  --primary-foreground:   oklch(0.985 0 0);
+  --secondary:            oklch(0.94 0 0);
+  --secondary-foreground: var(--foreground);
 
-  /* Surface refinement */
-  --surface-raised: oklch(0.995 0 0);
-  --surface-inset: oklch(0.97 0 0);
+  /* Destructive (used by shadcn) — aligned with state-error */
+  --destructive:          oklch(0.50 0.22 25);
+
+  /* ─────────────────────────────────────────────────────────────────────────
+   * Status colors — saturated, distinct, color-blind friendly when paired
+   * with icons. Use `state-*-fg` for foreground, `state-*-bg` for tinted
+   * backgrounds, `state-*-border` for outline emphasis. NEVER rely on color
+   * alone — always pair with icon + label.
+   * ─────────────────────────────────────────────────────────────────────── */
+
+  --state-running-fg:     oklch(0.50 0.16 145);   /* deep green */
+  --state-running-bg:     oklch(0.95 0.04 145);
+  --state-running-border: oklch(0.78 0.10 145);
+
+  --state-idle-fg:        oklch(0.40 0 0);        /* neutral charcoal — distinct from text */
+  --state-idle-bg:        oklch(0.94 0 0);
+  --state-idle-border:    oklch(0.80 0 0);
+
+  --state-paused-fg:      oklch(0.55 0.16 70);    /* deep amber */
+  --state-paused-bg:      oklch(0.96 0.05 80);
+  --state-paused-border:  oklch(0.78 0.12 75);
+
+  --state-error-fg:       oklch(0.50 0.22 25);    /* deep red */
+  --state-error-bg:       oklch(0.96 0.04 20);
+  --state-error-border:   oklch(0.78 0.16 25);
+
+  --state-info-fg:        oklch(0.45 0.20 245);   /* signal blue (maintenance, info) */
+  --state-info-bg:        oklch(0.95 0.04 240);
+  --state-info-border:    oklch(0.75 0.14 245);
+
+  /* Charts — grayscale ramp; status colors come from state tokens above */
+  --chart-1: oklch(0.13 0 0);
+  --chart-2: oklch(0.30 0 0);
+  --chart-3: oklch(0.46 0 0);
+  --chart-4: oklch(0.62 0 0);
+  --chart-5: oklch(0.78 0 0);
+
+  /* Geometry — less rounded for industrial feel */
+  --radius:               0.375rem;       /* 6px */
+
+  /* Elevation — subtle, only for true overlays */
+  --shadow-sm:            0 1px 0 0 oklch(0 0 0 / 0.04);
+  --shadow-md:            0 2px 4px -1px oklch(0 0 0 / 0.06), 0 1px 0 0 oklch(0 0 0 / 0.04);
+  --shadow-lg:            0 8px 16px -4px oklch(0 0 0 / 0.08), 0 2px 4px -1px oklch(0 0 0 / 0.04);
+
+  /* Motion — short, decisive. No spring-bouncing for normal transitions. */
+  --motion-fast:          120ms;
+  --motion-base:          180ms;
+  --motion-slow:          240ms;
+  --motion-ease:          cubic-bezier(0.2, 0, 0, 1);
+
+  /* Typography stack — system Sans for UI chrome, Plex Mono for data */
+  --font-sans-stack:      ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+                          "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono-stack:      "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-accent: var(--accent);
-  --color-accent-strong: var(--accent-strong);
-  --color-muted: var(--muted);
-  --color-border: var(--border);
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
-  --font-heading: var(--font-sans);
-  --font-sans: var(--font-sans);
+  --color-background:             var(--background);
+  --color-foreground:             var(--foreground);
+  --color-muted:                  var(--muted);
+  --color-muted-foreground:       var(--muted-foreground);
+  --color-border:                 var(--border);
+  --color-border-strong:          var(--border-strong);
+  --color-input:                  var(--input);
+  --color-ring:                   var(--ring);
+
+  --color-card:                   var(--card);
+  --color-card-foreground:        var(--card-foreground);
+  --color-popover:                var(--popover);
+  --color-popover-foreground:     var(--popover-foreground);
+  --color-surface-raised:         var(--surface-raised);
+  --color-surface-inset:          var(--surface-inset);
+
+  --color-sidebar:                var(--sidebar);
+  --color-sidebar-foreground:     var(--sidebar-foreground);
+  --color-sidebar-border:         var(--sidebar-border);
+  --color-sidebar-primary:        var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent:         var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-ring:           var(--sidebar-ring);
+
+  --color-accent:                 var(--accent);
+  --color-accent-strong:          var(--accent-strong);
+  --color-accent-foreground:      var(--accent-foreground);
+  --color-primary:                var(--primary);
+  --color-primary-foreground:     var(--primary-foreground);
+  --color-secondary:              var(--secondary);
+  --color-secondary-foreground:   var(--secondary-foreground);
+  --color-destructive:            var(--destructive);
+
+  --color-state-running-fg:       var(--state-running-fg);
+  --color-state-running-bg:       var(--state-running-bg);
+  --color-state-running-border:   var(--state-running-border);
+  --color-state-idle-fg:          var(--state-idle-fg);
+  --color-state-idle-bg:          var(--state-idle-bg);
+  --color-state-idle-border:      var(--state-idle-border);
+  --color-state-paused-fg:        var(--state-paused-fg);
+  --color-state-paused-bg:        var(--state-paused-bg);
+  --color-state-paused-border:    var(--state-paused-border);
+  --color-state-error-fg:         var(--state-error-fg);
+  --color-state-error-bg:         var(--state-error-bg);
+  --color-state-error-border:     var(--state-error-border);
+  --color-state-info-fg:          var(--state-info-fg);
+  --color-state-info-bg:          var(--state-info-bg);
+  --color-state-info-border:      var(--state-info-border);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
   --shadow-sm: var(--shadow-sm);
   --shadow-md: var(--shadow-md);
   --shadow-lg: var(--shadow-lg);
-  --color-surface-raised: var(--surface-raised);
-  --color-surface-inset: var(--surface-inset);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
+
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: calc(var(--radius) * 0.75);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-xl: calc(var(--radius) * 1.5);
+  --radius-2xl: calc(var(--radius) * 2);
+  --radius-3xl: calc(var(--radius) * 2.5);
+  --radius-4xl: calc(var(--radius) * 3);
+
+  --font-sans: var(--font-sans-stack);
+  --font-mono: var(--font-mono-stack);
+  --font-heading: var(--font-sans-stack);
 }
 
 body {
-  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-family: var(--font-sans-stack);
+  font-feature-settings: "ss01", "cv11"; /* slight stylistic improvements when system fonts support */
 }
 
 /* No dark mode */
@@ -116,44 +201,92 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+    /* Slightly larger default leading for industrial readability */
+    line-height: 1.45;
   }
   html {
     @apply font-sans;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  /* Tabular numerics anywhere a `<.tabular>` or `font-mono` class is set,
+   * plus implicit on <code>, <kbd>, <pre>. */
+  .font-mono, code, kbd, pre, samp {
+    font-family: var(--font-mono-stack);
+    font-feature-settings: "tnum", "zero";
+  }
+  /* Numerics in tables: lock to mono + tabular by default. Override with
+   * `font-sans` on individual cells when needed. */
+  table td, table th {
+    font-variant-numeric: tabular-nums;
   }
 }
 
 @layer utilities {
-  .shadow-glow-critical {
-    box-shadow: var(--glow-critical);
+  /* Status utilities — pair with an icon + label. Color alone is not enough. */
+  .state-running {
+    color: var(--state-running-fg);
+    background-color: var(--state-running-bg);
+    border-color: var(--state-running-border);
   }
-  .shadow-glow-accent {
-    box-shadow: var(--glow-accent);
+  .state-idle {
+    color: var(--state-idle-fg);
+    background-color: var(--state-idle-bg);
+    border-color: var(--state-idle-border);
   }
-  .shadow-glow-warning {
-    box-shadow: var(--glow-warning);
+  .state-paused {
+    color: var(--state-paused-fg);
+    background-color: var(--state-paused-bg);
+    border-color: var(--state-paused-border);
+  }
+  .state-error {
+    color: var(--state-error-fg);
+    background-color: var(--state-error-bg);
+    border-color: var(--state-error-border);
+  }
+  .state-info {
+    color: var(--state-info-fg);
+    background-color: var(--state-info-bg);
+    border-color: var(--state-info-border);
   }
 }
 
-/* Keyframe: pulsing glow for critical alarms */
-@keyframes pulse-glow-critical {
-  0%, 100% { box-shadow: var(--glow-critical); }
-  50% { box-shadow: 0 0 0 1px oklch(0.577 0.245 27.325 / 0.25), 0 0 20px -2px oklch(0.577 0.245 27.325 / 0.35); }
-}
+/* ─────────────────────────────────────────────────────────────────────────
+ * Keyframes — kept minimal. Decorative animation is OUT.
+ * ─────────────────────────────────────────────────────────────────────── */
 
-/* Keyframe: ping animation for active state dots */
+/* Ping for live "running" state dot — communicates real-time activity, not decoration */
 @keyframes ping-dot {
-  0% { transform: scale(1); opacity: 1; }
-  75%, 100% { transform: scale(2.2); opacity: 0; }
+  0%   { transform: scale(1);   opacity: 0.8; }
+  75%, 100% { transform: scale(2); opacity: 0; }
 }
 
-/* Keyframe: shimmer sweep for skeleton loading */
+/* Critical alarm pulse — borderless, one purpose: draw eye to a true critical event.
+ * Use sparingly. Industrial UX: more than 1–2 pulsing things on screen = visual fatigue. */
+@keyframes pulse-critical {
+  0%, 100% { box-shadow: 0 0 0 0 oklch(0.50 0.22 25 / 0.0); }
+  50%      { box-shadow: 0 0 0 4px oklch(0.50 0.22 25 / 0.18); }
+}
+
+/* Skeleton shimmer for loading placeholders */
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
+  0%   { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
 
-/* Keyframe: border beam rotation */
+/* Border beam — used by the optional `BorderBeam` decorative component.
+ * Kept for backward compatibility; not recommended for industrial UI. */
 @keyframes border-beam {
-  0% { offset-distance: 0%; }
+  0%   { offset-distance: 0%; }
   100% { offset-distance: 100%; }
+}
+
+/* Honor user reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

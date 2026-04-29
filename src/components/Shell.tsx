@@ -2,6 +2,7 @@
 
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { type ReactNode, type ElementType } from "react";
+import { LogOut, RefreshCw } from "lucide-react";
 import { cn, apiUrl } from "@/lib/utils";
 import type { AppUser } from "@/lib/users";
 
@@ -41,16 +42,25 @@ export function Shell({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <nav className="flex w-56 shrink-0 flex-col border-r border-border bg-sidebar">
-        <div className="px-4 py-5">
-          <h1 className="text-sm font-semibold tracking-tight">Shop Floor</h1>
-          <p className="mt-0.5 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-            Command
-          </p>
+    <div className="flex h-screen overflow-hidden bg-background text-foreground">
+      <nav className="flex w-60 shrink-0 flex-col border-r border-border bg-sidebar">
+        {/* Brand mark */}
+        <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+          <div className="flex size-7 items-center justify-center rounded-sm bg-foreground text-background">
+            <span className="font-mono text-[11px] font-semibold">M</span>
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold tracking-tight">
+              MES Console
+            </p>
+          </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-2 py-1">
+        {/* Modules */}
+        <div className="flex-1 overflow-y-auto px-2 py-2">
+          <p className="px-2 pb-1.5 pt-1 font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+            Modules
+          </p>
           {modules.map((mod) => {
             const isActive =
               pathname === mod.href ||
@@ -65,40 +75,42 @@ export function Shell({
                 // else Link is used directly.
                 to={mod.href as never}
                 className={cn(
-                  "mb-0.5 flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-xs font-medium transition-colors",
+                  "mb-0.5 flex items-center gap-2.5 rounded-sm px-2.5 py-2 text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-[var(--accent)] text-foreground"
-                    : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
+                    ? "bg-foreground text-background"
+                    : "text-foreground/80 hover:bg-sidebar-accent hover:text-foreground",
                 )}
               >
                 {Icon && <Icon className="size-4 shrink-0" />}
-                <span>{mod.label}</span>
+                <span className="truncate">{mod.label}</span>
               </Link>
             );
           })}
         </div>
 
-        <div className="border-t border-border px-4 py-3 space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="min-w-0">
-              <p className="truncate text-xs font-medium">{user.displayName}</p>
-              <span className="inline-block rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                {user.role}
-              </span>
-            </div>
+        {/* User block */}
+        <div className="border-t border-border bg-[var(--surface-inset)] px-3 py-3">
+          <div className="mb-2 min-w-0">
+            <p className="truncate text-sm font-medium leading-tight">
+              {user.displayName}
+            </p>
+            <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+              {user.role}
+            </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-1">
             <button
               onClick={handleSwitchRole}
-              className="text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+              className="inline-flex items-center gap-1 rounded-sm border border-border bg-card px-2 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
             >
-              Switch Role
+              <RefreshCw className="size-3" />
+              Switch
             </button>
-            <span className="text-[10px] text-muted-foreground">·</span>
             <button
               onClick={handleLogout}
-              className="text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+              className="inline-flex items-center gap-1 rounded-sm border border-border bg-card px-2 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
             >
+              <LogOut className="size-3" />
               Logout
             </button>
           </div>

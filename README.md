@@ -9,7 +9,7 @@
 | 框架 | TanStack Start 1.x（Vite 8 + TanStack Router，React 19 SSR） |
 | ORM | Drizzle ORM + node-postgres |
 | 校验 | Zod（通过 `drizzle-zod` 自动派生 schema/类型） |
-| 样式 | TailwindCSS 4（Vite 插件，无 PostCSS）+ IBM Plex Mono |
+| 样式 | TailwindCSS 4（Vite 插件，无 PostCSS）+ 系统 Sans（UI）+ IBM Plex Mono（数字/数据） |
 | UI | shadcn 组件（**Base UI 底层，非 Radix**）+ 20 个 MES 业务组件 + 6 个项目级 UI 拓展 |
 | 图表 | Recharts 3（必须包在 `<ResponsiveContainer>` 里） |
 | 表格 | TanStack React Table 8 |

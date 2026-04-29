@@ -14,7 +14,10 @@ const defaultFormat = (n: number) =>
   Number.isInteger(n) ? n.toLocaleString() : n.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })
 
 export function AnimatedNumber({ value, format = defaultFormat, className }: AnimatedNumberProps) {
-  const spring = useSpring(0, { stiffness: 80, damping: 20 })
+  // Industrial tuning: settle quickly, no bounce. Operators want a "value
+  // changed" signal, not animation theater. Stiffness ~220 / damping ~32
+  // produces a critically-damped feel that lands in ~250ms.
+  const spring = useSpring(0, { stiffness: 220, damping: 32 })
   const display = useTransform(spring, (v) => format(v))
   const ref = useRef<HTMLSpanElement>(null)
   const initialized = useRef(false)

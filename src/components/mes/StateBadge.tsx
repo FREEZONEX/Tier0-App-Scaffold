@@ -1,81 +1,131 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import {
+  Play,
+  CheckCircle2,
+  Pause,
+  AlertTriangle,
+  XCircle,
+  Wrench,
+  Circle,
+  type LucideIcon,
+} from "lucide-react";
 
 /**
- * StateBadge — color-coded status indicator for manufacturing states.
+ * StateBadge — color-coded status indicator with icon redundancy.
+ *
+ * Color alone is not enough to communicate state in industrial settings
+ * (color-blindness, glare, monochrome printing). Every state ships with
+ * an icon AND a label so the meaning survives any of those degradations.
  *
  * Usage:
  *   <StateBadge state="running" />
  *   <StateBadge state="down" label="Machine Fault" />
  *   <StateBadge state="idle" size="lg" />
  *
- * Built-in palette covers common MES states. Pass `colorMap` to override.
+ * Built-in palette covers common MES states. Pass `colorMap` to override
+ * or add new states.
  */
 
-const defaultColorMap: Record<string, { bg: string; text: string; dot: string }> = {
-  running:     { bg: "bg-[var(--accent)]/15", text: "text-[var(--accent-strong)]", dot: "bg-[var(--accent)]" },
-  active:      { bg: "bg-[var(--accent)]/15", text: "text-[var(--accent-strong)]", dot: "bg-[var(--accent)]" },
-  completed:   { bg: "bg-emerald-50",         text: "text-emerald-700",            dot: "bg-emerald-500" },
-  done:        { bg: "bg-emerald-50",         text: "text-emerald-700",            dot: "bg-emerald-500" },
-  passed:      { bg: "bg-emerald-50",         text: "text-emerald-700",            dot: "bg-emerald-500" },
-  idle:        { bg: "bg-gray-100",           text: "text-gray-600",              dot: "bg-gray-400" },
-  pending:     { bg: "bg-gray-100",           text: "text-gray-600",              dot: "bg-gray-400" },
-  draft:       { bg: "bg-gray-100",           text: "text-gray-600",              dot: "bg-gray-400" },
-  paused:      { bg: "bg-amber-50",           text: "text-amber-700",             dot: "bg-amber-500" },
-  maintenance: { bg: "bg-amber-50",           text: "text-amber-700",             dot: "bg-amber-500" },
-  warning:     { bg: "bg-amber-50",           text: "text-amber-700",             dot: "bg-amber-500" },
-  down:        { bg: "bg-red-50",             text: "text-red-700",               dot: "bg-red-500" },
-  failed:      { bg: "bg-red-50",             text: "text-red-700",               dot: "bg-red-500" },
-  rejected:    { bg: "bg-red-50",             text: "text-red-700",               dot: "bg-red-500" },
-  blocked:     { bg: "bg-red-50",             text: "text-red-700",               dot: "bg-red-500" },
+interface StateStyle {
+  /** CSS class supplying fg/bg/border via the global state-* utilities */
+  utility:
+    | "state-running"
+    | "state-idle"
+    | "state-paused"
+    | "state-error"
+    | "state-info";
+  icon: LucideIcon;
+  /** If true, the dot pulses to indicate live activity */
+  live?: boolean;
+}
+
+const defaultStyles: Record<string, StateStyle> = {
+  // Running / active
+  running:     { utility: "state-running", icon: Play, live: true },
+  active:      { utility: "state-running", icon: Play, live: true },
+  // Completed / passed
+  completed:   { utility: "state-running", icon: CheckCircle2 },
+  done:        { utility: "state-running", icon: CheckCircle2 },
+  passed:      { utility: "state-running", icon: CheckCircle2 },
+  // Idle / pending / draft
+  idle:        { utility: "state-idle", icon: Circle },
+  pending:     { utility: "state-idle", icon: Circle },
+  draft:       { utility: "state-idle", icon: Circle },
+  // Paused / warning
+  paused:      { utility: "state-paused", icon: Pause },
+  warning:     { utility: "state-paused", icon: AlertTriangle },
+  // Maintenance — distinct blue, not amber, so operators can tell at a glance
+  maintenance: { utility: "state-info",   icon: Wrench },
+  // Error / fault
+  down:        { utility: "state-error", icon: XCircle },
+  failed:      { utility: "state-error", icon: XCircle },
+  rejected:    { utility: "state-error", icon: XCircle },
+  blocked:     { utility: "state-error", icon: XCircle },
 };
 
 interface StateBadgeProps {
-  /** The state key — matched against colorMap (case-insensitive). */
+  /** The state key — matched against built-in styles (case-insensitive). */
   state: string;
-  /** Override the display label. Defaults to the state value, title-cased. */
+  /** Override the display label. Defaults to the state value, capitalized. */
   label?: string;
-  /** Additional color mappings or overrides. */
-  colorMap?: Record<string, { bg: string; text: string; dot: string }>;
+  /** Additional state styles or overrides. */
+  colorMap?: Record<string, StateStyle>;
   /** Size variant. */
   size?: "sm" | "md" | "lg";
+  /** Hide the icon (color + label only). Default false. Not recommended. */
+  iconHidden?: boolean;
   className?: string;
 }
 
-export function StateBadge({ state, label, colorMap, size = "md", className }: StateBadgeProps) {
-  const merged = { ...defaultColorMap, ...colorMap };
-  const colors = merged[state.toLowerCase()] ?? { bg: "bg-gray-100", text: "text-gray-600", dot: "bg-gray-400" };
-  const displayLabel = label ?? state.charAt(0).toUpperCase() + state.slice(1).toLowerCase();
+const sizes = {
+  sm: { container: "px-1.5 py-0.5 text-[11px] gap-1",   icon: "size-3",    dot: "size-1.5" },
+  md: { container: "px-2 py-0.5 text-xs gap-1.5",       icon: "size-3.5",  dot: "size-2"   },
+  lg: { container: "px-2.5 py-1 text-sm gap-1.5",       icon: "size-4",    dot: "size-2"   },
+};
 
-  const sizeClasses = {
-    sm: "px-1.5 py-0.5 text-[10px] gap-1",
-    md: "px-2 py-0.5 text-xs gap-1.5",
-    lg: "px-2.5 py-1 text-sm gap-1.5",
-  };
-
-  const dotSizes = { sm: "h-1.5 w-1.5", md: "h-2 w-2", lg: "h-2 w-2" };
+export function StateBadge({
+  state,
+  label,
+  colorMap,
+  size = "md",
+  iconHidden = false,
+  className,
+}: StateBadgeProps) {
+  const merged = { ...defaultStyles, ...colorMap };
+  const fallback: StateStyle = { utility: "state-idle", icon: Circle };
+  const style = merged[state.toLowerCase()] ?? fallback;
+  const displayLabel =
+    label ?? state.charAt(0).toUpperCase() + state.slice(1).toLowerCase();
+  const Icon = style.icon;
+  const s = sizes[size];
 
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full font-medium whitespace-nowrap",
-        colors.bg,
-        colors.text,
-        sizeClasses[size],
-        className
+        "inline-flex items-center rounded-sm border font-medium whitespace-nowrap",
+        style.utility,
+        s.container,
+        className,
       )}
     >
-      <span className="relative inline-flex shrink-0">
-        <span className={cn("rounded-full", colors.dot, dotSizes[size])} />
-        {(state.toLowerCase() === "running" || state.toLowerCase() === "active") && (
-          <span
-            className={cn("absolute inset-0 rounded-full", colors.dot)}
-            style={{ animation: "ping-dot 1.5s cubic-bezier(0, 0, 0.2, 1) infinite" }}
-          />
-        )}
-      </span>
-      {displayLabel}
+      {!iconHidden && (
+        <span className="relative inline-flex shrink-0 items-center justify-center">
+          <Icon className={s.icon} aria-hidden />
+          {style.live && (
+            <span
+              className={cn(
+                "absolute rounded-full border-2 border-current",
+                s.dot,
+              )}
+              style={{ animation: "ping-dot 1.6s cubic-bezier(0, 0, 0.2, 1) infinite" }}
+              aria-hidden
+            />
+          )}
+        </span>
+      )}
+      <span>{displayLabel}</span>
     </span>
   );
 }

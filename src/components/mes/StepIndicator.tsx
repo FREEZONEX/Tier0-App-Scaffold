@@ -53,25 +53,29 @@ export function StepIndicator({ steps, size = "default", className }: StepIndica
                 className={cn(
                   "relative flex shrink-0 items-center justify-center rounded-full border-2 transition-colors",
                   dotSize[size],
-                  isCompleted && "border-[var(--accent)] bg-[var(--accent)]",
-                  isActive && "border-[var(--accent)] bg-white",
-                  isError && "border-red-500 bg-red-500",
-                  !isCompleted && !isActive && !isError && "border-gray-300 bg-white"
+                  isCompleted &&
+                    "border-[var(--state-running-fg)] bg-[var(--state-running-fg)]",
+                  isActive &&
+                    "border-[var(--state-info-fg)] bg-[var(--state-info-bg)]",
+                  isError &&
+                    "border-[var(--state-error-fg)] bg-[var(--state-error-fg)]",
+                  !isCompleted && !isActive && !isError &&
+                    "border-border bg-card",
                 )}
               >
                 {isCompleted && <Check className={cn(iconSize[size], "text-white")} />}
                 {isError && <X className={cn(iconSize[size], "text-white")} />}
                 {isActive && (
                   <>
-                    <span className="h-2 w-2 rounded-full bg-[var(--accent)]" />
+                    <span className="h-2 w-2 rounded-full bg-[var(--state-info-fg)]" />
                     <span
-                      className="absolute inset-0 rounded-full border-2 border-[var(--accent)]"
+                      className="absolute inset-0 rounded-full border-2 border-[var(--state-info-fg)]"
                       style={{ animation: "ping-dot 2s cubic-bezier(0, 0, 0.2, 1) infinite" }}
                     />
                   </>
                 )}
                 {!isCompleted && !isActive && !isError && (
-                  <span className="h-1.5 w-1.5 rounded-full bg-gray-300" />
+                  <span className="size-1.5 rounded-full bg-muted-foreground" />
                 )}
               </div>
 
@@ -93,8 +97,10 @@ export function StepIndicator({ steps, size = "default", className }: StepIndica
               <div className="mt-3.5 flex flex-1 items-center px-2" style={size === "sm" ? { marginTop: 11 } : undefined}>
                 <div
                   className={cn(
-                    "h-[2px] w-full rounded-full transition-colors",
-                    isCompleted ? "bg-[var(--accent)]" : "bg-gray-200"
+                    "h-[2px] w-full transition-colors",
+                    isCompleted
+                      ? "bg-[var(--state-running-fg)]"
+                      : "bg-border",
                   )}
                 />
               </div>
