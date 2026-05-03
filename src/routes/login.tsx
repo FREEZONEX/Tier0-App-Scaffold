@@ -4,88 +4,68 @@
  * Gateway has already authenticated the user. This page lets them choose
  * which role to enter the app with. Available roles come from PERMISSION_MATRIX.
  *
+ * If no gateway user header is detected (direct access without gateway),
+ * shows an access-denied message.
+ *
  * Lives outside `_app`, so it does NOT render the Shell (mirrors the
  * old Next.js `(auth)` route group behavior).
  *
- * IMPORTANT — why this file does NOT use `createServerFn` to read the
- * gateway user:
- *
- *   1. `getRequestHeaders()` inside a `createServerFn` body is broken in
- *      @tanstack/react-start ^1.167 — returns `{}` for custom headers.
- *      A `loader: () => createServerFn(...)` pattern therefore cannot
- *      surface the gateway-injected `X-App-User-*` identity.
- *   2. Top-level imports from `@tanstack/react-start/server` in a route
- *      file leak into the client bundle and crash hydration with
- *      `does not provide an export named 'getRequest'`. Server-only
- *      imports are only safe inside `createServerFn().handler(...)`.
- *
- * So we read the gateway user via a server route handler
- * (`/api/auth/gateway-user`, see `routes/api/auth/gateway-user.ts`) and
- * fetch it client-side. This file therefore ships ZERO server-only
- * imports — keeping the client bundle clean.
+ * Note on headers: `getRequestHeaders()` returns a `Headers`-like instance
+ * (TypedHeaders). Use `.get("name")` for individual values; do NOT try to
+ * `JSON.stringify` it for debugging — Headers is iterable, not enumerable,
+ * so `JSON.stringify` always returns `"{}"` regardless of content. Inspect
+ * with `Object.fromEntries(headers.entries())` instead.
  */
 
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createServerFn } from "@tanstack/react-start";
+import { getRequestHeaders } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { ShieldAlert } from "lucide-react";
-import { apiUrl } from "@/lib/utils";
-import type { GatewayUser } from "@/lib/gateway";
+import { parseGatewayUser, type GatewayUser } from "@/lib/gateway";
+import { PERMISSION_MATRIX } from "@/lib/permissions";
 import { RoleSelector } from "@/components/login-role-selector";
 
-interface LoginContext {
-  gatewayUser: GatewayUser | null;
-  roles: string[];
-}
+const fetchLoginContext = createServerFn().handler(
+  async (): Promise<{ gatewayUser: GatewayUser | null; roles: string[] }> => {
+    // `getRequestHeaders()` returns a Headers instance (typed). The Headers
+    // constructor accepts another Headers iterable, so passing it through
+    // re-creates a normal Headers we hand to `parseGatewayUser`.
+    const headers = new Headers(getRequestHeaders());
+    return {
+      gatewayUser: parseGatewayUser(headers),
+      roles: Object.keys(PERMISSION_MATRIX),
+    };
+  },
+);
 
 export const Route = createFileRoute("/login")({
   validateSearch: z.object({
     from: z.string().optional(),
   }),
+  loader: () => fetchLoginContext(),
   component: LoginPage,
 });
 
 function LoginPage() {
+  const { gatewayUser, roles } = Route.useLoaderData();
   const { from } = Route.useSearch();
   const redirectTo = from || "/";
 
-  const [ctx, setCtx] = useState<LoginContext | null>(null);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch(apiUrl("/api/auth/gateway-user"))
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
-      .then((data: LoginContext) => {
-        if (!cancelled) setCtx(data);
-      })
-      .catch(() => {
-        if (!cancelled) setError(true);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  if (error) {
-    return <AccessDenied message="Could not contact the platform gateway." />;
-  }
-
-  if (!ctx) {
+  if (!gatewayUser) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-6">
-        <p className="font-mono text-xs uppercase tracking-[0.12em] text-muted-foreground">
-          Loading…
-        </p>
+        <div className="w-full max-w-sm rounded-md border border-border bg-card p-6 text-center">
+          <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-sm bg-[var(--state-error-bg)] text-[var(--state-error-fg)]">
+            <ShieldAlert className="size-5" />
+          </div>
+          <h1 className="text-base font-semibold">Access Denied</h1>
+          <p className="mt-1.5 text-xs text-muted-foreground">
+            Please access this app through the platform gateway.
+          </p>
+        </div>
       </div>
     );
-  }
-
-  if (!ctx.gatewayUser) {
-    return <AccessDenied message="Please access this app through the platform gateway." />;
   }
 
   return (
@@ -106,34 +86,20 @@ function LoginPage() {
             Sign in
           </p>
           <h1 className="mt-1 text-lg font-semibold leading-tight">
-            Welcome, {ctx.gatewayUser.name}
+            Welcome, {gatewayUser.name}
           </h1>
           <p className="mt-1 text-xs text-muted-foreground">
             Select a role to continue.
           </p>
 
           <div className="mt-5">
-            <RoleSelector roles={ctx.roles} redirectTo={redirectTo} />
+            <RoleSelector roles={roles} redirectTo={redirectTo} />
           </div>
         </div>
 
         <p className="mt-4 text-center text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
           Authenticated via platform gateway
         </p>
-      </div>
-    </div>
-  );
-}
-
-function AccessDenied({ message }: { message: string }) {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-6">
-      <div className="w-full max-w-sm rounded-md border border-border bg-card p-6 text-center">
-        <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-sm bg-[var(--state-error-bg)] text-[var(--state-error-fg)]">
-          <ShieldAlert className="size-5" />
-        </div>
-        <h1 className="text-base font-semibold">Access Denied</h1>
-        <p className="mt-1.5 text-xs text-muted-foreground">{message}</p>
       </div>
     </div>
   );

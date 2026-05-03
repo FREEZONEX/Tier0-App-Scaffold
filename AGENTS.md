@@ -214,13 +214,21 @@ TanStack Start defaults to **client components**. SSR happens via the route's `l
 
 **The danger sign**: importing `getCookie`, `setCookie`, `getRequest`, `getRequestHeaders` from `@tanstack/react-start/server` outside of a `createServerFn().handler(...)` body, server-route handler, or middleware will crash the client bundle on hydration with errors like `does not provide an export named 'getRequest'`. **This applies to route files too** — `routes/login.tsx` and friends DO get bundled into the client. The bundler only strips these server-only imports when they are referenced from inside one of those three boundary types. If you need a server-only API in a route file, the call must be inside a `createServerFn().handler(...)` block; do NOT call it from a top-level helper or a `useEffect`.
 
-### Known framework gotcha — `getRequestHeaders()` returns `{}` from `createServerFn`
+### Headers debugging — do NOT use `JSON.stringify`
 
-In `@tanstack/react-start ^1.167`, `getRequestHeaders()` (and `getRequest().headers`) called from inside a `createServerFn().handler(...)` body do **not** surface custom request headers — only basic ones like `accept` / `host` / `user-agent`. Confusingly, `getCookie()` in the same context **does** work. So `loader: () => createServerFn(...)` is fine for reading cookies, but cannot read e.g. gateway-injected `X-App-User-*` headers.
+`getRequestHeaders()` returns a `Headers`-like instance (typed). Headers is iterable, not enumerable, so `JSON.stringify(getRequestHeaders())` always returns `"{}"` regardless of how many headers are actually present. This will trick you into thinking headers are missing when they are not — see [TanStack/router#6334](https://github.com/TanStack/router/issues/6334), closed as user error.
 
-**Workaround**: expose raw headers via a server route handler (which receives the full `Request` via its `{ request }` argument), and fetch from the client. The scaffold's `routes/api/auth/gateway-user.ts` is the canonical example — `routes/login.tsx` `useEffect`-fetches it instead of trying to read headers via `createServerFn`.
+```ts
+// WRONG — always logs "{}", even when headers exist
+console.log("headers:", JSON.stringify(getRequestHeaders()));
 
-For cookie-only reads (e.g. session lookup) keep using the `beforeLoad` + `createServerFn` + `getCookie` pattern — that path works.
+// CORRECT — read individual values
+const userId = getRequestHeaders().get("X-App-User-ID");
+// or dump everything for debugging
+console.log("headers:", Object.fromEntries(getRequestHeaders().entries()));
+```
+
+The scaffold's `routes/login.tsx` is the canonical example: it reads gateway-injected `X-App-User-*` headers via a `createServerFn` loader, using `new Headers(getRequestHeaders())` to hand a normal Headers instance to `parseGatewayUser`. That works.
 
 ## Authentication Model
 
@@ -454,17 +462,20 @@ import { getCookie } from "@tanstack/react-start/server";
 // client bundle, and any reference outside a createServerFn().handler(...)
 // body will explode on hydration with "does not provide an export named ..."
 //
-// CORRECT: only call @tanstack/react-start/server APIs inside one of:
+// CORRECT: importing the symbol is fine; just call it ONLY inside one of:
 //   - a server-route handler (routes/api/**, ctx.{request, params})
 //   - a createServerFn().handler(...) body
 //   - src/start.ts middleware
-// If the API needs to be exposed to a client component (e.g. login page
-// reading gateway headers), put it behind a server route and fetch it.
+// The bundler tree-shakes the import out of the client bundle when calls
+// only appear in those boundaries. Top-level helpers and useEffect calls
+// don't qualify.
 
-// 9. getRequestHeaders() in createServerFn returns {} (framework bug)
-// Cookie reads work; custom header reads do NOT. Use a server route
-// handler (which gets a real Request via { request }) and fetch from
-// the client. See routes/api/auth/gateway-user.ts for the pattern.
+// 9. JSON.stringify on a Headers instance is always "{}" — WRONG
+console.log("headers:", JSON.stringify(getRequestHeaders())); // logs "{}", lies
+// CORRECT — Headers is iterable, not enumerable
+console.log("headers:", Object.fromEntries(getRequestHeaders().entries()));
+// or just read what you need
+const userId = getRequestHeaders().get("X-App-User-ID");
 ```
 
 **Shell + user identity:** the parent `_app.tsx` route loads the user via `beforeLoad` (server-side, cookie-signed) and passes it as a prop to `Shell`. Read the user from any nested page via `Route.useRouteContext()` — synchronous, type-safe, no fetch round-trip. Do NOT add a separate `/api/auth/me` fetch in nested pages.
