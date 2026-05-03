@@ -212,7 +212,15 @@ TanStack Start defaults to **client components**. SSR happens via the route's `l
 - **Server-only files**: `src/start.ts`, `src/lib/auth.ts`, `src/lib/gateway.ts` (when used server-side), every file under `src/routes/api/**`, every `createServerFn()` body.
 - **Mixed file**: a route file like `routes/login.tsx` can declare a `createServerFn` and a client `component` side by side. The `createServerFn` body runs server-only; the component runs on both server (SSR) and client (hydration).
 
-**The danger sign**: importing `getCookie`, `setCookie`, `getRequest`, `getRequestHeader` from `@tanstack/react-start/server` inside a client component will crash the bundle. Those imports MUST live inside server-route handlers, `createServerFn` handlers, or middleware.
+**The danger sign**: importing `getCookie`, `setCookie`, `getRequest`, `getRequestHeaders` from `@tanstack/react-start/server` outside of a `createServerFn().handler(...)` body, server-route handler, or middleware will crash the client bundle on hydration with errors like `does not provide an export named 'getRequest'`. **This applies to route files too** — `routes/login.tsx` and friends DO get bundled into the client. The bundler only strips these server-only imports when they are referenced from inside one of those three boundary types. If you need a server-only API in a route file, the call must be inside a `createServerFn().handler(...)` block; do NOT call it from a top-level helper or a `useEffect`.
+
+### Known framework gotcha — `getRequestHeaders()` returns `{}` from `createServerFn`
+
+In `@tanstack/react-start ^1.167`, `getRequestHeaders()` (and `getRequest().headers`) called from inside a `createServerFn().handler(...)` body do **not** surface custom request headers — only basic ones like `accept` / `host` / `user-agent`. Confusingly, `getCookie()` in the same context **does** work. So `loader: () => createServerFn(...)` is fine for reading cookies, but cannot read e.g. gateway-injected `X-App-User-*` headers.
+
+**Workaround**: expose raw headers via a server route handler (which receives the full `Request` via its `{ request }` argument), and fetch from the client. The scaffold's `routes/api/auth/gateway-user.ts` is the canonical example — `routes/login.tsx` `useEffect`-fetches it instead of trying to read headers via `createServerFn`.
+
+For cookie-only reads (e.g. session lookup) keep using the `beforeLoad` + `createServerFn` + `getCookie` pattern — that path works.
 
 ## Authentication Model
 
@@ -441,8 +449,22 @@ function Page() { const { id } = Route.useParams(); /* … */ }
 // 8. Server-only imports leaking into client — WRONG
 "use client";  // (Vite: harmless directive, but the import below still breaks the bundle)
 import { getCookie } from "@tanstack/react-start/server";
-// CORRECT: only import @tanstack/react-start/server inside server-route handlers,
-// createServerFn handler bodies, or src/start.ts middleware.
+// Even worse: a route file (routes/login.tsx) that imports from
+// @tanstack/react-start/server at module top-level — that file IS in the
+// client bundle, and any reference outside a createServerFn().handler(...)
+// body will explode on hydration with "does not provide an export named ..."
+//
+// CORRECT: only call @tanstack/react-start/server APIs inside one of:
+//   - a server-route handler (routes/api/**, ctx.{request, params})
+//   - a createServerFn().handler(...) body
+//   - src/start.ts middleware
+// If the API needs to be exposed to a client component (e.g. login page
+// reading gateway headers), put it behind a server route and fetch it.
+
+// 9. getRequestHeaders() in createServerFn returns {} (framework bug)
+// Cookie reads work; custom header reads do NOT. Use a server route
+// handler (which gets a real Request via { request }) and fetch from
+// the client. See routes/api/auth/gateway-user.ts for the pattern.
 ```
 
 **Shell + user identity:** the parent `_app.tsx` route loads the user via `beforeLoad` (server-side, cookie-signed) and passes it as a prop to `Shell`. Read the user from any nested page via `Route.useRouteContext()` — synchronous, type-safe, no fetch round-trip. Do NOT add a separate `/api/auth/me` fetch in nested pages.
