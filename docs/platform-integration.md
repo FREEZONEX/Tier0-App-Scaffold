@@ -36,46 +36,62 @@
 
 ### 网关注入的 Header 格式（三选一）
 
+`role` 字段为**可选**——网关如果给了，App 自动用；不给则用户在 `/login` 自选。
+
 **格式 1：JSON `user` header**
 ```
-user: {"userID":"uuid-123","userName":"mercy","email":"mercy@example.com"}
+user: {"userID":"uuid-123","userName":"mercy","email":"mercy@example.com","role":"operator"}
 ```
 
 **格式 2：独立 header**
 ```
-X-App-User-ID: uuid-123
-X-App-User-Name: mercy
+X-App-User-ID:    uuid-123
+X-App-User-Name:  mercy
 X-App-User-Email: mercy@example.com
+X-App-User-Role:  operator
 ```
 
-**格式 3：最小集**
+**格式 3：最小集（无 role，落到 `/login` 让用户选）**
 ```
 X-App-User-ID: uuid-123
 ```
 
-至少需要 user ID，name 和 email 缺失时以 ID 兜底。
+至少需要 user ID。`name` 和 `email` 缺失时以 ID 兜底；`role` 缺失则不自动签发 session。
 
-### 认证流程
+### 认证流程（Mode A：网关角色优先）
 
 ```
-浏览器 → 网关（验证平台登录）→ 注入 user header → App
-  → src/start.ts 全局请求中间件：无 cookie 但有 user header
-  → 重定向 /login（角色选择页）
-  → 用户选择角色 → POST /api/auth/select-role
-  → 写 mes-session cookie（含 userId + role）
-  → 跳转目标页面
-  → 后续请求：中间件见 cookie → 直接放行
+浏览器 → 网关（验证平台登录）→ 注入 user + role header → App
+  → src/start.ts 全局请求中间件：
+
+      ┌── 有 mes-session cookie ───────────────────→ 放行
+      │
+      ├── 无 cookie + 网关 role 在 PERMISSION_MATRIX 中
+      │      → 自动签发 mes-session cookie（HMAC 签名）
+      │      → 302 回原 URL（带 cookie 重新发起请求）→ 放行
+      │
+      ├── 无 cookie + 网关无可用 role（未给 / 不在矩阵）
+      │      → 302 /login?from=… 让用户选
+      │      → POST /api/auth/select-role 写 cookie
+      │
+      └── 无 cookie + 无网关 header
+             → 401（非平台用户）
 ```
+
+第二条分支是 Mode A 的核心：**用户从不见到 `/login` 页面**，只要网关把 role 给了。
 
 ### 角色管理
 
-角色由 App 定义，用户自行选择。
+角色定义由 App 决定，分配由平台决定。
 
 1. Agent 在 `permissions.ts` 中定义 `PERMISSION_MATRIX`（角色 → 允许的操作）
-2. 平台可调 `GET /api/manifest` 获取角色列表（来自 `PERMISSION_MATRIX`）
-3. 用户首次进入 App 时，在角色选择页选择角色
-4. 选择后写入 `mes-session` cookie，`requireAuth()` 正常校验
-5. 用户可通过 Shell 底部的 "Switch Role" 重新选择
+2. 平台调 `GET /api/manifest` 拿角色列表，平台 admin UI 给用户分配 role
+3. 平台后续转发请求时把 role 一起注入 header
+4. App 中间件验证 role 存在于 `PERMISSION_MATRIX` 后自动签发 session
+
+**重要：** 网关注入的 `role` 字符串必须**精确匹配** `PERMISSION_MATRIX` 的 key（区分大小写）。`"Operator"` ≠ `"operator"`。Agent 与平台 admin UI 协调命名。
+
+未知 role 不会自动放行——会落回 `/login`（fail-closed）。Shell 不再有 "Switch Role" 按钮：Mode A 下角色由平台说了算，要换岗去平台改。
 
 ---
 

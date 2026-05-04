@@ -232,14 +232,40 @@ The scaffold's `routes/login.tsx` is the canonical example: it reads gateway-inj
 
 ## Authentication Model
 
-Authentication is handled by the platform gateway. The app does NOT manage passwords or user accounts.
+Authentication is handled by the platform gateway. The app does NOT manage passwords or user accounts. Identity AND role both come from the gateway header — the app trusts whatever the platform asserts.
+
+**Header formats** — all three are accepted; gateway picks one.
+
+```
+# Format 1 — JSON `user` header
+user: {"userID":"u123","userName":"alice","email":"a@x.com","role":"operator"}
+
+# Format 2 — individual headers
+X-App-User-ID:    u123
+X-App-User-Name:  alice
+X-App-User-Email: a@x.com
+X-App-User-Role:  operator
+
+# Format 3 — minimal (no role; falls back to /login)
+X-App-User-ID: u123
+```
+
+`role` is OPTIONAL in the gateway header. When the gateway provides it, the app skips the role-selection page (Mode A: gateway-driven). When absent, the app falls back to a role-picker UI.
 
 **Flow:**
-1. Platform gateway authenticates the user → injects `user` header (JSON) or `X-App-User-*` headers
-2. `src/start.ts` global request middleware detects the gateway header → redirects unauthenticated users to `/login`
-3. `/login` reads available roles from `PERMISSION_MATRIX` → user picks one
-4. `POST /api/auth/select-role` writes `mes-session` cookie (httpOnly, 7-day expiry) with identity + chosen role
-5. `requireAuth("admin")` in server-route handlers checks cookie role, throws `{ status, message }` on failure
+1. Gateway authenticates the platform user → injects identity (and optionally role) into request headers.
+2. `src/start.ts` global middleware sees the request:
+   - Has `mes-session` cookie? → pass through.
+   - No cookie + gateway role is valid in `PERMISSION_MATRIX`? → mint the signed session cookie ourselves and 302 to the same URL. **No `/login` round-trip.**
+   - No cookie + gateway present but no usable role? → 302 to `/login`.
+   - No cookie + no gateway header? → 401.
+3. `/login` (only reached when gateway didn't supply a role) lists `PERMISSION_MATRIX` roles → user picks → `POST /api/auth/select-role` writes the cookie.
+4. Subsequent requests carry the `mes-session` cookie. `requireAuth("admin")` reads it via `getCurrentUser()` and throws `HttpError` on mismatch.
+
+**Implications for Agent design:**
+- The `role` shipped by the gateway MUST exactly match a key in `PERMISSION_MATRIX`. Coordinate naming with the platform — "operator" vs "Operator" matters.
+- An unknown gateway role does NOT auto-elevate; it falls back to the picker (where the user can only choose roles that DO exist). Fail-closed by default.
+- The `Switch Role` button has been removed from `Shell` — under Mode A, the gateway is authoritative. Users who need a different role get it from the platform.
 
 **What you (the Agent) need to do:**
 - Define roles and permissions in `permissions.ts` (`PERMISSION_MATRIX`)

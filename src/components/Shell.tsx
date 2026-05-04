@@ -2,7 +2,7 @@
 
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { type ReactNode, type ElementType } from "react";
-import { LogOut, RefreshCw } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { cn, apiUrl } from "@/lib/utils";
 import type { AppUser } from "@/lib/users";
 
@@ -31,14 +31,11 @@ export function Shell({
   const navigate = useNavigate();
 
   async function handleLogout() {
+    // Clears the session cookie. The next request hits start.ts middleware,
+    // which re-issues a session from the gateway-supplied role (Mode A) or
+    // bounces to /login if the gateway didn't supply one.
     await fetch(apiUrl("/api/auth/logout"), { method: "POST" });
     navigate({ to: "/login" });
-  }
-
-  function handleSwitchRole() {
-    fetch(apiUrl("/api/auth/logout"), { method: "POST" }).then(() => {
-      navigate({ to: "/login" });
-    });
   }
 
   return (
@@ -98,22 +95,13 @@ export function Shell({
               {user.role}
             </p>
           </div>
-          <div className="flex gap-1">
-            <button
-              onClick={handleSwitchRole}
-              className="inline-flex items-center gap-1 rounded-sm border border-border bg-card px-2 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
-            >
-              <RefreshCw className="size-3" />
-              Switch
-            </button>
-            <button
-              onClick={handleLogout}
-              className="inline-flex items-center gap-1 rounded-sm border border-border bg-card px-2 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
-            >
-              <LogOut className="size-3" />
-              Logout
-            </button>
-          </div>
+          <button
+            onClick={handleLogout}
+            className="inline-flex items-center gap-1 rounded-sm border border-border bg-card px-2 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
+          >
+            <LogOut className="size-3" />
+            Logout
+          </button>
         </div>
       </nav>
 
