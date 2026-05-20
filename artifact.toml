@@ -10,6 +10,9 @@
 [deployment]
 deploymentTarget = "autoscale"
 
+[deployment.postBuild]
+args = ["npm", "prune", "--omit=dev"]
+
 [[services]]
 name = "web"
 paths = ["/"]
@@ -23,7 +26,7 @@ args = [
   "npm", "install", "&&",
   "npm", "run", "build",
 ]
-outputDir = "dist"
+outputDir = "."
 
 [services.production.run]
 args = ["node", "server.mjs"]
@@ -31,7 +34,8 @@ image = "node:20-alpine"
 
 [services.production.run.env]
 NODE_ENV = "production"
-HOSTNAME = "0.0.0.0"
+HOST = "0.0.0.0"
+SESSION_SECRET = "fff03854d9eee4fca8fb13b8ef49c765494bbf984d7590d884393238ba4c59be"
 
 [services.production.health.startup]
 path = "/api/health"
@@ -49,7 +53,7 @@ timeout = 180
 
 [services.preview.env]
 NODE_ENV = "development"
-HOSTNAME = "0.0.0.0"
+HOST = "0.0.0.0"
 BROWSER = "none"
 VITE_ALLOWED_HOSTS = "all"
 SESSION_SECRET = "preview-session-secret-0123456789abcdef"
