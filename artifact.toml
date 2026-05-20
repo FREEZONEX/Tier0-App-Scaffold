@@ -13,7 +13,7 @@ deploymentTarget = "autoscale"
 [[services]]
 name = "web"
 paths = ["/"]
-localPort = 3000
+localPort = 5173
 
 [services.production]
 serve = "dynamic"
