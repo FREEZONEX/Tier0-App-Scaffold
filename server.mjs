@@ -106,7 +106,7 @@ async function tryServeStatic(req, res) {
 const server = createServer(async (req, res) => {
   try {
     if (await tryServeStatic(req, res)) return;
-    const baseUrl = `http://${req.headers.host || `${HOST}:${PORT}`}`;
+    const baseUrl = `https://${req.headers.host || `${HOST}:${PORT}`}`;
     const webReq = nodeRequestToWebRequest(req, baseUrl);
     const webRes = await handler.fetch(webReq);
     res.statusCode = webRes.status;
