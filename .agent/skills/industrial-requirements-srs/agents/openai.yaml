@@ -1,0 +1,4 @@
+interface:
+  display_name: "Industrial Requirements SRS"
+  short_description: "Draft implementation-ready industrial SRS docs"
+  default_prompt: "Use $industrial-requirements-srs to turn a factory operations request into a bounded implementation-ready requirements specification."

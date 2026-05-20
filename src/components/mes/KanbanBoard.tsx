@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { type ReactNode, useCallback, useState } from "react";
+import { type ReactNode, useCallback } from "react";
 import {
   DndContext,
   closestCenter,
@@ -111,8 +111,6 @@ export function KanbanBoard<T extends KanbanItem = KanbanItem>({
     },
     [columns, findColumn, onMove]
   );
-
-  const allIds = columns.flatMap((c) => c.items.map((i) => i.id));
 
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>

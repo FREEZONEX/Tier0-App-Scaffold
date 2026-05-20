@@ -53,8 +53,8 @@ interface GanttChartProps {
 }
 
 const statusColors: Record<string, string> = {
-  running:   "bg-[var(--accent)]",
-  active:    "bg-[var(--accent)]",
+  running:   "bg-[var(--state-running-fg)]",
+  active:    "bg-[var(--state-running-fg)]",
   completed: "bg-emerald-500",
   done:      "bg-emerald-500",
   pending:   "bg-gray-300",
@@ -155,7 +155,7 @@ export function GanttChart({
     const timelineArea = container.querySelector("[data-gantt-rows]") as HTMLElement;
     if (!timelineArea) return;
 
-    const rect = timelineArea.getBoundingClientRect();
+    const _rect = timelineArea.getBoundingClientRect();
     const barEl = (e.currentTarget as HTMLElement);
     const barRect = barEl.getBoundingClientRect();
 
@@ -210,6 +210,8 @@ export function GanttChart({
 
       setDrag((prev) => prev ? { ...prev, previewWidth: newWidth } : null);
     }
+    // snapMinutes is read inside but is a stable prop; intentional omit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [drag, pxToMinutes, minToPercent, totalMinutes, yToResource]);
 
   const handlePointerUp = useCallback(() => {
@@ -270,7 +272,7 @@ export function GanttChart({
 
       {/* Rows */}
       <div data-gantt-rows="" className="relative">
-        {resources.map(([resource, rTasks], rowIndex) => (
+        {resources.map(([resource, rTasks], _rowIndex) => (
           <div key={resource} className="flex border-b border-[var(--border)] last:border-b-0">
             <div className="flex w-28 shrink-0 items-center border-r border-[var(--border)] px-3 text-xs font-medium" style={{ height: ROW_HEIGHT }}>
               {resource}
@@ -332,7 +334,7 @@ export function GanttChart({
         {drag && dragPreviewRowIndex >= 0 && (
           <div
             className={cn(
-              "pointer-events-none absolute h-6 rounded px-1.5 text-[10px] font-medium leading-6 text-white truncate ring-2 ring-[var(--accent)] shadow-[var(--shadow-lg)]",
+              "pointer-events-none absolute h-6 rounded-sm px-1.5 text-[10px] font-medium leading-6 text-white truncate ring-2 ring-foreground/30 shadow-[var(--shadow-lg)]",
               statusColors[(drag.originalTask.status ?? "").toLowerCase()] ?? "bg-gray-400"
             )}
             style={{

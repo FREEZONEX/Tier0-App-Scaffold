@@ -55,9 +55,13 @@ export function ParetoChart({
     const sorted = [...data].sort((a, b) => b.count - a.count);
     const total = sorted.reduce((sum, d) => sum + d.count, 0);
 
-    let cumulative = 0;
-    return sorted.map((d) => {
-      cumulative += d.count;
+    // Build cumulative running totals functionally to keep the map body pure.
+    const cumulativeArr = sorted.reduce<number[]>(
+      (acc, d) => [...acc, (acc[acc.length - 1] ?? 0) + d.count],
+      [],
+    );
+    return sorted.map((d, i) => {
+      const cumulative = cumulativeArr[i];
       return {
         label: d.label,
         count: d.count,
@@ -114,7 +118,6 @@ export function ParetoChart({
                 border: "1px solid var(--border)",
                 boxShadow: "var(--shadow-md)",
               }}
-              /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
               formatter={((value: any, name: any) =>
                 name === "cumulative" ? [`${Number(value).toFixed(1)}%`, "Cumulative"] : [value, label]
               ) as any}

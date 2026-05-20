@@ -1,5 +1,11 @@
 "use client";
 
+/* eslint-disable react-hooks/refs --
+ * `hasMounted` ref is read in render to suppress entrance animation on
+ * re-renders. Refactoring to state would force an extra render on first paint,
+ * defeating the purpose. Pre-existing pattern; safe in practice.
+ */
+
 import { cn } from "@/lib/utils";
 import { type ReactNode, useRef } from "react";
 import { motion } from "@/lib/motion";

@@ -1,8 +1,11 @@
 /**
  * AppUser type definition.
  *
- * Identity comes from the gateway (user header).
+ * Identity fields come from the gateway (user header).
  * Role is selected by the user on the login page.
+ *
+ * Strict — no index signature. Anything in the cookie payload that isn't
+ * declared here will not flow into the typed user object.
  */
 
 export interface AppUser {
@@ -11,5 +14,4 @@ export interface AppUser {
   displayName: string;
   role: string;
   email?: string;
-  [key: string]: unknown;
 }

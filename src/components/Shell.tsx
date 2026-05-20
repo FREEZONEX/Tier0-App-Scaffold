@@ -1,10 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { type ReactNode, type ElementType, useEffect, useState } from "react";
-import { cn } from "@/lib/utils";
-import { apiUrl } from "@/lib/utils";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { type ReactNode, type ElementType } from "react";
+import { Factory, LayoutDashboard, LogOut } from "lucide-react";
+import { cn, apiUrl } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import type { AppUser } from "@/lib/users";
 
 export interface NavModule {
   key: string;
@@ -15,58 +16,50 @@ export interface NavModule {
 
 // ─── Agent: update this array with your app's modules and lucide-react icons ───
 export const defaultModules: NavModule[] = [
-  { key: "dashboard", label: "Dashboard", href: "/" },
+  { key: "dashboard", label: "Dashboard", href: "/", icon: LayoutDashboard },
 ];
-
-interface UserInfo {
-  displayName: string;
-  role: string;
-}
-
-function useCurrentUser() {
-  const [user, setUser] = useState<UserInfo | null>(null);
-  useEffect(() => {
-    fetch(apiUrl("/api/auth/me"))
-      .then((r) => (r.ok ? r.json() : null))
-      .then(setUser)
-      .catch(() => setUser(null));
-  }, []);
-  return user;
-}
 
 export function Shell({
   modules = defaultModules,
+  user,
   children,
 }: {
   modules?: NavModule[];
+  user: AppUser;
   children: ReactNode;
 }) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const user = useCurrentUser();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
 
   async function handleLogout() {
+    // Clears the session cookie. The next request hits start.ts middleware,
+    // which re-issues a session from the gateway-supplied role (Mode A) or
+    // bounces to /login if the gateway didn't supply one.
     await fetch(apiUrl("/api/auth/logout"), { method: "POST" });
-    router.push("/login");
-  }
-
-  function handleSwitchRole() {
-    fetch(apiUrl("/api/auth/logout"), { method: "POST" }).then(() => {
-      router.push("/login");
-    });
+    navigate({ to: "/login" });
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <nav className="flex w-56 shrink-0 flex-col border-r border-border bg-sidebar">
-        <div className="px-4 py-5">
-          <h1 className="text-sm font-semibold tracking-tight">Shop Floor</h1>
-          <p className="mt-0.5 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-            Command
-          </p>
+    <div className="flex h-screen overflow-hidden bg-bg text-text">
+      <nav className="flex w-60 shrink-0 flex-col border-r border-border bg-sidebar">
+        {/* Brand mark */}
+        <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+          <div className="flex size-7 items-center justify-center rounded-sm bg-primary text-primary-foreground">
+            <Factory className="size-4" />
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold">
+              Tier0 MES
+            </p>
+            <p className="caption truncate">Production workspace</p>
+          </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-2 py-1">
+        {/* Modules */}
+        <div className="flex-1 overflow-y-auto px-2 py-2">
+          <p className="px-2 pb-1.5 pt-1 font-mono text-[10px] font-medium uppercase text-muted-foreground">
+            Modules
+          </p>
           {modules.map((mod) => {
             const isActive =
               pathname === mod.href ||
@@ -75,47 +68,45 @@ export function Shell({
             return (
               <Link
                 key={mod.key}
-                href={mod.href}
+                // `as never`: defaultModules is mutated by the Agent at build time,
+                // so the router-typed `to` prop cannot statically know the routes
+                // an agent will introduce. Type-safety is preserved everywhere
+                // else Link is used directly.
+                to={mod.href as never}
                 className={cn(
-                  "mb-0.5 flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-xs font-medium transition-colors",
+                  "mb-0.5 flex items-center gap-2.5 rounded-md border border-transparent px-2.5 py-2 text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-[var(--accent)] text-foreground"
-                    : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
+                    ? "border-[var(--tier0-highlight-bg-primary)] bg-highlight-bg-accent text-foreground"
+                    : "text-foreground/80 hover:bg-sidebar-accent hover:text-foreground",
                 )}
               >
                 {Icon && <Icon className="size-4 shrink-0" />}
-                <span>{mod.label}</span>
+                <span className="truncate">{mod.label}</span>
               </Link>
             );
           })}
         </div>
 
-        <div className="border-t border-border px-4 py-3 space-y-2">
-          {user && (
-            <div className="flex items-center justify-between">
-              <div className="min-w-0">
-                <p className="truncate text-xs font-medium">{user.displayName}</p>
-                <span className="inline-block rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                  {user.role}
-                </span>
-              </div>
-            </div>
-          )}
-          <div className="flex gap-2">
-            <button
-              onClick={handleSwitchRole}
-              className="text-[10px] text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Switch Role
-            </button>
-            <span className="text-[10px] text-muted-foreground">·</span>
-            <button
-              onClick={handleLogout}
-              className="text-[10px] text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Logout
-            </button>
+        {/* User block */}
+        <div className="border-t border-border bg-surface-inset px-3 py-3">
+          <div className="mb-2 min-w-0">
+            <p className="truncate text-sm font-medium leading-tight">
+              {user.displayName}
+            </p>
+            <p className="mt-0.5 font-mono text-[10px] uppercase text-muted-foreground">
+              {user.role}
+            </p>
           </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleLogout}
+            className="w-full justify-start text-muted-foreground hover:text-foreground"
+          >
+            <LogOut className="size-3" />
+            Logout
+          </Button>
         </div>
       </nav>
 

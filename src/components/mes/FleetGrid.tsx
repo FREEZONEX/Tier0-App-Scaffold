@@ -40,35 +40,37 @@ interface FleetGridProps {
   className?: string;
 }
 
+// State color mapping pinned to global state tokens — keeps FleetGrid in sync
+// with StateBadge / TargetBar / etc. across the app.
 const statusBorder: Record<string, string> = {
-  running:     "border-l-[var(--accent)]",
-  active:      "border-l-[var(--accent)]",
-  completed:   "border-l-emerald-500",
-  done:        "border-l-emerald-500",
-  passed:      "border-l-emerald-500",
-  idle:        "border-l-gray-400",
-  pending:     "border-l-gray-400",
-  draft:       "border-l-gray-400",
-  paused:      "border-l-amber-500",
-  maintenance: "border-l-amber-500",
-  warning:     "border-l-amber-500",
-  down:        "border-l-red-500",
-  failed:      "border-l-red-500",
-  rejected:    "border-l-red-500",
-  blocked:     "border-l-red-500",
+  running:     "border-l-[var(--state-running-fg)]",
+  active:      "border-l-[var(--state-running-fg)]",
+  completed:   "border-l-[var(--state-running-fg)]",
+  done:        "border-l-[var(--state-running-fg)]",
+  passed:      "border-l-[var(--state-running-fg)]",
+  idle:        "border-l-[var(--state-idle-fg)]",
+  pending:     "border-l-[var(--state-idle-fg)]",
+  draft:       "border-l-[var(--state-idle-fg)]",
+  paused:      "border-l-[var(--state-paused-fg)]",
+  warning:     "border-l-[var(--state-paused-fg)]",
+  maintenance: "border-l-[var(--state-info-fg)]",
+  down:        "border-l-[var(--state-error-fg)]",
+  failed:      "border-l-[var(--state-error-fg)]",
+  rejected:    "border-l-[var(--state-error-fg)]",
+  blocked:     "border-l-[var(--state-error-fg)]",
 };
 
 const statusDot: Record<string, string> = {
-  running:     "bg-[var(--accent)]",
-  active:      "bg-[var(--accent)]",
-  completed:   "bg-emerald-500",
-  done:        "bg-emerald-500",
-  idle:        "bg-gray-400",
-  pending:     "bg-gray-400",
-  paused:      "bg-amber-500",
-  maintenance: "bg-amber-500",
-  down:        "bg-red-500",
-  failed:      "bg-red-500",
+  running:     "bg-[var(--state-running-fg)]",
+  active:      "bg-[var(--state-running-fg)]",
+  completed:   "bg-[var(--state-running-fg)]",
+  done:        "bg-[var(--state-running-fg)]",
+  idle:        "bg-[var(--state-idle-fg)]",
+  pending:     "bg-[var(--state-idle-fg)]",
+  paused:      "bg-[var(--state-paused-fg)]",
+  maintenance: "bg-[var(--state-info-fg)]",
+  down:        "bg-[var(--state-error-fg)]",
+  failed:      "bg-[var(--state-error-fg)]",
 };
 
 export function FleetGrid({
@@ -95,10 +97,11 @@ export function FleetGrid({
             key={item.id}
             onClick={onItemClick ? () => onItemClick(item.id) : undefined}
             className={cn(
-              "rounded-lg border border-[var(--border)] border-l-[3px] bg-white p-3 transition-shadow",
+              "rounded-sm border border-border border-l-[3px] bg-card p-3 transition-colors",
               borderColor,
-              isActive && "shadow-glow-accent",
-              onItemClick && "cursor-pointer hover:shadow-[var(--shadow-md)]"
+              isActive && "border-l-[var(--state-running-fg)]",
+              onItemClick &&
+                "cursor-pointer hover:border-border-strong hover:bg-[var(--surface-inset)]",
             )}
           >
             <div className="flex items-center gap-2">

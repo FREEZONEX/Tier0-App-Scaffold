@@ -8,6 +8,9 @@ import { AnimatedNumber } from "./AnimatedNumber";
  * OEEGauge — three-ring donut showing Availability / Performance / Quality
  * with a center OEE value. Pure SVG + motion — no recharts dependency.
  *
+ * Ring color follows MES convention: A = blue, P = amber, Q = green.
+ * Three distinct hues so an operator can read each component at a glance.
+ *
  * Usage:
  *   <OEEGauge availability={92} performance={87} quality={98} />
  */
@@ -32,12 +35,12 @@ interface RingProps {
   center: number;
 }
 
-const trackColor = "#f4f4f5";
+const trackColor = "oklch(0.92 0 0)";
 
 const springTransition = {
   type: "spring" as const,
-  stiffness: 60,
-  damping: 15,
+  stiffness: 100,
+  damping: 22,
 };
 
 function Ring({ value, color, radius, strokeWidth, center }: RingProps) {
@@ -46,7 +49,6 @@ function Ring({ value, color, radius, strokeWidth, center }: RingProps) {
 
   return (
     <>
-      {/* Track */}
       <circle
         cx={center}
         cy={center}
@@ -55,7 +57,6 @@ function Ring({ value, color, radius, strokeWidth, center }: RingProps) {
         stroke={trackColor}
         strokeWidth={strokeWidth}
       />
-      {/* Value */}
       <motion.circle
         cx={center}
         cy={center}
@@ -63,7 +64,7 @@ function Ring({ value, color, radius, strokeWidth, center }: RingProps) {
         fill="none"
         stroke={color}
         strokeWidth={strokeWidth}
-        strokeLinecap="round"
+        strokeLinecap="butt"
         strokeDasharray={circumference}
         initial={{ strokeDashoffset: circumference }}
         animate={{ strokeDashoffset: offset }}
@@ -77,6 +78,10 @@ function Ring({ value, color, radius, strokeWidth, center }: RingProps) {
   );
 }
 
+const COLOR_A = "var(--state-info-fg)";    // Availability — blue
+const COLOR_P = "var(--state-paused-fg)";  // Performance  — amber
+const COLOR_Q = "var(--state-running-fg)"; // Quality      — green
+
 export function OEEGauge({
   availability,
   performance,
@@ -84,36 +89,54 @@ export function OEEGauge({
   size = 200,
   className,
 }: OEEGaugeProps) {
+  // OEE is a product of fractions, so divide by 10000 to keep result 0–100.
   const oee = Math.round((availability * performance * quality) / 10000);
   const center = size / 2;
-  const strokeWidth = size * 0.06;
-  const gap = size * 0.04;
+  // Slightly thicker rings for industrial readability
+  const strokeWidth = size * 0.08;
+  const gap = size * 0.03;
 
   const outerR = center - strokeWidth / 2 - 2;
   const midR = outerR - strokeWidth - gap;
   const innerR = midR - strokeWidth - gap;
 
   return (
-    <div className={cn("relative", className)} style={{ width: size, height: size }}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        <Ring value={availability} color="var(--accent)" radius={outerR} strokeWidth={strokeWidth} center={center} />
-        <Ring value={performance} color="#71717a" radius={midR} strokeWidth={strokeWidth} center={center} />
-        <Ring value={quality} color="#27272a" radius={innerR} strokeWidth={strokeWidth} center={center} />
-      </svg>
+    <div className={cn("relative", className)} style={{ width: size }}>
+      <div style={{ width: size, height: size, position: "relative" }}>
+        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+          <Ring value={availability} color={COLOR_A} radius={outerR} strokeWidth={strokeWidth} center={center} />
+          <Ring value={performance} color={COLOR_P} radius={midR}   strokeWidth={strokeWidth} center={center} />
+          <Ring value={quality}     color={COLOR_Q} radius={innerR} strokeWidth={strokeWidth} center={center} />
+        </svg>
 
-      {/* Center label */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-2xl font-semibold">
-          <AnimatedNumber value={oee} format={(n) => `${Math.round(n)}%`} />
-        </span>
-        <span className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">OEE</span>
+        {/* Center label */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="font-mono text-3xl font-semibold tabular-nums tracking-tight">
+            <AnimatedNumber value={oee} format={(n) => `${Math.round(n)}%`} />
+          </span>
+          <span className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.15em] text-muted-foreground">
+            OEE
+          </span>
+        </div>
       </div>
 
       {/* Legend */}
-      <div className="mt-2 flex justify-center gap-3 text-[10px]">
-        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-[var(--accent)]" />A {availability}%</span>
-        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-[#71717a]" />P {performance}%</span>
-        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-[#27272a]" />Q {quality}%</span>
+      <div className="mt-3 flex justify-center gap-4 text-[11px] font-medium">
+        <span className="flex items-center gap-1.5">
+          <span className="size-2 rounded-sm" style={{ background: COLOR_A }} />
+          <span className="text-muted-foreground">A</span>
+          <span className="font-mono tabular-nums">{availability}%</span>
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="size-2 rounded-sm" style={{ background: COLOR_P }} />
+          <span className="text-muted-foreground">P</span>
+          <span className="font-mono tabular-nums">{performance}%</span>
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="size-2 rounded-sm" style={{ background: COLOR_Q }} />
+          <span className="text-muted-foreground">Q</span>
+          <span className="font-mono tabular-nums">{quality}%</span>
+        </span>
       </div>
     </div>
   );

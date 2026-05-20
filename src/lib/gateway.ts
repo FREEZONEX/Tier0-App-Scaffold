@@ -3,17 +3,28 @@
  *
  * Accepts three header formats (checked in order):
  *
- *   Format 1 (JSON): `user: {"userID":"uuid","userName":"mercy","email":"m@x.com"}`
- *   Format 2 (individual): `X-App-User-ID`, `X-App-User-Name`, `X-App-User-Email`
- *   Format 3 (minimal): `X-App-User-ID` only (name/email default to ID)
+ *   Format 1 (JSON):
+ *     `user: {"userID":"uuid","userName":"mercy","email":"m@x.com","role":"admin"}`
+ *
+ *   Format 2 (individual): `X-App-User-ID`, `X-App-User-Name`,
+ *                          `X-App-User-Email`, `X-App-User-Role`
+ *
+ *   Format 3 (minimal): `X-App-User-ID` only (name/email/role default)
  *
  * At minimum, a user ID must be present.
+ *
+ * `role` is OPTIONAL. When the gateway supplies it, `src/start.ts` middleware
+ * auto-issues a session cookie (Mode A: gateway-driven role assignment) and
+ * the user skips the role-selection page. When absent, the user falls back
+ * to `/login` and picks from `PERMISSION_MATRIX`.
  */
 
 export interface GatewayUser {
   id: string;
   name: string;
   email: string;
+  /** Gateway-supplied role. Validated against PERMISSION_MATRIX before use. */
+  role?: string;
 }
 
 /**
@@ -32,6 +43,9 @@ export function parseGatewayUser(headers: Headers): GatewayUser | null {
           id,
           name: parsed.userName ?? parsed.username ?? parsed.name ?? id,
           email: parsed.email ?? "",
+          role: typeof parsed.role === "string" && parsed.role.length > 0
+            ? parsed.role
+            : undefined,
         };
       }
     } catch {
@@ -42,10 +56,19 @@ export function parseGatewayUser(headers: Headers): GatewayUser | null {
   // Format 2 & 3: individual X-App-User-* headers
   const id = headers.get("X-App-User-ID") || headers.get("x-app-user-id");
   if (id) {
+    const role =
+      headers.get("X-App-User-Role") || headers.get("x-app-user-role") || "";
     return {
       id,
-      name: headers.get("X-App-User-Name") || headers.get("x-app-user-name") || id,
-      email: headers.get("X-App-User-Email") || headers.get("x-app-user-email") || "",
+      name:
+        headers.get("X-App-User-Name") ||
+        headers.get("x-app-user-name") ||
+        id,
+      email:
+        headers.get("X-App-User-Email") ||
+        headers.get("x-app-user-email") ||
+        "",
+      role: role.length > 0 ? role : undefined,
     };
   }
 

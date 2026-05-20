@@ -59,21 +59,26 @@ export function TargetBar({
 
       {/* Bar */}
       <div className="flex items-center gap-2">
-        <div className="relative h-2 flex-1 overflow-hidden rounded-full bg-gray-100">
+        <div className="relative h-2 flex-1 overflow-hidden rounded-sm bg-[var(--surface-inset)]">
           <motion.div
             className={cn(
-              "absolute inset-y-0 left-0 rounded-full",
-              isOnTarget ? "bg-[var(--accent)]" : "bg-red-400"
+              "absolute inset-y-0 left-0 rounded-sm",
+              isOnTarget
+                ? "bg-[var(--state-running-fg)]"
+                : "bg-[var(--state-error-fg)]",
             )}
             initial={{ width: 0 }}
             animate={{ width: `${percent}%` }}
-            transition={{ type: "spring", stiffness: 80, damping: 20 }}
+            transition={{ type: "spring", stiffness: 220, damping: 32 }}
           />
         </div>
-        <span className={cn(
-          "shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold tabular-nums",
-          isOnTarget ? "bg-[var(--accent)]/15 text-[var(--accent-strong)]" : "bg-red-50 text-red-600"
-        )}>
+        <span
+          className={cn(
+            "shrink-0 rounded-sm px-1.5 py-0.5 font-mono text-[11px] font-semibold tabular-nums",
+            isOnTarget ? "state-running" : "state-error",
+            "border",
+          )}
+        >
           {Math.round(ratio * 100)}%
         </span>
       </div>

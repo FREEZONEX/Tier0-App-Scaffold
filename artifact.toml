@@ -21,15 +21,12 @@ serve = "dynamic"
 [services.production.build]
 args = [
   "npm", "install", "&&",
-  "npm", "run", "build", "&&",
-  "mkdir", "-p", ".next/standalone/.next", "&&",
-  "cp", "-r", ".next/static", ".next/standalone/.next/static", "&&",
-  "(cp", "-r", "public", ".next/standalone/public", "2>/dev/null", "||", "true)",
+  "npm", "run", "build",
 ]
-outputDir = ".next/standalone"
+outputDir = "dist"
 
 [services.production.run]
-args = ["node", "server.js"]
+args = ["node", "server.mjs"]
 image = "node:20-alpine"
 
 [services.production.run.env]
@@ -43,8 +40,8 @@ timeout = 120
 # Live preview（Executor Pod 内运行的 dev server）
 [services.preview]
 install = ["npm", "install"]
-args = ["npm", "run", "dev", "--", "--port", "3000", "--hostname", "0.0.0.0"]
-port = 3000
+args = ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]
+port = 5173
 
 [services.preview.health]
 path = "/api/health"
@@ -53,3 +50,10 @@ timeout = 180
 [services.preview.env]
 NODE_ENV = "development"
 HOSTNAME = "0.0.0.0"
+BROWSER = "none"
+VITE_ALLOWED_HOSTS = "all"
+SESSION_SECRET = "preview-session-secret-0123456789abcdef"
+PREVIEW_USER_ID = "preview-operator"
+PREVIEW_USER_NAME = "Preview Operator"
+PREVIEW_USER_EMAIL = "preview.operator@example.com"
+PREVIEW_USER_ROLE = "operator"
