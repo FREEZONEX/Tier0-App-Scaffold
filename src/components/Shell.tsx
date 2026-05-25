@@ -17,7 +17,7 @@ export interface NavModule {
 
 // ─── Agent: update this array with your app's modules and lucide-react icons ───
 export const defaultModules: NavModule[] = [
-  { key: "dashboard", label: "Dashboard", href: "/", icon: LayoutDashboard },
+  { key: "dashboard", label: "Overview", href: "/", icon: LayoutDashboard },
 ];
 
 export function Shell({
@@ -57,9 +57,9 @@ export function Shell({
           </div>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold">
-              Tier0 MES
+              Industrial App
             </p>
-            <p className="caption truncate">Production workspace</p>
+            <p className="caption truncate">Industrial workspace</p>
           </div>
         </div>
 

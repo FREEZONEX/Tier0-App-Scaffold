@@ -77,7 +77,7 @@ function LoginPage() {
             <span className="font-mono text-xs font-semibold">M</span>
           </div>
           <span className="text-sm font-semibold tracking-tight">
-            MES Console
+            Operations Console
           </span>
         </div>
 

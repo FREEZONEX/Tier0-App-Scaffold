@@ -5,7 +5,6 @@ import {
   Database,
   ShieldCheck,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -54,11 +53,10 @@ function DashboardPage() {
       <header className="border-b border-border bg-background px-6 py-5">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div className="min-w-0">
-            <Badge variant="highlight">Tier0 workspace</Badge>
-            <h1 className="typo-h3 mt-3">Production application scaffold</h1>
+            <h1 className="typo-h3">Industrial application scaffold</h1>
             <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              Build MES modules on a TanStack Start, Drizzle, and Tier0 design
-              foundation.
+              Build industrial operations modules on a TanStack Start and
+              Drizzle foundation.
             </p>
           </div>
           <div className="rounded-md border border-border bg-muted px-3 py-2">

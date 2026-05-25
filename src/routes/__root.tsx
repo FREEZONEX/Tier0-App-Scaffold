@@ -17,8 +17,8 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "MES App" },
-      { name: "description", content: "Manufacturing Execution System" },
+      { title: "Scaffold" },
+      { name: "description", content: "Industrial operations application" },
     ],
     links: [
       { rel: "stylesheet", href: globalsCss },
@@ -51,7 +51,7 @@ function NotFound() {
         <p className="text-4xl font-semibold">404</p>
         <p className="mt-2 text-xs text-muted-foreground">Page not found</p>
         <Button variant="outline" size="sm" className="mt-4" render={<Link to="/" />}>
-          Back to Dashboard
+          Back to Overview
         </Button>
       </div>
     </div>
