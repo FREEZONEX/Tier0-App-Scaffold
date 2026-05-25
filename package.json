@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite dev --host 0.0.0.0",
+    "dev": "vite dev --host 0.0.0.0 --port 5173",
     "build": "vite build",
     "start": "node server.mjs",
     "lint": "eslint .",
@@ -48,7 +48,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",
-    "@tailwindcss/vite": "^4.2.4",
+    "@tailwindcss/vite": "4.1.13",
     "@tanstack/eslint-plugin-router": "^1.161.0",
     "@tanstack/router-plugin": "^1.167.0",
     "@types/node": "^20",
@@ -65,13 +65,13 @@
     "eslint-plugin-react-hooks": "^7.1.0",
     "globals": "^17.5.0",
     "shadcn": "^4.1.0",
-    "tailwindcss": "^4",
+    "tailwindcss": "4.1.13",
     "tsx": "^4.21.0",
     "typescript": "^5",
     "vite": "^7.1.12",
     "vite-tsconfig-paths": "^6.1.0"
   },
   "overrides": {
-    "lightningcss": "1.29.1"
+    "lightningcss": "1.32.0"
   }
 }

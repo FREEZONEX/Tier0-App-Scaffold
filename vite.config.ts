@@ -66,7 +66,7 @@ function previewGatewayHeaders(): Plugin {
 export default defineConfig({
   base: process.env.VITE_BASE_PATH || process.env.NEXT_PUBLIC_BASE_PATH || "/",
   server: {
-    port: 3000,
+    port: 5173,
     host: "0.0.0.0",
     allowedHosts: allowAllHosts ? true : [],
   },
