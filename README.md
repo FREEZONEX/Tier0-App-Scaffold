@@ -23,8 +23,8 @@
 ```bash
 npm install
 # 配置 .env 中的 DATABASE_URL
-npx drizzle-kit push      # 建表
-npx tsx src/db/seed.ts    # 种子数据（可选）
+npx drizzle-kit push      # 可选：本地预同步 schema；运行时 service 会自引导
+npx tsx src/db/seed.ts    # 可选：显式批量 seed / reset fixture
 npm run dev               # → http://localhost:3000
 ```
 
@@ -142,7 +142,7 @@ function WorkOrdersPage() {
 
 ## 加一个 API 端点（两步走：先服务，后路由）
 
-**第一步：写服务**（`src/services/work-orders.ts`）—— 业务逻辑、状态机、事务，全部在这里。`db` 客户端**只能**在 `services/` 和 `db/seed.ts` 出现（ESLint 在边界外会报错）。
+**第一步：写服务**（`src/services/work-orders.ts`）—— 业务逻辑、状态机、事务，全部在这里。`db` 客户端**只能**在 `services/` 和 `db/seed.ts` 出现（ESLint 在边界外会报错）。每个已实现模块还要在 service 顶部定义运行时 `bootstrapModule(...)`：`create table if not exists`、`create index if not exists`、空表时写入少量 baseline 数据。这样 preview 和新租户 schema 即使没执行过 `drizzle push/seed`，首次查询也能自引导。
 
 **第二步：写路由**（`src/routes/api/work-orders.ts`）—— HTTP 薄壳：`requireAuth()` → `schema.parse()` → 调 service → `Response.json(...)`，整段包在 `withErrors(...)` 里。失败抛 `HttpError` 或让 Zod 自然冒泡。
 
@@ -172,6 +172,7 @@ PostgreSQL
 - `db` 只能从 `src/services/**` 和 `src/db/seed.ts` import，**不要**进 routes / lib / 客户端组件
 - `Request` / `Response` / `Headers` 只在 routes / `src/start.ts` / `src/lib/{auth,gateway,route-handlers}.ts` 出现——**不要**进 services
 - 多步写（≥2 个 db 操作）必须在 `db.transaction(async tx => ...)` 里执行
+- 模块 service 的每个入口函数先 `await` 本模块的 runtime bootstrap；bootstrap 负责建 schema/table/index，并且只在空表时 seed baseline 数据
 - 服务端 cookie/header 工具（`getCookie`, `getRequest`...）只在 Server Route handler、`createServerFn` body、或 `src/start.ts` 里用
 
 ## 认证（SSO）
@@ -228,12 +229,13 @@ npm run db:studio    # Drizzle Studio
 
 ## 给 Agent 的说明
 
-完整构建指令在 [AGENTS.md](AGENTS.md)。Agent 按 5 步顺序构建：
+完整构建指令在 [AGENTS.md](AGENTS.md)。Agent 按 6 步顺序构建：
 
-1. **Schema**（`src/db/schema.ts` + `drizzle-kit push`）
-2. **Auth Config + Seed**（`permissions.ts` + `seed.ts`）
-3. **Server Routes / API**（`src/routes/api/**`）
-4. **Frontend**（页面 + Shell modules）
-5. **Build**（`npm run build`）
+1. **Schema**（`src/db/schema.ts`，Drizzle types source of truth）
+2. **Auth Config**（`permissions.ts`）
+3. **Services + Runtime Bootstrap**（`src/services/**` 自建表、自 seed baseline）
+4. **Server Routes / API**（`src/routes/api/**`）
+5. **Frontend**（页面 + Shell modules）
+6. **Build**（`npm run build`）
 
 已有项目则直接响应用户的修改请求，不要重启 Build Order。

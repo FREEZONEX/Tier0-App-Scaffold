@@ -518,18 +518,22 @@ const userId = getRequestHeaders().get("X-App-User-ID");
 - Every table MUST include `createdAt` and `updatedAt` timestamp columns
 - Derive Zod schemas with `createInsertSchema()` / `createUpdateSchema()` — NEVER hand-write validation
 - Derive types with `$inferSelect` / `$inferInsert` — NEVER hand-write type interfaces
-- Run ONCE: `npx drizzle-kit push`
+- Runtime bootstrap is mandatory for implemented modules: each service must
+  create its own tables with `bootstrapModule(...)` before first query, so
+  preview and new tenant schemas do not require a prior `drizzle push`.
 
 ### Step 2: Auth Config + Seed Data
 
 Pure configuration — no UI, no route handlers.
 
 - Define actions and role→actions mapping in `src/lib/permissions.ts` (`PERMISSION_MATRIX`)
-- Edit `src/db/seed.ts` — add data inside `main()` only, do NOT change imports or pool setup
+- Put small baseline data in the owning service's runtime bootstrap. Use
+  `src/db/seed.ts` only for explicit bulk imports or local reset fixtures.
 - seed.ts is excluded from tsconfig — use **relative imports only** (e.g., `import * as schema from "./schema"`), NOT `@/` aliases
 - Use `db.insert(schema.table).values([...]).onConflictDoUpdate()` for idempotency
 - Seed data must tell a coherent story: cross-references, realistic status distributions, timestamps spanning past 2 weeks
-- Run ONCE: `npx tsx src/db/seed.ts`
+- Runtime baseline seed must be idempotent and should run only when the module
+  table is empty. The preview path must work even when this script is never run.
 
 ### Step 3: Services + Server Routes
 
@@ -539,7 +543,7 @@ Pure configuration — no UI, no route handlers.
 
 ```ts
 // src/services/work-orders.ts
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
   workOrders,
@@ -548,6 +552,48 @@ import {
   type WorkOrder,
 } from "@/db/schema";
 import { HttpError } from "@/lib/route-handlers";
+import { bootstrapModule } from "@/services/bootstrap";
+
+const WORK_ORDERS_BOOTSTRAP = bootstrapModule("work-orders", [
+  {
+    tableName: "work_orders",
+    createTable: sql`
+      create table if not exists work_orders (
+        id text primary key,
+        code text not null unique,
+        product_name text not null,
+        target_qty integer not null,
+        status text not null default 'pending',
+        notes text,
+        created_at timestamp not null default now(),
+        updated_at timestamp not null default now()
+      )
+    `,
+    seed: async (tx) => {
+      await tx.insert(workOrders).values([
+        {
+          id: "wo-baseline-001",
+          code: "WO-BASELINE-001",
+          productName: "Baseline Assembly",
+          targetQty: 100,
+          status: "pending",
+        },
+      ]).onConflictDoNothing();
+    },
+  },
+  {
+    tableName: "work_order_events",
+    createTable: sql`
+      create table if not exists work_order_events (
+        id text primary key,
+        work_order_id text not null references work_orders(id),
+        type text not null,
+        actor_id text not null,
+        created_at timestamp not null default now()
+      )
+    `,
+  },
+]);
 
 // State-machine table — rules live ONE place, reused by every caller.
 const VALID_TRANSITIONS: Record<string, ReadonlyArray<string>> = {
@@ -559,10 +605,12 @@ const VALID_TRANSITIONS: Record<string, ReadonlyArray<string>> = {
 };
 
 export async function listWorkOrders(): Promise<WorkOrder[]> {
+  await WORK_ORDERS_BOOTSTRAP;
   return db.select().from(workOrders);
 }
 
 export async function getWorkOrder(id: string): Promise<WorkOrder> {
+  await WORK_ORDERS_BOOTSTRAP;
   const [row] = await db.select().from(workOrders).where(eq(workOrders.id, id));
   if (!row) throw new HttpError(404, "Work order not found");
   return row;
@@ -572,6 +620,7 @@ export async function createWorkOrder(
   input: NewWorkOrder,
   actorId: string,
 ): Promise<WorkOrder> {
+  await WORK_ORDERS_BOOTSTRAP;
   return db.transaction(async (tx) => {
     const [wo] = await tx.insert(workOrders).values(input).returning();
     await tx.insert(workOrderEvents).values({
@@ -588,6 +637,7 @@ export async function advanceWorkOrder(
   toStatus: string,
   actorId: string,
 ): Promise<WorkOrder> {
+  await WORK_ORDERS_BOOTSTRAP;
   return db.transaction(async (tx) => {
     const [wo] = await tx.select().from(workOrders).where(eq(workOrders.id, id));
     if (!wo) throw new HttpError(404, "Work order not found");
@@ -615,6 +665,12 @@ export async function advanceWorkOrder(
 
 **Service rules:**
 - File name = entity name (plural): `work-orders.ts`, `inventory.ts`, `quality-holds.ts`
+- Every implemented module defines a module-level `bootstrapModule(...)`
+  promise and awaits it at the top of each service entrypoint before querying.
+- Bootstrap SQL must use `create table if not exists` / `create index if not
+  exists`, and small baseline seed must be idempotent.
+- Bootstrap belongs in services only. Never run schema creation from routes,
+  components, or `src/lib`.
 - Functions take typed inputs (`NewWorkOrder`) and an actor id, return typed outputs (`WorkOrder`)
 - Throw `new HttpError(status, message)` for caller-facing errors (404 not found, 409 conflict, 422 invariant violated). `withErrors` translates them.
 - Multi-step writes use `db.transaction(async tx => ...)` — pass `tx` to inner queries, not `db`
@@ -712,6 +768,9 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 - **NEVER use `drizzle-kit migrate`** — only `drizzle-kit push`
 - Import: `import { db } from "@/db"`, `import { myTable } from "@/db/schema"`, `import { eq, desc } from "drizzle-orm"`
 - `db/index.ts` uses a global singleton pool (max 5 connections) with `DB_SCHEMA` search_path support
+- Runtime bootstrap is required for every implemented module service:
+  `bootstrapModule(...)` must create schema/table/indexes and seed small
+  baseline records when the module table is empty.
 - `seed.ts` uses `DIRECT_DATABASE_URL` first (bypasses pooler), relative imports only (no `@/` aliases)
 
 ### Data Flow
@@ -772,8 +831,8 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 ### Commands
 - `npm run build` — run ONCE at Step 5 (vite build → `dist/{client,server}`)
 - `npm run lint` — run at Step 5; required **0 warnings** to declare done. `npm run lint -- --fix` auto-fixes most.
-- `npx drizzle-kit push` — run ONCE at Step 1
-- `npx tsx src/db/seed.ts` — run ONCE at Step 2
+- `npx drizzle-kit push` — optional local schema pre-sync; preview and new tenant schemas must not depend on it
+- `npx tsx src/db/seed.ts` — optional explicit bulk seed/reset fixtures; runtime baseline seed belongs in services
 - NEVER start dev servers manually (use `preview_start` MCP), NEVER run interactive commands
 - If same error occurs 3 times, STOP and report to user
 

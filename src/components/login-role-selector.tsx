@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
 import { apiUrl } from "@/lib/utils";
 
@@ -12,7 +11,6 @@ export function RoleSelector({
   roles: string[];
   redirectTo: string;
 }) {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState("");
 
@@ -31,7 +29,7 @@ export function RoleSelector({
         setLoading(null);
         return;
       }
-      navigate({ to: redirectTo as never });
+      window.location.assign(normalizeRedirectPath(redirectTo));
     } catch {
       setError("Network error");
       setLoading(null);
@@ -74,4 +72,11 @@ export function RoleSelector({
       )}
     </div>
   );
+}
+
+function normalizeRedirectPath(path: string) {
+  if (!path.startsWith("/") || path.startsWith("//")) {
+    return "/";
+  }
+  return path;
 }

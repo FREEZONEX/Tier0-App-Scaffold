@@ -43,7 +43,11 @@ export const Route = createFileRoute("/_app")({
 });
 
 function AppLayout() {
-  const { user } = Route.useRouteContext();
+  const user = (Route.useRouteContext() as { user?: AppUser | null }).user;
+  if (!user) {
+    return <AppPending />;
+  }
+
   return (
     <Shell user={user}>
       <Outlet />

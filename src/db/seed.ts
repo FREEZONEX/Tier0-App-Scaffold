@@ -19,11 +19,14 @@ void db;
 async function main() {
   console.log("Seeding database...");
 
-  // ─── Agent: add your seed data here ───
+  // ─── Agent: optional bulk seed/reset data goes here ───
   //
-  // Until you replace this block, the script throws — a no-op seed is almost
-  // always a bug (you ran it, nothing happened, you assumed it worked).
-  // Delete the throw once you've added at least one insert below.
+  // Runtime baseline data belongs in each module service via
+  // bootstrapModule(...). That makes preview and new tenant schemas
+  // self-initializing even when drizzle push/seed was never run.
+  //
+  // Keep this script for explicit bulk imports, local reset data, or fixtures
+  // that are too large for request-time bootstrap.
   //
   // Use db.insert().values([...]).onConflictDoUpdate() for idempotency.
   // Include 5–10 records per table with interlinked references.
@@ -68,11 +71,6 @@ async function main() {
   //     },
   //   });
 
-  throw new Error(
-    "src/db/seed.ts is unconfigured — add your insert statements and remove this throw.",
-  );
-
-  // eslint-disable-next-line no-unreachable
   console.log("Seeding complete.");
 }
 

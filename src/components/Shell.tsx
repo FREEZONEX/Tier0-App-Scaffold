@@ -1,9 +1,10 @@
 "use client";
 
-import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { type ReactNode, type ElementType } from "react";
 import { Factory, LayoutDashboard, LogOut } from "lucide-react";
-import { cn, apiUrl } from "@/lib/utils";
+import { toast } from "sonner";
+import { apiUrl } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import type { AppUser } from "@/lib/users";
 
@@ -25,18 +26,25 @@ export function Shell({
   children,
 }: {
   modules?: NavModule[];
-  user: AppUser;
+  user?: AppUser | null;
   children: ReactNode;
 }) {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const navigate = useNavigate();
-
   async function handleLogout() {
     // Clears the session cookie. The next request hits start.ts middleware,
     // which re-issues a session from the gateway-supplied role (Mode A) or
     // bounces to /login if the gateway didn't supply one.
-    await fetch(apiUrl("/api/auth/logout"), { method: "POST" });
-    navigate({ to: "/login" });
+    try {
+      const res = await fetch(apiUrl("/api/auth/logout"), { method: "POST" });
+      if (!res.ok) {
+        toast.error("Failed to log out");
+        return;
+      }
+      const redirectTo =
+        ((await res.json()) as { redirect?: string }).redirect || "/login";
+      window.location.assign(redirectTo);
+    } catch {
+      toast.error("Network error");
+    }
   }
 
   return (
@@ -61,9 +69,6 @@ export function Shell({
             Modules
           </p>
           {modules.map((mod) => {
-            const isActive =
-              pathname === mod.href ||
-              (mod.href !== "/" && pathname.startsWith(mod.href));
             const Icon = mod.icon;
             return (
               <Link
@@ -73,12 +78,16 @@ export function Shell({
                 // an agent will introduce. Type-safety is preserved everywhere
                 // else Link is used directly.
                 to={mod.href as never}
-                className={cn(
-                  "mb-0.5 flex items-center gap-2.5 rounded-md border border-transparent px-2.5 py-2 text-sm font-medium transition-colors",
-                  isActive
-                    ? "border-[var(--tier0-highlight-bg-primary)] bg-highlight-bg-accent text-foreground"
-                    : "text-foreground/80 hover:bg-sidebar-accent hover:text-foreground",
-                )}
+                activeOptions={{ exact: mod.href === "/" }}
+                className="mb-0.5 flex items-center gap-2.5 rounded-md border border-transparent px-2.5 py-2 text-sm font-medium transition-colors"
+                activeProps={{
+                  className:
+                    "border-[var(--tier0-highlight-bg-primary)] bg-highlight-bg-accent text-foreground",
+                }}
+                inactiveProps={{
+                  className:
+                    "text-foreground/80 hover:bg-sidebar-accent hover:text-foreground",
+                }}
               >
                 {Icon && <Icon className="size-4 shrink-0" />}
                 <span className="truncate">{mod.label}</span>
@@ -91,10 +100,10 @@ export function Shell({
         <div className="border-t border-border bg-surface-inset px-3 py-3">
           <div className="mb-2 min-w-0">
             <p className="truncate text-sm font-medium leading-tight">
-              {user.displayName}
+              {user?.displayName ?? "Loading"}
             </p>
             <p className="mt-0.5 font-mono text-[10px] uppercase text-muted-foreground">
-              {user.role}
+              {user?.role ?? ""}
             </p>
           </div>
           <Button

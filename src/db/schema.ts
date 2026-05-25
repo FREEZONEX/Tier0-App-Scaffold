@@ -31,4 +31,6 @@ import { createInsertSchema, createSelectSchema, createUpdateSchema } from "driz
 //   export type WorkOrder        = typeof workOrders.$inferSelect;
 //   export type NewWorkOrder     = typeof workOrders.$inferInsert;
 //
-// After editing: npx drizzle-kit push
+// After editing: npx drizzle-kit push is useful for local pre-sync, but each
+// implemented service must also runtime-bootstrap its own tables so preview
+// and new tenant schemas work before any manual push/seed command runs.
