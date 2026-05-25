@@ -3,26 +3,28 @@
  *
  * Agent: define your actions and permission matrix here.
  *
- * 1. Define an Action type with all permissioned operations.
+ * 1. Define ACTIONS with all permissioned operations.
  * 2. Create PERMISSION_MATRIX mapping each role to its allowed actions.
  * 3. Use can(role, action) everywhere to check permissions.
+ *
+ * The template always ships with a built-in Admin role. When adding actions,
+ * add them to ACTIONS first so Admin automatically retains full access.
  */
 
-export type Action =
-  | "view_dashboard"
-  | "manage_system"
-  | "manage_work_orders"
-  | "report_production"
-  | "review_quality";
+export const ADMIN_ROLE = "admin";
+
+export const ACTIONS = [
+  "view_dashboard",
+  "manage_system",
+  "manage_work_orders",
+  "report_production",
+  "review_quality",
+] as const;
+
+export type Action = (typeof ACTIONS)[number];
 
 export const PERMISSION_MATRIX: Record<string, Action[]> = {
-  admin: [
-    "view_dashboard",
-    "manage_system",
-    "manage_work_orders",
-    "report_production",
-    "review_quality",
-  ],
+  [ADMIN_ROLE]: [...ACTIONS],
 };
 
 /** Check whether a role is allowed to perform an action. */
