@@ -13,7 +13,7 @@ Transform vague or concrete industrial software requests into bounded, operation
 
 1. Classify the request as one of these scenarios: new SRS generation, PRD-to-SRS conversion, or existing SRS revision.
 2. Determine whether the operational scope and requested change are sufficiently clear.
-3. If clarification is needed, output only a question marker block.
+3. If clarification is needed, ask concise clarification questions before drafting.
 4. If the scope is clear, read `references/spec-template.md` before drafting or revising the SRS. Do not draft from memory.
 5. Use the available file write/edit tool to save the complete SRS as Markdown.
 6. Default output path is `specs/spec.md` relative to the current workspace or user-specified output directory; create `specs/` if it does not exist.
@@ -72,35 +72,10 @@ Stop and ask clarification questions only when:
 
 When clarification is needed:
 
-- Output exactly one `=====question:start===== ... =====question:end=====` block.
-- Ask 1 to 5 multiple-choice question groups.
-- Use options that represent meaningful application boundaries or workflow choices, not unnecessarily small data objects.
-- Do not include a document block in the same response.
-
-Use this exact question format:
-
-```text
-=====question:start=====
-[Header]
-<short category title>
-
-[Question 1]
-<one clear question sentence>
-
-[Options 1]
-1. <option label 1> - <short description 1>
-2. <option label 2> - <short description 2>
-
-=====question:end=====
-```
-
-Question block rules:
-
-- Use `[Question N]` and `[Options N]` with matching sequential numbers.
-- Provide 2 to 5 numbered options per question.
-- Do not ask free-text questions.
-- Do not use markdown tables, bullets, explanations, assumptions, greetings, or extra commentary inside the question block.
-- Keep each question to one sentence.
+- Ask only the questions needed to unblock an implementation-ready SRS.
+- Prefer concrete options when the user needs to choose between meaningful application boundaries or workflow choices.
+- Free-text questions are allowed when a constrained option set would distort the business meaning.
+- Keep questions concise and avoid drafting the SRS in the same response.
 
 ## File Output
 
@@ -118,8 +93,7 @@ When the SRS can be generated, save it to a Markdown file:
 File content rules:
 
 - Do not wrap the document body in a markdown code block.
-- Never place questions inside the document block.
-- Do not include question markers in the saved file.
+- Never place clarification questions inside the saved SRS file.
 - Do not save a partial document.
 - Do not include assistant commentary in the saved file.
 
@@ -161,4 +135,4 @@ Use only these statuses:
 - `ignored`: older card superseded by a newer draft.
 - `confirmed`: use only after explicit user confirmation.
 
-If the tool is unavailable, still follow all file output and question marker rules and do not invent a substitute tool call.
+If the tool is unavailable, still follow all file output rules and do not invent a substitute tool call.
