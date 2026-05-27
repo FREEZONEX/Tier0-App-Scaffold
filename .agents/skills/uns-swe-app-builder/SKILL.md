@@ -18,7 +18,7 @@ Generate complete, runnable, production-quality applications from requirements d
 5. If no `specs/spec.md` exists, read the requirements document or user-provided spec carefully.
 6. Read `references/implementation-checklist.md` before planning substantial implementation work.
 7. Plan the file structure and implementation order.
-8. Implement the full app, wiring frontend, backend, data models, validation, and configuration as required by the spec.
+8. Implement the full app, wiring frontend, backend, data models, validation, and configuration as required by the spec. When building frontend UI in this scaffold, use `$uns-swe-ui-generation` for scaffold-native Tailwind/Tier0 patterns.
 9. Self-review for syntax, imports, placeholders, TODOs, missing flows, security, and error handling.
 10. Run the relevant install/build/test/dev-server workflow available in the environment.
 11. If preview MCP tools are available and a meaningful code change is complete, use the preview workflow before telling the user the preview is ready.
@@ -50,6 +50,10 @@ Generate complete, runnable, production-quality applications from requirements d
 - Start with foundational files such as package/config files, models, schemas, shared types, utilities, and route structure.
 - Build UI screens and components around the required user workflows, not around decorative landing-page sections.
 - Implement backend/API logic, persistence adapters, validation, and error handling when the requirements call for them.
+- In this TanStack Start MES scaffold, rely on the shared service-layer
+  `bootstrapModule(...)` helper for runtime schema/table/index creation and
+  baseline seed. Do not write custom create/seed ordering logic in each
+  generated service.
 - Connect files through real imports, routes, handlers, and state flows.
 - Include clear comments only where they explain non-obvious behavior.
 - Avoid common security issues such as unsanitized HTML injection, unsafe auth assumptions, leaking secrets, and injection-prone data handling.

@@ -1,14 +1,10 @@
 /**
- * Pathless workspace layout route — wraps management/planning/admin pages with
- * the Shell sidebar.
+ * Monitor layout route - for authenticated passive wallboards and fixed
+ * large-screen operational displays under `/monitor/*`.
  *
- * `beforeLoad` runs server-side, reads the signed session cookie, and
- * places the resolved `AppUser` into the route context. Every nested
- * route can then read it via `Route.useRouteContext()` without an extra
- * client-side fetch (no `/api/auth/me` round-trip after navigation).
- *
- * Loading + error fallbacks are configured here as well — they replace
- * the old Next.js `loading.tsx` / `error.tsx` segment files.
+ * Use this route group for andon boards, production TVs, line status boards,
+ * OEE displays, and other non-scrolling monitor surfaces. It deliberately has
+ * no sidebar, no drawer navigation, and no page-level vertical scrolling.
  */
 
 import {
@@ -18,17 +14,17 @@ import {
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { Shell } from "@/components/Shell";
+import { MonitorLayout } from "@/components/layouts/MonitorLayout";
 import { getCurrentUser } from "@/lib/auth";
 import type { AppUser } from "@/lib/users";
 
-const fetchSessionUser = createServerFn().handler(
+const fetchMonitorSessionUser = createServerFn().handler(
   async (): Promise<AppUser | null> => getCurrentUser(),
 );
 
-export const Route = createFileRoute("/_app")({
+export const Route = createFileRoute("/monitor")({
   beforeLoad: async ({ location }) => {
-    const user = await fetchSessionUser();
+    const user = await fetchMonitorSessionUser();
     if (!user) {
       throw redirect({
         to: "/login",
@@ -37,27 +33,27 @@ export const Route = createFileRoute("/_app")({
     }
     return { user };
   },
-  component: AppLayout,
-  pendingComponent: AppPending,
-  errorComponent: AppError,
+  component: MonitorRouteLayout,
+  pendingComponent: MonitorPending,
+  errorComponent: MonitorError,
 });
 
-function AppLayout() {
+function MonitorRouteLayout() {
   const user = (Route.useRouteContext() as { user?: AppUser | null }).user;
   if (!user) {
-    return <AppPending />;
+    return <MonitorPending />;
   }
 
   return (
-    <Shell user={user}>
+    <MonitorLayout user={user}>
       <Outlet />
-    </Shell>
+    </MonitorLayout>
   );
 }
 
-function AppPending() {
+function MonitorPending() {
   return (
-    <div className="flex h-full items-center justify-center p-12">
+    <div className="flex h-screen items-center justify-center bg-background p-10">
       <div className="text-center">
         <div className="mx-auto size-8 animate-spin rounded-full border-2 border-muted border-t-highlight" />
         <p className="mt-3 text-xs text-muted-foreground">Loading&hellip;</p>
@@ -66,12 +62,12 @@ function AppPending() {
   );
 }
 
-function AppError({ error, reset }: ErrorComponentProps) {
+function MonitorError({ error, reset }: ErrorComponentProps) {
   return (
-    <div className="flex h-full items-center justify-center p-12">
+    <div className="flex h-screen items-center justify-center overflow-hidden bg-background p-10">
       <div className="text-center">
         <p className="text-sm font-medium text-destructive">
-          Something went wrong
+          Monitor view failed
         </p>
         <p className="mt-1 text-xs text-muted-foreground">{error.message}</p>
         <button

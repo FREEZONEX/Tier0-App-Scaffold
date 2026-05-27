@@ -1,11 +1,18 @@
 "use client";
 
 import { Link } from "@tanstack/react-router";
-import { type ReactNode, type ElementType } from "react";
-import { Factory, LayoutDashboard, LogOut } from "lucide-react";
+import { useEffect, useState, type ReactNode, type ElementType } from "react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Factory,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 import { apiUrl } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import type { AppUser } from "@/lib/users";
 
 export interface NavModule {
@@ -15,10 +22,12 @@ export interface NavModule {
   icon?: ElementType;
 }
 
-// ─── Agent: update this array with your app's modules and lucide-react icons ───
+// ─── Agent: add workspace modules only; station/review task flows stay out ───
 export const defaultModules: NavModule[] = [
   { key: "dashboard", label: "Overview", href: "/", icon: LayoutDashboard },
 ];
+
+const COLLAPSED_STORAGE_KEY = "tier0-shell-collapsed";
 
 export function Shell({
   modules = defaultModules,
@@ -29,6 +38,22 @@ export function Shell({
   user?: AppUser | null;
   children: ReactNode;
 }) {
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => {
+    setCollapsed(localStorage.getItem(COLLAPSED_STORAGE_KEY) === "true");
+  }, []);
+
+  function toggleCollapsed() {
+    setCollapsed((current) => {
+      const next = !current;
+      localStorage.setItem(COLLAPSED_STORAGE_KEY, String(next));
+      return next;
+    });
+  }
+
   async function handleLogout() {
     // Clears the session cookie. The next request hits start.ts middleware,
     // which re-issues a session from the gateway-supplied role (Mode A) or
@@ -47,27 +72,62 @@ export function Shell({
     }
   }
 
-  return (
-    <div className="flex h-screen overflow-hidden bg-bg text-text">
-      <nav className="flex w-60 shrink-0 flex-col border-r border-border bg-sidebar">
+  function renderSidebar(isCollapsed: boolean, showCollapseControl: boolean) {
+    return (
+      <nav
+        className={`flex h-full shrink-0 flex-col border-r border-sidebar-border bg-sidebar transition-[width] duration-200 ${
+          isCollapsed ? "w-14" : "w-60"
+        }`}
+      >
         {/* Brand mark */}
-        <div className="flex items-center gap-2 border-b border-border px-4 py-3">
-          <div className="flex size-7 items-center justify-center rounded-sm bg-primary text-primary-foreground">
+        <div
+          className={`flex min-h-16 items-center gap-2.5 border-b border-sidebar-border px-3 py-3.5 ${
+            isCollapsed ? "justify-center" : ""
+          }`}
+        >
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-md border border-highlight-bg-primary bg-highlight-bg-accent text-highlight-text">
             <Factory className="size-4" />
           </div>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">
-              Industrial App
-            </p>
-            <p className="caption truncate">Industrial workspace</p>
-          </div>
+          {!isCollapsed && (
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold leading-5">
+                Application
+              </p>
+              <p className="caption truncate">Workspace</p>
+            </div>
+          )}
         </div>
 
+        {showCollapseControl && (
+          <div className="border-b border-sidebar-border p-2">
+            <button
+              type="button"
+              onClick={toggleCollapsed}
+              aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              className={`inline-flex h-9 items-center rounded-md border border-border bg-card text-sm font-medium text-secondary-foreground transition-colors hover:border-border-strong hover:bg-muted hover:text-foreground ${
+                isCollapsed
+                  ? "w-full justify-center"
+                  : "w-full justify-start gap-2 px-2.5"
+              }`}
+            >
+              {isCollapsed ? (
+                <ChevronRight className="size-4" />
+              ) : (
+                <ChevronLeft className="size-4" />
+              )}
+              {!isCollapsed && <span>Collapse</span>}
+            </button>
+          </div>
+        )}
+
         {/* Modules */}
-        <div className="flex-1 overflow-y-auto px-2 py-2">
-          <p className="px-2 pb-1.5 pt-1 font-mono text-[10px] font-medium uppercase text-muted-foreground">
-            Modules
-          </p>
+        <div className="flex-1 overflow-y-auto px-2 py-2.5">
+          {!isCollapsed && (
+            <p className="px-2 pb-2 pt-1 font-mono text-xs font-medium uppercase text-muted-foreground">
+              Modules
+            </p>
+          )}
           {modules.map((mod) => {
             const Icon = mod.icon;
             return (
@@ -79,47 +139,99 @@ export function Shell({
                 // else Link is used directly.
                 to={mod.href as never}
                 activeOptions={{ exact: mod.href === "/" }}
-                className="mb-0.5 flex items-center gap-2.5 rounded-md border border-transparent px-2.5 py-2 text-sm font-medium transition-colors"
+                title={isCollapsed ? mod.label : undefined}
+                aria-label={isCollapsed ? mod.label : undefined}
+                className={`mb-1 flex min-h-10 items-center rounded-md border border-transparent text-sm font-medium transition-colors ${
+                  isCollapsed ? "justify-center px-2" : "gap-2.5 px-2.5"
+                }`}
                 activeProps={{
                   className:
-                    "border-[var(--tier0-highlight-bg-primary)] bg-highlight-bg-accent text-foreground",
+                    "border-highlight-bg-primary bg-highlight-bg-accent text-highlight-text shadow-sm",
                 }}
                 inactiveProps={{
                   className:
-                    "text-foreground/80 hover:bg-sidebar-accent hover:text-foreground",
+                    "text-secondary-foreground hover:border-border-strong hover:bg-sidebar-accent hover:text-foreground",
                 }}
               >
                 {Icon && <Icon className="size-4 shrink-0" />}
-                <span className="truncate">{mod.label}</span>
+                {!isCollapsed && <span className="truncate">{mod.label}</span>}
               </Link>
             );
           })}
         </div>
 
         {/* User block */}
-        <div className="border-t border-border bg-surface-inset px-3 py-3">
-          <div className="mb-2 min-w-0">
-            <p className="truncate text-sm font-medium leading-tight">
-              {user?.displayName ?? "Loading"}
-            </p>
-            <p className="mt-0.5 font-mono text-[10px] uppercase text-muted-foreground">
-              {user?.role ?? ""}
-            </p>
-          </div>
-          <Button
+        <div
+          className={`border-t border-sidebar-border bg-card px-3 py-3 ${
+            isCollapsed ? "text-center" : ""
+          }`}
+        >
+          {!isCollapsed && (
+            <div className="mb-2.5 min-w-0">
+              <p className="truncate text-sm font-medium leading-5">
+                {user?.displayName ?? "Loading"}
+              </p>
+              <p className="mt-0.5 font-mono text-xs uppercase text-muted-foreground">
+                {user?.role ?? ""}
+              </p>
+            </div>
+          )}
+          <button
             type="button"
-            variant="outline"
-            size="sm"
             onClick={handleLogout}
-            className="w-full justify-start text-muted-foreground hover:text-foreground"
+            aria-label="Logout"
+            title={isCollapsed ? "Logout" : undefined}
+            className={`inline-flex h-9 w-full items-center rounded-md border border-border bg-background text-sm font-medium text-secondary-foreground transition-colors hover:border-border-strong hover:bg-muted hover:text-foreground ${
+              isCollapsed ? "justify-center" : "justify-start gap-2 px-2.5"
+            }`}
           >
-            <LogOut className="size-3" />
-            Logout
-          </Button>
+            <LogOut className="size-4" />
+            {!isCollapsed && "Logout"}
+          </button>
         </div>
       </nav>
+    );
+  }
 
-      <main className="flex-1 overflow-y-auto">{children}</main>
+  return (
+    <div className="flex h-screen overflow-hidden bg-background text-foreground">
+      <div className="hidden md:block">{renderSidebar(collapsed, true)}</div>
+
+      {mobileOpen && (
+        <div className="fixed inset-0 z-40 md:hidden">
+          <button
+            type="button"
+            aria-label="Close navigation"
+            className="absolute inset-0 bg-primary/35"
+            onClick={() => setMobileOpen(false)}
+          />
+          <div className="relative h-full w-64 shadow-lg">
+            <button
+              type="button"
+              aria-label="Close navigation"
+              className="absolute right-2 top-2 z-10 inline-flex size-9 items-center justify-center rounded-md border border-border bg-card text-foreground"
+              onClick={() => setMobileOpen(false)}
+            >
+              <X className="size-4" />
+            </button>
+            {renderSidebar(false, false)}
+          </div>
+        </div>
+      )}
+
+      <main className="page-y-scroll min-h-0 min-w-0 flex-1">
+        <div className="flex h-14 items-center border-b border-border bg-card px-4 md:hidden">
+          <button
+            type="button"
+            aria-label="Open navigation"
+            className="inline-flex size-10 items-center justify-center rounded-md border border-border bg-background text-foreground"
+            onClick={() => setMobileOpen(true)}
+          >
+            <Menu className="size-4" />
+          </button>
+        </div>
+        {children}
+      </main>
     </div>
   );
 }

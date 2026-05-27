@@ -1,16 +1,16 @@
 # MonoApp Scaffold
 
-基于 **TanStack Start 1.x** + Drizzle ORM + TailwindCSS 4 的脚手架，用于在 Tier0 平台上构建车间 MES 应用。设计目标是给 Agent 一个高完成度起点：组件库、认证、数据库连接、平台部署、构建产物全部预置完毕，开发者（或 Agent）只关心业务实体、权限矩阵、页面交互即可。
+基于 **TanStack Start 1.x** + Drizzle ORM + TailwindCSS 4 的脚手架，用于在 Tier0 平台上构建车间 MES 应用。设计目标是给 Agent 一个轻量但完整的起点：认证、数据库连接、平台部署、构建产物和基础 layout contract 预置完毕，业务页面和组件按具体 app 现场生成，避免模板组件库限制生成结果。
 
 ## 技术栈
 
 | 层 | 技术 |
 |---|------|
-| 框架 | TanStack Start 1.x（Vite 8 + TanStack Router，React 19 SSR） |
+| 框架 | TanStack Start 1.x（Vite 7 + TanStack Router，React 19 SSR） |
 | ORM | Drizzle ORM + node-postgres |
 | 校验 | Zod（通过 `drizzle-zod` 自动派生 schema/类型） |
-| 样式 | TailwindCSS 4（Vite 插件，无 PostCSS）+ Tier0 token（近黑主操作、FX Green 高亮、紧凑企业布局） |
-| UI | shadcn 组件（**Base UI 底层，非 Radix**）+ 20 个 MES 业务组件 + 6 个项目级 UI 拓展 |
+| 样式 | TailwindCSS 4（Vite 插件，无 PostCSS）+ Tier0 token（柔和中性界面、slate 主操作、signal green 状态高亮、按场景调节密度） |
+| UI | 轻量 layout contract + TailwindCSS utility + Tier0 token；不预置业务组件库 |
 | 图表 | Recharts 3（必须包在 `<ResponsiveContainer>` 里） |
 | 表格 | TanStack React Table 8 |
 | 拖拽 | dnd-kit |
@@ -25,7 +25,7 @@ npm install
 # 配置 .env 中的 DATABASE_URL
 npx drizzle-kit push      # 可选：本地预同步 schema；运行时 service 会自引导
 npx tsx src/db/seed.ts    # 可选：显式批量 seed / reset fixture
-npm run dev               # → http://localhost:3000
+npm run dev               # → http://localhost:5173
 ```
 
 > ⚠️ Agent 在 Executor Pod 内运行时**不要手动 `npm install`** —— 平台会自动管理，手动安装会和共享 volume 冲突。详见 AGENTS.md。
@@ -56,8 +56,10 @@ src/
   styles/globals.css          ← TailwindCSS 4 + 主题 token + 动画 keyframes（勿改）
   routes/                     ← 接口层（HTTP）：文件即路由，文件名控制 URL + 嵌套
     __root.tsx                ← <html> 文档壳，挂 Toaster（勿改）
-    _app.tsx                  ← 带 Shell 的 layout route（loading/error fallback 在此）
-    _app.index.tsx            ← Tier0 工作台首页，可按业务替换为真实 Dashboard
+    _app.tsx                  ← Workspace layout：带 Shell，适合管理/计划/分析/配置
+    _app.index.tsx            ← 可替换的 "/" workspace starter；非 workspace app 必须替换或 redirect
+    station.tsx               ← Station layout：无侧边栏，适合 /station/* 扫码/工位/单任务操作
+    review.tsx                ← Review layout：无侧边栏，适合 /review/* 异常/质检/审批复核
     login.tsx                 ← 角色选择页（无 Shell）
     api/                      ← Server Routes — **薄壳**，业务逻辑下沉到 services/
       health.ts               ← 健康检查
@@ -66,9 +68,11 @@ src/
   services/                   ← 领域层：业务逻辑、状态机、多步事务（每个实体一个文件，由 Agent 创建）
   components/
     Shell.tsx                 ← 左侧导航栏，更新 defaultModules 数组
+    layouts/                  ← StationLayout / ReviewLayout 等最小布局契约
     login-role-selector.tsx   ← 登录页的客户端按钮组（勿改）
-    ui/                       ← shadcn 组件（Base UI 底层）+ 项目级 UI 拓展（page-header / detail-drawer / 等）
-    mes/                      ← 20 个 MES 业务组件（OEEGauge / GanttChart / KanbanBoard / 等）
+    toaster.tsx               ← Sonner Toaster 挂载点
+    client-only.tsx           ← SSR 不兼容库的 hydration 边界
+    <domain>/                 ← 具体 app 需要的组件由 Agent 按业务生成
   db/{index,schema,seed}.ts   ← 数据层：Drizzle client / 表定义 / 种子脚本
   lib/                        ← 横切关注点（非领域逻辑）
     auth.ts                   ← getCurrentUser() / requireAuth()（勿改）
@@ -90,9 +94,13 @@ TanStack Router 文件即路由：
 | 文件 | URL | 说明 |
 |------|-----|------|
 | `routes/__root.tsx` | — | 包住所有页面 |
-| `routes/_app.tsx` | — | 无 URL 段的"路径透明" layout |
-| `routes/_app.index.tsx` | `/` | `_app` 的首页 |
+| `routes/_app.tsx` | — | Workspace layout：管理/计划/分析/配置 |
+| `routes/station.tsx` | `/station` | Station layout：扫码/工位/单任务执行 |
+| `routes/review.tsx` | `/review` | Review layout：异常/质检/审批复核 |
+| `routes/_app.index.tsx` | `/` | 默认 workspace starter；非 workspace app 必须替换或 redirect |
 | `routes/_app.work-orders.tsx` | `/work-orders` | 在 `_app` layout 下 |
+| `routes/station.receiving.tsx` | `/station/receiving` | 在 station layout 下 |
+| `routes/review.exceptions.tsx` | `/review/exceptions` | 在 review layout 下 |
 | `routes/_app.work-orders.$id.tsx` | `/work-orders/:id` | 动态参数 |
 | `routes/login.tsx` | `/login` | **不**在 `_app` 下，无 Shell |
 | `routes/api/work-orders.ts` | `/api/work-orders` | Server Route |
@@ -101,6 +109,8 @@ TanStack Router 文件即路由：
 - `_` 前缀 = 路径透明（不贡献 URL）
 - `.` 分隔 = URL 嵌套
 - `$` 前缀 = 动态参数
+- 生成页面前先按场景自动选择 layout：执行/扫码选 `station`，复核/审批选 `review`，管理/分析选 `_app`
+- 如果内置 layout 都不匹配，Agent 可以创建新的前缀 layout，例如 `monitor.tsx`、`wizard.tsx`、`portal.tsx`、`editor.tsx`
 
 ### 动态参数读取
 
@@ -123,7 +133,9 @@ function Page() {
 
 API 路由对应：`src/routes/api/work-orders/$id.ts`，handler 用第一参 `({ params })` 拿 `params.id`。
 
-## 加一个新页面（带 Shell）
+## 加一个新页面（自动选择 layout）
+
+Workspace 页面才放进 `_app` 并更新 `Shell.tsx` 的 `defaultModules`。如果 app 不是 workspace 类型，要把 `/` 从默认 `_app.index.tsx` 改成目标体验的入口或 redirect：
 
 ```tsx
 // src/routes/_app.work-orders.tsx
@@ -138,11 +150,24 @@ function WorkOrdersPage() {
 }
 ```
 
-之后在 `Shell.tsx` 的 `defaultModules` 里加一项指向 `/work-orders` 即可。
+Station 页面放进 `station`，不进入侧边栏：
+
+```tsx
+// src/routes/station.receiving.tsx
+import { createFileRoute } from "@tanstack/react-router";
+
+export const Route = createFileRoute("/station/receiving")({
+  component: ReceivingPage,
+});
+```
+
+如果需要完全不同的交互模型，可以新增自定义 layout，例如 `src/routes/monitor.tsx` + `src/components/layouts/MonitorLayout.tsx`。自定义 layout 应保持最小壳层，不预置业务卡片/图表/表单。不要创建没有子页面的空 pathless layout，否则会和 `/` 首页冲突。
+
+Monitor、station、review、kiosk 等单一体验 app 不应保留默认 sidebar 首页；`/` 必须直接进入对应体验。
 
 ## 加一个 API 端点（两步走：先服务，后路由）
 
-**第一步：写服务**（`src/services/work-orders.ts`）—— 业务逻辑、状态机、事务，全部在这里。`db` 客户端**只能**在 `services/` 和 `db/seed.ts` 出现（ESLint 在边界外会报错）。每个已实现模块还要在 service 顶部定义运行时 `bootstrapModule(...)`：`create table if not exists`、`create index if not exists`、空表时写入少量 baseline 数据。这样 preview 和新租户 schema 即使没执行过 `drizzle push/seed`，首次查询也能自引导。
+**第一步：写服务**（`src/services/work-orders.ts`）—— 业务逻辑、状态机、事务，全部在这里。`db` 客户端**只能**在 `services/` 和 `db/seed.ts` 出现（ESLint 在边界外会报错）。每个已实现模块还要在 service 顶部定义运行时 `bootstrapModule(...)`：`create table if not exists`、`create index if not exists`、空表时写入少量 baseline 数据。这样 preview 和新租户 schema 即使没执行过 `drizzle push/seed`，首次查询也能自引导。公共 bootstrap helper 会先创建同模块所有 schema/table/index，再统一执行 seed；不要在 service 里手写 create/seed 顺序控制。
 
 **第二步：写路由**（`src/routes/api/work-orders.ts`）—— HTTP 薄壳：`requireAuth()` → `schema.parse()` → 调 service → `Response.json(...)`，整段包在 `withErrors(...)` 里。失败抛 `HttpError` 或让 Zod 自然冒泡。
 
@@ -172,7 +197,7 @@ PostgreSQL
 - `db` 只能从 `src/services/**` 和 `src/db/seed.ts` import，**不要**进 routes / lib / 客户端组件
 - `Request` / `Response` / `Headers` 只在 routes / `src/start.ts` / `src/lib/{auth,gateway,route-handlers}.ts` 出现——**不要**进 services
 - 多步写（≥2 个 db 操作）必须在 `db.transaction(async tx => ...)` 里执行
-- 模块 service 的每个入口函数先 `await` 本模块的 runtime bootstrap；bootstrap 负责建 schema/table/index，并且只在空表时 seed baseline 数据
+- 模块 service 的每个入口函数先 `await` 本模块的 runtime bootstrap；bootstrap 负责建 schema/table/index，并且只在空表时 seed baseline 数据。公共 helper 是两阶段执行：先建完同模块所有表和索引，再执行 seed，所以 seed 可以插入同模块内其他已声明表
 - 服务端 cookie/header 工具（`getCookie`, `getRequest`...）只在 Server Route handler、`createServerFn` body、或 `src/start.ts` 里用
 
 ## 认证（SSO）
@@ -209,7 +234,7 @@ X-App-User-ID: u123
 ## 脚本
 
 ```bash
-npm run dev          # vite dev → http://localhost:3000
+npm run dev          # vite dev → http://localhost:5173
 npm run build        # vite build → dist/{client,server}
 npm run start        # node server.mjs（包装 fetch handler 的 Node 入口）
 npm run lint         # eslint
@@ -235,7 +260,7 @@ npm run db:studio    # Drizzle Studio
 2. **Auth Config**（`permissions.ts`）
 3. **Services + Runtime Bootstrap**（`src/services/**` 自建表、自 seed baseline）
 4. **Server Routes / API**（`src/routes/api/**`）
-5. **Frontend**（页面 + Shell modules）
+5. **Frontend**（自动选择 `_app` / `station` / `review`，必要时创建自定义 layout；workspace 才更新 Shell modules）
 6. **Build**（`npm run build`）
 
 已有项目则直接响应用户的修改请求，不要重启 Build Order。

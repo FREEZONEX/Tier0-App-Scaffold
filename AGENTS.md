@@ -1,6 +1,6 @@
 # This is TanStack Start, NOT Next.js
 
-This scaffold is built on **TanStack Start 1.x** (Vite 8 + TanStack Router, React 19). Patterns from your training data about Next.js — App Router, `route.ts` handlers, `cookies()` / `headers()` from `next/headers`, `"use client"` / `"use server"`, `<Link>` from `next/link`, `useRouter()` from `next/navigation`, `next/image`, `metadata` exports — **DO NOT apply here**. If you reach for any `next/*` import, stop and re-read this file.
+This scaffold is built on **TanStack Start 1.x** (Vite 7 + TanStack Router, React 19). Patterns from your training data about Next.js — App Router, `route.ts` handlers, `cookies()` / `headers()` from `next/headers`, `"use client"` / `"use server"`, `<Link>` from `next/link`, `useRouter()` from `next/navigation`, `next/image`, `metadata` exports — **DO NOT apply here**. If you reach for any `next/*` import, stop and re-read this file.
 
 Authoritative references when uncertain (read before guessing):
 - `node_modules/@tanstack/react-router/dist/esm/`
@@ -19,7 +19,7 @@ When you've completed a meaningful code change and want to show the user:
 1. Call the `preview_start` MCP tool (waits for install + dev server + port ready)
 2. If it returns `state: "failed"`, call `preview_logs` to see the error
 3. Fix the issue, then call `preview_restart`
-4. Tell the user "preview is ready" — the public preview URL is delivered to the UI automatically through a separate channel. **You do NOT need to include a URL in your message.** The `url` field returned by the tool (e.g. `http://127.0.0.1:3000`) is a container-internal loopback address for self-check only; never paste it to the user.
+4. Tell the user "preview is ready" — the public preview URL is delivered to the UI automatically through a separate channel. **You do NOT need to include a URL in your message.** The `url` field returned by the tool (e.g. `http://127.0.0.1:5173`) is a container-internal loopback address for self-check only; never paste it to the user.
 
 After installing a new npm dependency (e.g. `npm install uuid`), call `preview_restart` to reload the dev server.
 
@@ -33,6 +33,8 @@ After installing a new npm dependency (e.g. `npm install uuid`), call `preview_r
 ## Design Source Of Truth
 
 Before implementing or modifying any frontend UI, read `DESIGN.md` and treat it as the design source of truth. Follow its tokens, density, layout, component, color, and interaction guidance unless the user explicitly overrides it.
+
+When generating frontend UI, use the local `$uns-swe-ui-generation` skill. It replaces the removed shadcn/MES component-library guidance and defines the scaffold-native Tailwind/Tier0 component patterns.
 
 **Think before you code.** Use your native planning / thinking / todo capabilities at every step:
 
@@ -54,8 +56,11 @@ src/
     globals.css               ← TailwindCSS 4 @import + @theme inline tokens + keyframes (DO NOT replace)
   routes/                     ← Interface layer (HTTP) — file-based, file naming controls URL + nesting
     __root.tsx                ← Root document: <html><head><HeadContent/></head><body><Outlet/><Toaster/><Scripts/></body></html> + notFoundComponent (DO NOT remove tags)
-    _app.tsx                  ← Pathless layout that wraps every authenticated page in <Shell> (loading + error fallbacks live here)
-    _app.index.tsx            ← Dashboard page at "/" — replace this content
+    _app.tsx                  ← Workspace layout route with <Shell> sidebar for management/planning/admin pages
+    _app.index.tsx            ← Replaceable "/" workspace starter; non-workspace apps must redirect/replace it
+    station.tsx               ← Station layout route for task-first scan/tap/confirm workflows under /station/*
+    review.tsx                ← Review layout route for queue/evidence/decision workflows under /review/*
+    monitor.tsx               ← Monitor layout route for passive wallboards, andon displays, and fixed large screens under /monitor/*
     login.tsx                 ← Role selection — outside _app, no Shell. Uses createServerFn for the gateway-header read
     api/                      ← Server route handlers — THIN wrappers around services (no business logic here)
       health.ts               ← GET /api/health (DO NOT modify)
@@ -69,9 +74,11 @@ src/
                               ← Pure TypeScript: no Request/Response, no HTTP. Imports `db` from @/db.
   components/
     Shell.tsx                 ← Left sidebar nav rail — update defaultModules array; uses TanStack Router <Link> + useNavigate
+    layouts/                  ← Minimal layout contracts: StationLayout, ReviewLayout, MonitorLayout, and app-specific custom layouts
     login-role-selector.tsx   ← Client-side button component used by login.tsx (DO NOT modify)
-    ui/                       ← shadcn components — ALL use @base-ui/react, NOT Radix
-    mes/                      ← 28 optional MES domain components (see §Optional MES Components)
+    toaster.tsx               ← Sonner Toaster mount component
+    client-only.tsx           ← Hydration boundary for libraries that cannot SSR
+    <domain>/                 ← App-specific generated components belong in domain folders
   db/                         ← Data layer
     index.ts                  ← Drizzle client with connection pooling + DB_SCHEMA support (DO NOT modify)
     schema.ts                 ← Define enums, tables, Zod schemas, types here (see examples in file comments)
@@ -159,7 +166,10 @@ TanStack Router file-based routing. The `@tanstack/router-plugin` watches `src/r
 | Goal | File path | URL it serves |
 |------|-----------|---------------|
 | Root document | `routes/__root.tsx` | (wraps everything) |
-| Pathless layout | `routes/_app.tsx` | (wraps children, no URL segment) |
+| Workspace layout | `routes/_app.tsx` | (wraps management/planning/admin pages, no URL segment) |
+| Station layout | `routes/station.tsx` | `/station` (wraps task-first execution pages under `/station/*`) |
+| Review layout | `routes/review.tsx` | `/review` (wraps queue/evidence/decision pages under `/review/*`) |
+| Monitor layout | `routes/monitor.tsx` | `/monitor` (wraps passive wallboards, andon displays, and fixed large-screen pages under `/monitor/*`) |
 | Index of a layout | `routes/_app.index.tsx` | `/` |
 | Page under layout | `routes/_app.work-orders.tsx` | `/work-orders` |
 | Index of a sub-segment | `routes/_app.work-orders.index.tsx` | `/work-orders` (use ONE of the two indexes) |
@@ -172,10 +182,14 @@ TanStack Router file-based routing. The `@tanstack/router-plugin` watches `src/r
 **Key rules:**
 - `_` prefix = pathless segment (no URL contribution).
 - `.` separator = URL nesting. `_app.work-orders.list.tsx` → `/work-orders/list` and inherits `_app.tsx` layout.
+- Pick the route group automatically from workflow intent: `station` for scan/tap/confirm execution, `review` for exception/approval decisions, `monitor` for passive wallboards/andon/TV displays/fixed large screens, and `_app` only for workspace/admin/planning/analytics.
+- If none of the built-in layouts fit, create a new prefixed layout route such as `wizard.tsx`, `portal.tsx`, `editor.tsx`, or `dispatch.tsx`, plus a matching minimal shell in `src/components/layouts/`. Do not add an empty pathless layout without child pages; TanStack will treat it as `/` and conflict with the home route.
 - `$` prefix = dynamic param. `$id.tsx` → `:id`.
 - `index.tsx` makes a folder-style index, equivalent to `routes/_app.tsx` + `routes/_app.index.tsx`.
 
 **Adding a new authenticated page:**
+
+Choose `_app`, `station`, `review`, `monitor`, or a custom layout first. Example workspace page:
 
 ```tsx
 // src/routes/_app.work-orders.tsx
@@ -188,6 +202,28 @@ export const Route = createFileRoute("/_app/work-orders")({
 function WorkOrdersPage() {
   return <div className="p-6">…</div>;
 }
+```
+
+Example station page:
+
+```tsx
+// src/routes/station.receiving.tsx
+import { createFileRoute } from "@tanstack/react-router";
+
+export const Route = createFileRoute("/station/receiving")({
+  component: ReceivingTaskPage,
+});
+```
+
+Example monitor page:
+
+```tsx
+// src/routes/monitor.line-status.tsx
+import { createFileRoute } from "@tanstack/react-router";
+
+export const Route = createFileRoute("/monitor/line-status")({
+  component: LineStatusMonitor,
+});
 ```
 
 **Reading params and search:**
@@ -291,102 +327,25 @@ X-App-User-ID: u123
 - `zod` — z.string(), z.number(), z.enum(), .parse(), .safeParse()
 - `lucide-react` — Icons (see §Lucide Icon Reference)
 - `recharts` — BarChart, LineChart, AreaChart, PieChart, RadarChart, ScatterChart, ComposedChart
-- `shadcn` components in `src/components/ui/` — Base UI primitives (**NOT Radix** — ignore `@radix-ui/*` in package.json, those are unused)
 - `@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities` — Drag-and-drop
 - `@tanstack/react-table` — Headless data table with sorting, filtering, pagination
 - `sonner` — Toast notifications via `toast()` / `toast.error()` / `toast.success()`
 - `date-fns` — Date manipulation and formatting
 - `motion` — Import from `@/lib/motion` (NOT `motion/react`). Exports: `motion`, `AnimatePresence`, `useSpring`, `useTransform`, `useMotionValue`, `MotionConfig`
 
-## Optional MES Components
+## Minimal UI Scaffold
 
-> **READ THE SOURCE BEFORE USING.** This list deliberately does NOT enumerate props — they evolve, and a stale prop table is worse than no table. Before you write a `<MetricCard ...>` JSX call, **`Read` the component file** so you ground on the actual `interface`. A typical MES page touches 5–8 components; batch-read all of them up front, **then** write the page. Skipping this step costs more in fix-up cycles than it saves up front.
->
-> **Common drift traps you will hit if you trust prior knowledge:** props like `onClose` vs `onOpenChange`, `action` shape (object vs ReactNode), `trend` shape (object vs number), variant names (`"error"/"info"` vs `"destructive"/"default"`), event-handler signatures (full item vs just `id`), and missing-prop hallucinations (e.g. there is no `onRowClick` on `DataTable`).
+This template intentionally does **not** ship a component library. Generate UI that fits the app being built, using Tailwind utilities, the tokens in `src/styles/globals.css`, and small app-specific components under `src/components/<domain>/` or next to the route that owns them.
 
-### MES-shaped (manufacturing domain) — `src/components/mes/`
-
-Import via the barrel: `import { OEEGauge, DataTable, MetricCard } from "@/components/mes"`.
-
-| Component | What it is |
-|-----------|------------|
-| `MetricCard` | KPI card with trend indicator, accent bar, footer slot |
-| `AnimatedNumber` | Spring-interpolated number (also used internally by other MES components) |
-| `MiniSparkline` | Tiny inline SVG area chart (~40px) for embedding in cards/rows |
-| `OEEGauge` | Three-ring donut for Availability / Performance / Quality |
-| `ProgressRing` | Single-metric circular progress |
-| `TargetBar` | Actual-vs-target horizontal comparison bar |
-| `SPCChart` | Statistical process control chart with UCL/LCL/CL (Recharts) |
-| `ParetoChart` | Bar + cumulative-percent line for quality analysis (Recharts) |
-| `HeatmapGrid` | 2D color-intensity grid for shift / fleet metrics |
-| `GanttChart` | CSS Gantt with optional drag-to-reschedule |
-| `KanbanBoard` | Multi-column drag-and-drop board (@dnd-kit) |
-| `TimelineView` | Vertical timeline for audit logs and event streams |
-| `ProcessFlow` | Horizontal pipeline visualization with stage connectors |
-| `StepIndicator` | Horizontal process / workflow step tracker |
-| `ShiftBar` | Shift schedule bar with current-hour marker |
-| `DataTable` | Sortable / searchable / paginated table (@tanstack/react-table). Note: does not emit row clicks; use cell renderers if you need per-row actions |
-| `FleetGrid` | Dense machine / device status tile grid |
-| `Leaderboard` | Ranked list with proportional bars |
-| `StateBadge` | Color-coded state pill with optional ping |
-| `AlarmBanner` | Severity alert strip with animation |
-
-### Project-level UI primitives — `src/components/ui/`
-
-Imported per-file (shadcn convention): `import { PageHeader } from "@/components/ui/page-header"`.
-
-| Component | File | What it is |
-|-----------|------|------------|
-| `PageHeader` | `ui/page-header.tsx` | Page top — title, breadcrumbs, badge, actions slot |
-| `SummaryStrip` | `ui/summary-strip.tsx` | Horizontal compact KPI summary bar |
-| `TabbedCard` | `ui/tabbed-card.tsx` | Card with built-in tab navigation |
-| `DetailDrawer` | `ui/detail-drawer.tsx` | Right-sliding detail panel (wraps `Sheet`) |
-| `FormSection` | `ui/form-section.tsx` | Form region with title + column grid |
-| `EmptyState` | `ui/empty-state.tsx` | Empty placeholder with icon and action slot |
-| `Toaster` | `ui/toaster.tsx` | Already mounted in `__root.tsx`. Just call `toast()`, `toast.success()`, `toast.error()` from `sonner` |
-| `ClientOnly` | `ui/client-only.tsx` | Render children only after hydration — see `§Hydration Pitfalls` |
-
-Plus the standard shadcn primitives (button, card, dialog, input, etc.) — listed under `src/components/ui/`. Same rule: `Read` the source before using.
-
-## shadcn / Base UI — Critical Differences from Radix
-
-UI components use `@base-ui/react`, NOT `@radix-ui/react-*`. Three differences:
-
-1. **No `asChild`** — use the `render` prop: `render={<MyComponent />}`
-2. **Callbacks take two args** — `onValueChange(value, eventDetails)`, `onOpenChange(open, eventDetails)`
-3. **Active state** — `data-active` attribute, not `data-state="active"`
-
-**Select `onValueChange` value can be `null`** (cleared selection). Handle it explicitly.
-
-**`DropdownMenuTrigger`** — use `render` + `nativeButton={false}` when wrapping a custom Button.
-
-**Exception**: `Popover` and `Switch` are custom implementations (not Base UI). `Popover` supports `asChild`. `Switch` uses `onCheckedChange(boolean)` with one arg.
-
-For full component props, read the source files in `src/components/ui/`.
+- Do not import from `@/components/ui` or `@/components/mes`; those directories are not part of the scaffold.
+- Keep reusable app-specific components small and explicit. Prefer local composition over generic primitives unless repetition becomes real.
+- Use `@/components/toaster` only through the root mount; call `toast()`, `toast.success()`, and `toast.error()` from `sonner` in mutations.
+- Use `@/components/client-only` for Recharts, dnd-kit, motion layout features, or any subtree that touches browser APIs during render.
+- Continue to use low-level libraries directly when useful: TanStack React Table for data grids, Recharts for charts, dnd-kit for drag-and-drop, lucide-react for icons.
 
 ### Common Mistakes
 
 ```tsx
-// WRONG — asChild does not exist on Base UI
-<DialogTrigger asChild><Button>Open</Button></DialogTrigger>
-// CORRECT
-<DialogTrigger render={<Button />}>Open</DialogTrigger>
-
-// WRONG — Select value can be null
-<Select onValueChange={setStatus}>
-// CORRECT
-<Select onValueChange={(value) => { if (value !== null) setStatus(value); }}>
-
-// WRONG — DropdownMenuTrigger
-<DropdownMenuTrigger asChild><Button>Menu</Button></DropdownMenuTrigger>
-// CORRECT
-<DropdownMenuTrigger render={<Button />} nativeButton={false}>Menu</DropdownMenuTrigger>
-
-// WRONG — data-state for active tab
-className={`data-[state=active]:bg-white`}
-// CORRECT
-className={`data-[active]:bg-white`}
-
 // WRONG — next/link
 <Link href="/work-orders">Orders</Link>
 // CORRECT — TanStack Router Link, type-checked against the route tree
@@ -429,14 +388,13 @@ Unlike Next.js, TanStack Start does **not** split server/client bundles via the 
 Wrap recharts (and any other client-context-dependent subtree) in the shipped `ClientOnly` helper. It returns the `fallback` during SSR and swaps to children after `useEffect` fires post-hydration.
 
 ```tsx
-import { ClientOnly } from "@/components/ui/client-only";
-import { Skeleton } from "@/components/ui/skeleton";
+import { ClientOnly } from "@/components/client-only";
 import { ResponsiveContainer, LineChart, Line } from "recharts";
 
 // Recharts MUST be inside ClientOnly — without it, every page that imports
 // a chart will SSR-crash with "Cannot read properties of null (reading 'useContext')".
 <div className="h-72">
-  <ClientOnly fallback={<Skeleton className="h-full w-full" />}>
+  <ClientOnly fallback={<div className="h-full w-full rounded-sm border border-border bg-muted" />}>
     <ResponsiveContainer width="100%" height="100%">
       <LineChart data={data}>
         <Line dataKey="value" />
@@ -508,7 +466,7 @@ console.log("headers:", Object.fromEntries(getRequestHeaders().entries()));
 const userId = getRequestHeaders().get("X-App-User-ID");
 ```
 
-**Shell + user identity:** the parent `_app.tsx` route loads the user via `beforeLoad` (server-side, cookie-signed) and passes it as a prop to `Shell`. Read the user from any nested page via `Route.useRouteContext()` — synchronous, type-safe, no fetch round-trip. Do NOT add a separate `/api/auth/me` fetch in nested pages.
+**Layout + user identity:** the parent authenticated layout route (`_app.tsx`, `station.tsx`, `review.tsx`, or a custom authenticated layout) loads the user via `beforeLoad` (server-side, cookie-signed) and passes it to the selected layout. Read the user from any nested page via `Route.useRouteContext()` — synchronous, type-safe, no fetch round-trip. Do NOT add a separate `/api/auth/me` fetch in nested pages.
 
 ## Build Order (MANDATORY — sequential, no skipping)
 
@@ -534,6 +492,9 @@ Pure configuration — no UI, no route handlers.
 - Seed data must tell a coherent story: cross-references, realistic status distributions, timestamps spanning past 2 weeks
 - Runtime baseline seed must be idempotent and should run only when the module
   table is empty. The preview path must work even when this script is never run.
+- `bootstrapModule(...)` runs in two phases inside one transaction: first all
+  `prepare` / `createTable` / `createIndexes` statements for the module, then
+  all `seed` callbacks. Do not hand-roll create/seed ordering in services.
 
 ### Step 3: Services + Server Routes
 
@@ -669,6 +630,11 @@ export async function advanceWorkOrder(
   promise and awaits it at the top of each service entrypoint before querying.
 - Bootstrap SQL must use `create table if not exists` / `create index if not
   exists`, and small baseline seed must be idempotent.
+- The shared bootstrap helper creates every table and index before any seed
+  callback runs. Seed callbacks may insert related rows into other tables in
+  the same module, as long as all referenced tables are listed in the same
+  `bootstrapModule(...)` call. Keep `createTable` entries ordered by foreign-key
+  dependencies.
 - Bootstrap belongs in services only. Never run schema creation from routes,
   components, or `src/lib`.
 - Functions take typed inputs (`NewWorkOrder`) and an actor id, return typed outputs (`WorkOrder`)
@@ -746,11 +712,12 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 
 ### Step 4: Frontend (all UI in one step)
 
-- Update `src/components/Shell.tsx`: add modules to `defaultModules`, implement collapsible sidebar + mobile overlay
-- Build dashboard at `src/routes/_app.index.tsx` — real KPIs, charts, status indicators
-- Build each module page at `src/routes/_app.<module>.tsx` (or nested under `_app.<module>/`) — vary UI patterns across modules (don't repeat the same layout everywhere)
-- All pages use `createFileRoute("/_app/...")({ component: PageFn })` and inherit `<Shell>` automatically
-- All pages must be responsive — test at mobile (375px), tablet (768px), desktop (1024px+)
+- First classify each UI workflow and choose a route group automatically: `station` for task-first scan/tap/confirm execution, `review` for queue/evidence/decision work, `monitor` for passive wallboards/andon/TV displays/fixed large screens, `_app` for workspace/admin/planning/analytics, or a custom layout when the workflow needs another distinct interaction model.
+- For `_app` workspace pages only: update `src/components/Shell.tsx`, add modules to `defaultModules`, and implement collapsible sidebar + mobile overlay when the app needs persistent module navigation.
+- Build dashboard at `src/routes/_app.index.tsx` only when the app has a management/analytics home; task-first station, review, monitor, kiosk, or other custom apps must replace `_app.index.tsx` with a redirect or matching root entry so `/` does not show a sidebar workspace starter.
+- Build each page under its selected layout group (`src/routes/_app.<module>.tsx`, `station.<task>.tsx`, `review.<queue>.tsx`, `monitor.<view>.tsx`, or a custom `intent.<page>.tsx`) and vary UI patterns across modules.
+- Pages use the selected route group's path in `createFileRoute(...)` and inherit that authenticated layout automatically: `"/_app/..."` for workspace, `"/station/..."`, `"/review/..."`, `"/monitor/..."`, or the matching custom route prefix.
+- Interactive pages must be responsive — test at mobile (375px), tablet (768px), desktop (1024px+). Monitor pages are fixed-equipment surfaces; test the intended monitor viewport instead.
 - **ALWAYS** use `apiUrl("/api/...")` from `@/lib/utils` — plain `"/api/..."` breaks under a base path
 - Use `usePolling()` from `@/lib/hooks` for dashboard polling
 - Use `<Link to="/path">` from `@tanstack/react-router` for navigation, `useNavigate()` for programmatic
@@ -770,7 +737,9 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 - `db/index.ts` uses a global singleton pool (max 5 connections) with `DB_SCHEMA` search_path support
 - Runtime bootstrap is required for every implemented module service:
   `bootstrapModule(...)` must create schema/table/indexes and seed small
-  baseline records when the module table is empty.
+  baseline records when the module table is empty. The helper runs all
+  `prepare` / table / index SQL before any seed callback, so agents should not
+  manually split or duplicate runtime bootstrap sequencing.
 - `seed.ts` uses `DIRECT_DATABASE_URL` first (bypasses pooler), relative imports only (no `@/` aliases)
 
 ### Data Flow
@@ -797,9 +766,10 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 `DESIGN.md` is the source of truth. The single-app theme equivalent lives in `src/styles/globals.css`; use the `--tier0-*` CSS variables and Tailwind aliases before introducing local colors.
 
 **Palette**
-- Primary actions are near-black: `--tier0-primary` / `bg-button-primary`.
-- FX Green is the Tier0 highlight: `--tier0-highlight`, `bg-button-highlight`, `bg-highlight-bg-accent`, `text-highlight-text`. Use it for active, selected, progress, and optimistic states. Do not flood page backgrounds with green.
-- Workspace surfaces are white, off-white, and light grey: `bg-bg`, `bg-background`, `bg-muted`, `border-border`, `border-border-secondary`.
+- Primary actions use readable slate: `--tier0-primary` / `bg-button-primary`.
+- Tier0 signal green is the highlight: `--tier0-highlight`, `bg-button-highlight`, `bg-highlight-bg-accent`, `text-highlight-text`. Use it for active, selected, progress, and optimistic states. Do not flood page backgrounds with green.
+- Workspace surfaces are soft canvas, raised white panels, and light grey insets: `bg-bg`, `bg-background`, `bg-card`, `bg-muted`, `border-border`, `border-border-secondary`.
+- Avoid pure black on pure white as the dominant reading surface. Use slate text hierarchy, soft neutral backgrounds, and semantic status colors for urgency.
 - Status UI uses semantic tokens: success, error, warning, and info. Color must be paired with an icon and label.
 
 **Typography**
@@ -809,14 +779,16 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 
 **Geometry & spacing**
 - Default component radius is 4px. Cards and panels should stay at 8px or less.
-- Use the 4px grid. Common gaps are 8px and 12px; common panel padding is 12px, 16px, or 20px.
+- Use the 4px grid. Common workspace gaps are 8px, 12px, and 16px; station and review flows may use 16px, 20px, or 24px for touch and readability.
 - Borders are the primary separation tool. Normal panels are flat; shadows are only for overlays such as dialogs, dropdowns, popovers, and tooltips.
+- Match density to context: workspace can be compact, station must be touch-friendly, review should favor readable evidence and decision clarity.
 
 **Components**
-- Use shared `components/ui` and `components/mes` primitives before writing local controls.
-- Buttons: `default` is FX Green highlight, `primary` is near-black, `outline` is bordered, `secondary` is neutral filled, `ghost` is low-emphasis.
+- Build app-specific controls locally from Tailwind utilities and Tier0 tokens; keep reusable pieces under `src/components/<domain>/`.
+- Buttons: `default` is signal-green highlight, `primary` is neutral gray, `outline` is bordered, `secondary` is neutral filled, `ghost` is low-emphasis.
+- Default controls are about 40px high; station, kiosk, PDA, scan, tap, and confirm flows should use 44-48px touch targets.
 - Keep tables compact, with explicit truncation (`min-w-0`, `truncate`, `line-clamp-*`) and quiet row actions.
-- Tags use grey by default; use FX Green only for Tier0 highlight states.
+- Tags use grey by default; use signal green only for Tier0 highlight states.
 
 **Motion**
 - Use motion for state clarity, not decoration. Normal transitions should be 150-250ms.
@@ -826,6 +798,7 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 **Layout & responsiveness**
 - Pages are product workspaces: header, controls, content, and stable state regions.
 - Use full-height flex layouts with `min-h-0` and explicit overflow regions.
+- Keep the primary content region vertically scrollable for workspace, station, review, and interactive custom layouts; only monitor layouts are fixed non-scrolling surfaces.
 - All pages must work at 375px width and avoid text overlap.
 
 ### Commands
@@ -853,7 +826,7 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 - Auth: `PERMISSION_MATRIX` defined, `requireAuth()` on all write routes
 - Services: one file per domain entity in `src/services/`, all multi-step writes wrapped in `db.transaction`, state machines defined as transition tables, throw `{ status, message }` for caller-facing errors. **No `db` imports outside `src/services/` and `src/db/seed.ts`.**
 - API: full CRUD per entity via `createFileRoute(...).server.handlers`, every handler wrapped in `withErrors`, body ≤ 10 lines (auth → parse → service call → Response.json). No business logic in handlers.
-- UI: all pages mounted under `_app.tsx` via `createFileRoute("/_app/...")`, all fetch via `apiUrl()`, recharts wrapped in `<ClientOnly>` AND `<ResponsiveContainer>`, toast on mutations, empty states with actions, responsive at 375px+, Shell collapsible + mobile overlay. Component props were verified against source via `Read` before use (no guessing prop shapes).
+- UI: every page is mounted under the correct authenticated layout group (`_app`, `station`, `review`, `monitor`, or a custom layout when justified), and `/` lands in the correct primary experience. All fetch via `apiUrl()`, recharts wrapped in `<ClientOnly>` AND `<ResponsiveContainer>`, toast on mutations, empty states with actions. Interactive pages are responsive at 375px+; monitor pages fit their intended fixed viewport. Workspace pages keep Shell navigation current; station/review/custom task pages avoid sidebar unless explicitly needed.
 - Hydration: no date/browser-API at first render, motion from `@/lib/motion`, valid HTML nesting, `Route.useParams()` / `Route.useSearch()` (never awaited), no server-only imports in client components, recharts/dnd-kit subtrees wrapped in `<ClientOnly>`
-- Branding: app-specific naming is applied consistently before declaring done. Check and update `src/routes/__root.tsx` `<title>` and `description`, `src/routes/login.tsx` login page brand copy, and `src/components/Shell.tsx` sidebar brand name/subtitle. Remove or replace scaffold default copy such as "MES", "MES App", and "MES Console" unless those names are intentionally part of the finished product.
+- Branding: app-specific naming is applied consistently before declaring done. Check and update `src/routes/__root.tsx` `<title>` and `description`, `src/routes/login.tsx` login page brand copy, `src/components/Shell.tsx`, and any used layout shell in `src/components/layouts/`. Remove or replace scaffold/default copy such as "Application", "Home", "Ready", "MES", "MES App", "MES Console", "Industrial App", "Station Console", "Review Workspace", "Workspace Home", or "Industrial application scaffold" unless those names are intentionally part of the finished product.
 - Build: `npm run build` passes with **0 errors** AND `npm run lint` reports **0 warnings, 0 errors**

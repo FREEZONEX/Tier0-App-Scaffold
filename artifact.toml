@@ -30,7 +30,7 @@ outputDir = "."
 
 [services.production.run]
 args = ["node", "server.mjs"]
-image = "node:20-alpine"
+image = "node:22-alpine"
 
 [services.production.run.env]
 NODE_ENV = "production"

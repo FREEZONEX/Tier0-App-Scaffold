@@ -40,7 +40,8 @@ const PUBLIC_PATHS = [
   "/favicon.ico", // browser auto-fetch
   "/_build", // vite build assets
   "/__tsr", // tanstack runtime
-  "/_server", // tanstack server functions
+  "/_server", // tanstack runtime/server internals
+  "/_serverFn", // tanstack start server functions
 ];
 
 function isPublicPath(pathname: string): boolean {

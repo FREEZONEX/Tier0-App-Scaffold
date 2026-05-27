@@ -55,8 +55,8 @@ function LoginPage() {
   if (!gatewayUser) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-6">
-        <div className="w-full max-w-sm rounded-md border border-border bg-card p-6 text-center">
-          <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-sm bg-[var(--state-error-bg)] text-[var(--state-error-fg)]">
+        <div className="w-full max-w-sm rounded-md border border-border bg-card p-6 text-center shadow-sm">
+          <div className="mx-auto mb-3 flex size-11 items-center justify-center rounded-md bg-state-error-bg text-state-error-fg">
             <ShieldAlert className="size-5" />
           </div>
           <h1 className="text-base font-semibold">Access Denied</h1>
@@ -72,23 +72,23 @@ function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-background px-6 py-12">
       <div className="w-full max-w-md">
         {/* Brand bar */}
-        <div className="mb-6 flex items-center gap-2">
-          <div className="flex size-8 items-center justify-center rounded-sm bg-foreground text-background">
+        <div className="mb-6 flex items-center gap-2.5">
+          <div className="flex size-9 items-center justify-center rounded-md border border-highlight-bg-primary bg-highlight-bg-accent text-highlight-text">
             <span className="font-mono text-xs font-semibold">M</span>
           </div>
           <span className="text-sm font-semibold tracking-tight">
-            Operations Console
+            Application
           </span>
         </div>
 
-        <div className="rounded-md border border-border bg-card p-5">
-          <p className="font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+        <div className="rounded-md border border-border bg-card p-6 shadow-sm">
+          <p className="font-mono text-xs font-medium uppercase text-muted-foreground">
             Sign in
           </p>
           <h1 className="mt-1 text-lg font-semibold leading-tight">
             Welcome, {gatewayUser.name}
           </h1>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">
             Select a role to continue.
           </p>
 
@@ -97,7 +97,7 @@ function LoginPage() {
           </div>
         </div>
 
-        <p className="mt-4 text-center text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+        <p className="mt-4 text-center text-xs uppercase text-muted-foreground">
           Authenticated via platform gateway
         </p>
       </div>

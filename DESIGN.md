@@ -1,89 +1,90 @@
 ---
 version: alpha
 name: Tier0-design-system
-description: "A compact enterprise product design system for Tier0: precise workspace layouts, neutral white and off-white surfaces, near-black primary actions, and FX Green (#b2ed1d) as a distinctive highlight for active, selected, progress, and optimistic product states. The system borrows IBM's disciplined density without becoming a Carbon clone. Interfaces should feel technical, operational, and product-focused, with clear hierarchy from typography, borders, spacing, and stable layout rhythm rather than decoration."
+description: "A readable enterprise product design system for Tier0: calm operational surfaces, neutral gray primary actions, softened signal green for active/selected/progress states, and layout density chosen by workflow context. Interfaces should feel technical, usable under real factory conditions, and product-focused, with hierarchy from typography, spacing, borders, and stable layout rhythm rather than harsh contrast or decoration."
 
 colors:
-  primary: "#050b14"
-  primary-hover: "#1c1f1e"
-  on-primary: "#ffffff"
-  highlight: "#b2ed1d"
-  highlight-foreground: "#050b14"
-  highlight-text: "#a2db1a"
-  highlight-deep: "#73b200"
-  highlight-bg-primary: "#cef368"
-  highlight-bg-accent: "#e7f9b9"
-  ink: "#050b14"
-  ink-secondary: "#242424"
-  ink-tertiary: "#878787"
-  ink-placeholder: "#d9d9d9"
-  canvas: "#ffffff"
-  canvas-offwhite: "#fcfcfc"
-  surface-1: "#f9f9f9"
-  surface-2: "#f3f3f3"
-  surface-3: "#ebebeb"
-  hairline: "#ebebeb"
-  hairline-subtle: "#f3f3f3"
-  semantic-success: "#16a34a"
-  semantic-success-soft: "#dcfce7"
-  semantic-error: "#dc2626"
-  semantic-error-soft: "#fee2e2"
-  semantic-warning: "#d97706"
-  semantic-warning-soft: "#fef3c7"
-  semantic-info: "#2563eb"
-  semantic-info-soft: "#dbeafe"
+  primary: "neutral-800"
+  primary-hover: "neutral-900"
+  on-primary: "white"
+  highlight: "lime-500"
+  highlight-foreground: "neutral-950"
+  highlight-text: "lime-700"
+  highlight-deep: "lime-700"
+  highlight-bg-primary: "lime-200"
+  highlight-bg-accent: "lime-100"
+  ink: "neutral-800"
+  ink-secondary: "neutral-700"
+  ink-tertiary: "neutral-500"
+  ink-placeholder: "neutral-400"
+  canvas: "neutral-50"
+  canvas-raised: "white"
+  canvas-offwhite: "neutral-100"
+  surface-1: "neutral-200"
+  surface-2: "neutral-300"
+  surface-3: "neutral-300"
+  hairline: "neutral-300"
+  hairline-subtle: "neutral-200"
+  semantic-success: "green-800"
+  semantic-success-soft: "green-100"
+  semantic-error: "red-700"
+  semantic-error-soft: "red-100"
+  semantic-warning: "amber-800"
+  semantic-warning-soft: "amber-100"
+  semantic-info: "blue-700"
+  semantic-info-soft: "blue-100"
 
 typography:
   display:
-    fontFamily: Inter
-    fontSize: 38px
+    fontFamily: System UI
+    fontSize: 34px
     fontWeight: 700
-    lineHeight: 46px
+    lineHeight: 42px
     letterSpacing: 0
   heading-lg:
-    fontFamily: Inter
-    fontSize: 30px
+    fontFamily: System UI
+    fontSize: 28px
     fontWeight: 600
     lineHeight: 36px
     letterSpacing: 0
   heading-md:
-    fontFamily: Inter
-    fontSize: 24px
+    fontFamily: System UI
+    fontSize: 22px
     fontWeight: 600
-    lineHeight: 32px
+    lineHeight: 30px
     letterSpacing: 0
   heading-sm:
-    fontFamily: IBM Plex Sans
-    fontSize: 20px
+    fontFamily: System UI
+    fontSize: 18px
     fontWeight: 500
-    lineHeight: 28px
+    lineHeight: 26px
     letterSpacing: 0
   body:
-    fontFamily: IBM Plex Sans
+    fontFamily: System UI
     fontSize: 14px
     fontWeight: 400
-    lineHeight: 20px
+    lineHeight: 22px
     letterSpacing: 0
   body-lg:
-    fontFamily: IBM Plex Sans
+    fontFamily: System UI
     fontSize: 16px
     fontWeight: 400
-    lineHeight: 24px
+    lineHeight: 26px
     letterSpacing: 0
   label:
-    fontFamily: IBM Plex Sans
+    fontFamily: System UI
     fontSize: 14px
     fontWeight: 500
     lineHeight: 20px
     letterSpacing: 0
   caption:
-    fontFamily: IBM Plex Sans
+    fontFamily: System UI
     fontSize: 12px
     fontWeight: 400
-    lineHeight: 16px
+    lineHeight: 18px
     letterSpacing: 0
   mono:
-    fontFamily: Geist Mono
+    fontFamily: IBM Plex Mono
     fontSize: 12px
     fontWeight: 400
     lineHeight: 18px
@@ -114,61 +115,61 @@ components:
     backgroundColor: "{colors.highlight-bg-primary}"
     textColor: "{colors.highlight-foreground}"
     typography: "{typography.label}"
-    rounded: "{rounded.sm}"
-    minHeight: 36px
-    padding: 0 14px
+    rounded: "{rounded.md}"
+    minHeight: 40px
+    padding: 0 16px
   button-primary:
     backgroundColor: "{colors.primary}"
     textColor: "{colors.on-primary}"
     typography: "{typography.label}"
-    rounded: "{rounded.sm}"
-    minHeight: 36px
-    padding: 0 14px
+    rounded: "{rounded.md}"
+    minHeight: 40px
+    padding: 0 16px
   button-secondary:
     backgroundColor: "{colors.surface-2}"
     textColor: "{colors.ink-secondary}"
     borderColor: "{colors.hairline}"
     typography: "{typography.label}"
-    rounded: "{rounded.sm}"
-    minHeight: 36px
-    padding: 0 14px
+    rounded: "{rounded.md}"
+    minHeight: 40px
+    padding: 0 16px
   button-outline:
-    backgroundColor: "{colors.canvas}"
+    backgroundColor: "{colors.canvas-raised}"
     textColor: "{colors.ink}"
     borderColor: "{colors.hairline}"
     typography: "{typography.label}"
-    rounded: "{rounded.sm}"
-    minHeight: 36px
-    padding: 0 14px
+    rounded: "{rounded.md}"
+    minHeight: 40px
+    padding: 0 16px
   button-ghost:
     backgroundColor: transparent
     textColor: "{colors.ink-secondary}"
     typography: "{typography.label}"
-    rounded: "{rounded.sm}"
-    minHeight: 36px
-    padding: 0 10px
+    rounded: "{rounded.md}"
+    minHeight: 40px
+    padding: 0 12px
   input:
-    backgroundColor: "{colors.canvas}"
+    backgroundColor: "{colors.canvas-raised}"
     textColor: "{colors.ink}"
     borderColor: "{colors.hairline}"
     focusColor: "{colors.highlight}"
     typography: "{typography.body}"
-    rounded: "{rounded.sm}"
-    minHeight: 36px
+    rounded: "{rounded.md}"
+    minHeight: 40px
     padding: 0 12px
   dialog:
-    backgroundColor: "{colors.canvas}"
+    backgroundColor: "{colors.canvas-raised}"
     textColor: "{colors.ink}"
     rounded: "{rounded.lg}"
     padding: 32px
   panel:
-    backgroundColor: "{colors.canvas}"
+    backgroundColor: "{colors.canvas-raised}"
     textColor: "{colors.ink}"
     borderColor: "{colors.hairline}"
-    rounded: "{rounded.sm}"
+    rounded: "{rounded.md}"
     padding: 16px
   table:
-    backgroundColor: "{colors.canvas}"
+    backgroundColor: "{colors.canvas-raised}"
     textColor: "{colors.ink}"
     headerTextColor: "{colors.ink-tertiary}"
     borderColor: "{colors.hairline}"
@@ -198,34 +199,32 @@ motion:
 
 ## Design Direction
 
-Tier0 should feel precise, technical, and product-focused. It can borrow IBM's disciplined enterprise structure, but the visual language must remain Tier0's own:
+Tier0 should feel precise, technical, and product-focused while staying readable for long shifts, tablets, shared terminals, and shop-floor lighting. It can borrow disciplined enterprise structure, but the visual language must remain Tier0's own:
 
-- Neutral workspace surfaces: white, off-white, light grey, and near-black.
-- Near-black primary actions for core product decisions.
-- FX Green for emphasis, selected states, progress, active states, and optimistic product moments.
-- Compact enterprise density for tables, side panels, headers, dialogs, filters, and forms.
+- Neutral workspace surfaces: soft canvas, raised white panels, light grey insets, and readable neutral gray text.
+- Neutral gray primary actions for core product decisions.
+- Tier0 signal green for emphasis, selected states, progress, active states, and optimistic product moments.
+- Density chosen by workflow: compact for management workspaces, larger and calmer for station execution, evidence-first for review.
 - Clear hierarchy through typography, border, background layering, and layout rhythm.
 
 Do not use IBM Blue as the default primary color. Do not turn the product into a Carbon clone.
 
 ## Source Of Truth
 
-Use project tokens and shared components before introducing local styling.
+Use project tokens before introducing local styling.
 
-- Global theme entry: `packages/theme/src/index.scss`
-- Primitive color tokens: `packages/theme/src/variables.scss`
-- Semantic theme tokens: `packages/theme/src/themes.scss`
-- Tailwind mappings and typography utilities: `packages/theme/src/tailwind.css`
-- Ant Design token bridge: `packages/theme/src/token.ts`
-- Ant Design CSS overrides: `packages/theme/src/override-antd.scss`
-- Shared UI components: `packages/ui/components`
-- App-level style entry: `apps/saas-dashboard/styles/index.scss`
+- Theme entry and Tailwind mappings: `src/styles/globals.css`
+- Runtime class helpers: `src/lib/utils.ts`
+- App shell: `src/components/Shell.tsx`
+- App-specific generated components: `src/components/<domain>/`
 
 Prefer semantic variables such as `--tier0-bg-color`, `--tier0-text-color`, `--tier0-highlight`, and Tailwind aliases such as `bg-bg`, `text-text`, `border-border`, `bg-highlight-bg-accent`, `text-highlight-text`, `bg-button-primary`, and `bg-button-highlight`.
 
 ## Color Rules
 
-Use the YAML color roles instead of arbitrary hex values. FX Green should call attention to active product state, AI/building progress, selection, or success-adjacent emphasis. It should not flood every card, section, icon, or page background.
+Use the YAML color roles instead of arbitrary hex values. Tier0 signal green should call attention to active product state, build/progress, selection, or success-adjacent emphasis. It should not flood every card, section, icon, or page background.
+
+Avoid pure black on pure white as the dominant reading surface. Use raised white cards on soft canvas, neutral gray text for hierarchy, and borders for separation. High urgency still belongs in semantic status tokens, not in the global palette.
 
 Use semantic status tokens for status UI:
 
@@ -236,9 +235,9 @@ Use semantic status tokens for status UI:
 
 ## Typography
 
-The default product UI font is IBM Plex Sans via `--font-app-sans`. Use Inter via `--font-display-sans` for larger headings and Geist Mono via `--font-geist-mono` for code, IDs, compact technical metadata, and token previews.
+The default product UI font is the system UI stack via `--font-app-sans`, chosen for platform-native readability and reliable rendering. Use the same stack via `--font-display-sans` for larger headings, and IBM Plex Mono via `--font-geist-mono` for code, IDs, compact technical metadata, and token previews.
 
-Use existing utilities from `packages/theme/src/tailwind.css`:
+Use existing utilities from `src/styles/globals.css`:
 
 - Page display: `typo-h1`
 - Section heading: `typo-h2`
@@ -252,23 +251,50 @@ For new component-local typography, keep letter spacing neutral.
 
 ## Layout
 
-Most Tier0 pages are product workspaces, not marketing pages. Structure pages as:
+Most Tier0 pages are operational product surfaces, not marketing pages. Select the layout intent before designing the page:
+
+- Workspace: persistent navigation for management, planning, analytics, configuration, and multi-module supervision.
+- Station: full-screen task execution for scan, tap, confirm, report, and exception capture flows.
+- Review: queue, evidence, and decision workflows for quality, approvals, holds, and nonconformance disposition.
+- Monitor: passive wallboards, andon boards, TV displays, and fixed large screens for glanceable operational state. Monitor layouts have no sidebar, no drawer navigation, and no page-level vertical scrolling.
+- Custom: create a new minimal shell when the interaction model is distinct, such as guided wizards, public portals, editors, dispatch consoles, or kiosk queues.
+
+Workspace, station, review, and interactive custom layouts must keep their primary content region vertically scrollable. Only monitor layouts are fixed, non-scrolling viewport surfaces.
+
+Structure workspace pages as:
 
 - Header region: title, description, back affordance, primary action, secondary actions.
 - Control region: search, filters, tabs, view toggles.
 - Content region: table, grid, canvas, editor, or split panel.
 - State region: empty, loading, and error states that preserve layout stability.
 
-Use the 4px grid. Common gaps are 8px and 12px. Common panel padding is 12px, 16px, or 20px. Dialog padding is 32px. Page shells should use full-height flex layouts with `min-h-0` and explicit overflow regions.
+For station pages, reduce navigation and secondary data. Prioritize the current task, large touch targets, scan/manual entry, confirmation feedback, and an exception path. Use 44-48px minimum controls, `text-base` for operational labels, and only the columns or fields required for the next physical action.
+
+For review pages, prioritize the queue, the evidence needed to decide, reason capture, and clear disposition actions. Use split panes, sticky decision controls, readable evidence blocks, and semantic state color. Do not hide the reason or consequence behind icon-only controls.
+
+For monitor pages, treat the viewport as fixed equipment. Fit the full board to the target resolution, usually 16:9, using stable grid tracks, `min-h-0`, `overflow-hidden`, and predictable text truncation. Use large glanceable numerals, high-contrast status blocks, and compact legends. Do not add workspace navigation, forms, tables that require row scrolling, mobile drawers, or long explanatory copy.
+
+Monitor layout preset:
+
+- Frame: full-viewport authenticated shell with a compact 48px status header and one content board region.
+- Chrome: no workspace sidebar, no module nav, no drawer, no persistent action rail.
+- Scrolling: fixed monitor surfaces use `overflow-hidden` at the page frame; if live logs or event tickers are needed, constrain motion or overflow inside that specific panel.
+- Composition: 16:9-first board grid with stable rows/columns, large status blocks, readable line/equipment labels, and no content that requires pointer interaction. Use `monitor-grid` and `monitor-panel` utilities for bounded, non-scrolling board regions.
+- Typography: large numerals for KPIs, short labels, tabular numeric treatment, and truncation for long resource names. Use `monitor-kpi`, `monitor-title`, `monitor-text`, `monitor-label`, and `monitor-fit-text` so text scales down within readable clamp limits instead of collapsing.
+- Primary use: passive production status, andon, OEE, downtime, queue, material flow, safety, or quality alert wallboards.
+
+For custom layouts, define only the global interaction frame and slots. Do not hardcode business-specific cards, sample charts, or placeholder workflows into the layout shell.
+
+Use the 4px grid. Common workspace gaps are 8px, 12px, and 16px. Station and review flows can use 16px, 20px, and 24px when the user needs faster scanning or touch input. Monitor boards should use viewport-relative grid areas only when they preserve the intended 16:9 composition and keep all text within bounds. Common panel padding is 16px or 20px; dense tables may use 12px. Dialog padding is 32px. Page shells should use full-height flex layouts with `min-h-0` and explicit overflow regions; use a scrollable main region for every non-monitor layout.
 
 ## Surfaces, Borders, Radius, Elevation
 
-Borders are the primary separation tool. Use `border-border`, `border-border-secondary`, `var(--tier0-border)`, or `var(--tier0-border-secondary)`.
+Borders and subtle surface changes are the primary separation tools. Use `border-border`, `border-border-secondary`, `var(--tier0-border)`, or `var(--tier0-border-secondary)`.
 
 Use the local radius language:
 
-- Default component radius: 4px via `--tier0-radius` and Ant Design `borderRadius: 4`.
-- shadcn `rounded-md` is acceptable for shared UI controls.
+- Default component radius: 4-6px via `--tier0-radius` and local `rounded-md`.
+- Tailwind `rounded-sm` / `rounded-md` is acceptable for local controls.
 - Use larger radii only when nearby components already establish that shape.
 - Tags are 4px by default, not pills unless the component already uses a pill shape.
 
@@ -276,31 +302,30 @@ Keep elevation restrained. Normal panels should be flat. Dialogs, dropdowns, pop
 
 ## Components
 
-Use `@tier0/ui` before building component-local primitives.
+Build component-local primitives for the app being generated. Keep them close to the route or domain that owns them until repetition justifies sharing under `src/components/<domain>/`.
 
 Buttons:
 
-- `default`: FX Green highlighted action.
-- `primary`: near-black primary action.
+- `default`: Tier0 signal green highlighted action.
+- `primary`: neutral gray primary action.
 - `outline`: secondary bordered action.
 - `secondary`: neutral filled action.
 - `ghost`: icon or low-emphasis toolbar action.
 - `destructive`: destructive action.
 - `link`: text link action.
 
-Use one primary or highlighted action per local decision area. Use `lucide-react` icons at 16-20px. Keep labels short and internationalized.
+Use one primary or highlighted action per local decision area. Use `lucide-react` icons at 16-20px. Keep labels short and internationalized. Default controls are 40px high; station controls should be 44-48px when used for scan, tap, confirm, or exception actions.
 
 Forms:
 
-- Ant Design inputs default to 36px height.
-- Input backgrounds use `--tier0-bg-color`.
+- Form controls should default to 40px height unless the surrounding table layout is intentionally denser. Station forms should use 44-48px controls.
+- Input backgrounds use raised white surfaces.
 - Borders use `--tier0-border`.
-- Focus uses FX Green via `--tier0-highlight` and `--tier0-highlight-20`.
+- Focus uses Tier0 signal green via `--tier0-highlight` and `--tier0-highlight-20`.
 - Extract `initialValues`, rules, field groups, option lists, and labels into semantic variables for dialog forms.
 
 Dialogs:
 
-- Use `CnDialog` where possible.
 - Default padding is 32px.
 - Header gap is 16px; content gap is 32px.
 - Title is `text-2xl/8 font-semibold`.
@@ -325,9 +350,8 @@ Cards and lists:
 
 Tags:
 
-- Use `AntTag` or established tag components.
 - Default theme is grey background, grey border, black text.
-- Use `fx-green` for Tier0 highlight states, not generic success.
+- Use Tier0 signal green for highlight states, not generic success.
 
 ## Motion
 
@@ -335,29 +359,20 @@ Use motion for state clarity, not decoration. Standard transitions should cover 
 
 Avoid decorative background blobs, excessive gradients, and animated ornaments unrelated to product state. Gradients may be used sparingly for AI/thinking status, as in `thinking-title-active`.
 
-## Internationalization
+## Product Copy
 
-All user-facing product copy must use `next-intl`.
-
-Internationalize buttons, dialog copy, form labels, placeholders, validation, table headers, empty states, tooltips, toasts, and status labels. Update the relevant app message files:
-
-- `apps/saas-dashboard/messages/zh-cn.json`
-- `apps/saas-dashboard/messages/en.json`
-- `apps/platform-admin/messages/zh-cn.json`
-- `apps/platform-admin/messages/en.json`
-
-Only logs and temporary debug output may remain hardcoded.
+Keep visible copy consistent, domain-specific, and easy to scan. If the generated app needs localization, centralize labels and messages in a local app dictionary; otherwise keep short copy close to the owning component. Only logs and temporary debug output may remain hardcoded.
 
 ## Implementation Rules
 
-- Reuse shared components from `@tier0/ui` before creating component-local primitives.
-- Use `@tier0/utils` `cn` for conditional class composition.
+- Create component-local primitives that fit the app; share them under `src/components/<domain>/` only when reuse is real.
+- Use `cn` from `@/lib/utils` for conditional class composition.
 - Prefer semantic theme tokens over hardcoded hex values.
 - If hardcoded colors are unavoidable for a one-off visual asset, document why in a short code comment.
 - Match existing page density and component rhythm before introducing new spacing.
 - Keep text truncation explicit with `min-w-0`, `truncate`, `line-clamp-*`, and tooltip fallbacks.
 - Preserve app shell stability with `h-full`, `min-h-0`, explicit overflow containers, and stable grid/flex dimensions.
-- Add i18n keys in both Chinese and English message files for visible copy.
+- Keep all visible copy reachable in the UI and avoid placeholder wording.
 
 ## Avoid
 
@@ -365,10 +380,10 @@ Only logs and temporary debug output may remain hardcoded.
 - A new design system inside a feature folder.
 - Duplicate button, dialog, table, tag, input, pagination, or select behavior.
 - Heavy shadows for normal panels.
-- FX Green as a general page background.
+- Tier0 signal green as a general page background.
 - Hardcoded Chinese or English product UI text.
 - Inline complex form configuration in JSX.
-- Broad decorative gradients, purple-blue themes, beige/brown palettes, or dark slate-heavy palettes.
+- Broad decorative gradients, purple-blue themes, beige/brown palettes, or cold/warm gray-heavy palettes.
 
 ## Quick Build Checklist
 
@@ -376,7 +391,7 @@ Only logs and temporary debug output may remain hardcoded.
 - Uses `--tier0-*` tokens or Tailwind aliases instead of arbitrary colors.
 - Fits the compact enterprise layout rhythm.
 - Has stable loading, empty, error, and long-content states.
-- Uses `next-intl` for all visible copy.
+- Uses domain-specific visible copy with no scaffold placeholders.
 - Dialog forms have extracted initial values, rules, and field metadata.
 - Tables and lists handle truncation and overflow.
 - Focus, hover, selected, disabled, and destructive states are visible.

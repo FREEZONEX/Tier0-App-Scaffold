@@ -9,6 +9,11 @@ export interface RuntimeTableBootstrap {
    * applied by the runtime connection search_path and by the empty-table check.
    */
   tableName: string;
+  /**
+   * Optional idempotent setup that must exist before tables are created, such
+   * as extensions, enums, functions, or prerequisite schema objects.
+   */
+  prepare?: SQL[];
   createTable: SQL;
   createIndexes?: SQL[];
   seed?: (tx: BootstrapTx) => Promise<void>;
@@ -54,11 +59,16 @@ async function runBootstrap(
     }
 
     for (const table of tables) {
+      for (const prepareSql of table.prepare ?? []) {
+        await tx.execute(prepareSql);
+      }
       await tx.execute(table.createTable);
       for (const indexSql of table.createIndexes ?? []) {
         await tx.execute(indexSql);
       }
+    }
 
+    for (const table of tables) {
       if (table.seed && !(await hasRows(tx, schemaName, table.tableName))) {
         await table.seed(tx);
       }

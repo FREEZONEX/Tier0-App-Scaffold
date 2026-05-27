@@ -8,6 +8,7 @@ Use this checklist when planning and reviewing a generated application.
 - Extract required features, workflows, roles, permissions, validations, and state transitions.
 - Identify required data models, relationships, and business rules.
 - Identify required UI screens, forms, lists, detail views, dashboards, and operational flows.
+- Classify each frontend workflow by layout intent: station for scan/tap execution, review for evidence/decision queues, workspace for management/planning/analytics, or a custom layout when the built-ins do not fit.
 - Identify backend/API requirements, persistence needs, integrations, and error paths.
 - Note explicit technology constraints from the requirements or existing project.
 
@@ -39,10 +40,16 @@ Use this checklist when planning and reviewing a generated application.
 6. Add error, empty, loading, and validation states.
 7. Run checks and fix failures.
 
+For this TanStack Start MES scaffold, use the shared service-layer
+`bootstrapModule(...)` helper for runtime table/index creation and baseline
+seed. Do not hand-roll create/seed sequencing; the helper creates all module
+tables/indexes before running any seed callbacks.
+
 ## Self-Review
 
 - Check for syntax errors, missing imports, incorrect paths, and unused exports.
 - Verify every required workflow is reachable from the UI or API.
+- Verify each frontend route uses the layout group that matches the workflow intent.
 - Verify forms enforce required fields and validation rules.
 - Verify status transitions and business rules match the requirements.
 - Verify errors are surfaced to users or callers clearly.

@@ -1,6 +1,6 @@
 ---
 name: preview-runtime-stability
-description: Diagnose and fix managed preview startup failures for TanStack Start or Vite apps in UNS-SWE executor sandboxes. Use when the user reports "Failed to load preview", "Preview loading timed out", preview_start, preview/status, live preview, Vite dev server, port 5173, /api/health, stale npm/node processes, or sandbox preview process cleanup problems.
+description: Diagnose and fix managed preview startup failures for TanStack Start or Vite apps in UNS-SWE executor sandboxes. Use when the user reports "Failed to load preview", "Preview loading timed out", "dev server exited: exit status 1", `{"status":500,"unhandled":true,"message":"HTTPError"}`, preview_start, preview/status, live preview, Vite dev server, port 5173, /api/health, stale npm/node processes, or sandbox preview process cleanup problems.
 ---
 
 # Preview Runtime Stability
@@ -31,6 +31,82 @@ For TanStack Start or Vite apps in UNS-SWE templates, keep the preview/dev serve
 - Do not leave preview on `3000`, `3001`, or allow Vite to drift to `5174/5175`; keep `artifact.toml` and `package.json` synchronized.
 
 ## Known Error Playbooks
+
+### Dev server exited with status 1
+
+Error examples:
+
+```text
+dev server exited: exit status 1
+error when starting dev server:
+Error: Port 5173 is already in use
+```
+
+Treat `exit status 1` as "Vite crashed before readiness", not as a generic preview timeout. Always inspect preview logs or the dev server stderr before editing app code.
+
+Common causes, in order:
+
+1. Stale preview process still owns port `5173`. This is the most common cause when `vite.config.ts` uses `server.strictPort = true`; Vite exits immediately instead of drifting to `5174`.
+2. Route tree or file-route compile error after adding, renaming, or deleting files under `src/routes`.
+3. Missing dependency or stale import after removing component libraries, for example imports from deleted `@/components/ui` or `@/components/mes`.
+4. CSS/Tailwind startup failure, especially stale `@import` entries for deleted packages.
+5. Server-only imports leaking into client-bundled route/component files, such as using `@tanstack/react-start/server` outside a server handler, middleware, or `createServerFn().handler(...)` body.
+
+Fix sequence:
+
+1. Check preview logs. If the log contains `Port 5173 is already in use`, run the preflight cleanup and restart preview. Do not change application code for a stale-port failure.
+2. If the log shows a route-generation or import error, fix the exact file path in the stack trace, then restart preview.
+3. If the log shows a deleted UI/MES component import, replace it with scaffold-native Tailwind/local components. Do not restore the removed component library unless the user explicitly asks.
+4. If the log shows a CSS import error, remove the stale import from `src/styles/globals.css` or add the missing package only when it is intentionally part of the template.
+5. If the log shows `does not provide an export named` from `@tanstack/react-start/server`, move that call inside a valid server boundary.
+6. When logs are unavailable or ambiguous, first verify port ownership and `/api/health`; then run `npm run build` only if dependencies are installed and the managed install is not running.
+
+Useful checks:
+
+```bash
+PREVIEW_PORT=5173 HEALTH_PATH=/api/health ./.agents/skills/preview-runtime-stability/scripts/preview_preflight.sh --cleanup
+rg -n '@/components/(ui|mes)' src --glob '!routeTree.gen.ts'
+rg -n '@tanstack/react-start/server|from "motion/react"' src --glob '!routeTree.gen.ts'
+rg -n '@import "shadcn|@import "@/components|@import "@tier0' src/styles
+```
+
+The second command intentionally over-reports. `@tanstack/react-start/server` is allowed in server-route handlers, middleware, `src/lib/auth.ts`, and inside `createServerFn().handler(...)` bodies. `motion/react` is allowed only in the shared `src/lib/motion.ts` wrapper.
+
+### TanStack Start HTTPError 500
+
+Error example:
+
+```json
+{"status":500,"unhandled":true,"message":"HTTPError"}
+```
+
+This means an HTTP-shaped error escaped through TanStack Start/Router instead of being translated into a normal `Response.json(...)`. It is usually not fixed by restarting the preview process.
+
+Common causes:
+
+1. An API route calls `requireAuth()` or a service that throws `HttpError`, but the handler is not wrapped in `withErrors(...)`.
+2. A service or loader throws `new HttpError(...)` from a route `beforeLoad`, loader, or `createServerFn` where no route error mapper converts it to a Response.
+3. Preview auth headers/session are missing or invalid, so authenticated routes hit an auth error before the UI can render.
+4. `PREVIEW_USER_ROLE` does not exist in `PERMISSION_MATRIX`, so the middleware redirects to `/login` or auth checks fail unexpectedly.
+5. A public endpoint needed by preview, especially `/api/health`, was changed to require auth or throw.
+
+Fix sequence:
+
+1. Identify the request path that returned the JSON error. Do not assume it is `/api/health`.
+2. For `src/routes/api/**`, wrap every handler in `withErrors(...)` and keep the route body thin: auth, parse, service call, `Response.json`.
+3. Keep `HttpError` throwing in services and route handlers only when a `withErrors` boundary will catch it. In page loaders or `createServerFn` calls, return `null`, throw `redirect(...)`, or map the error locally.
+4. Verify preview env in `artifact.toml`: `SESSION_SECRET`, `PREVIEW_USER_ID`, `PREVIEW_USER_NAME`, and `PREVIEW_USER_ROLE` are set.
+5. Verify `PREVIEW_USER_ROLE` exactly matches a key in `PERMISSION_MATRIX`; the scaffold default is `admin`.
+6. Verify `vite.config.ts` keeps the preview gateway header plugin before `tanstackStart(...)`, so preview requests receive `X-App-User-*` headers and a signed `mes-session` cookie.
+7. Keep `/api/health`, `/api/manifest`, and `/api/auth/**` public in `src/start.ts`; preview readiness depends on `/api/health` staying unauthenticated.
+
+Useful checks:
+
+```bash
+rg -n 'requireAuth|HttpError|withErrors' src/routes src/services src/lib
+rg -n 'PREVIEW_USER_ROLE|SESSION_SECRET|PREVIEW_USER_ID' artifact.toml
+rg -n 'PERMISSION_MATRIX|ADMIN_ROLE' src/lib/permissions.ts
+```
 
 ### Artifact preview port mismatch
 
