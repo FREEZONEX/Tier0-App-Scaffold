@@ -7,54 +7,54 @@
 /* Tier0 design tokens. Keep this file as the single-app equivalent of the
  * platform theme package referenced by DESIGN.md. */
 :root {
-  --tier0-primary: var(--color-neutral-800);
-  --tier0-primary-hover: var(--color-neutral-900);
-  --tier0-on-primary: var(--color-white);
+  --tier0-primary: #050b14;
+  --tier0-primary-hover: #1c1f1e;
+  --tier0-on-primary: #ffffff;
 
-  --tier0-highlight: var(--color-lime-500);
-  --tier0-highlight-foreground: var(--color-neutral-950);
-  --tier0-highlight-text: var(--color-lime-700);
-  --tier0-highlight-deep: var(--color-lime-700);
-  --tier0-highlight-bg-primary: var(--color-lime-200);
-  --tier0-highlight-bg-accent: var(--color-lime-100);
+  --tier0-highlight: #b2ed1d;
+  --tier0-highlight-foreground: #050b14;
+  --tier0-highlight-text: #a2db1a;
+  --tier0-highlight-deep: #73b200;
+  --tier0-highlight-bg-primary: #cef368;
+  --tier0-highlight-bg-accent: #e7f9b9;
   --tier0-highlight-20: color-mix(in srgb, var(--tier0-highlight) 20%, transparent);
 
-  --tier0-text-color: var(--color-neutral-800);
-  --tier0-text-secondary: var(--color-neutral-700);
-  --tier0-text-tertiary: var(--color-neutral-500);
-  --tier0-text-placeholder: var(--color-neutral-400);
+  --tier0-text-color: #050b14;
+  --tier0-text-secondary: #242424;
+  --tier0-text-tertiary: #878787;
+  --tier0-text-placeholder: #d9d9d9;
 
-  --tier0-bg-color: var(--color-neutral-50);
-  --tier0-bg-secondary: var(--color-neutral-100);
-  --tier0-bg-tertiary: var(--color-neutral-200);
-  --tier0-bg-accent: var(--color-neutral-300);
-  --tier0-surface-muted: var(--color-neutral-300);
-  --tier0-border: var(--color-neutral-300);
-  --tier0-border-secondary: var(--color-neutral-200);
+  --tier0-bg-color: #ffffff;
+  --tier0-bg-secondary: #fcfcfc;
+  --tier0-bg-tertiary: #f9f9f9;
+  --tier0-bg-accent: #f3f3f3;
+  --tier0-surface-muted: #e3e3e3;
+  --tier0-border: #dcdcdc;
+  --tier0-border-secondary: #e8e8e8;
 
-  --tier0-success-color: var(--color-green-800);
-  --tier0-success-tertiary: var(--color-green-100);
-  --tier0-error-color: var(--color-red-700);
-  --tier0-error-tertiary: var(--color-red-100);
-  --tier0-warning-color: var(--color-amber-800);
-  --tier0-warning-tertiary: var(--color-amber-100);
-  --tier0-blue-color: var(--color-blue-700);
-  --tier0-blue-tertiary: var(--color-blue-100);
+  --tier0-success-color: #166534;
+  --tier0-success-tertiary: #dcfce7;
+  --tier0-error-color: #b91c1c;
+  --tier0-error-tertiary: #fee2e2;
+  --tier0-warning-color: #9a3412;
+  --tier0-warning-tertiary: #ffedd5;
+  --tier0-blue-color: #1d4ed8;
+  --tier0-blue-tertiary: #dbeafe;
 
-  --tier0-radius: var(--radius-sm);
-  --tier0-radius-xs: var(--radius-xs);
-  --tier0-radius-sm: var(--radius-sm);
-  --tier0-radius-md: var(--radius-md);
-  --tier0-radius-lg: var(--radius-lg);
+  --tier0-radius: 4px;
+  --tier0-radius-xs: 2px;
+  --tier0-radius-sm: 4px;
+  --tier0-radius-md: 6px;
+  --tier0-radius-lg: 8px;
 
   --tier0-motion-fast: 150ms ease;
   --tier0-motion-base: 200ms ease;
   --tier0-motion-slow: 500ms ease;
 
-  --font-app-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+  --font-app-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-display-sans: var(--font-app-sans);
-  --font-geist-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas,
+  --font-display-sans: "Inter", var(--font-app-sans);
+  --font-geist-mono: "Geist Mono", "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas,
     monospace;
 
   /* Minimal scaffold compatibility aliases */
@@ -63,23 +63,23 @@
   --muted: var(--tier0-bg-tertiary);
   --muted-foreground: var(--tier0-text-tertiary);
   --border: var(--tier0-border);
-  --border-strong: var(--color-neutral-500);
-  --input: var(--tier0-border);
+  --border-strong: #cfcfcf;
+  --input: #e3e3e3;
   --ring: var(--tier0-highlight);
 
-  --card: var(--color-white);
+  --card: #ffffff;
   --card-foreground: var(--tier0-text-color);
-  --popover: var(--color-white);
+  --popover: #ffffff;
   --popover-foreground: var(--tier0-text-color);
-  --surface-raised: var(--color-white);
+  --surface-raised: #ffffff;
   --surface-inset: var(--tier0-bg-tertiary);
 
-  --sidebar: var(--tier0-bg-secondary);
+  --sidebar: #fcfcfc;
   --sidebar-foreground: var(--tier0-text-color);
-  --sidebar-border: var(--tier0-border);
+  --sidebar-border: #e3e3e3;
   --sidebar-primary: var(--tier0-primary);
   --sidebar-primary-foreground: var(--tier0-on-primary);
-  --sidebar-accent: var(--tier0-bg-accent);
+  --sidebar-accent: #f3f3f3;
   --sidebar-accent-foreground: var(--tier0-text-color);
   --sidebar-ring: var(--tier0-highlight);
 
@@ -96,17 +96,17 @@
   --state-running-bg: var(--tier0-highlight-bg-accent);
   --state-running-border: var(--tier0-highlight-bg-primary);
   --state-idle-fg: var(--tier0-text-secondary);
-  --state-idle-bg: var(--tier0-bg-accent);
+  --state-idle-bg: var(--color-neutral-100);
   --state-idle-border: var(--tier0-border);
   --state-paused-fg: var(--tier0-warning-color);
   --state-paused-bg: var(--tier0-warning-tertiary);
-  --state-paused-border: color-mix(in srgb, var(--tier0-warning-color) 42%, var(--color-white));
+  --state-paused-border: color-mix(in srgb, var(--tier0-warning-color) 42%, white);
   --state-error-fg: var(--tier0-error-color);
   --state-error-bg: var(--tier0-error-tertiary);
-  --state-error-border: color-mix(in srgb, var(--tier0-error-color) 40%, var(--color-white));
+  --state-error-border: color-mix(in srgb, var(--tier0-error-color) 40%, white);
   --state-info-fg: var(--tier0-blue-color);
   --state-info-bg: var(--tier0-blue-tertiary);
-  --state-info-border: color-mix(in srgb, var(--tier0-blue-color) 38%, var(--color-white));
+  --state-info-border: color-mix(in srgb, var(--tier0-blue-color) 38%, white);
 
   --chart-1: var(--tier0-primary);
   --chart-2: var(--tier0-highlight-deep);
@@ -115,6 +115,10 @@
   --chart-5: var(--tier0-error-color);
 
   --radius: var(--tier0-radius);
+  --shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.06);
+  --shadow-md: 0 12px 24px -18px rgb(15 23 42 / 0.28), 0 1px 2px 0 rgb(15 23 42 / 0.06);
+  --shadow-lg: 0 24px 48px -28px rgb(15 23 42 / 0.34), 0 2px 8px 0 rgb(15 23 42 / 0.08);
+
   --motion-fast: 150ms;
   --motion-base: 200ms;
   --motion-slow: 500ms;
@@ -188,6 +192,18 @@
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
 
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+
+  --radius-sm: var(--tier0-radius-xs);
+  --radius-md: var(--tier0-radius-sm);
+  --radius-lg: var(--tier0-radius);
+  --radius-xl: var(--tier0-radius-md);
+  --radius-2xl: var(--tier0-radius-lg);
+  --radius-3xl: var(--tier0-radius-lg);
+  --radius-4xl: var(--tier0-radius-lg);
+
   --font-sans: var(--font-app-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-display-sans);
@@ -234,7 +250,8 @@ body {
   }
 
   body {
-    @apply bg-background text-foreground leading-relaxed;
+    @apply bg-background text-foreground;
+    line-height: 1.55;
     text-rendering: optimizeLegibility;
   }
 
@@ -382,39 +399,39 @@ body {
 
   .typo-h1 {
     font-family: var(--font-display-sans);
-    font-size: var(--text-4xl);
+    font-size: 34px;
     font-weight: 700;
-    line-height: var(--text-4xl--line-height);
+    line-height: 42px;
     letter-spacing: 0;
   }
 
   .typo-h2 {
     font-family: var(--font-display-sans);
-    font-size: var(--text-3xl);
+    font-size: 28px;
     font-weight: 600;
-    line-height: var(--text-3xl--line-height);
+    line-height: 36px;
     letter-spacing: 0;
   }
 
   .typo-h3 {
     font-family: var(--font-display-sans);
-    font-size: var(--text-2xl);
+    font-size: 22px;
     font-weight: 600;
-    line-height: var(--text-2xl--line-height);
+    line-height: 30px;
     letter-spacing: 0;
   }
 
   .typo-h4 {
     font-family: var(--font-app-sans);
-    font-size: var(--text-xl);
+    font-size: 18px;
     font-weight: 500;
-    line-height: var(--text-xl--line-height);
+    line-height: 26px;
     letter-spacing: 0;
   }
 
   .caption {
-    font-size: var(--text-xs);
-    line-height: var(--text-xs--line-height);
+    font-size: 12px;
+    line-height: 18px;
     color: var(--tier0-text-tertiary);
   }
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "MES UI Patterns"
+  short_description: "Generate MES visualization snippets"
+  default_prompt: "Use $mes-ui-patterns to create app-local MES dashboard, status, Gantt, OEE, SPC, or shop-floor UI snippets."

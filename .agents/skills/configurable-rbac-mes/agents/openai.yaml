@@ -1,0 +1,4 @@
+interface:
+  display_name: "Configurable RBAC MES"
+  short_description: "Build role and permission controls"
+  default_prompt: "Use $configurable-rbac-mes to add or refactor roles, permissions, route guards, and menu visibility."

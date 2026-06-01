@@ -4,35 +4,35 @@ name: Tier0-design-system
 description: "A readable enterprise product design system for Tier0: calm operational surfaces, neutral gray primary actions, softened signal green for active/selected/progress states, and layout density chosen by workflow context. Interfaces should feel technical, usable under real factory conditions, and product-focused, with hierarchy from typography, spacing, borders, and stable layout rhythm rather than harsh contrast or decoration."
 
 colors:
-  primary: "neutral-800"
-  primary-hover: "neutral-900"
-  on-primary: "white"
-  highlight: "lime-500"
-  highlight-foreground: "neutral-950"
-  highlight-text: "lime-700"
-  highlight-deep: "lime-700"
-  highlight-bg-primary: "lime-200"
-  highlight-bg-accent: "lime-100"
-  ink: "neutral-800"
-  ink-secondary: "neutral-700"
-  ink-tertiary: "neutral-500"
-  ink-placeholder: "neutral-400"
-  canvas: "neutral-50"
-  canvas-raised: "white"
-  canvas-offwhite: "neutral-100"
-  surface-1: "neutral-200"
-  surface-2: "neutral-300"
-  surface-3: "neutral-300"
-  hairline: "neutral-300"
-  hairline-subtle: "neutral-200"
-  semantic-success: "green-800"
-  semantic-success-soft: "green-100"
-  semantic-error: "red-700"
-  semantic-error-soft: "red-100"
-  semantic-warning: "amber-800"
-  semantic-warning-soft: "amber-100"
-  semantic-info: "blue-700"
-  semantic-info-soft: "blue-100"
+  primary: "#050b14"
+  primary-hover: "#1c1f1e"
+  on-primary: "#ffffff"
+  highlight: "#b2ed1d"
+  highlight-foreground: "#050b14"
+  highlight-text: "#a2db1a"
+  highlight-deep: "#73b200"
+  highlight-bg-primary: "#cef368"
+  highlight-bg-accent: "#e7f9b9"
+  ink: "#050b14"
+  ink-secondary: "#242424"
+  ink-tertiary: "#878787"
+  ink-placeholder: "#d9d9d9"
+  canvas: "#ffffff"
+  canvas-raised: "#ffffff"
+  canvas-offwhite: "#fcfcfc"
+  surface-1: "#f9f9f9"
+  surface-2: "#f3f3f3"
+  surface-3: "#e3e3e3"
+  hairline: "#dcdcdc"
+  hairline-subtle: "#e8e8e8"
+  semantic-success: "#166534"
+  semantic-success-soft: "#dcfce7"
+  semantic-error: "#b91c1c"
+  semantic-error-soft: "#fee2e2"
+  semantic-warning: "#9a3412"
+  semantic-warning-soft: "#ffedd5"
+  semantic-info: "#1d4ed8"
+  semantic-info-soft: "#dbeafe"
 
 typography:
   display:
@@ -126,7 +126,7 @@ components:
     minHeight: 40px
     padding: 0 16px
   button-secondary:
-    backgroundColor: "{colors.surface-2}"
+    backgroundColor: "{colors.surface-1}"
     textColor: "{colors.ink-secondary}"
     borderColor: "{colors.hairline}"
     typography: "{typography.label}"
@@ -149,7 +149,7 @@ components:
     minHeight: 40px
     padding: 0 12px
   input:
-    backgroundColor: "{colors.canvas-raised}"
+    backgroundColor: "{colors.surface-1}"
     textColor: "{colors.ink}"
     borderColor: "{colors.hairline}"
     focusColor: "{colors.highlight}"
@@ -249,6 +249,10 @@ Use existing utilities from `src/styles/globals.css`:
 
 For new component-local typography, keep letter spacing neutral.
 
+## Product Copy
+
+Visible app copy should describe the user's work, data, action, state, or consequence. Do not render design-system commentary as product UI. Copy such as "FX green only for key states", "Tier0 signal green", color-token explanations, layout guidance, component usage notes, and implementation hints belongs in docs or code comments only.
+
 ## Layout
 
 Most Tier0 pages are operational product surfaces, not marketing pages. Select the layout intent before designing the page:
@@ -261,6 +265,8 @@ Most Tier0 pages are operational product surfaces, not marketing pages. Select t
 
 Workspace, station, review, and interactive custom layouts must keep their primary content region vertically scrollable. Only monitor layouts are fixed, non-scrolling viewport surfaces.
 
+Prefer compact page composition. If a workflow can be handled by dialogs, drawers, popovers, or tabs, keep it out of the always-visible page body. The page should expose the entry points, current operational state, primary actions, and necessary visualizations; detailed forms, secondary attributes, audit trails, configuration, and rarely used actions should open from an explicit control or live behind a focused tab. Master data, workstation configuration, material, equipment, route, and process-parameter create/edit forms should usually be triggered by a button and opened in a dialog or drawer instead of being permanently flattened on the page.
+
 Structure workspace pages as:
 
 - Header region: title, description, back affordance, primary action, secondary actions.
@@ -270,9 +276,11 @@ Structure workspace pages as:
 
 For station pages, reduce navigation and secondary data. Prioritize the current task, large touch targets, scan/manual entry, confirmation feedback, and an exception path. Use 44-48px minimum controls, `text-base` for operational labels, and only the columns or fields required for the next physical action.
 
+For PDA and handheld scanner pages, treat the device as a special station profile, not a generic mobile breakpoint. Design portrait-first for roughly 360-480 CSS px wide screens. Use larger operational typography than desktop (`text-base` labels, `text-lg` scanned/current-task values, and `text-xl` to `text-2xl` dominant quantities or states), one-column task flow, visible/refocusable scanner input, manual entry fallback, and compact action cards instead of wide tables. Avoid sidebar navigation, multi-column forms, hover-only affordances, and dense dashboards.
+
 For review pages, prioritize the queue, the evidence needed to decide, reason capture, and clear disposition actions. Use split panes, sticky decision controls, readable evidence blocks, and semantic state color. Do not hide the reason or consequence behind icon-only controls.
 
-For monitor pages, treat the viewport as fixed equipment. Fit the full board to the target resolution, usually 16:9, using stable grid tracks, `min-h-0`, `overflow-hidden`, and predictable text truncation. Use large glanceable numerals, high-contrast status blocks, and compact legends. Do not add workspace navigation, forms, tables that require row scrolling, mobile drawers, or long explanatory copy.
+For monitor pages, treat the viewport as fixed wallboard/TV equipment, not a desktop computer display. Fit the full board to the target resolution, usually 16:9, using stable grid tracks, `min-h-0`, `overflow-hidden`, and predictable text truncation. Use large glanceable numerals, high-contrast status blocks, and compact legends. Do not add workspace navigation, forms, tables that require row scrolling, mobile drawers, or long explanatory copy.
 
 Monitor layout preset:
 
@@ -293,8 +301,8 @@ Borders and subtle surface changes are the primary separation tools. Use `border
 
 Use the local radius language:
 
-- Default component radius: 4-6px via `--tier0-radius` and local `rounded-md`.
-- Tailwind `rounded-sm` / `rounded-md` is acceptable for local controls.
+- Default control radius is compact and precise. Prefer `rounded-sm` for buttons, inputs, badges, panels, and table rows; use `rounded-md` for larger shells or layout containers.
+- Tailwind radius tokens are mapped in `src/styles/globals.css` to match the support Gantt scaffold's tight radius scale.
 - Use larger radii only when nearby components already establish that shape.
 - Tags are 4px by default, not pills unless the component already uses a pill shape.
 
@@ -316,21 +324,41 @@ Buttons:
 
 Use one primary or highlighted action per local decision area. Use `lucide-react` icons at 16-20px. Keep labels short and internationalized. Default controls are 40px high; station controls should be 44-48px when used for scan, tap, confirm, or exception actions.
 
+Sidebar:
+
+- Workspace sidebar must be collapsible on desktop and use a simple 150-250ms width/opacity transition.
+- Active sidebar items may use Tier0 signal-green background, but text and icons on that background must use dark foreground (`text-accent-foreground` or equivalent), not green text.
+- Collapsed sidebar labels should remain available through `aria-label` or `title`.
+
 Forms:
 
 - Form controls should default to 40px height unless the surrounding table layout is intentionally denser. Station forms should use 44-48px controls.
-- Input backgrounds use raised white surfaces.
+- Input backgrounds use the light inset surface: `--tier0-bg-tertiary` / `bg-surface-inset` (`#f9f9f9`) with `border-input`.
 - Borders use `--tier0-border`.
 - Focus uses Tier0 signal green via `--tier0-highlight` and `--tier0-highlight-20`.
 - Extract `initialValues`, rules, field groups, option lists, and labels into semantic variables for dialog forms.
+- Inline forms are for primary station execution, filters, quick scan/manual entry, or required review reason capture. CRUD create/edit forms for master data and configuration should normally live in `FormDialog` or `Drawer`.
 
 Dialogs:
 
+- Prefer dialogs for create, edit, confirm, assign, import, export, and short review flows instead of expanding all controls inline on the page.
 - Default padding is 32px.
 - Header gap is 16px; content gap is 32px.
 - Title is `text-2xl/8 font-semibold`.
 - Footer buttons align right on desktop.
 - Use `overflowScroll` for large forms or long content.
+
+Drawers:
+
+- Prefer drawers for record detail, multi-section edit flows, related activity, audit history, and side-by-side table/detail review.
+- Drawers should not be used on monitor pages.
+- Keep the footer action area sticky at the bottom through the shared overlay footer when the content scrolls.
+
+Tabs:
+
+- Prefer tabs when one entity or workspace has several related modes, such as overview, schedule, quality, materials, history, and settings.
+- Keep the default tab focused on the current task or highest-value visualization.
+- Avoid stacking multiple full sections vertically when tabs can separate secondary detail without hiding the main action path.
 
 Tables:
 
@@ -392,6 +420,7 @@ Keep visible copy consistent, domain-specific, and easy to scan. If the generate
 - Fits the compact enterprise layout rhythm.
 - Has stable loading, empty, error, and long-content states.
 - Uses domain-specific visible copy with no scaffold placeholders.
+- Keeps design-system commentary, color-token explanations, layout guidance, and implementation notes out of visible product UI.
 - Dialog forms have extracted initial values, rules, and field metadata.
 - Tables and lists handle truncation and overflow.
 - Focus, hover, selected, disabled, and destructive states are visible.

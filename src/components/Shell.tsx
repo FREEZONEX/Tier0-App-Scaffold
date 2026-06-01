@@ -12,7 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
-import { apiUrl } from "@/lib/utils";
+import { apiUrl, cn } from "@/lib/utils";
 import type { AppUser } from "@/lib/users";
 
 export interface NavModule {
@@ -75,27 +75,35 @@ export function Shell({
   function renderSidebar(isCollapsed: boolean, showCollapseControl: boolean) {
     return (
       <nav
-        className={`flex h-full shrink-0 flex-col border-r border-sidebar-border bg-sidebar transition-[width] duration-200 ${
-          isCollapsed ? "w-14" : "w-60"
-        }`}
+        className={cn(
+          "flex h-full shrink-0 flex-col border-r border-sidebar-border bg-sidebar transition-[width] duration-200 ease-out",
+          isCollapsed ? "w-16" : "w-60",
+        )}
       >
         {/* Brand mark */}
         <div
-          className={`flex min-h-16 items-center gap-2.5 border-b border-sidebar-border px-3 py-3.5 ${
-            isCollapsed ? "justify-center" : ""
-          }`}
+          className={cn(
+            "flex min-h-16 items-center gap-2.5 border-b border-sidebar-border px-3 py-3.5 transition-[padding] duration-200 ease-out",
+            isCollapsed ? "justify-center" : "",
+          )}
         >
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-md border border-highlight-bg-primary bg-highlight-bg-accent text-highlight-text">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-md border border-highlight-bg-primary bg-highlight-bg-accent text-accent-foreground">
             <Factory className="size-4" />
           </div>
-          {!isCollapsed && (
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold leading-5">
-                Application
-              </p>
-              <p className="caption truncate">Workspace</p>
-            </div>
-          )}
+          <div
+            className={cn(
+              "min-w-0 overflow-hidden transition-[max-width,opacity,transform] duration-200 ease-out",
+              isCollapsed
+                ? "max-w-0 -translate-x-1 opacity-0"
+                : "max-w-40 translate-x-0 opacity-100",
+            )}
+            aria-hidden={isCollapsed}
+          >
+            <p className="truncate text-sm font-semibold leading-5">
+              Application
+            </p>
+            <p className="caption truncate">Workspace</p>
+          </div>
         </div>
 
         {showCollapseControl && (
@@ -105,29 +113,44 @@ export function Shell({
               onClick={toggleCollapsed}
               aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
               title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-              className={`inline-flex h-9 items-center rounded-md border border-border bg-card text-sm font-medium text-secondary-foreground transition-colors hover:border-border-strong hover:bg-muted hover:text-foreground ${
-                isCollapsed
-                  ? "w-full justify-center"
-                  : "w-full justify-start gap-2 px-2.5"
-              }`}
-            >
-              {isCollapsed ? (
-                <ChevronRight className="size-4" />
-              ) : (
-                <ChevronLeft className="size-4" />
+              className={cn(
+                "inline-flex h-9 w-full items-center rounded-sm border border-border bg-card text-sm font-medium text-secondary-foreground transition-[background-color,border-color,color,box-shadow] duration-150 hover:border-border-strong hover:bg-muted hover:text-foreground focus:border-highlight focus:outline-none",
+                isCollapsed ? "justify-center px-2" : "justify-start gap-2 px-2.5",
               )}
-              {!isCollapsed && <span>Collapse</span>}
+            >
+              <span className="grid size-4 shrink-0 place-items-center">
+                {isCollapsed ? (
+                  <ChevronRight className="size-4" />
+                ) : (
+                  <ChevronLeft className="size-4" />
+                )}
+              </span>
+              <span
+                className={cn(
+                  "overflow-hidden whitespace-nowrap transition-[max-width,opacity,transform] duration-200 ease-out",
+                  isCollapsed
+                    ? "max-w-0 -translate-x-1 opacity-0"
+                    : "max-w-24 translate-x-0 opacity-100",
+                )}
+                aria-hidden={isCollapsed}
+              >
+                Collapse
+              </span>
             </button>
           </div>
         )}
 
         {/* Modules */}
         <div className="flex-1 overflow-y-auto px-2 py-2.5">
-          {!isCollapsed && (
-            <p className="px-2 pb-2 pt-1 font-mono text-xs font-medium uppercase text-muted-foreground">
-              Modules
-            </p>
-          )}
+          <p
+            className={cn(
+              "overflow-hidden px-2 pb-2 pt-1 font-mono text-xs font-medium uppercase text-muted-foreground transition-[max-height,opacity] duration-200 ease-out",
+              isCollapsed ? "max-h-0 opacity-0" : "max-h-8 opacity-100",
+            )}
+            aria-hidden={isCollapsed}
+          >
+            Modules
+          </p>
           {modules.map((mod) => {
             const Icon = mod.icon;
             return (
@@ -141,20 +164,33 @@ export function Shell({
                 activeOptions={{ exact: mod.href === "/" }}
                 title={isCollapsed ? mod.label : undefined}
                 aria-label={isCollapsed ? mod.label : undefined}
-                className={`mb-1 flex min-h-10 items-center rounded-md border border-transparent text-sm font-medium transition-colors ${
-                  isCollapsed ? "justify-center px-2" : "gap-2.5 px-2.5"
-                }`}
+                className={cn(
+                  "group mb-1 flex min-h-10 items-center rounded-sm border border-transparent text-sm font-medium transition-[background-color,border-color,color,box-shadow] duration-150 focus:border-highlight focus:outline-none",
+                  isCollapsed ? "justify-center px-2" : "gap-2.5 px-2.5",
+                )}
                 activeProps={{
                   className:
-                    "border-highlight-bg-primary bg-highlight-bg-accent text-highlight-text shadow-sm",
+                    "border-highlight-bg-primary bg-highlight-bg-accent text-accent-foreground shadow-sm",
                 }}
                 inactiveProps={{
                   className:
                     "text-secondary-foreground hover:border-border-strong hover:bg-sidebar-accent hover:text-foreground",
                 }}
               >
-                {Icon && <Icon className="size-4 shrink-0" />}
-                {!isCollapsed && <span className="truncate">{mod.label}</span>}
+                {Icon && (
+                  <Icon className="size-4 shrink-0 transition-transform duration-200 group-hover:scale-105" />
+                )}
+                <span
+                  className={cn(
+                    "min-w-0 truncate whitespace-nowrap transition-[max-width,opacity,transform] duration-200 ease-out",
+                    isCollapsed
+                      ? "max-w-0 -translate-x-1 opacity-0"
+                      : "max-w-40 translate-x-0 opacity-100",
+                  )}
+                  aria-hidden={isCollapsed}
+                >
+                  {mod.label}
+                </span>
               </Link>
             );
           })}
@@ -162,31 +198,49 @@ export function Shell({
 
         {/* User block */}
         <div
-          className={`border-t border-sidebar-border bg-card px-3 py-3 ${
-            isCollapsed ? "text-center" : ""
-          }`}
-        >
-          {!isCollapsed && (
-            <div className="mb-2.5 min-w-0">
-              <p className="truncate text-sm font-medium leading-5">
-                {user?.displayName ?? "Loading"}
-              </p>
-              <p className="mt-0.5 font-mono text-xs uppercase text-muted-foreground">
-                {user?.role ?? ""}
-              </p>
-            </div>
+          className={cn(
+            "border-t border-sidebar-border bg-card px-3 py-3 transition-[padding] duration-200 ease-out",
+            isCollapsed ? "text-center" : "",
           )}
+        >
+          <div
+            className={cn(
+              "min-w-0 overflow-hidden transition-[max-height,opacity,transform,margin] duration-200 ease-out",
+              isCollapsed
+                ? "mb-0 max-h-0 translate-y-1 opacity-0"
+                : "mb-2.5 max-h-12 translate-y-0 opacity-100",
+            )}
+            aria-hidden={isCollapsed}
+          >
+            <p className="truncate text-sm font-medium leading-5">
+              {user?.displayName ?? "Loading"}
+            </p>
+            <p className="mt-0.5 font-mono text-xs uppercase text-muted-foreground">
+              {user?.role ?? ""}
+            </p>
+          </div>
           <button
             type="button"
             onClick={handleLogout}
             aria-label="Logout"
             title={isCollapsed ? "Logout" : undefined}
-            className={`inline-flex h-9 w-full items-center rounded-md border border-border bg-background text-sm font-medium text-secondary-foreground transition-colors hover:border-border-strong hover:bg-muted hover:text-foreground ${
-              isCollapsed ? "justify-center" : "justify-start gap-2 px-2.5"
-            }`}
+            className={cn(
+              "inline-flex h-9 w-full items-center rounded-sm border border-border bg-background text-sm font-medium text-secondary-foreground transition-[background-color,border-color,color] duration-150 hover:border-border-strong hover:bg-muted hover:text-foreground focus:border-highlight focus:outline-none",
+              isCollapsed ? "justify-center px-2" : "justify-start gap-2 px-2.5",
+            )}
           >
-            <LogOut className="size-4" />
-            {!isCollapsed && "Logout"}
+            <LogOut className="size-4 shrink-0" />
+            <span
+              className={cn(
+                "overflow-hidden whitespace-nowrap transition-[max-width,opacity,transform] duration-200 ease-out",
+                isCollapsed
+                  ? "max-w-0 -translate-x-1 opacity-0"
+                  : "max-w-24 translate-x-0 opacity-100",
+              )}
+              aria-hidden={isCollapsed}
+            >
+              Logout
+            </span>
           </button>
         </div>
       </nav>

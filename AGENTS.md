@@ -36,6 +36,12 @@ Before implementing or modifying any frontend UI, read `DESIGN.md` and treat it 
 
 When generating frontend UI, use the local `$uns-swe-ui-generation` skill. It replaces the removed shadcn/MES component-library guidance and defines the scaffold-native Tailwind/Tier0 component patterns.
 
+When choosing a route group or creating a layout shell, use the local `$app-layout-patterns` skill. Layout selection is based on app usage scenario, workflow pressure, and device posture, not on user role. Roles control access, menu visibility, and default entry; they do not define the page frame.
+
+When building MES-specific visualizations or manufacturing UI patterns such as KPI cards, status badges, OEE gauges, SPC/Pareto charts, Gantt boards, process flows, kanban, fleet grids, heatmaps, timelines, or shift bars, use the local `$mes-ui-patterns` skill. Use its snippets to create app-local components; do not keep a copied `src/components/mes` library in the clean scaffold.
+
+When adding or changing roles, permissions, role labels, role default routes, menu visibility, page guards, API guards, gateway role mapping, or admin-managed RBAC, use the local `$configurable-rbac-mes` skill. Keep it scaffold-level: do not import role sets or business modules from generated example apps unless the current requirements explicitly call for them.
+
 **Think before you code.** Use your native planning / thinking / todo capabilities at every step:
 
 - Before starting, plan the full scope: what entities, what roles, what UI modules
@@ -75,6 +81,7 @@ src/
   components/
     Shell.tsx                 ← Left sidebar nav rail — update defaultModules array; uses TanStack Router <Link> + useNavigate
     layouts/                  ← Minimal layout contracts: StationLayout, ReviewLayout, MonitorLayout, and app-specific custom layouts
+    overlays/                 ← Lightweight Dialog, Drawer, ConfirmDialog, FormDialog primitives for app-local forms and decisions
     login-role-selector.tsx   ← Client-side button component used by login.tsx (DO NOT modify)
     toaster.tsx               ← Sonner Toaster mount component
     client-only.tsx           ← Hydration boundary for libraries that cannot SSR
@@ -338,6 +345,8 @@ X-App-User-ID: u123
 This template intentionally does **not** ship a component library. Generate UI that fits the app being built, using Tailwind utilities, the tokens in `src/styles/globals.css`, and small app-specific components under `src/components/<domain>/` or next to the route that owns them.
 
 - Do not import from `@/components/ui` or `@/components/mes`; those directories are not part of the scaffold.
+- Do not copy the support Gantt `components/ui` directory wholesale. Its Button/Input/Panel/Badge styling is represented here by the Tier0 tokens and recipes in `DESIGN.md` and `$uns-swe-ui-generation`.
+- Use `@/components/overlays` for common app-local overlays: `Dialog`, `FormDialog`, `ConfirmDialog`, and `Drawer`. Do not recreate a shadcn-style overlay library.
 - Keep reusable app-specific components small and explicit. Prefer local composition over generic primitives unless repetition becomes real.
 - Use `@/components/toaster` only through the root mount; call `toast()`, `toast.success()`, and `toast.error()` from `sonner` in mutations.
 - Use `@/components/client-only` for Recharts, dnd-kit, motion layout features, or any subtree that touches browser APIs during render.
@@ -717,7 +726,7 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 - Build dashboard at `src/routes/_app.index.tsx` only when the app has a management/analytics home; task-first station, review, monitor, kiosk, or other custom apps must replace `_app.index.tsx` with a redirect or matching root entry so `/` does not show a sidebar workspace starter.
 - Build each page under its selected layout group (`src/routes/_app.<module>.tsx`, `station.<task>.tsx`, `review.<queue>.tsx`, `monitor.<view>.tsx`, or a custom `intent.<page>.tsx`) and vary UI patterns across modules.
 - Pages use the selected route group's path in `createFileRoute(...)` and inherit that authenticated layout automatically: `"/_app/..."` for workspace, `"/station/..."`, `"/review/..."`, `"/monitor/..."`, or the matching custom route prefix.
-- Interactive pages must be responsive — test at mobile (375px), tablet (768px), desktop (1024px+). Monitor pages are fixed-equipment surfaces; test the intended monitor viewport instead.
+- Interactive pages must be responsive by device profile. PDA/handheld scanner pages are portrait-first industrial station surfaces: test 360-480px width, larger operational text, scanner focus recovery, and 44-48px controls. General pages still need mobile (375px), tablet (768px), desktop (1024px+). Monitor pages are wallboard/TV surfaces, not desktop monitors; test the intended fixed viewport instead.
 - **ALWAYS** use `apiUrl("/api/...")` from `@/lib/utils` — plain `"/api/..."` breaks under a base path
 - Use `usePolling()` from `@/lib/hooks` for dashboard polling
 - Use `<Link to="/path">` from `@tanstack/react-router` for navigation, `useNavigate()` for programmatic
@@ -766,9 +775,9 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 `DESIGN.md` is the source of truth. The single-app theme equivalent lives in `src/styles/globals.css`; use the `--tier0-*` CSS variables and Tailwind aliases before introducing local colors.
 
 **Palette**
-- Primary actions use readable slate: `--tier0-primary` / `bg-button-primary`.
+- Primary actions use the support Gantt near-black token: `--tier0-primary` / `bg-button-primary` (`#050b14`).
 - Tier0 signal green is the highlight: `--tier0-highlight`, `bg-button-highlight`, `bg-highlight-bg-accent`, `text-highlight-text`. Use it for active, selected, progress, and optimistic states. Do not flood page backgrounds with green.
-- Workspace surfaces are soft canvas, raised white panels, and light grey insets: `bg-bg`, `bg-background`, `bg-card`, `bg-muted`, `border-border`, `border-border-secondary`.
+- Workspace surfaces are support Gantt white/near-white canvas, raised white panels, and light grey insets: `bg-bg`, `bg-background`, `bg-card`, `bg-surface-inset`, `border-border`, `border-border-secondary`.
 - Avoid pure black on pure white as the dominant reading surface. Use slate text hierarchy, soft neutral backgrounds, and semantic status colors for urgency.
 - Status UI uses semantic tokens: success, error, warning, and info. Color must be paired with an icon and label.
 
@@ -788,6 +797,7 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 - Buttons: `default` is signal-green highlight, `primary` is neutral gray, `outline` is bordered, `secondary` is neutral filled, `ghost` is low-emphasis.
 - Default controls are about 40px high; station, kiosk, PDA, scan, tap, and confirm flows should use 44-48px touch targets.
 - Keep tables compact, with explicit truncation (`min-w-0`, `truncate`, `line-clamp-*`) and quiet row actions.
+- Master data, workstation configuration, material, equipment, route, and process-parameter create/edit forms should normally open from a button in `FormDialog` or `Drawer` instead of staying permanently expanded on the page.
 - Tags use grey by default; use signal green only for Tier0 highlight states.
 
 **Motion**
@@ -800,6 +810,8 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 - Use full-height flex layouts with `min-h-0` and explicit overflow regions.
 - Keep the primary content region vertically scrollable for workspace, station, review, and interactive custom layouts; only monitor layouts are fixed non-scrolling surfaces.
 - All pages must work at 375px width and avoid text overlap.
+- PDA/handheld scanner pages should be portrait-first, single-column, larger-type station flows with visible/refocusable scanner input.
+- Monitor pages should use the `monitor-*` utilities for large, distance-readable, fixed-board composition rather than desktop dashboard sizing.
 
 ### Commands
 - `npm run build` — run ONCE at Step 5 (vite build → `dist/{client,server}`)
@@ -829,4 +841,5 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 - UI: every page is mounted under the correct authenticated layout group (`_app`, `station`, `review`, `monitor`, or a custom layout when justified), and `/` lands in the correct primary experience. All fetch via `apiUrl()`, recharts wrapped in `<ClientOnly>` AND `<ResponsiveContainer>`, toast on mutations, empty states with actions. Interactive pages are responsive at 375px+; monitor pages fit their intended fixed viewport. Workspace pages keep Shell navigation current; station/review/custom task pages avoid sidebar unless explicitly needed.
 - Hydration: no date/browser-API at first render, motion from `@/lib/motion`, valid HTML nesting, `Route.useParams()` / `Route.useSearch()` (never awaited), no server-only imports in client components, recharts/dnd-kit subtrees wrapped in `<ClientOnly>`
 - Branding: app-specific naming is applied consistently before declaring done. Check and update `src/routes/__root.tsx` `<title>` and `description`, `src/routes/login.tsx` login page brand copy, `src/components/Shell.tsx`, and any used layout shell in `src/components/layouts/`. Remove or replace scaffold/default copy such as "Application", "Home", "Ready", "MES", "MES App", "MES Console", "Industrial App", "Station Console", "Review Workspace", "Workspace Home", or "Industrial application scaffold" unless those names are intentionally part of the finished product.
+- Product copy: do not render design-system commentary or implementation notes in visible UI. Text like "FX green only for key states", "Tier0 signal green", color-token explanations, layout guidance, or component usage notes belongs in docs/comments only.
 - Build: `npm run build` passes with **0 errors** AND `npm run lint` reports **0 warnings, 0 errors**
