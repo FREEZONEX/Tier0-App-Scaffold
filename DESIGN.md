@@ -265,6 +265,20 @@ Most Tier0 pages are operational product surfaces, not marketing pages. Select t
 
 Workspace, station, review, and interactive custom layouts must keep their primary content region vertically scrollable. Only monitor layouts are fixed, non-scrolling viewport surfaces.
 
+Every authenticated layout must expose a visible logout action in the layout
+chrome. Do this once in the shell, not page by page. Workspace uses the sidebar
+or footer rail; station, review, monitor, and custom no-sidebar layouts use the
+top/status header. Icon-only logout is acceptable only in constrained shells and
+must have accessible labeling.
+
+Keep navigation chrome consistent inside one app. A single app must not mix
+pages with the workspace Shell sidebar and pages without the sidebar. Sidebar
+module navigation must stay inside workspace routes that preserve the Shell.
+Do not route a sidebar module, role default route, or in-app navigation target
+to station, review, monitor, or another no-sidebar layout inside the same app.
+If a workflow genuinely needs a different chrome, convert it into the current
+app's chosen layout or split it into a separate app/entry surface.
+
 Prefer compact page composition. If a workflow can be handled by dialogs, drawers, popovers, or tabs, keep it out of the always-visible page body. The page should expose the entry points, current operational state, primary actions, and necessary visualizations; detailed forms, secondary attributes, audit trails, configuration, and rarely used actions should open from an explicit control or live behind a focused tab. Master data, workstation configuration, material, equipment, route, and process-parameter create/edit forms should usually be triggered by a button and opened in a dialog or drawer instead of being permanently flattened on the page.
 
 Structure workspace pages as:
@@ -293,7 +307,7 @@ Monitor layout preset:
 
 For custom layouts, define only the global interaction frame and slots. Do not hardcode business-specific cards, sample charts, or placeholder workflows into the layout shell.
 
-Use the 4px grid. Common workspace gaps are 8px, 12px, and 16px. Station and review flows can use 16px, 20px, and 24px when the user needs faster scanning or touch input. Monitor boards should use viewport-relative grid areas only when they preserve the intended 16:9 composition and keep all text within bounds. Common panel padding is 16px or 20px; dense tables may use 12px. Dialog padding is 32px. Page shells should use full-height flex layouts with `min-h-0` and explicit overflow regions; use a scrollable main region for every non-monitor layout.
+Use the 4px grid. Common workspace gaps are 8px, 12px, and 16px. Station and review flows can use 16px, 20px, and 24px when the user needs faster scanning or touch input. Monitor boards should use viewport-relative grid areas only when they preserve the intended 16:9 composition and keep all text within bounds. Common panel padding is 16px or 20px; dense tables may use 12px. Big-number KPI cards are not general panels: use compact padding such as 12px horizontal and 10px vertical, keep the label and value close, and avoid tall cards with large empty center space. Dialog padding is 32px. Page shells should use full-height flex layouts with `min-h-0` and explicit overflow regions; use a scrollable main region for every non-monitor layout.
 
 ## Surfaces, Borders, Radius, Elevation
 
@@ -323,17 +337,19 @@ Buttons:
 - `link`: text link action.
 
 Use one primary or highlighted action per local decision area. Use `lucide-react` icons at 16-20px. Keep labels short and internationalized. Default controls are 40px high; station controls should be 44-48px when used for scan, tap, confirm, or exception actions.
+Every native button must declare `type` explicitly. Non-submit actions use `type="button"`. Async actions must show visible pending feedback and block repeat clicks while the request is in flight so the UI never feels unresponsive.
 
 Sidebar:
 
 - Workspace sidebar must be collapsible on desktop and use a simple 150-250ms width/opacity transition.
 - Active sidebar items may use Tier0 signal-green background, but text and icons on that background must use dark foreground (`text-accent-foreground` or equivalent), not green text.
 - Collapsed sidebar labels should remain available through `aria-label` or `title`.
+- Sidebar items must not navigate to routes that remove the sidebar. Keep sidebar destinations inside the workspace Shell layout.
 
 Forms:
 
 - Form controls should default to 40px height unless the surrounding table layout is intentionally denser. Station forms should use 44-48px controls.
-- Input backgrounds use the light inset surface: `--tier0-bg-tertiary` / `bg-surface-inset` (`#f9f9f9`) with `border-input`.
+- Enabled input backgrounds are white: `--card` / `bg-card` / `bg-background` with `border-input`. Disabled or read-only inputs may use the light inset surface: `--tier0-bg-tertiary` / `bg-surface-inset` (`#f9f9f9`).
 - Borders use `--tier0-border`.
 - Focus uses Tier0 signal green via `--tier0-highlight` and `--tier0-highlight-20`.
 - Extract `initialValues`, rules, field groups, option lists, and labels into semantic variables for dialog forms.
@@ -389,7 +405,7 @@ Avoid decorative background blobs, excessive gradients, and animated ornaments u
 
 ## Product Copy
 
-Keep visible copy consistent, domain-specific, and easy to scan. If the generated app needs localization, centralize labels and messages in a local app dictionary; otherwise keep short copy close to the owning component. Only logs and temporary debug output may remain hardcoded.
+Keep visible copy consistent, domain-specific, and easy to scan. Default to one explicit product locale per app surface and do not mix Chinese and English in finished UI. Use the `app-i18n-copy` skill when normalizing scaffold copy or generated app copy. For a single-locale app, keep short copy close to the owning component or a small local copy module. Only introduce a broader message catalog when the requirements explicitly need runtime multi-language support. Only logs and temporary debug output may remain hardcoded.
 
 ## Implementation Rules
 
@@ -409,7 +425,7 @@ Keep visible copy consistent, domain-specific, and easy to scan. If the generate
 - Duplicate button, dialog, table, tag, input, pagination, or select behavior.
 - Heavy shadows for normal panels.
 - Tier0 signal green as a general page background.
-- Hardcoded Chinese or English product UI text.
+- Mixed Chinese/English product UI text in one finished app surface.
 - Inline complex form configuration in JSX.
 - Broad decorative gradients, purple-blue themes, beige/brown palettes, or cold/warm gray-heavy palettes.
 

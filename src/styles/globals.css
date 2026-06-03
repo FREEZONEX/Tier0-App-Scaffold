@@ -64,7 +64,7 @@
   --muted-foreground: var(--tier0-text-tertiary);
   --border: var(--tier0-border);
   --border-strong: #cfcfcf;
-  --input: #e3e3e3;
+  --input: var(--tier0-border);
   --ring: var(--tier0-highlight);
 
   --card: #ffffff;
@@ -255,6 +255,66 @@ body {
     text-rendering: optimizeLegibility;
   }
 
+  button,
+  [role="button"],
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [aria-disabled="true"],
+  input:disabled,
+  select:disabled,
+  textarea:disabled {
+    cursor: not-allowed;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]),
+  select,
+  textarea,
+  [role="combobox"],
+  [role="listbox"],
+  [role="menu"] {
+    background-color: var(--card) !important;
+    color: var(--foreground);
+    border-color: var(--input);
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--tier0-text-tertiary);
+  }
+
+  input:disabled,
+  select:disabled,
+  textarea:disabled,
+  [role="combobox"][aria-disabled="true"],
+  [role="listbox"][aria-disabled="true"],
+  [role="menu"][aria-disabled="true"] {
+    background-color: var(--surface-inset) !important;
+    color: var(--muted-foreground);
+    opacity: 1;
+  }
+
+  label[data-required="true"]::after,
+  .field-label[data-required="true"]::after,
+  .field-label.required::after,
+  label:has(input:required)::after,
+  label:has(select:required)::after,
+  label:has(textarea:required)::after,
+  label:has([aria-required="true"])::after,
+  label:has(+ input:required)::after,
+  label:has(+ select:required)::after,
+  label:has(+ textarea:required)::after,
+  label:has(+ [aria-required="true"])::after {
+    content: "*";
+    margin-left: 0.25rem;
+    color: var(--destructive);
+    font-weight: 600;
+  }
+
   .font-mono,
   code,
   kbd,
@@ -394,6 +454,24 @@ body {
   .page-y-scroll {
     overflow-y: auto;
     overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .wide-operational-board {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    flex-basis: 100%;
+    grid-column: 1 / -1;
+    align-self: stretch;
+    overflow: hidden;
+  }
+
+  .wide-operational-scroll {
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
     -webkit-overflow-scrolling: touch;
   }
 

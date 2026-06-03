@@ -39,6 +39,36 @@ Choose the layout by asking:
    to reduce operator load?
 4. Does the surface scroll, or must it fit a fixed viewport?
 
+## Global Layout Invariants
+
+- Every authenticated page must expose a visible logout action through its
+  parent layout shell. Put the button in the layout, not in individual pages.
+  Workspace uses the Shell sidebar/footer; station, review, monitor, and custom
+  layouts use their header/status area. Icon-only is acceptable only when space
+  is constrained and the control still has `aria-label`/`title`.
+- Keep layout chrome consistent within one app. A single app must not mix pages
+  with the workspace Shell sidebar and pages without the sidebar. Choose one
+  app-level chrome: Shell sidebar for workspace apps, or a no-sidebar shell for
+  station/review/monitor/custom apps.
+- Sidebar module links must stay inside `_app.*` workspace routes. Do not add
+  `/station`, `/review`, `/monitor`, or no-sidebar custom route targets to
+  `defaultModules` in `src/components/Shell.tsx`.
+- Workspace sidebar modules may use `badge`, `locked`, and `disabledReason`
+  metadata for product state such as beta, upgrade required, unavailable, or
+  read-only. Keep those states visible but quiet; locked items should explain
+  why through `disabledReason` instead of silently navigating nowhere.
+- Setup-only workspace pages such as system configuration, role/permission
+  setup, integration settings, tenant settings, and audit settings must be
+  nested as second-level sidebar items under an appropriate parent. Do not make
+  "系统配置", "System Configuration", or "Settings" a first-level sidebar module
+  unless the entire app is specifically a configuration console.
+- If a workflow genuinely needs a different chrome, split it into a separate
+  app/entry surface or implement it inside the current app's chosen chrome. Do
+  not put Shell and no-Shell pages in the same app.
+- Role default routes must also respect the app-level chrome. Do not make one
+  role land in `_app` with a sidebar while another role lands in `/station`,
+  `/review`, `/monitor`, or another no-sidebar layout within the same app.
+
 ## Layout Matrix
 
 | Layout | Route group | Use when | Device posture | Navigation |
@@ -57,14 +87,22 @@ Use `_app.*` when users need persistent module navigation and repeated data
 management. Only workspace pages should update `defaultModules` in
 `src/components/Shell.tsx`.
 
-Do not put station or review task flows in the sidebar unless the product
-explicitly needs cross-module navigation to them.
+Do not put station, review, monitor, or other no-sidebar task flows in the
+sidebar. In a workspace app, convert those workflows into workspace pages or
+extract them into a separate app. Do not jump from the sidebar Shell into a
+no-sidebar layout.
+
+System configuration, role/permission setup, integration settings, tenant
+settings, audit settings, and similar setup-only pages belong under a sidebar
+parent as second-level items. They should not occupy first-level navigation in
+a normal MES workspace app.
 
 ### Station
 
 Use `station.*` for task-first physical execution. Minimize fields, tables, and
 navigation. Use 44-48px controls for scan/tap/confirm paths. The user should be
 able to complete the next physical action without reading a dashboard.
+Station layouts must include a visible logout action in the header/status area.
 
 ### PDA / Handheld Scanner
 
@@ -93,6 +131,7 @@ Rules:
 Use `review.*` for evidence-first decisions. Expose queue state, record
 evidence, reason capture, and decision actions. Avoid making this a generic
 workspace dashboard.
+Review layouts must include a visible logout action in the header/status area.
 
 ### Monitor
 
@@ -100,6 +139,8 @@ Use `monitor.*` for fixed, passive displays. Monitor is a wallboard/TV device
 profile, not a desktop monitor. Fit the target viewport, avoid page-level
 scrolling, use stable grid tracks, and keep text within bounds. Do not add
 forms, sidebar navigation, drawers, or dense tables that require interaction.
+Monitor layouts must still expose a visible logout action, usually compact in
+the status header.
 
 Rules:
 

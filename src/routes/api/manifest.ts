@@ -11,12 +11,10 @@
  */
 
 import { createFileRoute } from "@tanstack/react-router";
-import { PERMISSION_MATRIX } from "@/lib/permissions";
+import { PERMISSION_MATRIX, ROLE_LABELS } from "@/lib/permissions";
 
 const APP_ID = process.env.APP_ID || "monoapp";
 const DEFAULT_ROLE = "admin";
-
-const ROLE_LABELS: Record<string, string> = {};
 
 export const Route = createFileRoute("/api/manifest")({
   server: {

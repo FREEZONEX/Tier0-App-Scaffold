@@ -56,7 +56,7 @@ function StationPending() {
     <div className="flex h-full items-center justify-center p-10">
       <div className="text-center">
         <div className="mx-auto size-8 animate-spin rounded-full border-2 border-muted border-t-highlight" />
-        <p className="mt-3 text-xs text-muted-foreground">Loading&hellip;</p>
+        <p className="mt-3 text-xs text-muted-foreground">加载中&hellip;</p>
       </div>
     </div>
   );
@@ -67,15 +67,15 @@ function StationError({ error, reset }: ErrorComponentProps) {
     <div className="flex h-full items-center justify-center p-10">
       <div className="text-center">
         <p className="text-sm font-medium text-destructive">
-          Station workflow failed
+          工位页面加载失败
         </p>
         <p className="mt-1 text-xs text-muted-foreground">{error.message}</p>
         <button
           type="button"
-          className="mt-4 inline-flex h-8 items-center justify-center rounded-sm border border-border bg-background px-3 text-xs font-medium text-foreground transition-colors hover:bg-muted"
+          className="mt-4 inline-flex h-8 items-center justify-center rounded-sm border border-border bg-card px-3 text-xs font-medium text-foreground shadow-sm transition-[background-color,border-color,box-shadow] duration-150 hover:border-border-strong hover:bg-background hover:shadow-md focus:border-highlight focus:outline-none"
           onClick={reset}
         >
-          Try again
+          重试
         </button>
       </div>
     </div>

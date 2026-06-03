@@ -7,8 +7,11 @@ Use this before finalizing a new route group, layout shell, or major page.
 - The layout is chosen by workflow and device, not role.
 - `/` lands in the primary app experience.
 - Workspace pages use Shell only when persistent navigation is valuable.
-- Station/review/monitor/custom task pages avoid sidebar navigation unless the
-  product explicitly needs it.
+- A single app does not mix Shell-sidebar pages with no-sidebar pages. Role
+  default routes, sidebar items, and in-app navigation all preserve the chosen
+  app chrome.
+- Station/review/monitor/custom task apps avoid sidebar navigation consistently
+  for the whole app.
 
 ## Interactive Pages
 

@@ -146,8 +146,8 @@ export function OverlayHeader({
       <button
         ref={closeButtonRef}
         type="button"
-        aria-label="Close"
-        className="inline-flex size-9 shrink-0 items-center justify-center rounded-sm border border-border bg-background text-muted-foreground transition-colors hover:border-border-strong hover:bg-surface-inset hover:text-foreground focus:border-highlight focus:outline-none"
+        aria-label="关闭"
+        className="inline-flex size-9 shrink-0 items-center justify-center rounded-sm border border-border bg-card text-muted-foreground shadow-sm transition-[background-color,border-color,color,box-shadow] duration-150 hover:border-border-strong hover:bg-background hover:text-foreground hover:shadow-md focus:border-highlight focus:outline-none"
         onClick={onClose}
       >
         <X className="size-4" />
@@ -178,14 +178,15 @@ export function OverlayActionButton({
       type={action.type ?? "button"}
       form={action.form}
       disabled={action.disabled || action.loading}
+      aria-busy={action.loading || undefined}
       className={cn(
-        "inline-flex h-9 items-center justify-center rounded-sm border px-3.5 text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50",
+        "inline-flex h-9 items-center justify-center rounded-sm border px-3.5 text-sm font-medium shadow-sm transition-[background-color,border-color,color,box-shadow] duration-150 hover:shadow-md disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none",
         variant === "primary" &&
           "border-primary bg-primary text-primary-foreground hover:bg-[var(--tier0-primary-hover)]",
         variant === "highlight" &&
           "border-highlight-bg-primary bg-button-highlight text-accent-foreground hover:bg-highlight-bg-accent",
         variant === "secondary" &&
-          "border-border bg-surface-inset text-foreground hover:bg-background",
+          "border-border bg-card text-foreground hover:border-border-strong hover:bg-background",
         variant === "outline" &&
           "border-border bg-background text-foreground hover:bg-surface-inset",
         variant === "ghost" &&
@@ -195,7 +196,7 @@ export function OverlayActionButton({
       )}
       onClick={action.onClick ?? onDefaultClick}
     >
-      {action.loading ? "Working..." : action.label}
+      {action.loading ? "处理中..." : action.label}
     </button>
   );
 }

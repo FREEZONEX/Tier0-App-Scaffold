@@ -18,7 +18,7 @@ Generate complete, runnable, production-quality applications from requirements d
 5. If no `specs/spec.md` exists, read the requirements document or user-provided spec carefully.
 6. Read `references/implementation-checklist.md` before planning substantial implementation work.
 7. Plan the file structure and implementation order.
-8. Implement the full app, wiring frontend, backend, data models, validation, and configuration as required by the spec. When building frontend UI in this scaffold, use `$uns-swe-ui-generation` for scaffold-native Tailwind/Tier0 patterns.
+8. Implement the full app, wiring frontend, backend, data models, validation, and configuration as required by the spec. When building frontend UI in this scaffold, use `$uns-swe-ui-generation` for scaffold-native Tailwind/Tier0 patterns and `$app-i18n-copy` for product-copy consistency.
 9. Self-review for syntax, imports, placeholders, TODOs, missing flows, security, and error handling.
 10. Run the relevant install/build/test/dev-server workflow available in the environment.
 11. If preview MCP tools are available and a meaningful code change is complete, use the preview workflow before telling the user the preview is ready.
@@ -54,6 +54,16 @@ Generate complete, runnable, production-quality applications from requirements d
   `bootstrapModule(...)` helper for runtime schema/table/index creation and
   baseline seed. Do not write custom create/seed ordering logic in each
   generated service.
+- In generated Drizzle services for this scaffold, avoid relational helpers
+  such as `db.query.<table>.findFirst()` and `tx.query.<table>.findFirst()`.
+  Use explicit builder queries for single-row lookups:
+  `select().from(table).where(...).limit(1)`, then read `rows[0]`. Use
+  `tx.select()` inside transactions.
+- For generated frontend request hooks or page-local loaders, key effects by
+  stable primitive request keys instead of inline loader function identities.
+  A reusable hook should look like `useRequest(requestKey, loader)` so a
+  successful `setState` does not recreate `() => fetchJson(...)` and trigger an
+  identical fetch loop.
 - Connect files through real imports, routes, handlers, and state flows.
 - Include clear comments only where they explain non-obvious behavior.
 - Avoid common security issues such as unsanitized HTML injection, unsafe auth assumptions, leaking secrets, and injection-prone data handling.

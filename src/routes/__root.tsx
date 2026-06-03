@@ -16,8 +16,8 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Application" },
-      { name: "description", content: "Operations application" },
+      { title: "制造应用" },
+      { name: "description", content: "面向工厂现场的业务应用" },
     ],
     links: [
       { rel: "stylesheet", href: globalsCss },
@@ -30,7 +30,7 @@ export const Route = createRootRoute({
 
 function RootDocument() {
   return (
-    <html lang="en" className="h-full antialiased font-sans">
+    <html lang="zh-CN" className="h-full antialiased font-sans">
       <head>
         <HeadContent />
       </head>
@@ -48,12 +48,12 @@ function NotFound() {
     <div className="flex h-full items-center justify-center p-12">
       <div className="text-center">
         <p className="text-4xl font-semibold">404</p>
-        <p className="mt-2 text-xs text-muted-foreground">Page not found</p>
+        <p className="mt-2 text-xs text-muted-foreground">页面不存在</p>
         <Link
           to="/"
-          className="mt-4 inline-flex h-8 items-center justify-center rounded-sm border border-border bg-background px-3 text-xs font-medium text-foreground transition-colors hover:bg-muted"
+          className="mt-4 inline-flex h-8 items-center justify-center rounded-sm border border-border bg-card px-3 text-xs font-medium text-foreground shadow-sm transition-[background-color,border-color,box-shadow] duration-150 hover:border-border-strong hover:bg-background hover:shadow-md focus:border-highlight focus:outline-none"
         >
-          Back home
+          返回首页
         </Link>
       </div>
     </div>

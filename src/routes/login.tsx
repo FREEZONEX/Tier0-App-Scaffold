@@ -24,17 +24,26 @@ import { z } from "zod";
 import { ShieldAlert } from "lucide-react";
 import { parseGatewayUser, type GatewayUser } from "@/lib/gateway";
 import { PERMISSION_MATRIX } from "@/lib/permissions";
+import { getRoleMetadata, type RoleMetadata } from "@/lib/role-metadata";
 import { RoleSelector } from "@/components/login-role-selector";
 
+type LoginRoleOption = RoleMetadata & { key: string };
+
 const fetchLoginContext = createServerFn().handler(
-  async (): Promise<{ gatewayUser: GatewayUser | null; roles: string[] }> => {
+  async (): Promise<{
+    gatewayUser: GatewayUser | null;
+    roles: LoginRoleOption[];
+  }> => {
     // `getRequestHeaders()` returns a Headers instance (typed). The Headers
     // constructor accepts another Headers iterable, so passing it through
     // re-creates a normal Headers we hand to `parseGatewayUser`.
     const headers = new Headers(getRequestHeaders());
     return {
       gatewayUser: parseGatewayUser(headers),
-      roles: Object.keys(PERMISSION_MATRIX),
+      roles: Object.keys(PERMISSION_MATRIX).map((key) => ({
+        key,
+        ...getRoleMetadata(key),
+      })),
     };
   },
 );
@@ -59,9 +68,9 @@ function LoginPage() {
           <div className="mx-auto mb-3 flex size-11 items-center justify-center rounded-md bg-state-error-bg text-state-error-fg">
             <ShieldAlert className="size-5" />
           </div>
-          <h1 className="text-base font-semibold">Access Denied</h1>
+          <h1 className="text-base font-semibold">无法访问</h1>
           <p className="mt-1.5 text-xs text-muted-foreground">
-            Please access this app through the platform gateway.
+            请通过平台入口访问当前应用。
           </p>
         </div>
       </div>
@@ -77,19 +86,19 @@ function LoginPage() {
             <span className="font-mono text-xs font-semibold">M</span>
           </div>
           <span className="text-sm font-semibold tracking-tight">
-            Application
+            制造应用
           </span>
         </div>
 
         <div className="rounded-md border border-border bg-card p-6 shadow-sm">
           <p className="font-mono text-xs font-medium uppercase text-muted-foreground">
-            Sign in
+            选择入口
           </p>
           <h1 className="mt-1 text-lg font-semibold leading-tight">
-            Welcome, {gatewayUser.name}
+            {gatewayUser.name}，你好
           </h1>
           <p className="mt-1 text-sm leading-6 text-muted-foreground">
-            Select a role to continue.
+            选择入口继续。
           </p>
 
           <div className="mt-5">
@@ -98,7 +107,7 @@ function LoginPage() {
         </div>
 
         <p className="mt-4 text-center text-xs uppercase text-muted-foreground">
-          Authenticated via platform gateway
+          已通过平台网关认证
         </p>
       </div>
     </div>
