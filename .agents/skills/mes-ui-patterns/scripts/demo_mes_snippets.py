@@ -89,9 +89,9 @@ export function MetricCard({
 }) {
   const TrendIcon = trend && trend < 0 ? TrendingDown : TrendingUp;
   return (
-    <section className={cn("rounded-sm border border-border bg-card px-3 py-2.5", className)}>
+    <section className={cn("rounded-sm border border-border bg-surface-inset px-3 py-2.5", className)}>
       <div className="flex items-center justify-between gap-2">
-        <p className="truncate text-[11px] font-medium uppercase leading-4 tracking-[0.04em] text-muted-foreground">
+        <p className="truncate text-xs font-medium uppercase leading-4 tracking-[0.04em] text-muted-foreground">
           {label}
         </p>
         {Icon ? <Icon className="size-3.5 shrink-0 text-muted-foreground" /> : null}
@@ -124,7 +124,7 @@ export interface SummaryStripItem {
 }
 
 const toneClass: Record<NonNullable<SummaryStripItem["tone"]>, string> = {
-  neutral: "border-border bg-card text-foreground",
+  neutral: "border-border bg-surface-inset text-foreground",
   running: "border-state-running-border bg-state-running-bg text-state-running-fg",
   risk: "border-state-paused-border bg-state-paused-bg text-state-paused-fg",
   error: "border-state-error-border bg-state-error-bg text-state-error-fg",
@@ -1482,11 +1482,18 @@ export interface ScheduleResource {
 }
 
 const barTone: Record<string, string> = {
-  PLANNED: "border-highlight-bg-primary bg-highlight-bg-accent text-accent-foreground",
-  LOCKED: "border-state-info-border bg-state-info-bg text-state-info-fg",
-  RUNNING: "border-state-running-border bg-state-running-bg text-state-running-fg",
-  DONE: "border-state-running-border bg-state-running-bg text-state-running-fg",
-  RISK: "border-state-paused-border bg-state-paused-bg text-state-paused-fg",
+  PLANNED: "border-gantt-planned-border bg-gantt-planned-bg text-gantt-planned-fg",
+  LOCKED: "border-gantt-locked-border bg-gantt-locked-bg text-gantt-locked-fg",
+  RUNNING: "border-gantt-running-border bg-gantt-running-bg text-gantt-running-fg",
+  DONE: "border-gantt-done-border bg-gantt-done-bg text-gantt-done-fg",
+  RISK: "border-gantt-risk-border bg-gantt-risk-bg text-gantt-risk-fg",
+};
+
+const summaryTone: Record<string, string> = {
+  neutral: "border-border bg-surface-inset text-foreground",
+  running: "border-gantt-running-border bg-gantt-running-bg text-gantt-running-fg",
+  risk: "border-gantt-risk-border bg-gantt-risk-bg text-gantt-risk-fg",
+  locked: "border-gantt-locked-border bg-gantt-locked-bg text-gantt-locked-fg",
 };
 
 export function GanttBoard({
@@ -1544,15 +1551,15 @@ export function GanttBoard({
     { key: "total", label: "排产任务", value: summary.total },
     { key: "running", label: "运行中", value: summary.running, tone: "running" as const },
     { key: "risk", label: "风险任务", value: summary.risk, tone: "risk" as const },
-    { key: "locked", label: "锁定任务", value: summary.locked, tone: "info" as const },
+    { key: "locked", label: "锁定任务", value: summary.locked, tone: "locked" as const },
   ];
 
   return (
     <section className={cn("space-y-3", className)}>
       <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
         {summaryItems.map((item) => (
-          <div key={item.key} className="rounded-sm border border-border bg-card px-3 py-2.5">
-            <p className="text-xs text-muted-foreground">{item.label}</p>
+          <div key={item.key} className={cn("rounded-sm border px-3 py-2.5", summaryTone[item.tone ?? "neutral"])}>
+            <p className="text-xs opacity-80">{item.label}</p>
             <p className="mt-1 font-mono text-2xl font-semibold leading-none tabular-nums">{item.value}</p>
           </div>
         ))}
@@ -1568,9 +1575,9 @@ export function GanttBoard({
           </div>
           <div className="flex flex-wrap gap-2 text-xs">
             {[
-              ["计划", "bg-highlight-bg-primary"],
-              ["运行", "bg-state-running-fg"],
-              ["风险", "bg-state-paused-fg"],
+              ["计划", "bg-gantt-planned-border"],
+              ["运行", "bg-gantt-running-fg"],
+              ["风险", "bg-gantt-risk-fg"],
             ].map(([label, color]) => (
               <span key={label} className="inline-flex items-center gap-1 rounded-sm border border-border bg-background px-2 py-1 text-muted-foreground">
                 <span className={cn("size-2 rounded-full", color)} aria-hidden />
@@ -1581,8 +1588,8 @@ export function GanttBoard({
         </div>
 
         <div className="wide-operational-scroll">
-          <div className="min-w-[1100px]">
-            <div className="grid grid-cols-[220px_minmax(780px,1fr)] border-b border-border pb-2">
+          <div className="gantt-scroll-content">
+            <div className="gantt-board-grid border-b border-border pb-2">
               <div className="pr-4 text-xs font-medium uppercase tracking-[0.03em] text-muted-foreground">
                 资源 / 负载
               </div>
@@ -1591,7 +1598,7 @@ export function GanttBoard({
                 style={{ gridTemplateColumns: `repeat(${timeline.ticks.length}, minmax(0, 1fr))` }}
               >
                 {timeline.ticks.map((tick) => (
-                  <div key={tick.toISOString()} className="text-center font-mono text-[10px] text-muted-foreground">
+                  <div key={tick.toISOString()} className="gantt-time-label text-center">
                     {format(tick, "MM-dd HH:mm")}
                   </div>
                 ))}
@@ -1604,10 +1611,10 @@ export function GanttBoard({
                 const load = rowTasks.length === 0 ? 0 : Math.min(100, Math.round((rowTasks.length / Math.max(tasks.length, 1)) * 100));
 
                 return (
-                  <div key={resource.id} className="grid grid-cols-[220px_minmax(780px,1fr)] gap-4">
+                  <div key={resource.id} className="gantt-board-grid gap-4">
                     <div className="rounded-sm border border-border bg-surface-inset p-3">
                       <div className="text-sm font-medium">{resource.name}</div>
-                      <div className="font-mono text-[10px] uppercase text-muted-foreground">{resource.code}</div>
+                      <div className="gantt-time-label uppercase">{resource.code}</div>
                       <div className="mt-3">
                         <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
                           <span>资源负载</span>

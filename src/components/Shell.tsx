@@ -229,7 +229,6 @@ export function Shell({
               <p className="truncate text-sm font-semibold leading-5">
                 制造应用
               </p>
-              <p className="caption truncate">工作台</p>
             </div>
           )}
           {(showCollapseControl || showCloseControl) && (
@@ -270,15 +269,6 @@ export function Shell({
 
         {/* Modules */}
         <div className="flex-1 overflow-y-auto px-2 py-2.5">
-          <p
-            className={cn(
-              "overflow-hidden px-2 pb-2 pt-1 font-mono text-xs font-medium uppercase text-muted-foreground transition-[max-height,opacity] duration-200 ease-out",
-              isCollapsed ? "max-h-0 opacity-0" : "max-h-8 opacity-100",
-            )}
-            aria-hidden={isCollapsed}
-          >
-            模块
-          </p>
           {sidebarModules.map((mod) => {
             const Icon = mod.icon;
             const hasChildren = Boolean(mod.children?.length);

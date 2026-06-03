@@ -129,8 +129,10 @@ fields to the current app before committing.
 - CSS/SVG gauges avoid Recharts and are often SSR-safe if they do not touch
   browser-only APIs during render.
 - CSS Gantt boards are usually better than a heavy scheduler dependency for
-  first-pass MES apps. Use explicit row height, resource column width, and
-  percentage-based bars.
+  first-pass MES apps. Use token-backed utilities for row sizing, resource
+  columns, and internal scroll. Avoid arbitrary pixel widths such as
+  `min-w-[1100px]` or `grid-cols-[220px_minmax(...)]`; they often make the
+  page or parent container overflow.
 - A scheduling/Gantt page should feel like an operational planning board, not
   a small chart card. Include page-level context, compact top KPIs, a legend,
   resource load, empty rows, task time labels, and real task actions such as
@@ -140,8 +142,14 @@ fields to the current app before committing.
   cards, detail panels, forms, or side summaries. Put controls above the board
   or below it. Use `wide-operational-board` on the outer board wrapper so it
   spans all grid columns and takes a full flex row. The outer wrapper must not
-  scroll horizontally; put `wide-operational-scroll` on an internal viewport so
-  the long timeline scrolls inside the board instead of making the parent
-  container or page scroll.
-- Use `rounded-sm`, `border-border`, `bg-card`, `bg-surface-inset`, and status
-  tokens from `globals.css` for consistency.
+  scroll horizontally; put `wide-operational-scroll` on an internal viewport and
+  use `gantt-board-grid` / `gantt-scroll-content` so the long timeline scrolls
+  inside the board instead of making the parent container or page scroll.
+- Use the Gantt-specific token classes from `globals.css` for Gantt colors:
+  `bg-gantt-planned-bg`, `bg-gantt-running-bg`, `bg-gantt-risk-bg`,
+  `bg-gantt-done-bg`, `bg-gantt-locked-bg`, and matching `border-*` / `text-*`.
+  These preserve the support Gantt visual language without copying hardcoded
+  `blue-*`, `amber-*`, `emerald-*`, or `violet-*` classes into snippets.
+- KPI/summary tiles inside Gantt and dashboards should avoid plain white cards
+  when they sit on a white panel. Prefer `bg-surface-inset` for neutral KPI
+  tiles and semantic status backgrounds for running/risk/info tiles.

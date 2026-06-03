@@ -7,7 +7,7 @@ Use this checklist when planning and reviewing a generated application.
 - Identify the application type and intended users.
 - Extract required features, workflows, roles, permissions, validations, and state transitions.
 - Identify required data models, relationships, and business rules.
-- Identify required UI screens, forms, lists, detail views, dashboards, and operational flows.
+- Identify required UI screens, overlay-backed create/edit forms, lists, detail views, dashboards, and operational flows. Treat workspace CRUD forms as `FormDialog` or `Drawer` flows unless the requirements explicitly call for an inline station, filter, scan/manual entry, or review-reason form.
 - Classify each frontend workflow by layout intent: station for scan/tap execution, review for evidence/decision queues, workspace for management/planning/analytics, or a custom layout when the built-ins do not fit.
 - Identify backend/API requirements, persistence needs, integrations, and error paths.
 - Note explicit technology constraints from the requirements or existing project.
@@ -35,7 +35,7 @@ Use this checklist when planning and reviewing a generated application.
 1. Establish project configuration and dependencies.
 2. Define data models, schemas, shared types, and domain utilities.
 3. Implement backend routes, handlers, services, persistence, and validation.
-4. Implement frontend routes, screens, components, forms, and state flows.
+4. Implement frontend routes, screens, components, overlay-backed create/edit forms, and state flows.
 5. Wire frontend to backend or local persistence.
 6. Add error, empty, loading, and validation states.
 7. Run checks and fix failures.
@@ -50,7 +50,7 @@ tables/indexes before running any seed callbacks.
 - Check for syntax errors, missing imports, incorrect paths, and unused exports.
 - Verify every required workflow is reachable from the UI or API.
 - Verify each frontend route uses the layout group that matches the workflow intent.
-- Verify forms enforce required fields and validation rules.
+- Verify forms enforce required fields and validation rules, and that workspace CRUD create/edit forms are launched from buttons, row actions, or empty states into `FormDialog`/`Drawer` instead of being permanently flattened on the page.
 - Verify status transitions and business rules match the requirements.
 - Verify errors are surfaced to users or callers clearly.
 - Verify no required feature is represented only by placeholder text.

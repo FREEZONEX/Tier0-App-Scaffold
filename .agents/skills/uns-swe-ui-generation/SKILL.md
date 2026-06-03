@@ -90,6 +90,7 @@ Configuration", or "Settings" a first-level sidebar module unless the whole app
 is a configuration console.
 
 Workspace sidebar should remain collapsible on desktop. Use simple 150-250ms width/opacity transitions, keep collapsed labels accessible through `aria-label` or `title`, and use dark foreground text/icons on green active backgrounds.
+Workspace sidebar chrome should stay quiet: show the app name and module labels only. Do not add an app-name subtitle, category heading, category subtitle, or generic labels such as "模块" / "Modules" above the navigation list.
 
 Workspace sidebar entries must remain inside the Shell layout. A sidebar click
 must not navigate to `/station`, `/review`, `/monitor`, or a no-sidebar custom
@@ -160,8 +161,8 @@ Rules for custom layouts:
 ### Forms
 
 - Use labels, validation messages, and semantic grouping for every input.
-- Prefer button-triggered `FormDialog` or `Drawer` for master data, workstation configuration, material, equipment, route, process-parameter, and other CRUD create/edit forms. Do not permanently flatten all maintenance forms on a page.
-- Keep inline forms only for the current station task, filters, quick scan/manual entry, required review reason capture, or genuinely always-visible controls.
+- Prefer button-triggered `FormDialog` or `Drawer` for workspace, master-data, workstation configuration, material, equipment, route, process-parameter, admin, and other CRUD create/edit forms. Do not permanently flatten maintenance or configuration forms on a page.
+- Keep inline forms only for the current station task, filters, quick scan/manual entry, required review reason capture, or small always-visible controls that are part of the primary workflow. Do not classify full create/edit, setup, or maintenance forms as always-visible controls.
 - Validate before sending, then surface server validation errors with `toast.error()` and inline messages where useful.
 - Use `h-9 rounded-sm border border-input bg-background px-3 text-sm` or `bg-card` for enabled workspace inputs and selects. Disabled or read-only controls may use `bg-surface-inset`. Focus should move the border/ring to Tier0 signal green via `focus:border-highlight` or `focus:ring-highlight/20`.
 - Keep form controls at stable heights, usually 36px in dense workspace screens and 40px when readability needs more air. Use 44-48px controls for station, kiosk, PDA, and scan/tap flows. Use `min-w-0`, `truncate`, and explicit grid columns to avoid overflow.
@@ -172,7 +173,7 @@ Rules for custom layouts:
 - Use TanStack React Table for sortable/filterable/paginated operational tables.
 - Keep dense tables readable: sticky or persistent headers where useful, compact rows, explicit truncation, and quiet row actions.
 - On mobile, reduce columns to the identifiers and state needed for action; move secondary detail into expandable rows or drawers.
-- Empty states must provide the next meaningful action, not describe future functionality.
+- Empty states must provide the next meaningful action, not describe future functionality. For CRUD pages, the create action should launch `FormDialog` or `Drawer`; do not render a full create/edit form directly inside the empty state.
 
 ### Charts
 
@@ -202,6 +203,7 @@ Rules for custom layouts:
 - Use near-black or neutral-900 only for primary actions and text hierarchy. Do not make large page areas pure black.
 - Tier0 signal green is for active, selected, progress, and optimistic states. Do not use it as a page background.
 - Use semantic status tokens and pair color with icon/text. Do not rely on color alone.
+- Avoid arbitrary pixel-based Tailwind values for structural layout. Use token utilities, semantic helpers, grid/flex constraints, or rem/clamp-based utilities from `globals.css` instead of hardcoded timeline widths, resource columns, or tiny one-off text sizes.
 - Avoid decorative gradients, blobs, glass effects, oversized hero sections, harsh high-contrast palettes, and marketing-style composition for MES workspaces.
 - Do not expose design-system annotations as product copy. Labels like "FX green only for key states", "Tier0 signal green", token names, component guidance, or layout rules belong in docs and code comments only.
 

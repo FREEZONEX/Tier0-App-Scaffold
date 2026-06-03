@@ -25,10 +25,10 @@ After installing a new npm dependency (e.g. `npm install uuid`), call `preview_r
 
 **This is NOT a demo or prototype.** Build it as if a real factory will use it tomorrow:
 
-- Every core entity must support full function through the UI — seed data is only the starting point
+- Every core entity must support full function through the UI — seed data is only the starting point. Full function means reachable actions, not permanently visible full-page create/edit forms.
 - No placeholder text ("Coming soon", "Sample data", "Demo mode") anywhere
-- Forms must validate input and give clear error/success feedback via `toast()`
-- Empty states should offer a "Create" action — not explain what the feature "will" do
+- Forms must validate input and give clear error/success feedback via `toast()`. CRUD create/edit forms for workspace, master-data, material, equipment, route, configuration, and admin pages should open in `FormDialog` or `Drawer` by default.
+- Empty states should offer a "Create" action — not explain what the feature "will" do. That action should launch `FormDialog` or `Drawer` unless the page is a station execution flow, filter bar, scan/manual entry flow, or required review reason capture.
 
 ## Design Source Of Truth
 

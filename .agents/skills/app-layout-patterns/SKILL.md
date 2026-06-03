@@ -57,6 +57,9 @@ Choose the layout by asking:
   metadata for product state such as beta, upgrade required, unavailable, or
   read-only. Keep those states visible but quiet; locked items should explain
   why through `disabledReason` instead of silently navigating nowhere.
+- Workspace sidebar chrome should show only the app name and navigation labels.
+  Do not add an app-name subtitle, category heading, category subtitle, or
+  generic labels such as "模块" / "Modules" above the navigation list.
 - Setup-only workspace pages such as system configuration, role/permission
   setup, integration settings, tenant settings, and audit settings must be
   nested as second-level sidebar items under an appropriate parent. Do not make
