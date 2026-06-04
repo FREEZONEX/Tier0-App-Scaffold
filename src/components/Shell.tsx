@@ -44,6 +44,13 @@ export const defaultModules: NavModule[] = [
 
 const COLLAPSED_STORAGE_KEY = "tier0-shell-collapsed";
 
+const sidebarItemBase =
+  "group flex items-center rounded-sm border text-sm font-medium transition-[background-color,border-color,color,box-shadow] duration-150 focus:outline-none focus:ring-2 focus:ring-highlight/30";
+const sidebarItemActive =
+  "border-highlight-bg-primary bg-highlight-bg-accent text-accent-foreground shadow-sm";
+const sidebarItemInactive =
+  "border-transparent text-secondary-foreground hover:border-border-secondary hover:bg-sidebar-accent/70 hover:text-foreground";
+
 const MODULE_ACTIONS_BY_KEY: Record<string, Action[]> = {
   dashboard: ["view_dashboard"],
   overview: ["view_dashboard"],
@@ -298,10 +305,9 @@ export function Shell({
                       toggleGroup(mod.key);
                     }}
                     className={cn(
-                      "group flex min-h-10 w-full items-center border-l-2 text-sm font-medium transition-[background-color,border-color,color] duration-150 focus:outline-none focus:ring-2 focus:ring-highlight/30",
-                      isActive
-                        ? "border-l-highlight text-foreground"
-                        : "border-transparent text-secondary-foreground hover:bg-sidebar-accent hover:text-foreground",
+                      sidebarItemBase,
+                      "min-h-10 w-full",
+                      isActive ? sidebarItemActive : sidebarItemInactive,
                       mod.locked ? "opacity-70" : "",
                       isCollapsed ? "justify-center px-2" : "gap-2.5 px-3",
                     )}
@@ -359,16 +365,15 @@ export function Shell({
                               setMobileOpen(false);
                             }}
                             className={cn(
-                              "group flex min-h-9 items-center gap-2 border-l-2 border-transparent px-3 text-sm font-medium transition-[background-color,border-color,color] duration-150 focus:outline-none focus:ring-2 focus:ring-highlight/30",
+                              sidebarItemBase,
+                              "min-h-9 gap-2 px-3",
                               child.locked ? "opacity-70" : "",
                             )}
                             activeProps={{
-                              className:
-                                "border-l-highlight bg-transparent text-foreground",
+                              className: sidebarItemActive,
                             }}
                             inactiveProps={{
-                              className:
-                                "text-secondary-foreground hover:bg-sidebar-accent hover:text-foreground",
+                              className: sidebarItemInactive,
                             }}
                           >
                             {ChildIcon && (
@@ -423,17 +428,16 @@ export function Shell({
                   setMobileOpen(false);
                 }}
                 className={cn(
-                  "group mb-1 flex min-h-10 items-center border-l-2 border-transparent text-sm font-medium transition-[background-color,border-color,color] duration-150 focus:outline-none focus:ring-2 focus:ring-highlight/30",
+                  sidebarItemBase,
+                  "mb-1 min-h-10",
                   mod.locked ? "opacity-70" : "",
                   isCollapsed ? "justify-center px-2" : "gap-2.5 px-3",
                 )}
                 activeProps={{
-                  className:
-                    "border-l-highlight bg-transparent text-foreground",
+                  className: sidebarItemActive,
                 }}
                 inactiveProps={{
-                  className:
-                    "text-secondary-foreground hover:bg-sidebar-accent hover:text-foreground",
+                  className: sidebarItemInactive,
                 }}
               >
                 {Icon && (

@@ -1744,17 +1744,19 @@ function buildTimeline(tasks: ScheduleTask[], timelineStart?: Date, timelineEnd?
       : new Date(fallbackStart.getTime() + 8 * 60 * 60 * 1000));
 
   const start = floorToHour(rawStart);
-  const end = ceilToHour(rawEnd);
-  const total = Math.max(end.getTime() - start.getTime(), 60 * 60 * 1000);
+  const requestedEnd = ceilToHour(rawEnd);
+  const total = Math.max(requestedEnd.getTime() - start.getTime(), 60 * 60 * 1000);
   const stepHours = Math.max(Math.ceil(total / 10 / (60 * 60 * 1000)), 1);
   const step = stepHours * 60 * 60 * 1000;
+  const intervalCount = Math.max(
+    Math.ceil((requestedEnd.getTime() - start.getTime()) / step),
+    1,
+  );
+  const end = new Date(start.getTime() + intervalCount * step);
   const ticks: Date[] = [];
 
   for (let cursor = start.getTime(); cursor <= end.getTime(); cursor += step) {
     ticks.push(new Date(cursor));
-  }
-  if (ticks[ticks.length - 1]?.getTime() !== end.getTime()) {
-    ticks.push(end);
   }
 
   return { start, end, ticks };
