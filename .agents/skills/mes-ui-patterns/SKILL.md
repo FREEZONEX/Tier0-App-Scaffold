@@ -133,6 +133,10 @@ fields to the current app before committing.
   columns, and internal scroll. Avoid arbitrary pixel widths such as
   `min-w-[1100px]` or `grid-cols-[220px_minmax(...)]`; they often make the
   page or parent container overflow.
+- Gantt boards must include a readable timeline header, not just positioned
+  bars. Use separate date and time rows, visible grid lines, and a readable
+  minimum tick width so labels do not crowd together. Long timelines should
+  scroll inside `wide-operational-scroll`.
 - A scheduling/Gantt page should feel like an operational planning board, not
   a small chart card. Include page-level context, compact top KPIs, a legend,
   resource load, empty rows, task time labels, and real task actions such as
@@ -151,5 +155,8 @@ fields to the current app before committing.
   These preserve the support Gantt visual language without copying hardcoded
   `blue-*`, `amber-*`, `emerald-*`, or `violet-*` classes into snippets.
 - KPI/summary tiles inside Gantt and dashboards should avoid plain white cards
-  when they sit on a white panel. Prefer `bg-surface-inset` for neutral KPI
-  tiles and semantic status backgrounds for running/risk/info tiles.
+  when they sit on a white panel. Use semantic tone variety across adjacent KPI
+  tiles: highlight for totals, blue/info for active work, green/running for
+  healthy progress, amber/risk for warnings, and red/error for blockers. Do not
+  render a whole KPI row as one neutral color unless the metrics are purely
+  informational.

@@ -309,6 +309,12 @@ configuration, and rarely used actions should open from an explicit control or
 live behind focused tabs. For concrete layout selection and route groups, use
 `$app-layout-patterns`.
 
+Page title rows are structural headers, not content containers. Put only the
+page title, short description/breadcrumb/status text, and compact primary
+actions or toolbar buttons in the title row. Do not place KPI cards, metric
+strips, filters, forms, data cards, charts, Gantt boards, tables, or detail
+panels inside the title row; those belong in separate sections below it.
+
 Big-number KPI cards are denser than general panels: keep label and value close,
 avoid tall empty cards, and prefer compact summary strips when showing many
 counts. For reusable MES snippets, use `$mes-ui-patterns`.
@@ -367,6 +373,7 @@ status, as in `thinking-title-active`.
 - Uses white enabled input backgrounds and visible focus/disabled states.
 - Fits the compact enterprise layout rhythm.
 - Keeps KPI cards dense and avoids tall empty metric panels.
+- Keeps page title rows free of cards, filters, charts, Gantt boards, and other content blocks.
 - Handles truncation and long content without overlap.
 - Keeps design-system commentary and token explanations out of visible UI.
 - Uses the appropriate UI skill for layout, component behavior, MES patterns, and copy.

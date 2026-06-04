@@ -83,11 +83,17 @@ points, then adapt them to the current domain.
 - Inset area: `rounded-sm border border-border bg-surface-inset`
 - Toolbar: `rounded-sm border border-border bg-card px-3 py-3`
 - Status badge: icon + label, `rounded-sm border`, no color-only meaning
-- Metric card: compact KPI tile, `rounded-sm border border-border bg-surface-inset px-3 py-2.5`; avoid plain white KPI cards inside already-white panels
+- Metric card: compact KPI tile with semantic tone backgrounds. Use a balanced
+  mix such as highlight for totals, blue/info for active work, green/running for
+  healthy progress, amber/risk for warnings, and red/error for blockers. Avoid
+  rendering every KPI in the same neutral surface.
 - Summary strip: use for dense page-top totals before a table or board; prefer it over a row of tall cards when there are 4-8 small counts
 - KPI value: mono, tabular numbers, `text-2xl` to `text-3xl`, `leading-none`
 - KPI layout: label/icon on the first row, value/unit/trend on the second row. Avoid large blank areas, stacked helper text, or `p-5`/`p-6` KPI cards in workspace dashboards.
 - Gantt row: use stable token-based height and a resource column utility, not arbitrary pixel widths
+- Gantt time axis: include a visible timeline header with date and time labels.
+  Do not compress labels into tight equal fractions; give each tick a readable
+  minimum width and let the internal board viewport scroll.
 - Gantt colors: use `bg-gantt-*`, `border-gantt-*`, and `text-gantt-*` token
   classes from `globals.css`; do not inline `blue-*`, `amber-*`, `emerald-*`,
   or `violet-*` classes.

@@ -579,7 +579,7 @@ body {
 
   .gantt-board-grid {
     --gantt-resource-column: clamp(13rem, 18vw, 14rem);
-    --gantt-timeline-min: 49rem;
+    --gantt-timeline-min: 68rem;
     display: grid;
     grid-template-columns: minmax(0, var(--gantt-resource-column)) minmax(var(--gantt-timeline-min), 1fr);
   }

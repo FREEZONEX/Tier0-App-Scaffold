@@ -213,7 +213,7 @@ export function Shell({
         {/* Brand mark */}
         <div
           className={cn(
-            "flex min-h-20 items-start border-b border-sidebar-border px-3 py-3.5 transition-[gap,padding] duration-200 ease-out",
+            "flex min-h-14 items-center border-b border-sidebar-border px-3 py-2.5 transition-[gap,padding] duration-200 ease-out",
             showBrandIdentity ? "gap-3" : "justify-center gap-0",
           )}
         >

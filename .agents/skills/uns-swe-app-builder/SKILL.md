@@ -54,6 +54,14 @@ Generate complete, runnable, production-quality applications from requirements d
   `bootstrapModule(...)` helper for runtime schema/table/index creation and
   baseline seed. Do not write custom create/seed ordering logic in each
   generated service.
+- When generating runtime baseline seed for this scaffold, build a valid FK
+  graph explicitly before calling `insert().values([...])`: declare parent rows
+  and IDs first, insert parent tables before child tables, and set every
+  non-null child FK from a named parent ID or `requireSeedRef()` /
+  `requireSeedValue()` from `@/services/seed-utils`. Never omit required FK
+  properties and never allow `undefined` in seed values; Drizzle emits SQL
+  `default` for missing/undefined object properties, which breaks child inserts
+  such as `sales_order_items.sales_order_id`.
 - In generated Drizzle services for this scaffold, avoid relational helpers
   such as `db.query.<table>.findFirst()` and `tx.query.<table>.findFirst()`.
   Use explicit builder queries for single-row lookups:

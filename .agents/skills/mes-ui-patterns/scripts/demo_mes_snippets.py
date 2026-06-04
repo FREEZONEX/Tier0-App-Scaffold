@@ -72,12 +72,22 @@ export function DomainToolbar({
 import { TrendingDown, TrendingUp, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+const metricTone: Record<string, string> = {
+  neutral: "border-border bg-surface-inset text-foreground",
+  info: "border-state-info-border bg-state-info-bg text-state-info-fg",
+  running: "border-state-running-border bg-state-running-bg text-state-running-fg",
+  risk: "border-state-paused-border bg-state-paused-bg text-state-paused-fg",
+  error: "border-state-error-border bg-state-error-bg text-state-error-fg",
+  highlight: "border-highlight-bg-primary bg-highlight-bg-accent text-accent-foreground",
+};
+
 export function MetricCard({
   label,
   value,
   unit,
   trend,
   icon: Icon,
+  tone = "neutral",
   className,
 }: {
   label: string;
@@ -85,25 +95,27 @@ export function MetricCard({
   unit?: string;
   trend?: number;
   icon?: LucideIcon;
+  tone?: "neutral" | "info" | "running" | "risk" | "error" | "highlight" | string;
   className?: string;
 }) {
   const TrendIcon = trend && trend < 0 ? TrendingDown : TrendingUp;
+  const toneClassName = metricTone[tone] ?? metricTone.neutral;
   return (
-    <section className={cn("rounded-sm border border-border bg-surface-inset px-3 py-2.5", className)}>
+    <section className={cn("rounded-sm border px-3 py-2.5", toneClassName, className)}>
       <div className="flex items-center justify-between gap-2">
-        <p className="truncate text-xs font-medium uppercase leading-4 tracking-[0.04em] text-muted-foreground">
+        <p className="truncate text-xs font-medium uppercase leading-4 tracking-[0.04em] opacity-75">
           {label}
         </p>
-        {Icon ? <Icon className="size-3.5 shrink-0 text-muted-foreground" /> : null}
+        {Icon ? <Icon className="size-3.5 shrink-0 opacity-75" /> : null}
       </div>
       <div className="mt-1 flex items-end justify-between gap-3">
         <div className="min-w-0 flex items-baseline gap-1.5 font-mono">
-          <span className="truncate text-3xl font-semibold leading-none tabular-nums text-foreground">{value}</span>
-          {unit ? <span className="pb-0.5 text-xs text-muted-foreground">{unit}</span> : null}
+          <span className="truncate text-3xl font-semibold leading-none tabular-nums">{value}</span>
+          {unit ? <span className="pb-0.5 text-xs opacity-75">{unit}</span> : null}
         </div>
         {trend !== undefined ? (
-          <div className="mb-0.5 flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
-            <TrendIcon className={cn("size-3.5", trend >= 0 ? "text-state-running-fg" : "text-state-error-fg")} />
+          <div className="mb-0.5 flex shrink-0 items-center gap-1 text-xs opacity-80">
+            <TrendIcon className="size-3.5" />
             <span className="font-mono tabular-nums">{Math.abs(trend).toFixed(1)}%</span>
           </div>
         ) : null}
@@ -1469,6 +1481,7 @@ import { cn } from "@/lib/utils";
 export interface ScheduleTask {
   id: string;
   title: string;
+  subtitle?: string;
   resourceId: string;
   start: Date;
   end: Date;
@@ -1490,7 +1503,8 @@ const barTone: Record<string, string> = {
 };
 
 const summaryTone: Record<string, string> = {
-  neutral: "border-border bg-surface-inset text-foreground",
+  neutral: "border-highlight-bg-primary bg-highlight-bg-accent text-accent-foreground",
+  info: "border-state-info-border bg-state-info-bg text-state-info-fg",
   running: "border-gantt-running-border bg-gantt-running-bg text-gantt-running-fg",
   risk: "border-gantt-risk-border bg-gantt-risk-bg text-gantt-risk-fg",
   locked: "border-gantt-locked-border bg-gantt-locked-bg text-gantt-locked-fg",
@@ -1499,12 +1513,18 @@ const summaryTone: Record<string, string> = {
 export function GanttBoard({
   resources,
   tasks,
+  timelineStart,
+  timelineEnd,
+  now = new Date(),
   onDelayTask,
   pendingTaskId,
   className,
 }: {
   resources: ScheduleResource[];
   tasks: ScheduleTask[];
+  timelineStart?: Date;
+  timelineEnd?: Date;
+  now?: Date;
   onDelayTask?: (task: ScheduleTask) => void;
   pendingTaskId?: string | null;
   className?: string;
@@ -1514,31 +1534,11 @@ export function GanttBoard({
     return map;
   }, new Map<string, ScheduleTask[]>());
 
-  const timeline = (() => {
-    if (tasks.length === 0) {
-      const start = new Date();
-      start.setHours(8, 0, 0, 0);
-      return {
-        start,
-        end: new Date(start.getTime() + 8 * 60 * 60 * 1000),
-        ticks: Array.from({ length: 9 }, (_, index) => new Date(start.getTime() + index * 60 * 60 * 1000)),
-      };
-    }
-
-    const start = new Date(Math.min(...tasks.map((task) => task.start.getTime())));
-    const end = new Date(Math.max(...tasks.map((task) => task.end.getTime())));
-    const total = Math.max(end.getTime() - start.getTime(), 60 * 60 * 1000);
-    const step = Math.max(Math.ceil(total / 8 / (60 * 60 * 1000)), 1) * 60 * 60 * 1000;
-    const tickStart = start.getTime() - (start.getTime() % step);
-    const ticks: Date[] = [];
-    for (let cursor = tickStart; cursor <= end.getTime() + step; cursor += step) {
-      ticks.push(new Date(cursor));
-    }
-
-    return { start, end, ticks };
-  })();
+  const timeline = buildTimeline(tasks, timelineStart, timelineEnd);
 
   const totalMs = Math.max(differenceInMilliseconds(timeline.end, timeline.start), 60 * 60 * 1000);
+  const nowLeft = toPercent(now, timeline.start, totalMs);
+  const showNow = nowLeft >= 0 && nowLeft <= 100;
 
   const summary = {
     total: tasks.length,
@@ -1548,7 +1548,7 @@ export function GanttBoard({
   };
 
   const summaryItems = [
-    { key: "total", label: "排产任务", value: summary.total },
+    { key: "total", label: "排产任务", value: summary.total, tone: "neutral" as const },
     { key: "running", label: "运行中", value: summary.running, tone: "running" as const },
     { key: "risk", label: "风险任务", value: summary.risk, tone: "risk" as const },
     { key: "locked", label: "锁定任务", value: summary.locked, tone: "locked" as const },
@@ -1589,30 +1589,55 @@ export function GanttBoard({
 
         <div className="wide-operational-scroll">
           <div className="gantt-scroll-content">
-            <div className="gantt-board-grid border-b border-border pb-2">
-              <div className="pr-4 text-xs font-medium uppercase tracking-[0.03em] text-muted-foreground">
+            <div className="gantt-board-grid sticky top-0 z-20 border-b border-border bg-card">
+              <div className="sticky left-0 z-30 border-r border-border bg-card py-3 pr-4 text-xs font-medium uppercase tracking-[0.03em] text-muted-foreground">
                 资源 / 负载
               </div>
-              <div
-                className="grid gap-2"
-                style={{ gridTemplateColumns: `repeat(${timeline.ticks.length}, minmax(0, 1fr))` }}
-              >
-                {timeline.ticks.map((tick) => (
-                  <div key={tick.toISOString()} className="gantt-time-label text-center">
-                    {format(tick, "MM-dd HH:mm")}
+              <div className="relative py-2">
+                <div
+                  className="grid border-b border-border"
+                  style={{ gridTemplateColumns: `repeat(${timeline.ticks.length - 1}, minmax(6.5rem, 1fr))` }}
+                >
+                  {timeline.ticks.slice(0, -1).map((tick) => (
+                    <div key={tick.toISOString()} className="gantt-time-label border-l border-border px-3 pb-1 text-center first:border-l-0">
+                      {format(tick, "MM-dd")}
+                    </div>
+                  ))}
+                </div>
+                <div
+                  className="grid"
+                  style={{ gridTemplateColumns: `repeat(${timeline.ticks.length - 1}, minmax(6.5rem, 1fr))` }}
+                >
+                  {timeline.ticks.slice(0, -1).map((tick) => (
+                    <div key={tick.toISOString()} className="gantt-time-label border-l border-border/70 px-3 pt-1 text-center first:border-l-0">
+                      {format(tick, "HH:mm")}
+                    </div>
+                  ))}
+                </div>
+                {showNow ? (
+                  <div
+                    className="pointer-events-none absolute bottom-0 top-2 z-10 border-l-2 border-state-error-fg"
+                    style={{ left: `${nowLeft}%` }}
+                    aria-hidden
+                  >
+                    <span className="absolute -top-1 left-1 rounded-sm bg-state-error-bg px-1.5 py-0.5 font-mono text-[10px] text-state-error-fg">
+                      现在
+                    </span>
                   </div>
-                ))}
+                ) : null}
               </div>
             </div>
 
-            <div className="space-y-3 pt-3">
+            <div>
               {resources.map((resource) => {
                 const rowTasks = grouped.get(resource.id) ?? [];
                 const load = rowTasks.length === 0 ? 0 : Math.min(100, Math.round((rowTasks.length / Math.max(tasks.length, 1)) * 100));
+                const laneHeight = 42;
+                const rowHeight = Math.max(72, 22 + Math.max(rowTasks.length, 1) * laneHeight);
 
                 return (
-                  <div key={resource.id} className="gantt-board-grid gap-4">
-                    <div className="rounded-sm border border-border bg-surface-inset p-3">
+                  <div key={resource.id} className="gantt-board-grid border-b border-border last:border-b-0">
+                    <div className="sticky left-0 z-10 border-r border-border bg-card p-3" style={{ minHeight: rowHeight }}>
                       <div className="text-sm font-medium">{resource.name}</div>
                       <div className="gantt-time-label uppercase">{resource.code}</div>
                       <div className="mt-3">
@@ -1626,63 +1651,71 @@ export function GanttBoard({
                       </div>
                     </div>
 
-                    <div className="relative rounded-sm border border-border bg-surface-inset p-3">
+                    <div className="relative bg-surface-inset" style={{ minHeight: rowHeight }}>
                       <div
-                        className="pointer-events-none absolute inset-x-3 inset-y-3 grid"
-                        style={{ gridTemplateColumns: `repeat(${timeline.ticks.length}, minmax(0, 1fr))` }}
+                        className="pointer-events-none absolute inset-0 grid"
+                        style={{ gridTemplateColumns: `repeat(${timeline.ticks.length - 1}, minmax(6.5rem, 1fr))` }}
                       >
-                        {timeline.ticks.map((tick) => (
+                        {timeline.ticks.slice(0, -1).map((tick) => (
                           <div key={tick.toISOString()} className="border-l border-dashed border-border/70 first:border-l-0" />
                         ))}
                       </div>
 
-                      <div className="relative space-y-2">
-                        {rowTasks.length === 0 ? (
-                          <div className="rounded-sm border border-dashed border-border bg-background px-3 py-4 text-sm text-muted-foreground">
-                            当前资源暂无排产任务。
-                          </div>
-                        ) : (
-                          rowTasks.map((task) => {
-                            const left = ((task.start.getTime() - timeline.start.getTime()) / totalMs) * 100;
-                            const width = Math.max(((task.end.getTime() - task.start.getTime()) / totalMs) * 100, 8);
+                      {showNow ? (
+                        <div
+                          className="pointer-events-none absolute bottom-0 top-0 z-10 border-l-2 border-state-error-fg/80"
+                          style={{ left: `${nowLeft}%` }}
+                          aria-hidden
+                        />
+                      ) : null}
 
-                            return (
-                              <div key={task.id} className="rounded-sm border border-transparent px-1 py-1">
-                                <div className="mb-1 flex items-center justify-between gap-2 text-xs">
-                                  <div className="truncate font-medium text-foreground">{task.title}</div>
-                                  <div className="shrink-0 text-muted-foreground">
-                                    {format(task.start, "MM-dd HH:mm")} - {format(task.end, "MM-dd HH:mm")}
-                                  </div>
-                                </div>
-                                <div className="relative h-12 rounded-sm border border-border bg-background">
-                                  <div
-                                    className={cn(
-                                      "absolute top-1.5 flex h-9 items-center justify-between gap-2 overflow-hidden rounded-sm border px-3 text-xs shadow-sm",
-                                      barTone[task.status] ?? "border-border bg-card text-foreground",
-                                    )}
-                                    style={{ left: `${Math.max(left, 0)}%`, width: `${Math.min(width, 100)}%` }}
-                                  >
-                                    <span className="truncate font-medium">{task.title}</span>
-                                    <span className="shrink-0 font-mono">{task.status}</span>
-                                  </div>
-                                </div>
-                                {onDelayTask ? (
-                                  <div className="mt-2 flex justify-end">
-                                    <button
-                                      type="button"
-                                      className="inline-flex h-8 items-center justify-center rounded-sm border border-border bg-background px-3 text-xs font-medium text-foreground hover:bg-surface-inset disabled:pointer-events-none disabled:opacity-50"
-                                      onClick={() => onDelayTask(task)}
-                                      disabled={pendingTaskId === task.id}
-                                    >
-                                      顺延 1 小时
-                                    </button>
-                                  </div>
-                                ) : null}
-                              </div>
-                            );
-                          })
-                        )}
-                      </div>
+                      {rowTasks.length === 0 ? (
+                        <div className="relative p-3">
+                          <div className="rounded-sm border border-dashed border-border bg-background px-3 py-4 text-sm text-muted-foreground">
+                            暂无排产任务
+                          </div>
+                        </div>
+                      ) : (
+                        rowTasks.map((task, laneIndex) => {
+                          const left = Math.max(0, toPercent(task.start, timeline.start, totalMs));
+                          const width = Math.max(
+                            ((task.end.getTime() - task.start.getTime()) / totalMs) * 100,
+                            4,
+                          );
+
+                          return (
+                            <div
+                              key={task.id}
+                              className={cn(
+                                "absolute z-10 flex h-8 items-center justify-between gap-2 overflow-hidden rounded-sm border px-3 text-xs shadow-sm",
+                                barTone[task.status] ?? "border-border bg-card text-foreground",
+                              )}
+                              style={{
+                                left: `${left}%`,
+                                top: `${12 + laneIndex * laneHeight}px`,
+                                width: `${Math.min(width, 100 - left)}%`,
+                              }}
+                              title={`${task.title} (${format(task.start, "MM-dd HH:mm")} - ${format(task.end, "MM-dd HH:mm")})`}
+                            >
+                              <span className="min-w-0 truncate">
+                                <span className="font-medium">{task.title}</span>
+                                {task.subtitle ? <span className="ml-2 opacity-75">{task.subtitle}</span> : null}
+                              </span>
+                              <span className="shrink-0 font-mono">{task.status}</span>
+                              {onDelayTask ? (
+                                <button
+                                  type="button"
+                                  className="ml-1 inline-flex h-5 shrink-0 items-center rounded-sm border border-current/30 bg-background/50 px-1.5 text-[10px] font-medium"
+                                  onClick={() => onDelayTask(task)}
+                                  disabled={pendingTaskId === task.id}
+                                >
+                                  顺延
+                                </button>
+                              ) : null}
+                            </div>
+                          );
+                        })
+                      )}
                     </div>
                   </div>
                 );
@@ -1693,6 +1726,56 @@ export function GanttBoard({
       </div>
     </section>
   );
+}
+
+function buildTimeline(tasks: ScheduleTask[], timelineStart?: Date, timelineEnd?: Date) {
+  const fallbackStart = new Date();
+  fallbackStart.setHours(8, 0, 0, 0);
+
+  const rawStart =
+    timelineStart ??
+    (tasks.length > 0
+      ? new Date(Math.min(...tasks.map((task) => task.start.getTime())))
+      : fallbackStart);
+  const rawEnd =
+    timelineEnd ??
+    (tasks.length > 0
+      ? new Date(Math.max(...tasks.map((task) => task.end.getTime())))
+      : new Date(fallbackStart.getTime() + 8 * 60 * 60 * 1000));
+
+  const start = floorToHour(rawStart);
+  const end = ceilToHour(rawEnd);
+  const total = Math.max(end.getTime() - start.getTime(), 60 * 60 * 1000);
+  const stepHours = Math.max(Math.ceil(total / 10 / (60 * 60 * 1000)), 1);
+  const step = stepHours * 60 * 60 * 1000;
+  const ticks: Date[] = [];
+
+  for (let cursor = start.getTime(); cursor <= end.getTime(); cursor += step) {
+    ticks.push(new Date(cursor));
+  }
+  if (ticks[ticks.length - 1]?.getTime() !== end.getTime()) {
+    ticks.push(end);
+  }
+
+  return { start, end, ticks };
+}
+
+function floorToHour(value: Date) {
+  const next = new Date(value);
+  next.setMinutes(0, 0, 0);
+  return next;
+}
+
+function ceilToHour(value: Date) {
+  const next = floorToHour(value);
+  if (next.getTime() < value.getTime()) {
+    next.setHours(next.getHours() + 1);
+  }
+  return next;
+}
+
+function toPercent(value: Date, timelineStart: Date, totalMs: number) {
+  return ((value.getTime() - timelineStart.getTime()) / totalMs) * 100;
 }
 ''',
     "oee-gauge": r'''

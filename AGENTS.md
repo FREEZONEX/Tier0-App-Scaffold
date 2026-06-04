@@ -500,6 +500,13 @@ Pure configuration — no UI, no route handlers.
 - seed.ts is excluded from tsconfig — use **relative imports only** (e.g., `import * as schema from "./schema"`), NOT `@/` aliases
 - Use `db.insert(schema.table).values([...]).onConflictDoUpdate()` for idempotency
 - Seed data must tell a coherent story: cross-references, realistic status distributions, timestamps spanning past 2 weeks
+- Seed foreign keys must be explicit strings from declared parent records.
+  Never rely on array positions without checking bounds, never pass
+  `undefined`, and never omit a required FK property in a Drizzle `.values([...])`
+  object. Drizzle turns missing/undefined properties into SQL `default`, which
+  causes failures such as `sales_order_id = default` for child tables. Prefer
+  named parent ID constants or `requireSeedRef()` / `requireSeedValue()` from
+  `@/services/seed-utils` when constructing interlinked baseline rows.
 - Runtime baseline seed must be idempotent and should run only when the module
   table is empty. The preview path must work even when this script is never run.
 - `bootstrapModule(...)` runs in two phases inside one transaction: first all
@@ -647,6 +654,10 @@ export async function advanceWorkOrder(
   dependencies.
 - Bootstrap belongs in services only. Never run schema creation from routes,
   components, or `src/lib`.
+- For seed callbacks with parent/child rows, construct parent rows first, insert
+  them first, then construct child rows from named parent IDs. Before inserting
+  child rows, verify every required FK is present. A generated insert must never
+  contain `default` for a non-null FK column.
 - Functions take typed inputs (`NewWorkOrder`) and an actor id, return typed outputs (`WorkOrder`)
 - Throw `new HttpError(status, message)` for caller-facing errors (404 not found, 409 conflict, 422 invariant violated). `withErrors` translates them.
 - Multi-step writes use `db.transaction(async tx => ...)` — pass `tx` to inner queries, not `db`
@@ -757,6 +768,11 @@ export const Route = createFileRoute("/api/work-orders/$id")({
   baseline records when the module table is empty. The helper runs all
   `prepare` / table / index SQL before any seed callback, so agents should not
   manually split or duplicate runtime bootstrap sequencing.
+- Baseline seed must validate the FK graph before insertion. For child tables
+  such as order items, batch lines, BOM components, route steps, genealogy, or
+  inventory transactions, every required parent id must come from a declared
+  parent row or a named constant. Missing/undefined FK properties are forbidden
+  because Drizzle emits SQL `default` for them.
 - `seed.ts` uses `DIRECT_DATABASE_URL` first (bypasses pooler), relative imports only (no `@/` aliases)
 
 ### Data Flow

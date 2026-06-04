@@ -45,6 +45,15 @@ For this TanStack Start MES scaffold, use the shared service-layer
 seed. Do not hand-roll create/seed sequencing; the helper creates all module
 tables/indexes before running any seed callbacks.
 
+When creating baseline seed with related tables, verify the FK graph before
+inserting child rows. Parent rows and named IDs must be declared first; child
+rows must set every non-null FK explicitly from those IDs. Do not pass
+`undefined` or omit required FK properties in Drizzle `.values([...])` objects:
+Drizzle compiles those properties to SQL `default`, which produces failures like
+`sales_order_items.sales_order_id = default`. Use `requireSeedRef()` or
+`requireSeedValue()` from `@/services/seed-utils` for generated interlinked seed
+data.
+
 ## Self-Review
 
 - Check for syntax errors, missing imports, incorrect paths, and unused exports.
