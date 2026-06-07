@@ -1,7 +1,12 @@
 "use client";
 
 import { Link, useRouterState } from "@tanstack/react-router";
-import { useEffect, useState, type ReactNode, type ElementType } from "react";
+import {
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+  type ElementType,
+} from "react";
 import {
   ChevronDown,
   ChevronLeft,
@@ -43,6 +48,7 @@ export const defaultModules: NavModule[] = [
 ];
 
 const COLLAPSED_STORAGE_KEY = "tier0-shell-collapsed";
+const COLLAPSED_STORAGE_EVENT = "tier0-shell-collapsed-change";
 
 const sidebarItemBase =
   "group flex items-center rounded-sm border text-sm font-medium transition-[background-color,border-color,color,box-shadow] duration-150 focus:outline-none focus:ring-2 focus:ring-highlight/30";
@@ -143,6 +149,31 @@ function filterVisibleModules(
   });
 }
 
+function getCollapsedSnapshot() {
+  if (typeof window === "undefined") return false;
+  return localStorage.getItem(COLLAPSED_STORAGE_KEY) === "true";
+}
+
+function getCollapsedServerSnapshot() {
+  return false;
+}
+
+function subscribeCollapsed(listener: () => void) {
+  if (typeof window === "undefined") return () => undefined;
+  window.addEventListener("storage", listener);
+  window.addEventListener(COLLAPSED_STORAGE_EVENT, listener);
+  return () => {
+    window.removeEventListener("storage", listener);
+    window.removeEventListener(COLLAPSED_STORAGE_EVENT, listener);
+  };
+}
+
+function setStoredCollapsed(value: boolean) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(COLLAPSED_STORAGE_KEY, String(value));
+  window.dispatchEvent(new Event(COLLAPSED_STORAGE_EVENT));
+}
+
 export function Shell({
   modules = defaultModules,
   user,
@@ -160,23 +191,18 @@ export function Shell({
     user?.role,
   );
   const roleLabel = user?.role ? getRoleMetadata(user.role).label : "加载中";
-  const [collapsed, setCollapsed] = useState(false);
+  const collapsed = useSyncExternalStore(
+    subscribeCollapsed,
+    getCollapsedSnapshot,
+    getCollapsedServerSnapshot,
+  );
   const [mobileOpen, setMobileOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(
     {},
   );
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => {
-    setCollapsed(localStorage.getItem(COLLAPSED_STORAGE_KEY) === "true");
-  }, []);
-
   function toggleCollapsed() {
-    setCollapsed((current) => {
-      const next = !current;
-      localStorage.setItem(COLLAPSED_STORAGE_KEY, String(next));
-      return next;
-    });
+    setStoredCollapsed(!collapsed);
   }
 
   function toggleGroup(key: string) {
@@ -187,8 +213,7 @@ export function Shell({
   }
 
   function expandGroupFromCollapsed(key: string) {
-    setCollapsed(false);
-    localStorage.setItem(COLLAPSED_STORAGE_KEY, "false");
+    setStoredCollapsed(false);
     setExpandedGroups((current) => ({
       ...current,
       [key]: true,

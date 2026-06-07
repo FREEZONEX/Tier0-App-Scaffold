@@ -61,10 +61,14 @@ Choose the layout by asking:
   Do not add an app-name subtitle, category heading, category subtitle, or
   generic labels such as "模块" / "Modules" above the navigation list.
 - Setup-only workspace pages such as system configuration, role/permission
-  setup, integration settings, tenant settings, and audit settings must be
+  setup, tenant settings, audit settings, and app-specific setup must be
   nested as second-level sidebar items under an appropriate parent. Do not make
   "系统配置", "System Configuration", or "Settings" a first-level sidebar module
   unless the entire app is specifically a configuration console.
+- Do not create Tier0 SDK auth, API key, token, OpenAPI host, MQTT host,
+  workspace binding, or integration credential settings pages. The
+  SDK/platform/runtime owns those values unless the user explicitly asks for a
+  credential administration console.
 - If a workflow genuinely needs a different chrome, split it into a separate
   app/entry surface or implement it inside the current app's chosen chrome. Do
   not put Shell and no-Shell pages in the same app.
@@ -95,10 +99,15 @@ sidebar. In a workspace app, convert those workflows into workspace pages or
 extract them into a separate app. Do not jump from the sidebar Shell into a
 no-sidebar layout.
 
-System configuration, role/permission setup, integration settings, tenant
-settings, audit settings, and similar setup-only pages belong under a sidebar
-parent as second-level items. They should not occupy first-level navigation in
-a normal MES workspace app.
+System configuration, role/permission setup, tenant settings, audit settings,
+and similar app-specific setup-only pages belong under a sidebar parent as
+second-level items. They should not occupy first-level navigation in a normal
+MES workspace app.
+
+Do not add Tier0 SDK authentication, API key, token, OpenAPI host, MQTT host,
+workspace binding, or integration credential settings to the workspace
+navigation. Generated MES apps call the SDK directly and let the
+SDK/platform/runtime provide auth and connection details.
 
 ### Station
 

@@ -25,8 +25,13 @@
 | `APP_ID` | 默认 `"monoapp"` | `/api/manifest` 返回对应 appId |
 | `VITE_BASE_PATH` | 无 URL 前缀 | `apiUrl()` 和 Vite `base` 加前缀 |
 | `NEXT_PUBLIC_BASE_PATH` | （兼容旧名）同上 | `apiUrl()` 在 `VITE_BASE_PATH` 缺失时回落读取此变量 |
+| `TIER0_API_HOST` | — | 平台自动注入 Tier0 OpenAPI 服务地址 |
+| `TIER0_API_KEY` | — | 平台自动注入 Tier0 API 鉴权密钥，OpenAPI 和 MQTT 共用 |
+| `TIER0_MQTT_HOST` | — | 平台自动注入 Tier0 MQTT WebSocket Broker 地址 |
+| `TIER0_MQTT_PORT` | 默认 `8084` | 平台自动注入 Tier0 MQTT WebSocket 端口 |
 
 `DB_SCHEMA` 和 `APP_ID` 设为同一个值（session ID）。
+Tier0 SDK 变量由平台部署时注入，不写入脚手架 `.env.example`，也不由生成 app 提供用户配置 UI。
 
 ---
 
@@ -130,6 +135,10 @@ SESSION_SECRET="<32+ chars random hex; per-app or per-session, never reuse acros
 DB_SCHEMA="session-xyz789"
 APP_ID="session-xyz789"
 VITE_BASE_PATH="/session-xyz789"
+TIER0_API_HOST="<platform-injected>"
+TIER0_API_KEY="<platform-injected>"
+TIER0_MQTT_HOST="<platform-injected>"
+TIER0_MQTT_PORT="8084"
 # 兼容旧变量名（可选，apiUrl 仍能读取）
 # NEXT_PUBLIC_BASE_PATH="/session-xyz789"
 ```
@@ -163,6 +172,10 @@ node server.mjs         # 等价于 `npm start`，监听 PORT（默认 3000）
 | `APP_ID`                      | `routes/api/manifest.ts`                                                              |
 | `VITE_BASE_PATH`              | `vite.config.ts`（base）、`router.tsx`（basepath）、`lib/utils.ts`（apiUrl 首选项）     |
 | `NEXT_PUBLIC_BASE_PATH`       | `lib/utils.ts`（apiUrl 兼容回落）、`vite.config.ts` / `router.tsx` 同样作为兜底           |
+| `TIER0_API_HOST`              | 平台部署自动注入；`@tier0/sdk/openapi` 运行时读取                                      |
+| `TIER0_API_KEY`               | 平台部署自动注入；`@tier0/sdk/openapi` 和 `@tier0/sdk/mq` 运行时读取                    |
+| `TIER0_MQTT_HOST`             | 平台部署自动注入；`@tier0/sdk/mq` 运行时读取                                           |
+| `TIER0_MQTT_PORT`             | 平台部署自动注入；`@tier0/sdk/mq` 运行时读取                                           |
 
 ---
 

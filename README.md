@@ -6,7 +6,7 @@
 
 | 层 | 技术 |
 |---|------|
-| 框架 | TanStack Start 1.x（Vite 7 + TanStack Router，React 19 SSR） |
+| 框架 | TanStack Start 1.x（Vite 8/Rolldown + TanStack Router，React 19 SSR） |
 | ORM | Drizzle ORM + node-postgres |
 | 校验 | Zod（通过 `drizzle-zod` 自动派生 schema/类型） |
 | 样式 | TailwindCSS 4（Vite 插件，无 PostCSS）+ Tier0 token（柔和中性界面、slate 主操作、signal green 状态高亮、按场景调节密度） |
@@ -14,6 +14,7 @@
 | 图表 | Recharts 3（必须包在 `<ResponsiveContainer>` 里） |
 | 表格 | TanStack React Table 8 |
 | 拖拽 | dnd-kit |
+| Tier0 平台 SDK | `@tier0/sdk`（OpenAPI REST + MQTT over WebSocket） |
 | 图标 | Lucide React |
 | 通知 | Sonner（`Toaster` 已挂在 `__root.tsx`） |
 | 动画 | motion（从 `@/lib/motion` 导入，**不直接 `motion/react`**） |
@@ -43,6 +44,31 @@ npm run dev               # → http://localhost:5173
 | `APP_ID` | | 默认 `"monoapp"` | `/api/manifest` 返回对应 appId |
 | `VITE_BASE_PATH` | | 无 URL 前缀 | Vite `base` / router `basepath` / `apiUrl()` 加前缀 |
 | `NEXT_PUBLIC_BASE_PATH` | | （兼容旧名） | `apiUrl()` 在 `VITE_BASE_PATH` 缺失时回落读取 |
+
+Tier0 SDK 鉴权和连接变量由平台在应用部署时自动注入，不写入 `.env.example`，也不在脚手架或生成 app 中手动配置。生成应用不应提供 UI 让用户配置 SDK 鉴权、API Key、Token、OpenAPI Host、MQTT Host 或 Workspace 绑定；这些值由 SDK、平台网关或 runtime 环境接管。
+
+### 平台自动注入给 SDK
+
+| 变量 | 用途 |
+|------|------|
+| `TIER0_API_HOST` | OpenAPI 服务地址，供 `@tier0/sdk/openapi` 使用 |
+| `TIER0_API_KEY` | API 鉴权，同时供 OpenAPI 和 MQTT 使用 |
+| `TIER0_MQTT_HOST` | MQTT WebSocket Broker 地址 |
+| `TIER0_MQTT_PORT` | MQTT WebSocket 端口，默认 `8084` |
+
+如果平台明确要求浏览器侧 SDK 读取 Vite env，平台 runtime 负责注入对应的 `VITE_TIER0_*`。生成 app 不要把这些变量做成用户可编辑字段。
+
+## Tier0 SDK SSR 兼容
+
+`@tier0/sdk@0.1.1` 当前发布的是 CommonJS 输出；在 TanStack Start + Vite SSR 下不能放进 ESM bundle 执行。脚手架默认在 `vite.config.ts` 固化：
+
+```ts
+ssr: {
+  external: ["pg", "@tier0/sdk", "mqtt"],
+}
+```
+
+SDK 调用通过 `src/lib/tier0.ts` 的 lazy helper 在服务端用 `createRequire` 加载。`package.json` 的 `postinstall` 会运行 `scripts/patch-tier0-sdk.mjs`，在 managed install 后修正 SDK 的 Node 22 CJS 运行时兼容问题。生成应用时不要顶层 import SDK 子模块，不要把 SDK 加回 `ssr.noExternal`，也不要用 fallback MQTT client 或手写 fetch wrapper 绕过 SDK。
 
 部署相关详见 [docs/platform-integration.md](docs/platform-integration.md)。
 
@@ -82,9 +108,10 @@ src/
     permissions.ts            ← 权限矩阵 — 在这里定义角色和动作
     hooks.ts                  ← usePolling()（勿改）
     motion.ts                 ← motion/react re-export（勿改）
+    tier0.ts                  ← @tier0/sdk 服务端 lazy loader（OpenAPI + MQ）
     utils.ts                  ← cn(), apiUrl()
 server.mjs                    ← 生产 Node HTTP 入口（勿改）
-vite.config.ts                ← TanStack Start + Tailwind v4 + tsconfig paths
+vite.config.ts                ← TanStack Start + Tailwind v4 + Vite 8 tsconfig paths + Tier0 SDK SSR external
 ```
 
 ## 路由文件命名
@@ -234,8 +261,12 @@ X-App-User-ID: u123
 ## 脚本
 
 ```bash
-npm run dev          # vite dev → http://localhost:5173
-npm run build        # vite build → dist/{client,server}
+npm run dev          # preview-compatible vite dev → http://localhost:5173
+npm run dev:local    # local vite dev，端口被占用时可漂移
+npm run dev:force    # 强制重建 Vite 依赖缓存后启动
+npm run typecheck    # TypeScript noEmit
+npm run build        # Vite 8/Rolldown build → dist/{client,server}
+npm run build:check  # build + typecheck + lint
 npm run start        # node server.mjs（包装 fetch handler 的 Node 入口）
 npm run lint         # eslint
 npm run db:push      # 推送 schema

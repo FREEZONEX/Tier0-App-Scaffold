@@ -2,10 +2,10 @@ import { createHmac } from "node:crypto";
 import { defineConfig, type Plugin } from "vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
-import tsconfigPaths from "vite-tsconfig-paths";
 import tailwindcss from "@tailwindcss/vite";
 
 const allowAllHosts = process.env.VITE_ALLOWED_HOSTS === "all";
+const strictPort = process.env.VITE_STRICT_PORT !== "false";
 
 function encodePreviewSession(payload: unknown, secret: string): string {
   const payloadB64 = Buffer.from(JSON.stringify(payload)).toString("base64url");
@@ -67,16 +67,29 @@ export default defineConfig({
   base: process.env.VITE_BASE_PATH || process.env.NEXT_PUBLIC_BASE_PATH || "/",
   server: {
     port: 5173,
-    strictPort: true,
+    strictPort,
     host: "0.0.0.0",
     allowedHosts: allowAllHosts ? true : [],
+    forwardConsole: true,
+  },
+  resolve: {
+    tsconfigPaths: true,
   },
   ssr: {
-    external: ["pg"],
+    external: ["pg", "@tier0/sdk", "mqtt"],
+  },
+  optimizeDeps: {
+    include: [
+      "@dnd-kit/core",
+      "@dnd-kit/sortable",
+      "@tanstack/react-table",
+      "lucide-react",
+      "motion",
+      "recharts",
+    ],
   },
   plugins: [
     previewGatewayHeaders(),
-    tsconfigPaths(),
     tailwindcss(),
     tanstackStart({
       srcDirectory: "src",

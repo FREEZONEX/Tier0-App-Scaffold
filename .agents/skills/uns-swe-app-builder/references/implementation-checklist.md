@@ -10,6 +10,7 @@ Use this checklist when planning and reviewing a generated application.
 - Identify required UI screens, overlay-backed create/edit forms, lists, detail views, dashboards, and operational flows. Treat workspace CRUD forms as `FormDialog` or `Drawer` flows unless the requirements explicitly call for an inline station, filter, scan/manual entry, or review-reason form.
 - Classify each frontend workflow by layout intent: station for scan/tap execution, review for evidence/decision queues, workspace for management/planning/analytics, or a custom layout when the built-ins do not fit.
 - Identify backend/API requirements, persistence needs, integrations, and error paths.
+- Identify whether the app needs Tier0 OpenAPI, UNS, Flow, MQTT, or MQ integration; if yes, plan to use `$tier0-sdk` and `@tier0/sdk` instead of custom clients.
 - Note explicit technology constraints from the requirements or existing project.
 
 ## File Organization
@@ -39,6 +40,21 @@ Use this checklist when planning and reviewing a generated application.
 5. Wire frontend to backend or local persistence.
 6. Add error, empty, loading, and validation states.
 7. Run checks and fix failures.
+
+For Tier0 platform integrations, use the scaffold's preinstalled `@tier0/sdk`
+and load `$tier0-sdk`, `$tier0-sdk-openapi`, or `$tier0-sdk-mq` for endpoint
+guidance. Use lazy loaders from `@/lib/tier0`; do not top-level import
+`@tier0/sdk/openapi` or `@tier0/sdk/mq` from services, route loaders, pages, or
+SSR startup paths. Do not duplicate UNS/Flow REST endpoint wrappers or MQTT
+reconnect/resubscribe logic in app code.
+Keep `vite.config.ts` `ssr.external: ["pg", "@tier0/sdk", "mqtt"]`; do not put
+SDK packages in `ssr.noExternal`. SDK SSR compatibility is scaffold
+configuration plus lazy app-code loading, not a reason to add fallback clients.
+Do not create pages or forms for users to configure Tier0 SDK authentication,
+API keys, tokens, OpenAPI hosts, MQTT hosts, or workspace binding; those are
+injected automatically by the platform at deployment. Do not add `TIER0_*` /
+`VITE_TIER0_*` placeholders to generated `.env.example` files unless the user
+explicitly asks for a platform-external debugging setup.
 
 For this TanStack Start MES scaffold, use the shared service-layer
 `bootstrapModule(...)` helper for runtime table/index creation and baseline

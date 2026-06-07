@@ -49,7 +49,7 @@ controls, `#dcdcdc` borders, and Tier0 green `#cef368` / `#e7f9b9` highlights.
 11. Implement real states: loading, empty with create action, success, validation errors, API errors, and disabled/pending controls.
 12. Ensure every authenticated layout shell exposes a visible logout action. Workspace pages use the Shell sidebar/footer; station, review, monitor, and custom no-sidebar layouts use the header/status area.
 13. Keep app navigation layout-consistent. A single app must not mix pages with the Shell sidebar and pages without the sidebar. Sidebar modules must point only to routes that keep the Shell sidebar (`/_app` children such as `/work-orders`). Do not add `/station`, `/review`, `/monitor`, or other no-sidebar task routes to `defaultModules`; convert those workflows into workspace pages or split them into a separate app/entry surface.
-14. Keep setup-only pages out of first-level navigation. System configuration, role/permission setup, integration settings, tenant settings, audit settings, and similar configuration pages must be nested as second-level sidebar items under an appropriate parent, unless the whole app is specifically a configuration console.
+14. Keep setup-only pages out of first-level navigation. System configuration, role/permission setup, tenant settings, audit settings, and similar configuration pages must be nested as second-level sidebar items under an appropriate parent, unless the whole app is specifically a configuration console. Do not generate Tier0 SDK authentication, API key, token, OpenAPI host, MQTT host, or integration credential configuration pages.
 15. Make the page responsive by device profile, not only by desktop/tablet/mobile breakpoints. PDA/handheld scanner pages must work portrait-first at 360-480px with larger operational text and 44-48px controls. Monitor pages must fit their intended wallboard/TV viewport with monitor-specific sizing and no page scroll. General interactive pages still need 375px, 768px, and desktop checks.
 16. Replace all default scaffold branding and placeholder titles with domain-specific app copy. Do not leave generic visible titles such as "Application", "Home", "Ready", "Workspace Home", or "Industrial application scaffold" in the finished app unless explicitly requested.
 17. Remove visible design-system commentary from product UI. Never render copy such as "FX green only for key states", "Tier0 signal green", color token explanations, layout guidance, component usage notes, or implementation hints on product pages.
@@ -84,11 +84,13 @@ Use for multi-module, supervisory, planning, analytics, configuration, master da
 
 Only add entries to `defaultModules` in `src/components/Shell.tsx` for workspace pages. Do not add station, review, monitor, or other no-sidebar routes to the sidebar.
 
-System configuration, role/permission setup, integration settings, tenant
-settings, audit settings, and similar setup-only pages should be second-level
-sidebar items under an appropriate parent. Do not make "系统配置", "System
-Configuration", or "Settings" a first-level sidebar module unless the whole app
-is a configuration console.
+System configuration, role/permission setup, tenant settings, audit settings,
+and similar setup-only pages should be second-level sidebar items under an
+appropriate parent. Do not make "系统配置", "System Configuration", or "Settings"
+a first-level sidebar module unless the whole app is a configuration console.
+Do not generate Tier0 SDK authentication, API key, token, OpenAPI host, MQTT
+host, or integration credential configuration pages; the SDK/platform/runtime
+owns those values.
 
 Workspace sidebar should remain collapsible on desktop. Use simple 150-250ms width/opacity transitions, keep collapsed labels accessible through `aria-label` or `title`, and use dark foreground text/icons on green active backgrounds.
 Workspace sidebar chrome should stay quiet: show the app name and module labels only. Do not add an app-name subtitle, category heading, category subtitle, or generic labels such as "模块" / "Modules" above the navigation list.

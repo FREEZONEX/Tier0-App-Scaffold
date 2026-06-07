@@ -18,7 +18,7 @@ Generate complete, runnable, production-quality applications from requirements d
 5. If no `specs/spec.md` exists, read the requirements document or user-provided spec carefully.
 6. Read `references/implementation-checklist.md` before planning substantial implementation work.
 7. Plan the file structure and implementation order.
-8. Implement the full app, wiring frontend, backend, data models, validation, and configuration as required by the spec. When building frontend UI in this scaffold, use `$uns-swe-ui-generation` for scaffold-native Tailwind/Tier0 patterns and `$app-i18n-copy` for product-copy consistency.
+8. Implement the full app, wiring frontend, backend, data models, validation, and configuration as required by the spec. When building frontend UI in this scaffold, use `$uns-swe-ui-generation` for scaffold-native Tailwind/Tier0 patterns and `$app-i18n-copy` for product-copy consistency. When requirements call for Tier0 OpenAPI, UNS, Flow, MQTT, or MQ integration, use `$tier0-sdk` instead of hand-writing platform clients.
 9. Self-review for syntax, imports, placeholders, TODOs, missing flows, security, and error handling.
 10. Run the relevant install/build/test/dev-server workflow available in the environment.
 11. If preview MCP tools are available and a meaningful code change is complete, use the preview workflow before telling the user the preview is ready.
@@ -72,6 +72,26 @@ Generate complete, runnable, production-quality applications from requirements d
   A reusable hook should look like `useRequest(requestKey, loader)` so a
   successful `setState` does not recreate `() => fetchJson(...)` and trigger an
   identical fetch loop.
+- For Tier0 platform integrations, use the preinstalled `@tier0/sdk`.
+  Prefer lazy loaders from `@/lib/tier0` when following the
+  `$tier0-sdk-openapi` or `$tier0-sdk-mq` references. Do not top-level import
+  `@tier0/sdk/openapi` or `@tier0/sdk/mq` from services, route loaders, pages,
+  or SSR startup paths. Do not hand-roll
+  OpenAPI fetch wrappers, MQTT connection logic, reconnect logic, or UNS/Flow
+  endpoint names already covered by the SDK.
+- Keep the scaffold's Tier0 SDK SSR bundling policy in `vite.config.ts`:
+  `ssr.external: ["pg", "@tier0/sdk", "mqtt"]`. Do not put SDK packages in
+  `ssr.noExternal`. If SDK SSR loading fails while a page is merely loading,
+  check for top-level SDK imports and move the SDK call behind `@/lib/tier0`
+  lazy loaders inside the concrete dispatch/write/publish action. Do not add
+  fallback MQTT clients or hand-written platform wrappers.
+- Do not generate user-facing configuration pages, forms, tables, drawers, or
+  settings routes for Tier0 SDK authentication or connectivity. API keys,
+  tokens, OpenAPI hosts, MQTT hosts, workspace binding, and similar Tier0 SDK
+  credentials are injected automatically by the platform at deployment, not
+  configured by app users. Do not add `TIER0_*` / `VITE_TIER0_*` placeholders
+  to generated `.env.example` files. Only create such a console when the user
+  explicitly asks for operator-managed Tier0 credentials.
 - Connect files through real imports, routes, handlers, and state flows.
 - Include clear comments only where they explain non-obvious behavior.
 - Avoid common security issues such as unsanitized HTML injection, unsafe auth assumptions, leaking secrets, and injection-prone data handling.

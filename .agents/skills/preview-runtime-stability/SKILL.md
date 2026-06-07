@@ -1,6 +1,6 @@
 ---
 name: preview-runtime-stability
-description: Diagnose and fix managed preview startup failures for TanStack Start or Vite apps in UNS-SWE executor sandboxes. Use when the user reports "Failed to load preview", "Preview loading timed out", "dev server exited: exit status 1", `{"status":500,"unhandled":true,"message":"HTTPError"}`, preview_start, preview/status, live preview, Vite dev server, port 5173, /api/health, stale npm/node processes, or sandbox preview process cleanup problems.
+description: Diagnose and fix managed preview startup failures for TanStack Start or Vite apps in UNS-SWE executor sandboxes. Use when the user reports "Failed to load preview", "Preview loading timed out", "dev server exited: exit status 1", `{"status":500,"unhandled":true,"message":"HTTPError"}`, Tier0 SDK SSR/noExternal issues, preview_start, preview/status, live preview, Vite dev server, port 5173, /api/health, stale npm/node processes, or sandbox preview process cleanup problems.
 ---
 
 # Preview Runtime Stability
@@ -71,6 +71,53 @@ rg -n '@import "shadcn|@import "@/components|@import "@tier0' src/styles
 ```
 
 The second command intentionally over-reports. `@tanstack/react-start/server` is allowed in server-route handlers, middleware, `src/lib/auth.ts`, and inside `createServerFn().handler(...)` bodies. `motion/react` is allowed only in the shared `src/lib/motion.ts` wrapper.
+
+### Tier0 SDK SSR external mismatch
+
+Error examples:
+
+```text
+Named export ... not found
+does not provide an export named ...
+require is not defined in ES module scope
+ReferenceError: exports is not defined in ES module scope
+```
+
+When the stack points at `@tier0/sdk`, `@tier0/sdk/mq`, or `mqtt` during SSR,
+separate SDK package format failures from app-code eager loading failures. The
+current `@tier0/sdk@0.1.1` package ships CommonJS output, so it must remain
+external in SSR and be loaded from server code through `@/lib/tier0`.
+
+Fix sequence:
+
+1. Open `vite.config.ts`.
+2. Keep `pg` external because it is a Node/Postgres runtime dependency.
+3. Ensure SDK packages are externalized for Vite SSR:
+
+```ts
+ssr: {
+  external: ["pg", "@tier0/sdk", "mqtt"],
+}
+```
+
+4. Do not add `@tier0/sdk` or `mqtt` to `ssr.noExternal`. That causes CJS
+   `exports` output to run as ESM in this template.
+5. Search for top-level SDK imports in app services, route loaders, pages, or
+   generated wrappers:
+
+```bash
+rg -n '@/lib/tier0|@tier0/sdk/openapi|@tier0/sdk/mq' src/services src/routes src/components src/lib
+```
+
+6. If an optional operation such as UNS dispatch, Flow publish, or MQTT command
+   send imports the SDK at module top level, move the SDK call behind
+   `@/lib/tier0` lazy loaders and invoke it only inside the action that needs
+   platform I/O. Top-level imports of lazy helper functions from `@/lib/tier0`
+   are fine; top-level calls to those helpers are not. Do not import SDK values
+   while rendering a page or loading preview.
+7. Do not replace the SDK with fallback MQTT clients or hand-written UNS/Flow
+   fetch wrappers.
+8. Run `npm run build:check` when available.
 
 ### TanStack Start HTTPError 500
 
