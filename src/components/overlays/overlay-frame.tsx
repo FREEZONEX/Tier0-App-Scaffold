@@ -75,7 +75,7 @@ export function useOverlayLifecycle({
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
-    window.setTimeout(() => {
+    const focusTimeoutId = window.setTimeout(() => {
       const target = initialFocusRef?.current ?? closeButtonRef.current;
       target?.focus();
     }, 0);
@@ -90,6 +90,7 @@ export function useOverlayLifecycle({
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
+      window.clearTimeout(focusTimeoutId);
       document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", handleKeyDown);
       restoreFocusRef.current?.focus();

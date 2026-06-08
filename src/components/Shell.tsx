@@ -8,6 +8,7 @@ import {
   type ElementType,
 } from "react";
 import {
+  Activity,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -44,6 +45,13 @@ export const defaultModules: NavModule[] = [
     href: "/",
     icon: LayoutDashboard,
     actions: ["view_dashboard"],
+  },
+  {
+    key: "uns_connectivity",
+    label: "UNS联通",
+    href: "/uns-connectivity",
+    icon: Activity,
+    actions: ["manage_system"],
   },
 ];
 
@@ -90,7 +98,7 @@ const MODULE_ACTIONS_BY_LABEL: Record<string, Action[]> = {
   设置: ["manage_system"],
 };
 
-function getModuleActions(module: NavModule): Action[] {
+export function getModuleActions(module: NavModule): Action[] {
   return (
     module.actions ??
     MODULE_ACTIONS_BY_KEY[module.key] ??
@@ -99,7 +107,10 @@ function getModuleActions(module: NavModule): Action[] {
   );
 }
 
-function canViewModule(role: string | undefined, module: NavModule): boolean {
+export function canViewModule(
+  role: string | undefined,
+  module: NavModule,
+): boolean {
   const actions = getModuleActions(module);
   if (actions.length === 0) {
     return true;
@@ -120,7 +131,7 @@ function isModuleActive(module: NavModule, pathname: string): boolean {
   );
 }
 
-function filterVisibleModules(
+export function filterVisibleModules(
   modules: NavModule[],
   role: string | undefined,
 ): NavModule[] {
@@ -304,9 +315,14 @@ export function Shell({
           {sidebarModules.map((mod) => {
             const Icon = mod.icon;
             const hasChildren = Boolean(mod.children?.length);
-            const isActive = isModuleActive(mod, pathname);
+            const isDirectActive = mod.href === pathname;
+            const hasActiveDescendant =
+              mod.children?.some((child) => isModuleActive(child, pathname)) ??
+              false;
             const isExpanded =
-              !isCollapsed && (expandedGroups[mod.key] ?? isActive);
+              !isCollapsed &&
+              (expandedGroups[mod.key] ??
+                (isDirectActive || hasActiveDescendant));
 
             if (hasChildren) {
               const groupTitle = mod.disabledReason ?? mod.label;
@@ -332,7 +348,7 @@ export function Shell({
                     className={cn(
                       sidebarItemBase,
                       "min-h-10 w-full",
-                      isActive ? sidebarItemActive : sidebarItemInactive,
+                      isDirectActive ? sidebarItemActive : sidebarItemInactive,
                       mod.locked ? "opacity-70" : "",
                       isCollapsed ? "justify-center px-2" : "gap-2.5 px-3",
                     )}

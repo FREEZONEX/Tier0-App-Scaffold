@@ -20,7 +20,7 @@ Generate complete, runnable, production-quality applications from requirements d
 7. Plan the file structure and implementation order.
 8. Implement the full app, wiring frontend, backend, data models, validation, and configuration as required by the spec. When building frontend UI in this scaffold, use `$uns-swe-ui-generation` for scaffold-native Tailwind/Tier0 patterns and `$app-i18n-copy` for product-copy consistency. When requirements call for Tier0 OpenAPI, UNS, Flow, MQTT, or MQ integration, use `$tier0-sdk` instead of hand-writing platform clients.
 9. Self-review for syntax, imports, placeholders, TODOs, missing flows, security, and error handling.
-10. Run the relevant install/build/test/dev-server workflow available in the environment.
+10. Run the relevant install/build/test/dev-server workflow available in the environment. In this scaffold, prefer `npm run build` over raw `vite build` because `postbuild` automatically runs the required local verifier.
 11. If preview MCP tools are available and a meaningful code change is complete, use the preview workflow before telling the user the preview is ready.
 
 ## Existing Files First
@@ -117,5 +117,5 @@ Before finishing:
 - Verify all required functionality is implemented.
 - Verify generated files are connected through imports, routes, handlers, and configuration.
 - Remove placeholder code, unused TODOs, and dead scaffolding.
-- Run available checks or explain why they could not be run.
+- Run available checks or explain why they could not be run. In this scaffold, a normal successful build means `npm run build` completed through the automatic post-build verifier.
 - Summarize the implemented app and verification result concisely.

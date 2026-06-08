@@ -100,7 +100,7 @@ src/
     seed.ts                   ← Seed script — uses relative imports only, NOT @/ aliases (DO NOT change imports/pool)
   lib/                        ← Cross-cutting helpers (auth, header parsing, utilities) — NOT domain logic
     utils.ts                  ← cn() for classNames, apiUrl() for base-path-aware fetch URLs
-    hooks.ts                  ← usePolling<T>(url, interval) for real-time dashboard data (DO NOT modify)
+    hooks.ts                  ← shared client request hooks: `useRequest(requestKey, loader)` and single-flight `usePolling<T>(url, interval)` for stable data loading
     motion.ts                 ← Re-exports motion/react with "use client" — always import from here
     tier0.ts                  ← Lazy loaders for @tier0/sdk OpenAPI + MQ helpers; avoid SSR startup imports
     users.ts                  ← AppUser type definition (DO NOT modify)
@@ -755,15 +755,16 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 - Pages use the selected route group's path in `createFileRoute(...)` and inherit that authenticated layout automatically: `"/_app/..."` for workspace, `"/station/..."`, `"/review/..."`, `"/monitor/..."`, or the matching custom route prefix.
 - Interactive pages must be responsive by device profile. PDA/handheld scanner pages are portrait-first industrial station surfaces: test 360-480px width, larger operational text, scanner focus recovery, and 44-48px controls. General pages still need mobile (375px), tablet (768px), desktop (1024px+). Monitor pages are wallboard/TV surfaces, not desktop monitors; test the intended fixed viewport instead.
 - **ALWAYS** use `apiUrl("/api/...")` from `@/lib/utils` — plain `"/api/..."` breaks under a base path
-- If creating a request hook, polling hook, or page-local data loader, the effect dependency must be a stable request key made from primitive values (`"orders:list"`, route params, filters, pagination), not an inline loader function created during render. Prefer `useRequest(requestKey, loader)` or `useEffect(..., [requestKey])`; do not depend on `() => fetchJson(...)` references because each render creates a new function and can cause infinite fetch/setState/render loops.
-- Use `usePolling()` from `@/lib/hooks` for dashboard polling
+- If creating a request hook, polling hook, or page-local data loader, the effect dependency must be a stable request key made from primitive values (`"orders:list"`, route params, filters, pagination), not an inline loader function created during render. Prefer `useRequest(requestKey, loader)` from `@/lib/hooks` or `useEffect(..., [requestKey])`; do not depend on `() => fetchJson(...)` references because each render creates a new function and can cause infinite fetch/setState/render loops.
+- Use `usePolling()` from `@/lib/hooks` for dashboard polling. It is single-flight and pauses interval-driven polling while the tab is hidden; do not stack your own overlapping `setInterval + fetch` loop on top of it.
 - Use `<Link to="/path">` from `@tanstack/react-router` for navigation, `useNavigate()` for programmatic
 - Use `useRouterState({ select: s => s.location.pathname })` if you need the current pathname
 
 ### Step 5: Final Build & Lint
 
-- Run `npm run build` — fix errors and retry, max 3 attempts
-- Run `npm run lint` — must report **0 errors AND 0 warnings**. Most warnings come from unused imports / unused vars left over from intermediate iterations; clean them up before declaring done. (`npm run lint -- --fix` will auto-fix most.) Treat warnings as failures here even though ESLint exits 0 — they are exactly the residue that masks real problems on the next change.
+- Run `npm run build` — fix errors and retry, max 3 attempts. In this scaffold `npm run build` is not build-only: `postbuild` automatically runs the required local verification flow (`typecheck`, `lint`, contract tests, and runtime-safety checks).
+- Do not bypass the required gate by running `vite build` directly unless you are debugging the bundler itself. Normal completion must go through `npm run build`.
+- When `postbuild` fails, fix the reported verification stage before declaring success.
 
 ## Key Rules
 
@@ -789,7 +790,7 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 - ALL data access goes through Server Routes. Pages fetch via `apiUrl()`
 - **`db` imports ONLY in `src/services/**` and `src/db/seed.ts`** — never in routes, never in lib, never in client components
 - Server routes are thin HTTP shells: `requireAuth → parse → service call → Response.json`. If you find yourself calling `db.*` from a route handler, move that code into a service first
-- Client data fetching must be keyed by stable values, not render-created function identities. Any reusable `useRequest`-style helper must take a `requestKey` string/array plus a loader; page calls must pass stable keys for list/detail/filter state so successful `setState` does not immediately trigger another identical request.
+- Client data fetching must be keyed by stable values, not render-created function identities. Prefer `useRequest(requestKey, loader)` from `@/lib/hooks` for reusable client loads. Page calls must pass stable keys for list/detail/filter state so successful `setState` does not immediately trigger another identical request. Reusable polling must stay single-flight; do not let slow responses accumulate across interval ticks.
 - TanStack Router `Route.useParams()` and `Route.useSearch()` are **synchronous** — never `await`
 - Define `validateSearch` (Zod) on routes that read query strings — gives type safety + validation
 - `createServerFn().handler(...)` is the equivalent of a Next server action; like server routes, the handler should delegate to a service for any non-trivial work
@@ -851,7 +852,7 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 - Monitor pages should use the `monitor-*` utilities for large, distance-readable, fixed-board composition rather than desktop dashboard sizing.
 
 ### Commands
-- `npm run build` — run ONCE at Step 5 (vite build → `dist/{client,server}`)
+- `npm run build` — run ONCE at Step 5 (vite build → `dist/{client,server}`), then let the automatic `postbuild` verifier finish
 - `npm run lint` — run at Step 5; required **0 warnings** to declare done. `npm run lint -- --fix` auto-fixes most.
 - `npx drizzle-kit push` — optional local schema pre-sync; preview and new tenant schemas must not depend on it
 - `npx tsx src/db/seed.ts` — optional explicit bulk seed/reset fixtures; runtime baseline seed belongs in services
@@ -879,4 +880,4 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 - Hydration: no date/browser-API at first render, motion from `@/lib/motion`, valid HTML nesting, `Route.useParams()` / `Route.useSearch()` (never awaited), no server-only imports in client components, recharts/dnd-kit subtrees wrapped in `<ClientOnly>`
 - Branding: app-specific naming is applied consistently before declaring done. Check and update `src/routes/__root.tsx` `<title>` and `description`, `src/routes/login.tsx` login page brand copy, `src/components/Shell.tsx`, and any used layout shell in `src/components/layouts/`. Remove or replace scaffold/default copy such as "Application", "Home", "Ready", "MES", "MES App", "MES Console", "Industrial App", "Station Console", "Review Workspace", "Workspace Home", or "Industrial application scaffold" unless those names are intentionally part of the finished product.
 - Product copy: use `$app-i18n-copy` when the user asks for i18n, localization, translation, or copy cleanup. Default to a single explicit locale per app surface and keep visible shell, dialog, button, loading, error, tooltip, and accessibility labels in that locale. Only introduce a message catalog when the requirements explicitly need runtime multi-language support. Do not render design-system commentary or implementation notes in visible UI. Text like "FX green only for key states", "Tier0 signal green", color-token explanations, layout guidance, or component usage notes belongs in docs/comments only.
-- Build: `npm run build` passes with **0 errors** AND `npm run lint` reports **0 warnings, 0 errors**
+- Build: `npm run build` passes end to end, including the automatic `postbuild` verifier. That means `dist/{client,server}` exists, TypeScript passes, ESLint reports **0 warnings, 0 errors**, contract tests pass, and runtime-safety checks pass.

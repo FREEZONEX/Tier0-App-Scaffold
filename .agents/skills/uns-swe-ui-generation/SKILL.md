@@ -27,7 +27,8 @@ controls, `#dcdcdc` borders, and Tier0 green `#cef368` / `#e7f9b9` highlights.
 - Keep components app-specific. Put reusable pieces under `src/components/<domain>/`; keep one-off pieces next to the route that owns them.
 - Use `cn()` from `@/lib/utils` for conditional classes.
 - Use `apiUrl()` from `@/lib/utils` for all browser fetches to app APIs.
-- For reusable request hooks or page-local data loaders, key effects by stable primitive request keys, not by inline loader function identities. Prefer `useRequest(requestKey, loader)` or `useEffect(..., [requestKey])`; never make the effect depend on a render-created `() => fetchJson(...)` callback, because `setState` will re-render, recreate the callback, and can trigger an infinite request loop.
+- For reusable request hooks or page-local data loaders, key effects by stable primitive request keys, not by inline loader function identities. Prefer `useRequest(requestKey, loader)` from `@/lib/hooks` or `useEffect(..., [requestKey])`; never make the effect depend on a render-created `() => fetchJson(...)` callback, because `setState` will re-render, recreate the callback, and can trigger an infinite request loop.
+- For repeated dashboard refresh, use `usePolling()` from `@/lib/hooks`. It is single-flight and pauses interval-driven polling in hidden tabs. Do not create overlapping `setInterval + fetch` loops in page code.
 - Use `toast()`, `toast.success()`, and `toast.error()` from `sonner` for mutation feedback. The root already mounts `@/components/toaster`.
 - Use `Dialog`, `FormDialog`, `ConfirmDialog`, and `Drawer` from `@/components/overlays` for common overlay flows.
 - Use `@/components/client-only` around Recharts, dnd-kit, motion layout features, and browser-only render paths.
