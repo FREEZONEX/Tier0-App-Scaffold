@@ -8,7 +8,6 @@ import {
   type ElementType,
 } from "react";
 import {
-  Activity,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -20,7 +19,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AppUser } from "@/lib/users";
-import { ReLoginButton } from "@/components/relogin-button";
 import { filterSidebarModules } from "@/lib/app-chrome";
 import { getRoleMetadata } from "@/lib/role-metadata";
 import { can, type Action } from "@/lib/permissions";
@@ -41,17 +39,10 @@ export interface NavModule {
 export const defaultModules: NavModule[] = [
   {
     key: "dashboard",
-    label: "概览",
+    label: "Overview",
     href: "/",
     icon: LayoutDashboard,
     actions: ["view_dashboard"],
-  },
-  {
-    key: "uns_connectivity",
-    label: "UNS联通",
-    href: "/uns-connectivity",
-    icon: Activity,
-    actions: ["manage_system"],
   },
 ];
 
@@ -88,14 +79,14 @@ const MODULE_ACTIONS_BY_KEY: Record<string, Action[]> = {
 };
 
 const MODULE_ACTIONS_BY_LABEL: Record<string, Action[]> = {
-  总览: ["view_dashboard"],
-  订单链路: ["manage_sales_orders"],
-  甘特排产: ["manage_scheduling"],
-  齐套管理: ["manage_kitting"],
-  SN追溯: ["manage_traceability"],
-  主数据: ["manage_master_data"],
-  系统配置: ["manage_system"],
-  设置: ["manage_system"],
+  Overview: ["view_dashboard"],
+  "Order Flow": ["manage_sales_orders"],
+  "Gantt Scheduling": ["manage_scheduling"],
+  "Kitting Management": ["manage_kitting"],
+  "SN Traceability": ["manage_traceability"],
+  "Master Data": ["manage_master_data"],
+  "System Configuration": ["manage_system"],
+  Settings: ["manage_system"],
 };
 
 export function getModuleActions(module: NavModule): Action[] {
@@ -201,7 +192,7 @@ export function Shell({
     filterSidebarModules(modules),
     user?.role,
   );
-  const roleLabel = user?.role ? getRoleMetadata(user.role).label : "加载中";
+  const roleLabel = user?.role ? getRoleMetadata(user.role).label : "Loading";
   const collapsed = useSyncExternalStore(
     subscribeCollapsed,
     getCollapsedSnapshot,
@@ -270,7 +261,7 @@ export function Shell({
           {!isCollapsed && showBrandIdentity && (
             <div className="min-w-0 overflow-hidden transition-[max-width,opacity,transform] duration-200 ease-out">
               <p className="truncate text-sm font-semibold leading-5">
-                制造应用
+                Manufacturing App
               </p>
             </div>
           )}
@@ -285,8 +276,8 @@ export function Shell({
                 <button
                   type="button"
                   onClick={toggleCollapsed}
-                  aria-label={isCollapsed ? "展开侧边栏" : "收起侧边栏"}
-                  title={isCollapsed ? "展开侧边栏" : "收起侧边栏"}
+                  aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                  title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
                   className="inline-flex size-8 items-center justify-center rounded-sm border border-transparent bg-transparent text-muted-foreground transition-[background-color,color] duration-150 hover:bg-sidebar-accent hover:text-foreground focus:outline-none focus:ring-2 focus:ring-highlight/30"
                 >
                   {isCollapsed ? (
@@ -299,7 +290,7 @@ export function Shell({
               {showCloseControl && (
                 <button
                   type="button"
-                  aria-label="关闭导航"
+                  aria-label="Close navigation"
                   className="inline-flex size-8 items-center justify-center rounded-sm border border-transparent bg-transparent text-muted-foreground transition-[background-color,color] duration-150 hover:bg-sidebar-accent hover:text-foreground focus:outline-none focus:ring-2 focus:ring-highlight/30"
                   onClick={() => setMobileOpen(false)}
                 >
@@ -514,33 +505,18 @@ export function Shell({
         </div>
 
         {/* User block */}
-        <div
-          className={cn(
-            "border-t border-sidebar-border bg-sidebar px-3 py-3 transition-[padding] duration-200 ease-out",
-            isCollapsed ? "text-center" : "",
-          )}
-        >
-          <div
-            className={cn(
-              "min-w-0 overflow-hidden transition-[max-height,opacity,transform,margin] duration-200 ease-out",
-              isCollapsed
-                ? "mb-0 max-h-0 translate-y-1 opacity-0"
-                : "mb-2.5 max-h-16 translate-y-0 opacity-100",
-            )}
-            aria-hidden={isCollapsed}
-          >
-            <p className="truncate text-sm font-medium leading-5">
-              {user?.displayName ?? "加载中"}
-            </p>
-            <p className="mt-0.5 truncate font-mono text-xs uppercase leading-4 text-muted-foreground">
-              {roleLabel}
-            </p>
+        {!isCollapsed && (
+          <div className="border-t border-sidebar-border bg-sidebar px-3 py-3">
+            <div className="min-w-0 overflow-hidden">
+              <p className="truncate text-sm font-medium leading-5">
+                {user?.displayName ?? "Loading"}
+              </p>
+              <p className="mt-0.5 truncate font-mono text-xs uppercase leading-4 text-muted-foreground">
+                {roleLabel}
+              </p>
+            </div>
           </div>
-          <ReLoginButton
-            iconOnly={isCollapsed}
-            className="w-full border-transparent bg-transparent shadow-none hover:border-transparent hover:bg-sidebar-accent hover:shadow-none"
-          />
-        </div>
+        )}
       </nav>
     );
   }
@@ -555,7 +531,7 @@ export function Shell({
         <div className="fixed inset-0 z-40 flex md:hidden">
           <button
             type="button"
-            aria-label="关闭导航"
+            aria-label="Close navigation"
             className="absolute inset-0 bg-primary/35"
             onClick={() => setMobileOpen(false)}
           />
@@ -573,7 +549,7 @@ export function Shell({
         <div className="flex h-14 items-center border-b border-border bg-card px-4 md:hidden">
           <button
             type="button"
-            aria-label="打开导航"
+            aria-label="Open navigation"
             className="inline-flex size-10 items-center justify-center rounded-md border border-border bg-card text-foreground shadow-sm transition-[background-color,border-color,box-shadow] duration-150 hover:border-border-strong hover:bg-background hover:shadow-md focus:border-highlight focus:outline-none"
             onClick={() => setMobileOpen(true)}
           >

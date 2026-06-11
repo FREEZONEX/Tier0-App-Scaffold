@@ -1,35 +1,42 @@
 ---
 name: tier0-sdk-openapi-quickstart
 version: 0.1.0
-description: "OpenAPI 模块快速开始：runtime 配置约定、configureClient、基础 API 调用"
+description: "OpenAPI quick start: runtime config contract, configureClient guidance, and base API calls"
 ---
 
-# OpenAPI 快速开始
+# OpenAPI Quick Start
 
-## 运行时配置约定
+## Runtime Configuration Contract
 
-SDK 内置 Tier0 鉴权，并从平台/runtime 环境读取连接信息。应用部署时平台自动注入下面变量；生成 app 不要在脚手架、`.env.example`、数据库或业务 UI 中手写这些值。
+The SDK reads auth and connection values from the platform/runtime environment.
+Generated apps should not hardcode these values into the scaffold,
+`.env.example`, the database, or user-facing settings.
 
-生成应用时：
+When generating an app:
 
-- 不创建 API Key、Token、OpenAPI Host、Workspace 绑定或连接设置页面。
-- 不把 SDK 凭据保存到应用数据库。
-- 不把 SDK 鉴权变量加入 `.env.example` 或用户设置。
-- 不要求普通用户在业务 UI 中粘贴密钥。
-- 只有用户明确要求凭据管理控制台时，才生成相关 UI。
+- Do not create API key, token, OpenAPI host, workspace-binding, or generic
+  connection settings pages.
+- Do not persist SDK credentials in the application database.
+- Do not add SDK auth variables to `.env.example` or user settings.
+- Do not ask ordinary users to paste keys into business UIs.
+- Only build credential-management UI when the user explicitly asks for it.
 
-| 变量 | 用途 | 说明 |
-|------|------|------|
-| `TIER0_API_HOST` | 平台自动注入 | OpenAPI 服务地址（gwsvr） |
-| `TIER0_API_KEY` | 平台自动注入 | API 认证密钥 |
+| Variable | Purpose | Notes |
+|---|---|---|
+| `TIER0_API_HOST` | Platform-injected | OpenAPI service host |
+| `TIER0_API_KEY` | Platform-injected | API auth credential |
 
-普通业务应用不需要调用 `configureClient()` 配置鉴权；直接使用 SDK API，让平台/runtime 注入鉴权与连接信息。`configureClient()` 只用于平台外测试脚本或用户明确要求的管理员凭据控制台。
+Normal business apps do not need `configureClient()` for auth. Use the SDK API
+through the runtime-injected values. Reserve `configureClient()` for
+off-platform test scripts or an explicitly requested admin credential console.
 
-在 TanStack Start 模板中，SDK 运行时值必须 lazy load：不要在页面、loader、服务模块顶层直接 import `@tier0/sdk/openapi`。从 `@/lib/tier0` 引入 loader，并在实际 action 内部 `await`。
+In this TanStack Start scaffold, SDK loading must stay lazy. Do not top-level
+import `@tier0/sdk/openapi` in pages, loaders, or services. Load it through
+`@/lib/tier0` and await it only inside concrete actions.
 
-## 基础调用
+## Basic Calls
 
-### 读取 UNS 数据点
+### Read UNS data points
 
 ```typescript
 import { getTier0UnsApi } from '@/lib/tier0';
@@ -38,10 +45,9 @@ const unsApi = await getTier0UnsApi();
 const result = await unsApi.openapiv1unsread({
   topics: ['Plant/Line1/Metric/Temperature'],
 });
-// result: components["schemas"]["NamespaceNode"][]
 ```
 
-### 浏览命名空间
+### Browse a namespace
 
 ```typescript
 import { getTier0UnsApi } from '@/lib/tier0';
@@ -53,7 +59,7 @@ const nodes = await unsApi.openapiv1unsbrowse({
 });
 ```
 
-### 写入数据
+### Write data
 
 ```typescript
 import { getTier0UnsApi } from '@/lib/tier0';
@@ -69,7 +75,7 @@ await unsApi.openapiv1unswrite({
 });
 ```
 
-### 列出 Flow
+### List flows
 
 ```typescript
 import { getTier0FlowApi } from '@/lib/tier0';
@@ -80,9 +86,7 @@ const flows = await flowApi.openapiv1flowlist({
 });
 ```
 
-## 类型使用
-
-所有类型从 `types.ts` 导出：
+## Type Usage
 
 ```typescript
 import type { components } from '@tier0/sdk/openapi';
@@ -91,7 +95,7 @@ type BrowseReq = components['schemas']['BrowseReq'];
 type FlowInfo = components['schemas']['FlowInfo'];
 ```
 
-## 错误处理
+## Error Handling
 
 ```typescript
 import { getTier0UnsApi } from '@/lib/tier0';
@@ -101,7 +105,7 @@ try {
   const result = await unsApi.openapiv1unsread({ topics: ['invalid'] });
 } catch (error) {
   if (error instanceof Error) {
-    console.error(error.message); // "HTTP 404: ..."
+    console.error(error.message);
   }
 }
 ```

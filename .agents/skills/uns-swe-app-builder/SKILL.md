@@ -49,6 +49,7 @@ Generate complete, runnable, production-quality applications from requirements d
 
 - Start with foundational files such as package/config files, models, schemas, shared types, utilities, and route structure.
 - Build UI screens and components around the required user workflows, not around decorative landing-page sections.
+- In this scaffold, the default `src/routes/_app.index.tsx` is an intentionally blank placeholder. A finished app must not leave `/` blank. Replace it with the real workspace home, redirect it to the chosen app entry, or make the actual single-page experience own `/` directly.
 - Implement backend/API logic, persistence adapters, validation, and error handling when the requirements call for them.
 - In this TanStack Start MES scaffold, rely on the shared service-layer
   `bootstrapModule(...)` helper for runtime schema/table/index creation and
@@ -79,6 +80,12 @@ Generate complete, runnable, production-quality applications from requirements d
   or SSR startup paths. Do not hand-roll
   OpenAPI fetch wrappers, MQTT connection logic, reconnect logic, or UNS/Flow
   endpoint names already covered by the SDK.
+- When generated logic creates Tier0-side resources such as UNS nodes/topics or
+  Flows, resolve the app's real name from the spec or existing branding before
+  building resource names. Do not use the scaffold default `package.json`
+  name `scaffold` as a business namespace. If only a runtime identifier is
+  available, use `APP_ID` / `/api/manifest` `appId` as a technical identifier
+  and keep it separate from the human-readable app name.
 - Keep the scaffold's Tier0 SDK SSR bundling policy in `vite.config.ts`:
   `ssr.external: ["pg", "@tier0/sdk", "mqtt"]`. Do not put SDK packages in
   `ssr.noExternal`. If SDK SSR loading fails while a page is merely loading,

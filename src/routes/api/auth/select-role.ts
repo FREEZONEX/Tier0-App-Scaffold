@@ -1,7 +1,7 @@
 /**
  * Role selection endpoint.
  *
- * Called from the login page after the user picks a role.
+ * Reserved for platform-owned role selection surfaces such as an injected iframe.
  * Reads gateway user header for identity, validates the chosen role
  * against PERMISSION_MATRIX, then writes the signed session cookie.
  *

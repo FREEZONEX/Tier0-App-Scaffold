@@ -3,11 +3,10 @@
 import { type ReactNode } from "react";
 import { Activity } from "lucide-react";
 import type { AppUser } from "@/lib/users";
-import { ReLoginButton } from "@/components/relogin-button";
 
 export function MonitorLayout({
-  title = "监控看板",
-  subtitle = "现场运行总览",
+  title = "Operations Monitor",
+  subtitle = "Live Floor Overview",
   children,
 }: {
   user?: AppUser | null;
@@ -29,7 +28,6 @@ export function MonitorLayout({
             <p className="monitor-header-subtitle truncate">{subtitle}</p>
           </div>
         </div>
-        <ReLoginButton className="h-8 shrink-0 bg-card px-2 text-xs" />
       </header>
       <main className="monitor-stage min-h-0 flex-1 overflow-hidden bg-surface-inset">
         {children}

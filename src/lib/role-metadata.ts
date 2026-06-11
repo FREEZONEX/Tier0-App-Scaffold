@@ -8,38 +8,38 @@ export interface RoleMetadata {
 
 export const ROLE_METADATA = {
   admin: {
-    label: "管理员",
-    description: "配置系统、维护权限和处理跨模块管理事项。",
+    label: "Admin",
+    description: "Configure the system, manage permissions, and handle cross-module administration.",
     defaultRoute: APP_HOME_ROUTE,
   },
   sales: {
-    label: "销售",
-    description: "查看客户需求、订单进展和交付相关信息。",
+    label: "Sales",
+    description: "Review customer demand, order progress, and delivery-related information.",
     defaultRoute: APP_HOME_ROUTE,
   },
   planner: {
-    label: "计划员",
-    description: "维护生产计划、排程节奏和工单优先级。",
+    label: "Planner",
+    description: "Maintain production plans, scheduling cadence, and work-order priorities.",
     defaultRoute: APP_HOME_ROUTE,
   },
   production_supervisor: {
-    label: "生产主管",
-    description: "跟踪产线执行、处理异常并协调现场资源。",
+    label: "Production Supervisor",
+    description: "Track line execution, resolve exceptions, and coordinate shop-floor resources.",
     defaultRoute: APP_HOME_ROUTE,
   },
   operator: {
-    label: "操作员",
-    description: "执行工位任务、报工、扫码和提交现场反馈。",
+    label: "Operator",
+    description: "Perform station tasks, report production, scan, and submit shop-floor feedback.",
     defaultRoute: APP_HOME_ROUTE,
   },
   quality: {
-    label: "质量",
-    description: "处理检验、质量判定、异常评审和放行相关工作。",
+    label: "Quality",
+    description: "Handle inspections, quality decisions, exception reviews, and release activities.",
     defaultRoute: APP_HOME_ROUTE,
   },
   warehouse: {
-    label: "仓库",
-    description: "处理收发料、库存流转、备料和仓储执行任务。",
+    label: "Warehouse",
+    description: "Handle receiving, issuing, stock movement, staging, and warehouse execution tasks.",
     defaultRoute: APP_HOME_ROUTE,
   },
 } as const satisfies Record<string, RoleMetadata>;
@@ -49,7 +49,7 @@ export type RoleKey = keyof typeof ROLE_METADATA;
 export function getRoleMetadata(role: string): RoleMetadata {
   const metadata = ROLE_METADATA[role as RoleKey] ?? {
     label: role,
-    description: "未配置角色说明。",
+    description: "Role description is not configured.",
     defaultRoute: APP_HOME_ROUTE,
   };
 

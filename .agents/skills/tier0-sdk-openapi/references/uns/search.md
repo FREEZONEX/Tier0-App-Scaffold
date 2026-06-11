@@ -6,7 +6,7 @@ description: "POST /openapi/v1/uns/search — SearchReq"
 
 # search — `POST /openapi/v1/uns/search`
 
-## SDK 调用
+## SDK Call
 
 ```typescript
 import { getTier0UnsApi } from '@/lib/tier0';
@@ -16,9 +16,9 @@ const unsApi = await getTier0UnsApi();
 const result = await unsApi.openapiv1unssearch(body);
 ```
 
-## 请求参数
+## Request Parameters
 
-| 字段 | 类型 | 说明 |
+| Field | Type | Notes |
 |------|------|------|
 | `include_leaf_value` | boolean(boolean) |  |
 | `include_metadata` | boolean(boolean) |  |
@@ -28,11 +28,11 @@ const result = await unsApi.openapiv1unssearch(body);
 | `size` | integer(int64) |  |
 | `topicType` | string |  |
 
-## 响应类型
+## Response Type
 
 `{ code: number, msg: string }`
 
-## 使用示例
+## Example
 
 ```typescript
 import { getTier0UnsApi } from '@/lib/tier0';
@@ -40,7 +40,7 @@ import { getTier0UnsApi } from '@/lib/tier0';
 const unsApi = await getTier0UnsApi();
 
 const result = await unsApi.openapiv1unssearch({
-  // 根据实际业务填写参数
+  // Fill in values that match the actual use case
 });
 console.log(result);
 ```

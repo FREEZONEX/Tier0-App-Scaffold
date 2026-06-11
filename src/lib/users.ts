@@ -2,7 +2,7 @@
  * AppUser type definition.
  *
  * Identity fields come from the gateway (user header).
- * Role is selected by the user on the login page.
+ * Role comes from the gateway, the external role selector, or the admin default.
  *
  * Strict — no index signature. Anything in the cookie payload that isn't
  * declared here will not flow into the typed user object.

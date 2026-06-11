@@ -1,7 +1,7 @@
 ---
 name: tier0-sdk
 version: 0.1.1
-description: "Tier0 SDK — TypeScript/JavaScript 统一 SDK。涵盖 OpenAPI REST API 封装（支持 React/Vue3）和 MQ（MQTT over WebSocket）消息队列封装。triggers: Tier0, SDK, OpenAPI, REST, API, MQ, MQTT, WebSocket, React, Vue3, TypeScript"
+description: "Tier0 SDK - unified TypeScript/JavaScript SDK covering OpenAPI REST access (with React/Vue3 helpers) and MQ over WebSocket. triggers: Tier0, SDK, OpenAPI, REST, API, MQ, MQTT, WebSocket, React, Vue3, TypeScript"
 metadata:
   requires:
     npm: ["@tier0/sdk"]
@@ -9,128 +9,163 @@ metadata:
     tags: [sdk, openapi, rest, api, mq, mqtt, websocket, react, vue3]
 ---
 
-# tier0-sdk — Tier0 平台 TypeScript SDK
+# tier0-sdk - Tier0 Platform TypeScript SDK
 
-## 概述
+## Overview
 
-`@tier0/sdk` 是 Tier0 Cloud 平台的官方 TypeScript/JavaScript SDK，包含两个子模块：
+`@tier0/sdk` is the official Tier0 Cloud TypeScript/JavaScript SDK. It has two
+main submodules:
 
-| 模块 | 能力 | 适用场景 |
-|------|------|----------|
-| **openapi** | REST API 封装，含类型定义、React Hooks、Vue3 Composables | 前端/Node.js 调用 Tier0 后端 API |
-| **mq** | MQTT over WebSocket 封装，支持自动重连、断连重订阅 | 实时数据订阅、设备指令下发 |
+| Module | Capability | Best fit |
+|---|---|---|
+| `openapi` | Typed REST API client, React hooks, Vue3 composables | Frontend or Node.js access to Tier0 backend APIs |
+| `mq` | MQTT over WebSocket with reconnect and resubscribe behavior | Realtime subscriptions and command publishing |
 
-## 安装
+## Install
 
 ```bash
 npm install @tier0/sdk
 ```
 
-npm 包页面：https://www.npmjs.com/package/@tier0/sdk
+Package page: https://www.npmjs.com/package/@tier0/sdk
 
-## 平台注入环境变量
+## Platform-Injected Environment Variables
 
-SDK 内置 Tier0 平台鉴权，并从平台/runtime 环境读取连接信息。应用部署时平台自动注入这些变量；脚手架、生成 app、`.env.example`、数据库和业务 UI 都不要手写或保存这些值。
+The SDK reads auth and connection data from the platform/runtime environment.
+Applications should not hardcode or persist these values in the scaffold,
+generated apps, `.env.example`, the database, or user-facing forms.
 
-| 环境变量 | 说明 | 适用模块 |
-|----------|------|----------|
-| `TIER0_API_HOST` | 平台自动注入的 OpenAPI 服务地址 | openapi |
-| `TIER0_API_KEY` | 平台自动注入的 API 鉴权密钥 | openapi + mq |
-| `TIER0_MQTT_HOST` | 平台自动注入的 MQTT Broker 地址 | mq |
-| `TIER0_MQTT_PORT` | 平台自动注入的 MQTT WebSocket 端口（默认 8084） | mq |
+| Variable | Meaning | Used by |
+|---|---|---|
+| `TIER0_API_HOST` | Platform-injected OpenAPI service host | `openapi` |
+| `TIER0_API_KEY` | Platform-injected API credential | `openapi`, `mq` |
+| `TIER0_MQTT_HOST` | Platform-injected MQTT broker host | `mq` |
+| `TIER0_MQTT_PORT` | Platform-injected MQTT WebSocket port, default `8084` | `mq` |
 
-> 如果平台明确要求浏览器侧 SDK 读取 Vite env，由平台/runtime 注入对应 `VITE_TIER0_*`。生成 app 不要把它们加入 `.env.example` 或用户可编辑字段。
+If the platform explicitly requires browser-side env exposure, it should inject
+`VITE_TIER0_*` itself. Generated apps must not add those variables to
+`.env.example` or turn them into editable settings.
 
-## 生成应用规则
+## Rules for Generated Apps
 
-- 不生成 Tier0 SDK 配置页面、集成设置页、API Key 表单、Token 表单、OpenAPI Host 表单、MQTT Host 表单或 Workspace 绑定页面。
-- 不把密钥、host、token、credential 作为业务实体、数据库表、用户设置、`.env.example` 占位或可编辑表单字段。
-- 只有当用户明确要求“凭据管理/平台连接管理/SDK 配置控制台”时，才创建面向管理员的凭据管理 UI。
-- 普通业务应用直接调用 SDK，鉴权失败时显示业务错误或诊断信息，不引导用户在应用内粘贴密钥。
+- Do not generate Tier0 SDK config pages, integration settings pages, API key
+  forms, token forms, OpenAPI host forms, MQTT host forms, or workspace-binding
+  pages.
+- Do not treat SDK credentials, hosts, or tokens as business entities, DB
+  tables, user settings, `.env.example` placeholders, or editable form fields.
+- Only build admin-facing credential management UI when the user explicitly
+  requests a platform connection or credential console.
+- For ordinary business apps, call the SDK directly. Surface auth failures as
+  errors or diagnostics instead of asking users to paste keys into the app.
+- When the SDK is used to create UNS nodes/topics, Flow resources, or other
+  platform objects, resolve the real app name or stable machine identifier
+  first. Do not use the scaffold default package name `scaffold` as a business
+  namespace.
+- Default app-name resolution order:
+  `specs/spec.md` or the user request -> existing app branding (`__root`
+  title, login, Shell) -> runtime `APP_ID` or `/api/manifest` `appId`.
+  `APP_ID` and `appId` are machine identifiers, not automatically the
+  human-readable product name.
+- If the only available names are template defaults like `scaffold` or
+  `monoapp`, and the platform operation needs a business namespace, inspect the
+  actual app branding first or ask the user. Do not create platform resources
+  with a template default name.
 
-## TanStack Start SSR 兼容与加载边界
+## TanStack Start SSR Compatibility and Load Boundaries
 
-本脚手架在 `vite.config.ts` 固化 SDK SSR 打包策略：
+This scaffold pins the SDK SSR policy in `vite.config.ts`:
 
-```typescript
+```ts
 ssr: {
   external: ["pg", "@tier0/sdk", "mqtt"],
 }
 ```
 
-- 保留 `pg`、`@tier0/sdk`、`mqtt` external。当前 `@tier0/sdk@0.1.1` 发布的是 CommonJS 输出，必须由 Node 按 CJS 外部加载，不能放进 Vite/Rolldown SSR bundle 里当 ESM 执行。
-- 保留 `package.json` 的 `postinstall` 和 `scripts/patch-tier0-sdk.mjs`。Node 22 会因为 SDK CJS 文件里的 `import.meta` 把文件误判为 ESM；该脚本在 managed install 后给 SDK 包补 `type: "commonjs"` 并移除 CJS runtime 中的 `import.meta`。
-- 不要在页面、route loader、服务模块顶层直接 import `@tier0/sdk/openapi`、`@tier0/sdk/mq`，或任何会在 SSR 初始化阶段立即加载 SDK 的 wrapper。
-- 默认使用 `@/lib/tier0` 中的 lazy loaders，例如 `getTier0UnsApi()`、`loadTier0OpenApi()`、`loadTier0Mq()`。这些 helper 在服务端通过 `createRequire` 加载 SDK；只在实际用户动作、server route handler、mutation handler、后台 job 或“分发/发布/写入”路径里 `await`。
-- 如果预览或实际调用报 `ReferenceError: exports is not defined in ES module scope` 并且堆栈指向 `@tier0/sdk/openapi` 或 `@tier0/sdk/mq`，先确认 postinstall patch 已执行，再确认 SDK 没有被加入 `ssr.noExternal`，并检查是否有顶层 SDK import；把该 import 移到 lazy loader 调用点。
-- 不要为规避 SSR 兼容问题而手写 MQTT client、fetch wrapper、重连逻辑或 UNS/Flow endpoint 名称。
-- 如果未来新增类似 CJS 风格依赖，优先 externalize；若依赖只用于可选动作，也要保持 lazy loading，避免拖入 SSR 初始页面路径。
+- Keep `pg`, `@tier0/sdk`, and `mqtt` external. `@tier0/sdk@0.1.1` is
+  published as CommonJS and must stay out of the Vite/Rolldown SSR ESM bundle.
+- Keep `package.json` `postinstall` and `scripts/patch-tier0-sdk.mjs`. Under
+  Node 22 the SDK CJS files can be misdetected as ESM because of `import.meta`.
+  The patch script adds `type: "commonjs"` and removes CJS-side `import.meta`
+  usage after the managed install.
+- Do not top-level import `@tier0/sdk/openapi`, `@tier0/sdk/mq`, or wrappers
+  that eagerly load the SDK during SSR initialization.
+- Use the lazy helpers in `@/lib/tier0`, such as `getTier0UnsApi()`,
+  `loadTier0OpenApi()`, or `loadTier0Mq()`. Await them only inside concrete
+  actions: user-triggered reads/writes, server route handlers, mutations,
+  jobs, dispatch steps, or publish paths.
+- If preview or runtime crashes with `ReferenceError: exports is not defined in
+  ES module scope` and the stack points into `@tier0/sdk/openapi` or
+  `@tier0/sdk/mq`, first confirm the postinstall patch ran, then confirm the
+  SDK was not moved into `ssr.noExternal`, and finally check for a top-level
+  SDK import. Move that import to a lazy loader call site.
+- Do not bypass the SDK with a hand-written MQTT client, fetch wrapper,
+  reconnect loop, or custom UNS/Flow endpoint map to avoid SSR issues.
+- If another CJS-style dependency is added later, externalize it first and keep
+  optional flows lazy-loaded so SSR page entrypoints stay stable.
 
-## 子技能路由
+## Skill Routing
 
-| 意图 | 加载文件 | 说明 |
-|------|---------|------|
-| 使用 OpenAPI REST API | `$tier0-sdk-openapi` | 基础客户端、类型安全调用、React/Vue3 集成 |
-| 使用 MQ 消息队列 | `$tier0-sdk-mq` | 订阅/发布、自动重连、通配符、事件监听 |
-| 升级 SDK 版本 | 本文档「版本与升级」章节 | npm update、版本差异对照 |
+| Intent | Load | Notes |
+|---|---|---|
+| Use the OpenAPI REST API | `$tier0-sdk-openapi` | Typed REST client, React/Vue3 integration, endpoint references |
+| Use MQ | `$tier0-sdk-mq` | Subscribe/publish flows, reconnect behavior, wildcard topics |
+| Upgrade the SDK | this file, “Versioning and upgrades” | npm upgrade flow and verification steps |
 
-## 版本与升级
+## Versioning and Upgrades
 
-### 当前版本
+### Current Version
 
 ```bash
 npm list @tier0/sdk
 ```
 
-### 升级命令
+### Upgrade Commands
 
 ```bash
-# 查看最新版本
+# Show published versions
 npm view @tier0/sdk versions --json
 
-# 升级到最新版
+# Upgrade to the latest release
 npm install @tier0/sdk@latest
 
-# 升级到指定版本
+# Upgrade to a specific version
 npm install @tier0/sdk@0.2.0
 ```
 
-### 版本差异
+### Version Snapshot
 
-| 版本 | 变更内容 |
-|------|----------|
-| `0.1.1` | OpenAPI 18 个端点、MQ 订阅发布、React/Vue3 Hooks、环境变量自动读取 |
-| `0.1.0` | 初始版本 |
+| Version | Notes |
+|---|---|
+| `0.1.1` | OpenAPI endpoints, MQ subscribe/publish, React/Vue3 helpers, env-driven auth |
+| `0.1.0` | Initial release |
 
-### 升级后检查
-
-升级后建议执行以下检查：
+### Post-upgrade Checks
 
 ```bash
-# 1. 确认版本
+# Confirm the installed version
 npm list @tier0/sdk
 
-# 2. 检查 TypeScript 类型（如有类型报错，参考下方「Breaking Changes」）
+# Check TypeScript types
 npx tsc --noEmit
 
-# 3. 运行测试
+# Run tests
 npm test
 ```
 
-### Breaking Changes 策略
+### Breaking Change Policy
 
-- **minor 版本（0.x.0）**：可能包含 API 调整，升级前请查看 CHANGELOG
-- **patch 版本（0.0.x）**：仅修复 bug，可安全升级
-- 所有破坏性变更会在 CHANGELOG 中标注迁移路径
+- Minor releases (`0.x.0`) may include API adjustments. Read the changelog
+  before upgrading.
+- Patch releases (`0.0.x`) should be safe bug-fix upgrades.
+- Breaking changes should document a migration path in the changelog.
 
-## 快速示例
+## Quick Examples
 
-### OpenAPI — 读取 UNS 数据
+### OpenAPI: read UNS data
 
 ```typescript
 import { getTier0UnsApi } from '@/lib/tier0';
 
-// 平台/runtime 已自动注入 TIER0_API_HOST 和 TIER0_API_KEY
 const unsApi = await getTier0UnsApi();
 const result = await unsApi.openapiv1unsread({
   topics: ['Plant/Line1/Metric/Temperature'],
@@ -138,7 +173,7 @@ const result = await unsApi.openapiv1unsread({
 console.log(result);
 ```
 
-### MQ — 订阅实时数据
+### MQ: subscribe to realtime data
 
 ```typescript
 import { loadTier0Mq } from '@/lib/tier0';
@@ -146,7 +181,6 @@ import { loadTier0Mq } from '@/lib/tier0';
 const { Tier0MQClient } = await loadTier0Mq();
 const client = new Tier0MQClient();
 
-// 平台/runtime 已自动注入 TIER0_MQTT_HOST 和 TIER0_API_KEY
 client.subscribe('Plant/Line1/Metric/Temperature', (topic, payload) => {
   console.log(topic, JSON.parse(payload));
 });

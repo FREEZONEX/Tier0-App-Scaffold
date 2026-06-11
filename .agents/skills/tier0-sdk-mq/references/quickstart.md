@@ -1,36 +1,44 @@
 ---
 name: tier0-sdk-mq-quickstart
 version: 0.1.0
-description: "MQ 模块快速开始：runtime 配置约定、订阅、发布、取消订阅、事件监听"
+description: "MQ quick start: runtime config contract, subscribe, publish, unsubscribe, and event hooks"
 ---
 
-# MQ 快速开始
+# MQ Quick Start
 
-## 运行时配置约定
+## Runtime Configuration Contract
 
-SDK 内置 Tier0 鉴权，并从平台/runtime 环境读取 MQTT 连接信息。应用部署时平台自动注入下面变量；生成 app 不要在脚手架、`.env.example`、数据库或业务 UI 中手写这些值。
+The SDK reads MQTT auth and connection values from the platform/runtime
+environment. Generated apps should not hardcode them into the scaffold,
+`.env.example`, the database, or user-facing settings.
 
-生成应用时：
+When generating an app:
 
-- 不创建 MQTT Host、Port、API Key、Token、Workspace 绑定或连接设置页面。
-- 不把 SDK 凭据保存到应用数据库。
-- 不把 SDK 鉴权变量加入 `.env.example` 或用户设置。
-- 不要求普通用户在业务 UI 中粘贴密钥。
-- 只有用户明确要求凭据管理控制台时，才生成相关 UI。
+- Do not create MQTT host, port, API key, token, workspace-binding, or generic
+  connection settings pages.
+- Do not persist SDK credentials in the application database.
+- Do not place SDK auth values in `.env.example` or user settings.
+- Do not ask regular users to paste keys into business UIs.
+- Only build a credential console when the user explicitly requests it.
 
-| 变量 | 用途 | 说明 |
-|------|------|------|
-| `TIER0_MQTT_HOST` | 平台自动注入 | MQTT Broker 地址 |
-| `TIER0_MQTT_PORT` | 平台自动注入 | MQTT WebSocket 端口（默认 8084） |
-| `TIER0_API_KEY` | 平台自动注入 | 认证密钥（作为 MQTT password） |
+| Variable | Meaning | Notes |
+|---|---|---|
+| `TIER0_MQTT_HOST` | Platform-injected | MQTT broker host |
+| `TIER0_MQTT_PORT` | Platform-injected | MQTT WebSocket port, default `8084` |
+| `TIER0_API_KEY` | Platform-injected | Auth credential used as the MQTT password |
 
-普通业务应用直接实例化 `new Tier0MQClient()`，让 SDK/platform/runtime 提供鉴权与连接信息。不要把连接参数包成用户可编辑的前端配置页；显式传参只用于平台外测试脚本或用户明确要求的管理员凭据控制台。
+In ordinary business apps, instantiate `new Tier0MQClient()` directly and let
+SDK/platform/runtime provide auth and connection details. Explicit connection
+parameters are only for off-platform test scripts or an explicitly requested
+admin credential console.
 
-在 TanStack Start 模板中，MQ SDK 运行时值必须 lazy load：不要在页面、loader、服务模块顶层直接 import `@tier0/sdk/mq`。从 `@/lib/tier0` 引入 `loadTier0Mq()`，并在实际订阅或发布 action 内部 `await`。
+In this TanStack Start scaffold, MQ SDK loading must stay lazy. Do not top-level
+import `@tier0/sdk/mq` in pages, loaders, or services. Load it through
+`@/lib/tier0` and await it only inside concrete subscribe or publish actions.
 
-## 订阅
+## Subscribe
 
-### 基础订阅
+### Basic subscription
 
 ```typescript
 import { loadTier0Mq } from '@/lib/tier0';
@@ -43,24 +51,24 @@ client.subscribe('Plant/Line1/Metric/Temperature', (topic, payload) => {
 });
 ```
 
-### 通配符订阅
+### Wildcard subscription
 
 ```typescript
-// # 匹配多层
+// # matches multiple levels
 client.subscribe('Plant/Line1/#', (topic, payload) => {
-  // 匹配 Plant/Line1/Metric/Temperature
-  // 匹配 Plant/Line1/State/MachineStatus
+  // Matches Plant/Line1/Metric/Temperature
+  // Matches Plant/Line1/State/MachineStatus
 });
 
-// + 匹配单层
+// + matches one level
 client.subscribe('Plant/+/Metric/Temperature', (topic, payload) => {
-  // 匹配 Plant/Line1/Metric/Temperature
-  // 匹配 Plant/Line2/Metric/Temperature
-  // 不匹配 Plant/Line1/Living/Metric/Temperature
+  // Matches Plant/Line1/Metric/Temperature
+  // Matches Plant/Line2/Metric/Temperature
+  // Does not match Plant/Line1/Living/Metric/Temperature
 });
 ```
 
-### 同一 topic 多 handler
+### Multiple handlers for the same topic
 
 ```typescript
 const handler1 = (topic: string, payload: string) => {
@@ -73,10 +81,9 @@ const handler2 = (topic: string, payload: string) => {
 
 client.subscribe('sensor/temp', handler1);
 client.subscribe('sensor/temp', handler2);
-// 同一 topic 收到消息时，两个 handler 都会触发
 ```
 
-## 发布
+## Publish
 
 ```typescript
 import { loadTier0Mq } from '@/lib/tier0';
@@ -84,56 +91,50 @@ import { loadTier0Mq } from '@/lib/tier0';
 const { Tier0MQClient } = await loadTier0Mq();
 const client = new Tier0MQClient();
 
-// 发布字符串
 await client.publish('Device/Cmd', 'START');
 
-// 发布对象（内部 JSON.stringify）
 await client.publish('Device/Cmd', {
   action: 'setSpeed',
   params: { speed: 120 },
 });
 
-// 自定义 qos 和 retain
 await client.publish('Device/Status', 'online', { qos: 2, retain: true });
 ```
 
-## 取消订阅
+## Unsubscribe
 
 ```typescript
-// 取消特定 handler
 client.unsubscribe('sensor/temp', handler1);
-
-// 取消 topic 下所有 handler
 client.unsubscribe('sensor/temp');
 ```
 
-## 事件监听
+## Event Hooks
 
 ```typescript
 const client = new Tier0MQClient();
 
 client.on('connect', () => {
-  console.log('MQ 已连接');
+  console.log('MQ connected');
 });
 
 client.on('disconnect', () => {
-  console.log('MQ 已断开');
+  console.log('MQ disconnected');
 });
 
 client.on('error', (err) => {
-  console.error('MQ 错误:', err);
+  console.error('MQ error:', err);
 });
 ```
 
-## 断开连接
+## Disconnect
 
 ```typescript
 client.disconnect();
 ```
 
-## 状态检查
+## Status Checks
 
 ```typescript
-console.log(client.isConnected);      // boolean
-console.log(client.subscribedTopics); // string[]
+console.log(client.isConnected);
+console.log(client.subscribedTopics);
 ```

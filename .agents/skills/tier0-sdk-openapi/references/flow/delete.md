@@ -6,7 +6,7 @@ description: "POST /openapi/v1/flow/delete — FlowDeleteReq"
 
 # delete — `POST /openapi/v1/flow/delete`
 
-## SDK 调用
+## SDK Call
 
 ```typescript
 import { getTier0FlowApi } from '@/lib/tier0';
@@ -16,17 +16,17 @@ const flowApi = await getTier0FlowApi();
 const result = await flowApi.openapiv1flowdelete(body);
 ```
 
-## 请求参数
+## Request Parameters
 
-| 字段 | 类型 | 说明 |
+| Field | Type | Notes |
 |------|------|------|
 | `ids` | array |  **required** |
 
-## 响应类型
+## Response Type
 
 `components["schemas"]["FlowEmptyResp"]`
 
-## 使用示例
+## Example
 
 ```typescript
 import { getTier0FlowApi } from '@/lib/tier0';
@@ -34,7 +34,7 @@ import { getTier0FlowApi } from '@/lib/tier0';
 const flowApi = await getTier0FlowApi();
 
 const result = await flowApi.openapiv1flowdelete({
-  // 根据实际业务填写参数
+  // Fill in values that match the actual use case
 });
 console.log(result);
 ```

@@ -1,6 +1,6 @@
 /**
  * Logout endpoint — clears the session cookie.
- * User is redirected back to /login to re-select a role.
+ * No product UI currently exposes this action; if called directly, return home.
  */
 
 import { createFileRoute } from "@tanstack/react-router";
@@ -13,7 +13,7 @@ export const Route = createFileRoute("/api/auth/logout")({
     handlers: {
       POST: async () => {
         deleteCookie(SESSION_COOKIE, { path: "/" });
-        return Response.json({ redirect: "/login" });
+        return Response.json({ redirect: "/" });
       },
     },
   },

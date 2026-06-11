@@ -197,7 +197,7 @@ function formatSpcValue(value: number, unit?: string) {
 
 export function SpcChart({
   data,
-  title = "过程控制",
+  title = "Process Control",
   unit,
   className,
 }: {
@@ -216,7 +216,7 @@ export function SpcChart({
         <div>
           <p className="text-sm font-medium text-foreground">{title}</p>
           <p className="text-xs text-muted-foreground">
-            最近 {data.length} 个采样点
+            Latest {data.length} samples
           </p>
         </div>
         {data.length > 0 ? (
@@ -233,8 +233,8 @@ export function SpcChart({
               <XAxis dataKey="label" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} width={44} />
               <Tooltip
-                formatter={(value: number) => [formatSpcValue(Number(value), unit), "测量值"]}
-                labelFormatter={(label) => `采样 ${label}`}
+                formatter={(value: number) => [formatSpcValue(Number(value), unit), "Measured Value"]}
+                labelFormatter={(label) => `Sample ${label}`}
               />
               {limitSource?.ucl !== undefined ? (
                 <ReferenceLine
@@ -298,7 +298,7 @@ export interface ParetoItem {
 
 export function ParetoChart({
   items,
-  title = "帕累托分析",
+  title = "Pareto Analysis",
   unit,
   className,
 }: {
@@ -322,10 +322,10 @@ export function ParetoChart({
       <div className="mb-3 flex items-center justify-between gap-3">
         <div>
           <p className="text-sm font-medium text-foreground">{title}</p>
-          <p className="text-xs text-muted-foreground">总计 {total.toLocaleString()}{unit ?? ""}</p>
+          <p className="text-xs text-muted-foreground">Total {total.toLocaleString()}{unit ?? ""}</p>
         </div>
         {data.length > 0 ? (
-          <p className="text-xs text-muted-foreground">已按数量从高到低排序</p>
+          <p className="text-xs text-muted-foreground">Sorted by quantity, highest to lowest</p>
         ) : null}
       </div>
       <div className="h-72 min-w-0">
@@ -353,8 +353,8 @@ export function ParetoChart({
               <Tooltip
                 formatter={(value: number, name: string) =>
                   name === "cumulative"
-                    ? [`${Number(value).toFixed(1)}%`, "累计占比"]
-                    : [`${Number(value).toLocaleString()}${unit ?? ""}`, "数量"]
+                    ? [`${Number(value).toFixed(1)}%`, "Cumulative Share"]
+                    : [`${Number(value).toLocaleString()}${unit ?? ""}`, "Count"]
                 }
               />
               <Bar
@@ -426,31 +426,31 @@ const timelineStates: Record<string, { icon: LucideIcon; badgeClassName: string;
     icon: CircleCheck,
     badgeClassName: "border-state-running-border bg-state-running-bg text-state-running-fg",
     iconClassName: "border-state-running-border bg-state-running-bg text-state-running-fg",
-    label: "已完成",
+    label: "Completed",
   },
   running: {
     icon: Play,
     badgeClassName: "border-state-info-border bg-state-info-bg text-state-info-fg",
     iconClassName: "border-state-info-border bg-state-info-bg text-state-info-fg",
-    label: "进行中",
+    label: "In Progress",
   },
   pending: {
     icon: Clock,
     badgeClassName: "border-border bg-background text-muted-foreground",
     iconClassName: "border-border bg-background text-muted-foreground",
-    label: "待处理",
+    label: "Pending",
   },
   warning: {
     icon: CircleAlert,
     badgeClassName: "border-state-paused-border bg-state-paused-bg text-state-paused-fg",
     iconClassName: "border-state-paused-border bg-state-paused-bg text-state-paused-fg",
-    label: "异常",
+    label: "Exception",
   },
   failed: {
     icon: CircleAlert,
     badgeClassName: "border-state-error-border bg-state-error-bg text-state-error-fg",
     iconClassName: "border-state-error-border bg-state-error-bg text-state-error-fg",
-    label: "失败",
+    label: "Failed",
   },
 };
 
@@ -475,7 +475,7 @@ export function EventTimeline({
     <section className={cn("rounded-sm border border-border bg-card p-4", className)}>
       {events.length === 0 ? (
         <div className="rounded-sm border border-dashed border-border bg-surface-inset px-3 py-8 text-center text-sm text-muted-foreground">
-          暂无事件记录
+          No events recorded
         </div>
       ) : (
         <div className="space-y-0">
@@ -543,31 +543,31 @@ const processStates: Record<string, { icon: LucideIcon; iconClassName: string; c
     icon: CheckCircle2,
     iconClassName: "border-state-running-border bg-state-running-bg text-state-running-fg",
     connectorClassName: "bg-state-running-border",
-    label: "已完成",
+    label: "Completed",
   },
   running: {
     icon: Play,
     iconClassName: "border-state-info-border bg-state-info-bg text-state-info-fg",
     connectorClassName: "bg-state-info-border",
-    label: "进行中",
+    label: "In Progress",
   },
   pending: {
     icon: Clock3,
     iconClassName: "border-border bg-background text-muted-foreground",
     connectorClassName: "bg-border",
-    label: "待处理",
+    label: "Pending",
   },
   warning: {
     icon: CircleAlert,
     iconClassName: "border-state-paused-border bg-state-paused-bg text-state-paused-fg",
     connectorClassName: "bg-state-paused-border",
-    label: "异常",
+    label: "Exception",
   },
   failed: {
     icon: CircleAlert,
     iconClassName: "border-state-error-border bg-state-error-bg text-state-error-fg",
     connectorClassName: "bg-state-error-border",
-    label: "失败",
+    label: "Failed",
   },
 };
 
@@ -635,22 +635,22 @@ const stepStates: Record<string, { badgeClassName: string; circleClassName: stri
   completed: {
     badgeClassName: "text-state-running-fg",
     circleClassName: "border-state-running-border bg-state-running-bg text-state-running-fg",
-    label: "已完成",
+    label: "Completed",
   },
   current: {
     badgeClassName: "text-state-info-fg",
     circleClassName: "border-state-info-border bg-state-info-bg text-state-info-fg",
-    label: "当前",
+    label: "Current",
   },
   upcoming: {
     badgeClassName: "text-muted-foreground",
     circleClassName: "border-border bg-background text-muted-foreground",
-    label: "未开始",
+    label: "Not Started",
   },
   failed: {
     badgeClassName: "text-state-error-fg",
     circleClassName: "border-state-error-border bg-state-error-bg text-state-error-fg",
-    label: "异常",
+    label: "Exception",
   },
 };
 
@@ -669,7 +669,7 @@ export function StepIndicator({
   className?: string;
 }) {
   return (
-    <nav className={cn("rounded-sm border border-border bg-card p-3", className)} aria-label="流程步骤">
+    <nav className={cn("rounded-sm border border-border bg-card p-3", className)} aria-label="Process steps">
       <ol className="flex flex-wrap gap-2">
         {steps.map((step, index) => {
           const state = stepStates[step.state?.toLowerCase() ?? "upcoming"] ?? stepStates.upcoming;
@@ -729,9 +729,9 @@ export function TargetBar({
         <div className="min-w-0">
           <p className="text-sm font-medium text-foreground">{label}</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            实际 {actual.toLocaleString()}
+            Actual {actual.toLocaleString()}
             {unit ? unit : ""}
-            {" / "}目标 {target.toLocaleString()}
+            {" / "}Target {target.toLocaleString()}
             {unit ? unit : ""}
           </p>
         </div>
@@ -749,7 +749,7 @@ export function TargetBar({
         </div>
         <div className="mt-1 flex items-center justify-between text-[11px] text-muted-foreground">
           <span>0</span>
-          <span>目标</span>
+          <span>Target</span>
         </div>
       </div>
     </section>
@@ -837,7 +837,7 @@ export function ShiftBar({
         ) : null}
       </div>
       {currentMinute !== undefined ? (
-        <p className="mt-2 text-xs text-muted-foreground">当前时间 {formatMinuteLabel(currentMinute)}</p>
+        <p className="mt-2 text-xs text-muted-foreground">Current time {formatMinuteLabel(currentMinute)}</p>
       ) : null}
     </section>
   );
@@ -926,27 +926,27 @@ const fleetStates: Record<string, { icon: LucideIcon; badgeClassName: string; la
   running: {
     icon: Play,
     badgeClassName: "border-state-running-border bg-state-running-bg text-state-running-fg",
-    label: "运行中",
+    label: "Running",
   },
   idle: {
     icon: Activity,
     badgeClassName: "border-border bg-background text-muted-foreground",
-    label: "空闲",
+    label: "Idle",
   },
   paused: {
     icon: Pause,
     badgeClassName: "border-state-paused-border bg-state-paused-bg text-state-paused-fg",
-    label: "暂停",
+    label: "Paused",
   },
   warning: {
     icon: CircleAlert,
     badgeClassName: "border-state-paused-border bg-state-paused-bg text-state-paused-fg",
-    label: "预警",
+    label: "Warning",
   },
   failed: {
     icon: CircleAlert,
     badgeClassName: "border-state-error-border bg-state-error-bg text-state-error-fg",
-    label: "故障",
+    label: "Fault",
   },
 };
 
@@ -971,7 +971,7 @@ export function FleetGrid({
     <section className={cn("rounded-sm border border-border bg-card p-4", className)}>
       {assets.length === 0 ? (
         <div className="rounded-sm border border-dashed border-border bg-surface-inset px-3 py-8 text-center text-sm text-muted-foreground">
-          暂无设备
+          No equipment
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -1178,7 +1178,7 @@ function KanbanBoardStatic({
             <div className="mb-3 flex items-center justify-between gap-2">
               <div>
                 <p className="text-sm font-medium text-foreground">{column.title}</p>
-                <p className="text-xs text-muted-foreground">{column.items.length} 条</p>
+                <p className="text-xs text-muted-foreground">{column.items.length} items</p>
               </div>
             </div>
             <div className="space-y-2">
@@ -1187,7 +1187,7 @@ function KanbanBoardStatic({
               ))}
               {column.items.length === 0 ? (
                 <div className="rounded-sm border border-dashed border-border bg-background px-3 py-6 text-center text-sm text-muted-foreground">
-                  暂无内容
+                  No items
                 </div>
               ) : null}
             </div>
@@ -1238,7 +1238,7 @@ function KanbanLane({
       <div className="mb-3 flex items-center justify-between gap-2">
         <div>
           <p className="text-sm font-medium text-foreground">{column.title}</p>
-          <p className="text-xs text-muted-foreground">{column.items.length} 条</p>
+          <p className="text-xs text-muted-foreground">{column.items.length} items</p>
         </div>
       </div>
       <SortableContext items={column.items.map((item) => item.id)} strategy={verticalListSortingStrategy}>
@@ -1248,7 +1248,7 @@ function KanbanLane({
           )}
           {column.items.length === 0 ? (
             <div className="rounded-sm border border-dashed border-border bg-background px-3 py-6 text-center text-sm text-muted-foreground">
-              拖到这里
+              Drop here
             </div>
           ) : null}
         </div>
@@ -1294,7 +1294,7 @@ function KanbanCard({
           <button
             type="button"
             className="mt-0.5 inline-flex size-6 shrink-0 items-center justify-center rounded-sm border border-border bg-surface-inset text-muted-foreground"
-            aria-label="拖动卡片"
+            aria-label="Drag card"
             {...dragHandleProps}
           >
             <GripVertical className="size-3.5" aria-hidden />
@@ -1319,25 +1319,25 @@ const alarmTones: Record<string, { icon: LucideIcon; className: string; iconWrap
     icon: AlertTriangle,
     className: "border-state-paused-border bg-state-paused-bg text-state-paused-fg",
     iconWrapClassName: "border-state-paused-border bg-background/60 text-state-paused-fg",
-    label: "预警",
+    label: "Warning",
   },
   critical: {
     icon: ShieldAlert,
     className: "border-state-error-border bg-state-error-bg text-state-error-fg",
     iconWrapClassName: "border-state-error-border bg-background/60 text-state-error-fg",
-    label: "严重",
+    label: "Critical",
   },
   info: {
     icon: BellRing,
     className: "border-state-info-border bg-state-info-bg text-state-info-fg",
     iconWrapClassName: "border-state-info-border bg-background/60 text-state-info-fg",
-    label: "提示",
+    label: "Info",
   },
   blocked: {
     icon: CircleAlert,
     className: "border-state-error-border bg-state-error-bg text-state-error-fg",
     iconWrapClassName: "border-state-error-border bg-background/60 text-state-error-fg",
-    label: "阻塞",
+    label: "Blocking",
   },
 };
 
@@ -1398,7 +1398,7 @@ export function AlarmBanner({
                   onClick={onDismiss}
                 >
                   <X className="size-3.5" aria-hidden />
-                  关闭
+                  Close
                 </button>
               ) : null}
             </div>
@@ -1433,7 +1433,7 @@ export function Leaderboard({
     <section className={cn("rounded-sm border border-border bg-card p-4", className)}>
       {items.length === 0 ? (
         <div className="rounded-sm border border-dashed border-border bg-surface-inset px-3 py-8 text-center text-sm text-muted-foreground">
-          暂无排行数据
+          No ranking data
         </div>
       ) : (
         <ol className="space-y-2">
@@ -1548,10 +1548,10 @@ export function GanttBoard({
   };
 
   const summaryItems = [
-    { key: "total", label: "排产任务", value: summary.total, tone: "neutral" as const },
-    { key: "running", label: "运行中", value: summary.running, tone: "running" as const },
-    { key: "risk", label: "风险任务", value: summary.risk, tone: "risk" as const },
-    { key: "locked", label: "锁定任务", value: summary.locked, tone: "locked" as const },
+    { key: "total", label: "Scheduled Jobs", value: summary.total, tone: "neutral" as const },
+    { key: "running", label: "Running", value: summary.running, tone: "running" as const },
+    { key: "risk", label: "At-Risk Jobs", value: summary.risk, tone: "risk" as const },
+    { key: "locked", label: "Locked Jobs", value: summary.locked, tone: "locked" as const },
   ];
 
   return (
@@ -1568,16 +1568,16 @@ export function GanttBoard({
       <div className="wide-operational-board rounded-sm border border-border bg-card p-4">
         <div className="mb-4 flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h2 className="text-sm font-medium">资源甘特板</h2>
+            <h2 className="text-sm font-medium">Resource Gantt Board</h2>
             <p className="text-xs text-muted-foreground">
-              时间窗口：{format(timeline.start, "MM-dd HH:mm")} - {format(timeline.end, "MM-dd HH:mm")}
+              Time window: {format(timeline.start, "MM-dd HH:mm")} - {format(timeline.end, "MM-dd HH:mm")}
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs">
             {[
-              ["计划", "bg-gantt-planned-border"],
-              ["运行", "bg-gantt-running-fg"],
-              ["风险", "bg-gantt-risk-fg"],
+              ["Planned", "bg-gantt-planned-border"],
+              ["Running", "bg-gantt-running-fg"],
+              ["Risk", "bg-gantt-risk-fg"],
             ].map(([label, color]) => (
               <span key={label} className="inline-flex items-center gap-1 rounded-sm border border-border bg-background px-2 py-1 text-muted-foreground">
                 <span className={cn("size-2 rounded-full", color)} aria-hidden />
@@ -1591,7 +1591,7 @@ export function GanttBoard({
           <div className="gantt-scroll-content">
             <div className="gantt-board-grid sticky top-0 z-20 border-b border-border bg-card">
               <div className="sticky left-0 z-30 border-r border-border bg-card py-3 pr-4 text-xs font-medium uppercase tracking-[0.03em] text-muted-foreground">
-                资源 / 负载
+                Resource / Load
               </div>
               <div className="relative py-2">
                 <div
@@ -1621,7 +1621,7 @@ export function GanttBoard({
                     aria-hidden
                   >
                     <span className="absolute -top-1 left-1 rounded-sm bg-state-error-bg px-1.5 py-0.5 font-mono text-[10px] text-state-error-fg">
-                      现在
+                      Now
                     </span>
                   </div>
                 ) : null}
@@ -1642,7 +1642,7 @@ export function GanttBoard({
                       <div className="gantt-time-label uppercase">{resource.code}</div>
                       <div className="mt-3">
                         <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
-                          <span>资源负载</span>
+                          <span>Resource Load</span>
                           <span>{load}%</span>
                         </div>
                         <div className="h-2 rounded-full bg-border/70">
@@ -1672,7 +1672,7 @@ export function GanttBoard({
                       {rowTasks.length === 0 ? (
                         <div className="relative p-3">
                           <div className="rounded-sm border border-dashed border-border bg-background px-3 py-4 text-sm text-muted-foreground">
-                            暂无排产任务
+                            No scheduled jobs
                           </div>
                         </div>
                       ) : (
@@ -1709,7 +1709,7 @@ export function GanttBoard({
                                   onClick={() => onDelayTask(task)}
                                   disabled={pendingTaskId === task.id}
                                 >
-                                  顺延
+                                  Shift
                                 </button>
                               ) : null}
                             </div>

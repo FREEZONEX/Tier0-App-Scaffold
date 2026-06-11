@@ -1,14 +1,14 @@
 ---
 name: tier0-sdk-flow-nodes
 version: 0.1.0
-description: "SDK 调用 flow nodes — 查询 Node-RED 可用节点列表"
+description: "SDK flow nodes call - query the Node-RED node types available in the current workspace"
 ---
 
-# flow nodes — 可用节点查询
+# flow nodes - available node lookup
 
-构造 flowsJson 前，优先查询当前 Workspace 对应 Flow 类型的实际可用节点。
+Before constructing `flowsJson`, query the actual node types available for the current workspace and target Flow type.
 
-> **关键**：flowsJson 中每个节点对象的 `"type"` 字段必须与 `/flow/nodes` 返回的 `types` 完全一致，否则 Node-RED 无法识别。
+> The `"type"` field on each node in `flowsJson` must exactly match one of the strings returned by `/flow/nodes`. If it does not, Node-RED will reject the flow definition.
 
 ## API
 
@@ -16,33 +16,33 @@ description: "SDK 调用 flow nodes — 查询 Node-RED 可用节点列表"
 POST /openapi/v1/flow/nodes
 ```
 
-## 请求参数
+## Request Parameters
 
-| 字段 | 类型 | 必填 | 说明 |
+| Field | Type | Required | Notes |
 |------|------|------|------|
-| `flowType` | string | 是 | `SourceFlow` 或 `EventFlow`；后端也兼容 `source` / `event` |
+| `flowType` | string | yes | `SourceFlow` or `EventFlow`; the backend also accepts `source` / `event` |
 
-## SDK 调用示例
+## SDK Call Example
 
 ```typescript
 import { getTier0FlowApi } from '@/lib/tier0';
 
 const flowApi = await getTier0FlowApi();
 
-// 查询 SourceFlow 可用节点
+// Query available nodes for SourceFlow
 const sourceNodes = await flowApi.openapiv1flownodes({
   flowType: 'SourceFlow',
 });
 console.log(sourceNodes);
 
-// 查询 EventFlow 可用节点
+// Query available nodes for EventFlow
 const eventNodes = await flowApi.openapiv1flownodes({
   flowType: 'EventFlow',
 });
 console.log(eventNodes);
 ```
 
-## 响应结构
+## Response Shape
 
 ```json
 {
@@ -63,9 +63,9 @@ console.log(eventNodes);
 }
 ```
 
-## 使用规则
+## Usage Rules
 
-1. 只把 `data.nodes[].types[]` 里的字符串当作 flowsJson 的节点 `type` 值。
-2. `enabled=false` 的节点集不要用于新画布。
-3. 同一个节点类型在 `SourceFlow` 和 `EventFlow` 中可能不同，按目标 Flow 类型分别查询。
-4. 查询接口返回的结果优先级高于静态参考表。
+1. Only use strings from `data.nodes[].types[]` as `flowsJson` node `type` values.
+2. Do not use node sets where `enabled=false` for new canvases.
+3. The same logical node may differ between `SourceFlow` and `EventFlow`, so query them separately.
+4. The live API response takes precedence over any static reference table.

@@ -3,7 +3,6 @@
 import { type ReactNode } from "react";
 import { ClipboardCheck, ShieldCheck } from "lucide-react";
 import type { AppUser } from "@/lib/users";
-import { ReLoginButton } from "@/components/relogin-button";
 
 export function ReviewLayout({
   user,
@@ -20,8 +19,8 @@ export function ReviewLayout({
             <ClipboardCheck className="size-5" />
           </div>
           <div className="min-w-0">
-            <p className="truncate text-base font-semibold leading-6">审核处理</p>
-            <p className="caption truncate">待审队列</p>
+            <p className="truncate text-base font-semibold leading-6">Review Operations</p>
+            <p className="caption truncate">Pending Queue</p>
           </div>
         </div>
         <div className="flex min-w-0 items-stretch gap-2 sm:items-center">
@@ -29,11 +28,10 @@ export function ReviewLayout({
             <ShieldCheck className="size-4 shrink-0 text-muted-foreground" />
             <div className="min-w-0 text-right">
               <p className="truncate text-sm font-medium leading-5">
-                {user?.displayName ?? "加载中"}
+                {user?.displayName ?? "Loading"}
               </p>
             </div>
           </div>
-          <ReLoginButton className="shrink-0 justify-center bg-card" />
         </div>
       </header>
       <main className="page-y-scroll min-h-0 flex-1 bg-surface-inset">

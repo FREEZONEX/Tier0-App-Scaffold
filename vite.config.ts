@@ -80,12 +80,8 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: [
-      "@dnd-kit/core",
-      "@dnd-kit/sortable",
-      "@tanstack/react-table",
       "lucide-react",
       "motion",
-      "recharts",
     ],
   },
   plugins: [

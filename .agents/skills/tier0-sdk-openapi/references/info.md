@@ -1,12 +1,12 @@
 ---
 name: tier0-sdk-openapi-info
 version: 0.1.0
-description: "POST /openapi/v1/info — InfoReq"
+description: "POST /openapi/v1/info - InfoReq"
 ---
 
-# info — `POST /openapi/v1/info`
+# info - `POST /openapi/v1/info`
 
-## SDK 调用
+## SDK Call
 
 ```typescript
 import { getTier0SystemApi } from '@/lib/tier0';
@@ -16,17 +16,17 @@ const systemApi = await getTier0SystemApi();
 const result = await systemApi.openapiv1info(body);
 ```
 
-## 请求参数
+## Request Parameters
 
-| 字段 | 类型 | 说明 |
+| Field | Type | Notes |
 |------|------|------|
 | — | — | — |
 
-## 响应类型
+## Response Type
 
 `{ code: number, msg: string }`
 
-## 使用示例
+## Example
 
 ```typescript
 import { getTier0SystemApi } from '@/lib/tier0';
@@ -34,7 +34,7 @@ import { getTier0SystemApi } from '@/lib/tier0';
 const systemApi = await getTier0SystemApi();
 
 const result = await systemApi.openapiv1info({
-  // 根据实际业务填写参数
+  // No body fields are currently required.
 });
 console.log(result);
 ```

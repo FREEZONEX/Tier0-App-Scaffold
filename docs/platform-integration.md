@@ -1,133 +1,152 @@
-# 平台集成与部署
+# Platform Integration and Deployment
 
-## 环境变量
+## Environment Variables
 
-没有模式开关。变量不设就是本地行为，设了就启用对应能力。
+There is no explicit mode switch. If a variable is missing, the app uses its
+local/default behavior. If the variable is present, the corresponding platform
+capability is enabled.
 
-### 必填
+### Required
 
-| 变量 | 说明 |
-|------|------|
-| `DATABASE_URL` | PostgreSQL 连接串，数据库名 = project ID |
-| `SESSION_SECRET` | HMAC 签名 session cookie 的密钥（≥32 字符）。**生产必填**；本地不设时进程启动随机生成（重启即失效）。生成命令：`node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
+| Variable | Description |
+|---|---|
+| `DATABASE_URL` | PostgreSQL connection string. The database name should match the project id. |
+| `SESSION_SECRET` | HMAC signing key for the session cookie (32+ chars). **Required in production**. If omitted locally, the process generates a random value at startup and all sessions are invalidated on restart. Example: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
 
-### 可选
+### Optional
 
-| 变量 | 说明 |
-|------|------|
-| `DIRECT_DATABASE_URL` | 直连地址（绕过连接池），`drizzle-kit push` 和 `seed.ts` 优先使用 |
+| Variable | Description |
+|---|---|
+| `DIRECT_DATABASE_URL` | Direct DB connection that bypasses the pool. Preferred by `drizzle-kit push` and `seed.ts`. |
 
-### 平台注入（不设则不生效，本地开发不需要）
+### Platform-Injected
 
-| 变量 | 不设时的行为 | 设了之后 |
-|------|------------|--------|
-| `DB_SCHEMA` | 使用 `public` schema | 所有查询在指定 schema 下执行 |
-| `APP_ID` | 默认 `"monoapp"` | `/api/manifest` 返回对应 appId |
-| `VITE_BASE_PATH` | 无 URL 前缀 | `apiUrl()` 和 Vite `base` 加前缀 |
-| `NEXT_PUBLIC_BASE_PATH` | （兼容旧名）同上 | `apiUrl()` 在 `VITE_BASE_PATH` 缺失时回落读取此变量 |
-| `TIER0_API_HOST` | — | 平台自动注入 Tier0 OpenAPI 服务地址 |
-| `TIER0_API_KEY` | — | 平台自动注入 Tier0 API 鉴权密钥，OpenAPI 和 MQTT 共用 |
-| `TIER0_MQTT_HOST` | — | 平台自动注入 Tier0 MQTT WebSocket Broker 地址 |
-| `TIER0_MQTT_PORT` | 默认 `8084` | 平台自动注入 Tier0 MQTT WebSocket 端口 |
+These variables are platform-driven. Local development does not need them.
 
-`DB_SCHEMA` 和 `APP_ID` 设为同一个值（session ID）。
-Tier0 SDK 变量由平台部署时注入，不写入脚手架 `.env.example`，也不由生成 app 提供用户配置 UI。
+| Variable | Behavior when unset | Behavior when set |
+|---|---|---|
+| `DB_SCHEMA` | Uses the `public` schema | Runs all queries in the specified schema |
+| `APP_ID` | Defaults to `"monoapp"` | Returned by `/api/manifest` as the app id |
+| `VITE_BASE_PATH` | No URL prefix | Applied by `apiUrl()` and Vite `base` |
+| `NEXT_PUBLIC_BASE_PATH` | Legacy fallback only | Read by `apiUrl()` if `VITE_BASE_PATH` is missing |
+| `TIER0_API_HOST` | — | Tier0 OpenAPI host injected by the platform |
+| `TIER0_API_KEY` | — | Tier0 API credential injected by the platform; shared by OpenAPI and MQTT |
+| `TIER0_MQTT_HOST` | — | Tier0 MQTT WebSocket broker host injected by the platform |
+| `TIER0_MQTT_PORT` | Defaults to `8084` | Tier0 MQTT WebSocket port injected by the platform |
+
+`DB_SCHEMA` and `APP_ID` are typically set to the same session id. Tier0 SDK
+variables are injected by the platform during deployment. Do not place them in
+`.env.example`, and do not generate application UI for end users to edit them.
 
 ---
 
-## 认证模型
+## Authentication Model
 
-认证由平台网关统一处理。App 不管理密码和用户账号。
+Authentication is handled by the platform gateway. The app does not manage
+passwords or user accounts.
 
-### 网关注入的 Header 格式（三选一）
+### Supported Header Formats
 
-`role` 字段为**可选**——网关如果给了，App 自动用；不给则用户在 `/login` 自选。
+The `role` field is optional. If the gateway provides it, the app uses it
+directly. If not, the app falls back to `/login` for role selection.
 
-**格式 1：JSON `user` header**
-```
+**Format 1: JSON `user` header**
+
+```text
 user: {"userID":"uuid-123","userName":"mercy","email":"mercy@example.com","role":"operator"}
 ```
 
-**格式 2：独立 header**
-```
+**Format 2: separate headers**
+
+```text
 X-App-User-ID:    uuid-123
 X-App-User-Name:  mercy
 X-App-User-Email: mercy@example.com
 X-App-User-Role:  operator
 ```
 
-**格式 3：最小集（无 role，落到 `/login` 让用户选）**
-```
+**Format 3: minimum set**
+
+```text
 X-App-User-ID: uuid-123
 ```
 
-至少需要 user ID。`name` 和 `email` 缺失时以 ID 兜底；`role` 缺失则不自动签发 session。
+At minimum, a user id must be present. If `name` or `email` is missing, the
+app falls back to the user id. If `role` is missing, the app does not
+automatically sign a session.
 
-### 认证流程（Mode A：网关角色优先）
+### Authentication Flow (Mode A: gateway role first)
 
+```text
+Browser -> Gateway (validates platform login) -> injects user + role headers -> App
+  -> src/start.ts middleware:
+
+      has mes-session cookie
+        -> allow request
+
+      no cookie + gateway role exists in PERMISSION_MATRIX
+        -> sign mes-session cookie automatically
+        -> 302 back to the same URL
+        -> allow request
+
+      no cookie + gateway role missing or invalid
+        -> 302 /login?from=...
+        -> POST /api/auth/select-role writes cookie
+
+      no cookie + no gateway header
+        -> 401
 ```
-浏览器 → 网关（验证平台登录）→ 注入 user + role header → App
-  → src/start.ts 全局请求中间件：
 
-      ┌── 有 mes-session cookie ───────────────────→ 放行
-      │
-      ├── 无 cookie + 网关 role 在 PERMISSION_MATRIX 中
-      │      → 自动签发 mes-session cookie（HMAC 签名）
-      │      → 302 回原 URL（带 cookie 重新发起请求）→ 放行
-      │
-      ├── 无 cookie + 网关无可用 role（未给 / 不在矩阵）
-      │      → 302 /login?from=… 让用户选
-      │      → POST /api/auth/select-role 写 cookie
-      │
-      └── 无 cookie + 无网关 header
-             → 401（非平台用户）
-```
+The second branch is the core of Mode A: users never see `/login` when the
+gateway already provides a valid app role.
 
-第二条分支是 Mode A 的核心：**用户从不见到 `/login` 页面**，只要网关把 role 给了。
+### Role Management
 
-### 角色管理
+Role definitions belong to the app. Role assignment belongs to the platform.
 
-角色定义由 App 决定，分配由平台决定。
+1. The agent defines `PERMISSION_MATRIX` in `permissions.ts`
+2. The platform calls `GET /api/manifest` to discover valid roles
+3. The platform assigns a role to each user in its admin UI
+4. The gateway injects that role into forwarded requests
+5. The app validates the role against `PERMISSION_MATRIX` and signs the session
 
-1. Agent 在 `permissions.ts` 中定义 `PERMISSION_MATRIX`（角色 → 允许的操作）
-2. 平台调 `GET /api/manifest` 拿角色列表，平台 admin UI 给用户分配 role
-3. 平台后续转发请求时把 role 一起注入 header
-4. App 中间件验证 role 存在于 `PERMISSION_MATRIX` 后自动签发 session
+The injected `role` string must exactly match a `PERMISSION_MATRIX` key.
+`"Operator"` and `"operator"` are different values. Unknown roles fail closed:
+they do not gain access automatically and fall back to `/login`.
 
-**重要：** 网关注入的 `role` 字符串必须**精确匹配** `PERMISSION_MATRIX` 的 key（区分大小写）。`"Operator"` ≠ `"operator"`。Agent 与平台 admin UI 协调命名。
-
-未知 role 不会自动放行——会落回 `/login`（fail-closed）。Shell 不再有 "Switch Role" 按钮：Mode A 下角色由平台说了算，要换岗去平台改。
+The Shell no longer exposes a "Switch Role" action. In Mode A, the platform is
+authoritative for role changes.
 
 ---
 
-## 平台资源模型
+## Platform Resource Model
 
-```
+```text
 Project (proj-abc123)
-  └─ 数据库: proj-abc123
-       ├─ schema: session-001  ← app 1
-       ├─ schema: session-002  ← app 2
-       └─ schema: session-003  ← app 3
+  └─ Database: proj-abc123
+       ├─ schema: session-001  <- app 1
+       ├─ schema: session-002  <- app 2
+       └─ schema: session-003  <- app 3
 ```
 
-一个 session = 一个 app。`DB_SCHEMA` 和 `APP_ID` 设为同一个值。
+One session equals one app. `DB_SCHEMA` and `APP_ID` should normally use the
+same value.
 
-### 平台职责
+### Platform Responsibilities
 
-**创建 project 时：**
+**When creating a project:**
 
 ```sql
 CREATE DATABASE "proj-abc123";
 ```
 
-**创建 session 时：**
+**When creating a session:**
 
 ```sql
--- 连接到 project 数据库后
 CREATE SCHEMA IF NOT EXISTS "session-xyz789";
 ```
 
-**注入环境变量：**
+**Environment injection:**
 
 ```env
 DATABASE_URL="postgresql://appbuilder:appbuilder@db-host:5432/proj-abc123"
@@ -139,52 +158,55 @@ TIER0_API_HOST="<platform-injected>"
 TIER0_API_KEY="<platform-injected>"
 TIER0_MQTT_HOST="<platform-injected>"
 TIER0_MQTT_PORT="8084"
-# 兼容旧变量名（可选，apiUrl 仍能读取）
+# Optional legacy fallback:
 # NEXT_PUBLIC_BASE_PATH="/session-xyz789"
 ```
 
-**配置网关路由：**
+**Gateway routing:**
 
-网关需要对匹配的请求注入 user header（JSON 或独立 header 格式均可），然后反向代理到 App。
+For matched requests, the gateway must inject user headers in either JSON or
+separate-header format and then proxy the request to the app.
 
-### App 容器启动
+### App Container Startup
 
-平台完成上述准备后，启动 app：
+Once the platform has prepared the database, schema, and env vars, it can start
+the app:
 
 ```bash
 npm install
-npx drizzle-kit push    # 在 DB_SCHEMA 下建表
-npx tsx src/db/seed.ts  # 在 DB_SCHEMA 下插入种子数据（首次）
-npm run build           # vite build → 输出到 dist/{client,server}
-node server.mjs         # 等价于 `npm start`，监听 PORT（默认 3000）
+npx drizzle-kit push    # create tables under DB_SCHEMA
+npx tsx src/db/seed.ts  # seed DB_SCHEMA on first use
+npm run build           # outputs dist/{client,server}
+node server.mjs         # equivalent to npm start, listens on PORT (default 3000)
 ```
 
 ---
 
-## 环境变量与代码的对应关系
+## Where Each Variable Is Read
 
-| 变量                          | 读取位置                                                                              |
-| ----------------------------- | ------------------------------------------------------------------------------------- |
-| `DATABASE_URL`                | `db/index.ts`、`drizzle.config.ts`、`db/seed.ts`                                      |
-| `SESSION_SECRET`              | `lib/session.ts`（启动时校验，未设且非生产则警告并随机生成）                                |
-| `DIRECT_DATABASE_URL`         | `drizzle.config.ts`、`db/seed.ts`（优先于 DATABASE_URL）                                |
-| `DB_SCHEMA`                   | `db/index.ts`（search_path）、`drizzle.config.ts`（schemaFilter）、`db/seed.ts`          |
-| `APP_ID`                      | `routes/api/manifest.ts`                                                              |
-| `VITE_BASE_PATH`              | `vite.config.ts`（base）、`router.tsx`（basepath）、`lib/utils.ts`（apiUrl 首选项）     |
-| `NEXT_PUBLIC_BASE_PATH`       | `lib/utils.ts`（apiUrl 兼容回落）、`vite.config.ts` / `router.tsx` 同样作为兜底           |
-| `TIER0_API_HOST`              | 平台部署自动注入；`@tier0/sdk/openapi` 运行时读取                                      |
-| `TIER0_API_KEY`               | 平台部署自动注入；`@tier0/sdk/openapi` 和 `@tier0/sdk/mq` 运行时读取                    |
-| `TIER0_MQTT_HOST`             | 平台部署自动注入；`@tier0/sdk/mq` 运行时读取                                           |
-| `TIER0_MQTT_PORT`             | 平台部署自动注入；`@tier0/sdk/mq` 运行时读取                                           |
+| Variable | Read from |
+|---|---|
+| `DATABASE_URL` | `db/index.ts`, `drizzle.config.ts`, `db/seed.ts` |
+| `SESSION_SECRET` | `lib/session.ts` (validated at startup; generated locally when absent outside production) |
+| `DIRECT_DATABASE_URL` | `drizzle.config.ts`, `db/seed.ts` |
+| `DB_SCHEMA` | `db/index.ts` (`search_path`), `drizzle.config.ts` (`schemaFilter`), `db/seed.ts` |
+| `APP_ID` | `routes/api/manifest.ts` |
+| `VITE_BASE_PATH` | `vite.config.ts` (`base`), `router.tsx` (`basepath`), `lib/utils.ts` (`apiUrl` primary source) |
+| `NEXT_PUBLIC_BASE_PATH` | `lib/utils.ts`, and as a fallback in `vite.config.ts` / `router.tsx` |
+| `TIER0_API_HOST` | Injected by the platform; read by `@tier0/sdk/openapi` at runtime |
+| `TIER0_API_KEY` | Injected by the platform; read by `@tier0/sdk/openapi` and `@tier0/sdk/mq` |
+| `TIER0_MQTT_HOST` | Injected by the platform; read by `@tier0/sdk/mq` |
+| `TIER0_MQTT_PORT` | Injected by the platform; read by `@tier0/sdk/mq` |
 
 ---
 
-## 场景速查
+## Scenario Matrix
 
-| 场景               | DATABASE_URL | SESSION_SECRET | DB_SCHEMA | APP_ID | BASE_PATH |
-| ------------------ | ------------ | -------------- | --------- | ------ | --------- |
-| 本地开发           | ✅            | —（自动随机）   | —         | —      | —         |
-| 平台预览（session） | ✅            | ✅              | ✅         | ✅      | 视情况     |
-| 生产（网关代理）    | ✅            | ✅              | ✅         | ✅      | 视情况     |
+| Scenario | `DATABASE_URL` | `SESSION_SECRET` | `DB_SCHEMA` | `APP_ID` | Base path |
+|---|---|---|---|---|---|
+| Local development | ✅ | optional, auto-randomized | optional | optional | optional |
+| Platform preview session | ✅ | ✅ | ✅ | ✅ | depends on runtime |
+| Production behind gateway | ✅ | ✅ | ✅ | ✅ | depends on gateway |
 
-`—` = 不设，使用默认值。
+`optional` means the scaffold can fall back to defaults when the platform does
+not provide a value.

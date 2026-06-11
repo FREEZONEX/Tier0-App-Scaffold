@@ -56,7 +56,7 @@ function MonitorPending() {
     <div className="flex h-screen items-center justify-center bg-background p-10">
       <div className="text-center">
         <div className="mx-auto size-8 animate-spin rounded-full border-2 border-muted border-t-highlight" />
-        <p className="mt-3 text-xs text-muted-foreground">加载中&hellip;</p>
+        <p className="mt-3 text-xs text-muted-foreground">Loading&hellip;</p>
       </div>
     </div>
   );
@@ -66,16 +66,14 @@ function MonitorError({ error, reset }: ErrorComponentProps) {
   return (
     <div className="flex h-screen items-center justify-center overflow-hidden bg-background p-10">
       <div className="text-center">
-        <p className="text-sm font-medium text-destructive">
-          看板页面加载失败
-        </p>
+        <p className="text-sm font-medium text-destructive">Monitor page failed to load</p>
         <p className="mt-1 text-xs text-muted-foreground">{error.message}</p>
         <button
           type="button"
           className="mt-4 inline-flex h-8 items-center justify-center rounded-sm border border-border bg-card px-3 text-xs font-medium text-foreground shadow-sm transition-[background-color,border-color,box-shadow] duration-150 hover:border-border-strong hover:bg-background hover:shadow-md focus:border-highlight focus:outline-none"
           onClick={reset}
         >
-          重试
+          Retry
         </button>
       </div>
     </div>

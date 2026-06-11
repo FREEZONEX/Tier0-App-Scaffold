@@ -59,11 +59,11 @@ Choose the layout by asking:
   why through `disabledReason` instead of silently navigating nowhere.
 - Workspace sidebar chrome should show only the app name and navigation labels.
   Do not add an app-name subtitle, category heading, category subtitle, or
-  generic labels such as "模块" / "Modules" above the navigation list.
+  generic labels such as "Modules" above the navigation list.
 - Setup-only workspace pages such as system configuration, role/permission
   setup, tenant settings, audit settings, and app-specific setup must be
   nested as second-level sidebar items under an appropriate parent. Do not make
-  "系统配置", "System Configuration", or "Settings" a first-level sidebar module
+  "System Configuration" or "Settings" a first-level sidebar module
   unless the entire app is specifically a configuration console.
 - Do not create Tier0 SDK auth, API key, token, OpenAPI host, MQTT host,
   workspace binding, or integration credential settings pages. The
@@ -98,6 +98,11 @@ Do not put station, review, monitor, or other no-sidebar task flows in the
 sidebar. In a workspace app, convert those workflows into workspace pages or
 extract them into a separate app. Do not jump from the sidebar Shell into a
 no-sidebar layout.
+
+The scaffold keeps `_app.index.tsx` blank by default. A finished workspace app
+must replace that blank placeholder with a real home/dashboard. If the app has
+only one primary page, make that page own `/` directly instead of leaving `/`
+blank and putting the only screen under another route.
 
 System configuration, role/permission setup, tenant settings, audit settings,
 and similar app-specific setup-only pages belong under a sidebar parent as

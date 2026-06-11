@@ -1,7 +1,7 @@
 ---
 name: tier0-sdk-openapi
 version: 0.1.0
-description: "Tier0 SDK OpenAPI 模块 — REST API 类型安全封装。支持基础 HTTP 客户端、React Hooks（@tanstack/react-query）、Vue3 Composables。涵盖 UNS、Flow、System 三大类 18 个端点。triggers: Tier0, SDK, OpenAPI, REST, API, UNS, Flow, React, Vue3"
+description: "Tier0 SDK OpenAPI module - typed REST API client with base HTTP access, React hooks (@tanstack/react-query), and Vue3 composables. Covers UNS, Flow, and system endpoints. triggers: Tier0, SDK, OpenAPI, REST, API, UNS, Flow, React, Vue3"
 metadata:
   requires:
     npm: ["@tier0/sdk"]
@@ -9,78 +9,106 @@ metadata:
     tags: [sdk, openapi, rest, api, react, vue3, uns, flow]
 ---
 
-# tier0-sdk-openapi — REST API 封装
+# tier0-sdk-openapi - REST API Wrapper
 
-## 何时使用本 Skill
+## When to Use This Skill
 
-### 应该使用
+### Use it when
 
-- 前端或 Node.js 项目需要调用 Tier0 后端 API
-- 需要类型安全的 API 调用（TypeScript 类型从 swagger.json 自动生成）
-- React 项目希望用 useMutation/useQuery 风格调用 API
-- Vue3 项目希望用 Composables 风格调用 API
+- A frontend or Node.js project needs to call Tier0 backend APIs
+- The implementation needs type-safe request and response usage
+- A React project wants mutation/query patterns
+- A Vue3 project wants composable-style integration
 
-### 不应该使用
+### Do not use it when
 
-- 需要实时数据订阅 → 走 `$tier0-sdk-mq`（MQ 是推送，OpenAPI 是拉取）
-- 需要 MQTT 发布 → 走 `$tier0-sdk-mq`
-- 直接操作数据库或底层协议 → 不在 SDK 范围内
+- The task is realtime subscriptions -> use `$tier0-sdk-mq`
+- The task is MQTT publishing -> use `$tier0-sdk-mq`
+- The task is direct database or protocol access -> outside SDK scope
 
-## 不可违反规则
+## Non-Negotiable Rules
 
-1. **SDK 鉴权和连接信息由平台/runtime/SDK 负责** — 不要在生成应用中创建 API Key、Token、OpenAPI Host、Workspace 绑定或连接配置页面
-2. **API 返回类型从 swagger.json 生成** — 不要手动构造响应类型，使用 `components["schemas"]["xxx"]` 或从 `types.ts` 导入
-3. **不要在本模板客户端直接 import SDK React Hooks** — 当前 SDK 包为 CommonJS 输出，`@tier0/sdk/openapi/react` 不能作为生成应用的默认客户端数据层。用 app-local React hooks 调用本应用 server route，由 server route 通过 `@/lib/tier0` lazy loader 调 SDK。
-4. **Vue3 Composables 不适用本模板** — 本模板不是 Vue 项目，不要 import `@tier0/sdk/openapi/vue`，除非用户明确要求改造为 Vue 且 SDK 发布格式已确认兼容。
-5. **不要手写鉴权 UI** — 401/403 只作为错误状态或诊断信息展示，除非用户明确要求凭据管理控制台
-6. **保留 SSR external policy + lazy loading** — `vite.config.ts` 必须保留 `ssr.external: ["pg", "@tier0/sdk", "mqtt"]`；不要把 SDK 放进 `ssr.noExternal`。同时不要在页面、loader、服务模块顶层直接 import `@tier0/sdk/openapi`。默认从 `@/lib/tier0` 引入 `loadTier0OpenApi()`、`getTier0UnsApi()`、`getTier0FlowApi()`、`getTier0SystemApi()`，只在实际读取、写入、分发、发布等 action 内部 `await` SDK。不要手写 fetch wrapper 绕过 SDK。
+1. **SDK auth and connection details belong to the platform/runtime/SDK.**
+   Do not generate API key, token, OpenAPI host, workspace-binding, or generic
+   connection settings pages in normal business apps.
+2. **Response types come from the generated SDK types.**
+   Do not handcraft response interfaces when `components["schemas"]["..."]` or
+   the exported SDK types already exist.
+3. **Do not import the SDK React hooks directly into this scaffold’s client
+   layer by default.** The current SDK ships as CommonJS, and
+   `@tier0/sdk/openapi/react` is not the default data path for generated apps.
+   Prefer app-local React hooks that call this app’s own server routes, and let
+   those server routes load the SDK through `@/lib/tier0`.
+4. **Vue3 composables do not apply to this scaffold by default.** This
+   template is not a Vue project. Do not import `@tier0/sdk/openapi/vue`
+   unless the user explicitly wants a Vue build and the SDK packaging format is
+   confirmed to work there.
+5. **Do not hand-roll auth UI.** Surface 401/403 as diagnostic or business
+   errors unless the user explicitly asks for a credential console.
+6. **Preserve the SSR external policy and lazy-loading boundary.**
+   `vite.config.ts` must keep
+   `ssr.external: ["pg", "@tier0/sdk", "mqtt"]`. Do not move the SDK into
+   `ssr.noExternal`. Do not top-level import `@tier0/sdk/openapi` in pages,
+   loaders, or services. Load through `@/lib/tier0` helpers and await the SDK
+   only inside concrete read/write/publish actions.
+7. **For mutating endpoints, verify the real request shape first.**
+   Do not infer request bodies from endpoint names. Read the matching reference
+   and trust the SDK type declarations. In particular,
+   `unsApi.openapiv1unscreate(...)` must receive `NodeCreateReq`, meaning
+   `{ namespace: NamespaceNode[] }`, not a guessed `{ path, topic, valueType }`
+   shape.
+8. **For UNS create, confirm naming vocabulary before the first call.**
+   The SDK requires `name` and `type` but does not narrow `type` or
+   `topicType` to a fixed enum. If the user or codebase has not already
+   established those values, inspect existing nodes with `browse` / `search`
+   and reuse the same vocabulary before attempting a create call.
 
-## 子技能路由
+## Skill Routing
 
-### 通用指南
+### General guides
 
-| 意图 | 加载文件 | 说明 |
-|------|---------|------|
-| 客户端基础使用 | `references/quickstart.md` | runtime/env 约定、基础调用、诊断 |
-| React Hooks 使用 | `references/react.md` | useMutation 风格、QueryClient 配置 |
-| Vue3 Composables 使用 | `references/vue.md` | ref/reactive 风格、响应式数据 |
+| Intent | Load | Notes |
+|---|---|---|
+| Basic usage | `references/quickstart.md` | Runtime/env conventions, base calls, diagnostics |
+| React hooks | `references/react.md` | Mutation-style usage and QueryClient setup |
+| Vue3 composables | `references/vue.md` | Reference only; not the default path for this scaffold |
 
-### System 端点
+### System endpoints
 
-| 端点 | 加载文件 | 说明 |
-|------|---------|------|
-| `GET /gw/reload` | `references/reload.md` | 网关重载 |
-| `POST /openapi/v1/info` | `references/info.md` | 服务信息 |
-| `POST /openapi/v1/auth/whoami` | `references/auth/whoami.md` | API Key 身份/权限诊断 |
+| Endpoint | Load | Notes |
+|---|---|---|
+| `GET /gw/reload` | `references/reload.md` | Gateway reload |
+| `POST /openapi/v1/info` | `references/info.md` | Service information |
+| `POST /openapi/v1/auth/whoami` | `references/auth/whoami.md` | Runtime API-key identity/permission diagnostics |
 
-### Flow 端点
+### Flow endpoints
 
-| 端点 | 加载文件 | 说明 |
-|------|---------|------|
-| `POST /openapi/v1/flow/create` | `references/flow/create.md` | 创建 Flow |
-| `POST /openapi/v1/flow/delete` | `references/flow/delete.md` | 删除 Flow |
-| `POST /openapi/v1/flow/deploy` | `references/flow/deploy.md` | 部署 Flow |
-| `POST /openapi/v1/flow/flowdata` | `references/flow/flowdata.md` | 获取 Flow 画布数据 |
-| `POST /openapi/v1/flow/get` | `references/flow/get.md` | 获取 Flow 详情 |
-| `POST /openapi/v1/flow/list` | `references/flow/list.md` | 列出 Flow |
-| `POST /openapi/v1/flow/nodes` | `references/flow/nodes.md` | 可用节点查询 |
-| `POST /openapi/v1/flow/update` | `references/flow/update.md` | 更新 Flow |
+| Endpoint | Load | Notes |
+|---|---|---|
+| `POST /openapi/v1/flow/create` | `references/flow/create.md` | Create Flow |
+| `POST /openapi/v1/flow/delete` | `references/flow/delete.md` | Delete Flow |
+| `POST /openapi/v1/flow/deploy` | `references/flow/deploy.md` | Deploy Flow |
+| `POST /openapi/v1/flow/flowdata` | `references/flow/flowdata.md` | Fetch canvas data |
+| `POST /openapi/v1/flow/get` | `references/flow/get.md` | Get Flow details |
+| `POST /openapi/v1/flow/list` | `references/flow/list.md` | List Flows |
+| `POST /openapi/v1/flow/nodes` | `references/flow/nodes.md` | Query available node types |
+| `POST /openapi/v1/flow/update` | `references/flow/update.md` | Update Flow |
 
-### UNS 端点
+### UNS endpoints
 
-| 端点 | 加载文件 | 说明 |
-|------|---------|------|
-| `POST /openapi/v1/uns/browse` | `references/uns/browse.md` | 浏览命名空间 |
-| `POST /openapi/v1/uns/create` | `references/uns/create.md` | 创建节点 |
-| `POST /openapi/v1/uns/delete` | `references/uns/delete.md` | 删除节点 |
-| `POST /openapi/v1/uns/history` | `references/uns/history.md` | 查询历史 |
-| `POST /openapi/v1/uns/read` | `references/uns/read.md` | 读取数据点 |
-| `POST /openapi/v1/uns/restore` | `references/uns/restore.md` | 恢复节点 |
-| `POST /openapi/v1/uns/search` | `references/uns/search.md` | 搜索节点 |
-| `POST /openapi/v1/uns/update` | `references/uns/update.md` | 更新节点 |
-| `POST /openapi/v1/uns/write` | `references/uns/write.md` | 写入数据点 |
+| Endpoint | Load | Notes |
+|---|---|---|
+| `POST /openapi/v1/uns/browse` | `references/uns/browse.md` | Browse namespace |
+| `POST /openapi/v1/uns/create` | `references/uns/create.md` | Create nodes |
+| `POST /openapi/v1/uns/delete` | `references/uns/delete.md` | Delete nodes |
+| `POST /openapi/v1/uns/history` | `references/uns/history.md` | Query history |
+| `POST /openapi/v1/uns/read` | `references/uns/read.md` | Read points |
+| `POST /openapi/v1/uns/restore` | `references/uns/restore.md` | Restore nodes |
+| `POST /openapi/v1/uns/search` | `references/uns/search.md` | Search nodes |
+| `POST /openapi/v1/uns/update` | `references/uns/update.md` | Update nodes |
+| `POST /openapi/v1/uns/write` | `references/uns/write.md` | Write points |
 
-## API 模块速查
+## API Module Cheatsheet
 
 ```typescript
 import {
@@ -94,25 +122,25 @@ const flowApi = await getTier0FlowApi();
 const unsApi = await getTier0UnsApi();
 ```
 
-| 模块 | 端点 | 说明 |
-|------|------|------|
-| `systemApi` | `gwreload()` | 网关重载 |
-| `systemApi` | `openapiv1authwhoami(body?)` | API Key 身份/权限诊断 |
-| `systemApi` | `openapiv1info(body)` | 服务信息 |
-| `flowApi` | `openapiv1flowcreate(body)` | 创建 Flow |
-| `flowApi` | `openapiv1flowdelete(body)` | 删除 Flow |
-| `flowApi` | `openapiv1flowdeploy(body)` | 部署 Flow |
-| `flowApi` | `openapiv1flowflowdata(body)` | 获取 Flow 画布数据 |
-| `flowApi` | `openapiv1flowget(body)` | 获取 Flow 详情 |
-| `flowApi` | `openapiv1flowlist(body)` | 列出 Flow |
-| `flowApi` | `openapiv1flownodes(body)` | 可用节点查询 |
-| `flowApi` | `openapiv1flowupdate(body)` | 更新 Flow |
-| `unsApi` | `openapiv1unsbrowse(body)` | 浏览命名空间 |
-| `unsApi` | `openapiv1unscreate(body)` | 创建节点 |
-| `unsApi` | `openapiv1unsdelete(body)` | 删除节点 |
-| `unsApi` | `openapiv1unshistory(body)` | 查询历史 |
-| `unsApi` | `openapiv1unsread(body)` | 读取数据点 |
-| `unsApi` | `openapiv1unsrestore(body)` | 恢复节点 |
-| `unsApi` | `openapiv1unssearch(body)` | 搜索节点 |
-| `unsApi` | `openapiv1unsupdate(body)` | 更新节点 |
-| `unsApi` | `openapiv1unswrite(body)` | 写入数据点 |
+| Module | Method | Notes |
+|---|---|---|
+| `systemApi` | `gwreload()` | Reload gateway |
+| `systemApi` | `openapiv1authwhoami(body?)` | Runtime identity/permission diagnostic |
+| `systemApi` | `openapiv1info(body)` | Service information |
+| `flowApi` | `openapiv1flowcreate(body)` | Create Flow |
+| `flowApi` | `openapiv1flowdelete(body)` | Delete Flow |
+| `flowApi` | `openapiv1flowdeploy(body)` | Deploy Flow |
+| `flowApi` | `openapiv1flowflowdata(body)` | Fetch canvas data |
+| `flowApi` | `openapiv1flowget(body)` | Get Flow details |
+| `flowApi` | `openapiv1flowlist(body)` | List Flows |
+| `flowApi` | `openapiv1flownodes(body)` | Query available nodes |
+| `flowApi` | `openapiv1flowupdate(body)` | Update Flow |
+| `unsApi` | `openapiv1unsbrowse(body)` | Browse namespace |
+| `unsApi` | `openapiv1unscreate(body)` | Create nodes |
+| `unsApi` | `openapiv1unsdelete(body)` | Delete nodes |
+| `unsApi` | `openapiv1unshistory(body)` | Query history |
+| `unsApi` | `openapiv1unsread(body)` | Read points |
+| `unsApi` | `openapiv1unsrestore(body)` | Restore nodes |
+| `unsApi` | `openapiv1unssearch(body)` | Search nodes |
+| `unsApi` | `openapiv1unsupdate(body)` | Update nodes |
+| `unsApi` | `openapiv1unswrite(body)` | Write points |

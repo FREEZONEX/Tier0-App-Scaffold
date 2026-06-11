@@ -147,7 +147,7 @@ export function OverlayHeader({
       <button
         ref={closeButtonRef}
         type="button"
-        aria-label="关闭"
+        aria-label="Close"
         className="inline-flex size-9 shrink-0 items-center justify-center rounded-sm border border-border bg-card text-muted-foreground shadow-sm transition-[background-color,border-color,color,box-shadow] duration-150 hover:border-border-strong hover:bg-background hover:text-foreground hover:shadow-md focus:border-highlight focus:outline-none"
         onClick={onClose}
       >
@@ -197,7 +197,7 @@ export function OverlayActionButton({
       )}
       onClick={action.onClick ?? onDefaultClick}
     >
-      {action.loading ? "处理中..." : action.label}
+      {action.loading ? "Processing..." : action.label}
     </button>
   );
 }

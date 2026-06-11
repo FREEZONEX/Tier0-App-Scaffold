@@ -6,7 +6,7 @@ description: "POST /openapi/v1/flow/deploy — FlowDeployReq"
 
 # deploy — `POST /openapi/v1/flow/deploy`
 
-## SDK 调用
+## SDK Call
 
 ```typescript
 import { getTier0FlowApi } from '@/lib/tier0';
@@ -16,18 +16,18 @@ const flowApi = await getTier0FlowApi();
 const result = await flowApi.openapiv1flowdeploy(body);
 ```
 
-## 请求参数
+## Request Parameters
 
-| 字段 | 类型 | 说明 |
+| Field | Type | Notes |
 |------|------|------|
 | `flowsJson` | string |  **required** |
 | `id` | integer(int64) |  **required** |
 
-## 响应类型
+## Response Type
 
 `components["schemas"]["FlowDeployResp"]`
 
-## 使用示例
+## Example
 
 ```typescript
 import { getTier0FlowApi } from '@/lib/tier0';
@@ -35,7 +35,7 @@ import { getTier0FlowApi } from '@/lib/tier0';
 const flowApi = await getTier0FlowApi();
 
 const result = await flowApi.openapiv1flowdeploy({
-  // 根据实际业务填写参数
+  // Fill in values that match the actual use case
 });
 console.log(result);
 ```

@@ -1,11 +1,12 @@
-# MonoApp — UNSSWE 部署配置
+# MonoApp - UNSSWE deployment configuration
 #
-# 本文件由 Build-Deploy 服务解析，决定如何构建、运行、健康检查。
-# 优先级：App deploy_config (DB 覆写) > 本文件 > 平台硬编码默认值。
+# This file is parsed by the Build-Deploy service to determine build, runtime,
+# and health-check behavior.
+# Priority: app deploy_config (DB overrides) > this file > platform hardcoded defaults.
 #
-# 环境变量注入（自动）:
-#   DATABASE_URL  — Backend 按 Project schema 自动注入到 build_env / run_env
-#   PORT          — RuntimeManager 按 localPort 自动注入
+# Environment injection (automatic):
+#   DATABASE_URL  - injected into build_env / run_env by the backend per project schema
+#   PORT          - injected by RuntimeManager from localPort
 
 [deployment]
 deploymentTarget = "autoscale"
@@ -41,7 +42,7 @@ SESSION_SECRET = "fff03854d9eee4fca8fb13b8ef49c765494bbf984d7590d884393238ba4c59
 path = "/api/health"
 timeout = 120
 
-# Live preview（Executor Pod 内运行的 dev server）
+# Live preview (dev server running inside the Executor Pod)
 [services.preview]
 install = ["npm", "install"]
 args = ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]

@@ -46,7 +46,7 @@ controls, `#dcdcdc` borders, and Tier0 green `#cef368` / `#e7f9b9` highlights.
 7. When MES requirements mention route/stage progression, sub-step progress, actual-vs-target, intensity matrix, or equipment status wall, prefer the matching `$mes-ui-patterns` snippets: `process-flow`, `step-indicator`, `target-bar`, `heatmap-grid`, and `fleet-grid`, instead of rebuilding those patterns ad hoc.
 8. When MES requirements mention shift coverage, time bands, queue-by-status, critical alerts, or ranked loss/defect/downtime lists, prefer the matching `$mes-ui-patterns` snippets: `shift-bar`, `kanban-board`, `alarm-banner`, and `leaderboard`.
 9. When MES requirements mention control limits, process capability, measurement stability, ranked defect reasons, downtime causes, or cumulative loss share, prefer the matching `$mes-ui-patterns` snippets: `spc-chart` and `pareto-chart`.
-10. Ensure `/` is owned by the selected app experience: workspace apps may replace `_app.index.tsx`; station, review, monitor, kiosk, or other custom apps must replace `_app.index.tsx` with a redirect to the correct entry route or move the entry to `/` without the sidebar.
+10. Ensure `/` is owned by the selected app experience. The scaffold default `_app.index.tsx` is intentionally blank and must not survive in a finished app. Workspace apps should replace it with the real home/dashboard; station, review, monitor, kiosk, or other custom apps must redirect it to the correct entry route or move the entry to `/` without the sidebar. If the app has only one primary page, that page should own `/` directly.
 11. Implement real states: loading, empty with create action, success, validation errors, API errors, and disabled/pending controls.
 12. Ensure every authenticated layout shell exposes a visible logout action. Workspace pages use the Shell sidebar/footer; station, review, monitor, and custom no-sidebar layouts use the header/status area.
 13. Keep app navigation layout-consistent. A single app must not mix pages with the Shell sidebar and pages without the sidebar. Sidebar modules must point only to routes that keep the Shell sidebar (`/_app` children such as `/work-orders`). Do not add `/station`, `/review`, `/monitor`, or other no-sidebar task routes to `defaultModules`; convert those workflows into workspace pages or split them into a separate app/entry surface.
@@ -87,14 +87,14 @@ Only add entries to `defaultModules` in `src/components/Shell.tsx` for workspace
 
 System configuration, role/permission setup, tenant settings, audit settings,
 and similar setup-only pages should be second-level sidebar items under an
-appropriate parent. Do not make "系统配置", "System Configuration", or "Settings"
+appropriate parent. Do not make "System Configuration" or "Settings"
 a first-level sidebar module unless the whole app is a configuration console.
 Do not generate Tier0 SDK authentication, API key, token, OpenAPI host, MQTT
 host, or integration credential configuration pages; the SDK/platform/runtime
 owns those values.
 
 Workspace sidebar should remain collapsible on desktop. Use simple 150-250ms width/opacity transitions, keep collapsed labels accessible through `aria-label` or `title`, and use dark foreground text/icons on green active backgrounds.
-Workspace sidebar chrome should stay quiet: show the app name and module labels only. Do not add an app-name subtitle, category heading, category subtitle, or generic labels such as "模块" / "Modules" above the navigation list.
+Workspace sidebar chrome should stay quiet: show the app name and module labels only. Do not add an app-name subtitle, category heading, category subtitle, or generic labels such as "Modules" above the navigation list.
 
 Workspace sidebar entries must remain inside the Shell layout. A sidebar click
 must not navigate to `/station`, `/review`, `/monitor`, or a no-sidebar custom

@@ -1,24 +1,24 @@
 ---
 name: tier0-sdk-openapi-vue
 version: 0.1.0
-description: "OpenAPI Vue3 Composables 使用指南"
+description: "OpenAPI Vue3 composables guide"
 ---
 
-# Vue3 Composables 使用指南
+# Vue3 Composables Guide
 
-> 当前 TanStack Start 模板不是 Vue 项目，也不要默认直接使用
-> `@tier0/sdk/openapi/vue`。`@tier0/sdk@0.1.1` 发布为 CommonJS 输出，
-> 直接进入客户端或 SSR bundle 可能触发 `exports is not defined`。
-> 只有用户明确要求 Vue 改造且 SDK 浏览器/ESM 发布格式已确认兼容后，
-> 才使用本页示例。
+> This TanStack Start scaffold is not a Vue project and should not default to
+> `@tier0/sdk/openapi/vue`. `@tier0/sdk@0.1.1` ships as CommonJS, and direct
+> client or SSR bundling can trigger `exports is not defined`. Use this page
+> only when the user explicitly asks for a Vue implementation and the SDK's
+> browser/ESM packaging has been confirmed to work.
 
-## 前置条件
+## Prerequisites
 
 ```bash
 npm install vue
 ```
 
-## 使用 Composables
+## Using Composables
 
 ```vue
 <script setup lang="ts">
@@ -36,15 +36,15 @@ const handleRead = async () => {
 <template>
   <div>
     <button @click="handleRead" :disabled="loading">
-      {{ loading ? '读取中...' : '读取温度' }}
+      {{ loading ? 'Reading...' : 'Read temperature' }}
     </button>
-    <p v-if="error">错误: {{ error.message }}</p>
+    <p v-if="error">Error: {{ error.message }}</p>
     <pre v-if="data">{{ JSON.stringify(data, null, 2) }}</pre>
   </div>
 </template>
 ```
 
-## 所有可用的 Composables
+## Available Composables
 
 ```typescript
 import {
@@ -69,8 +69,9 @@ import {
 } from '@tier0/sdk/openapi/vue';
 ```
 
-每个 Composable 返回：
-- `data` — 响应数据（`ref`）
-- `loading` — 是否加载中（`ref<boolean>`）
-- `error` — 错误对象（`ref<Error | null>`）
-- `execute(body)` — 触发请求（异步函数）
+Each composable returns:
+
+- `data`
+- `loading`
+- `error`
+- `execute(body)`

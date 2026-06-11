@@ -3,7 +3,6 @@
 import { type ReactNode } from "react";
 import { Activity, Factory } from "lucide-react";
 import type { AppUser } from "@/lib/users";
-import { ReLoginButton } from "@/components/relogin-button";
 
 export function StationLayout({
   user,
@@ -20,8 +19,8 @@ export function StationLayout({
             <Factory className="size-5" />
           </div>
           <div className="min-w-0">
-            <p className="truncate text-base font-semibold leading-6">工位作业</p>
-            <p className="caption truncate">当前任务</p>
+            <p className="truncate text-base font-semibold leading-6">Station Work</p>
+            <p className="caption truncate">Current Task</p>
           </div>
         </div>
         <div className="flex min-w-0 items-stretch gap-2 sm:items-center">
@@ -29,11 +28,10 @@ export function StationLayout({
             <Activity className="size-4 shrink-0 text-highlight-text" />
             <div className="min-w-0 text-right">
               <p className="truncate text-sm font-medium leading-5">
-                {user?.displayName ?? "加载中"}
+                {user?.displayName ?? "Loading"}
               </p>
             </div>
           </div>
-          <ReLoginButton className="shrink-0 justify-center bg-card" />
         </div>
       </header>
       <main className="page-y-scroll min-h-0 flex-1 bg-surface-inset">

@@ -16,8 +16,8 @@ export interface FormDialogProps
 
 export function FormDialog({
   children,
-  submitLabel = "保存",
-  cancelLabel = "取消",
+  submitLabel = "Save",
+  cancelLabel = "Cancel",
   pending = false,
   submitVariant = "primary",
   onSubmit,
