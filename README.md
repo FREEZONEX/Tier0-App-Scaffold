@@ -190,11 +190,11 @@ handler reads `params.id` from the first argument.
 ## Add a New Page
 
 Only workspace pages belong under `_app` and appear in `Shell.tsx`
-`defaultModules`. The scaffold keeps `_app.index.tsx` blank on purpose, so a
-finished app must replace `/` with a real dashboard, a redirect, or the actual
-entry experience. If the app has only one primary page, make that page own `/`
-instead of leaving `/` blank and placing the only real screen at a secondary
-route.
+`defaultModules`. The scaffold keeps exactly one intentionally blank route,
+`_app.index.tsx`, on purpose. A finished app must replace `/` with a real
+dashboard, a redirect, or the actual entry experience. If the app has only one
+primary page, make that page own `/` instead of leaving `/` blank and placing
+the only real screen at a secondary route.
 
 ```tsx
 // src/routes/_app.work-orders.tsx

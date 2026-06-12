@@ -751,7 +751,7 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 - Same-app layout chrome must be consistent. Do not mix Shell-sidebar pages and no-sidebar pages in one app. Sidebar modules, role default routes, and in-app navigation targets must preserve the chosen app chrome.
 - Sidebar modules must preserve the sidebar. Do not add `station`, `review`, `monitor`, or other no-sidebar task-flow routes to `defaultModules`; convert those workflows into workspace pages or split them into a separate app/entry surface.
 - Every authenticated layout shell must include a visible logout action. Put it in the shared layout (`Shell`, `StationLayout`, `ReviewLayout`, `MonitorLayout`, or the custom shell), not individual pages.
-- The scaffold keeps `src/routes/_app.index.tsx` blank on purpose. Do not ship that blank placeholder in a finished app.
+- The scaffold keeps exactly one intentionally blank route: `src/routes/_app.index.tsx` with `TEMPLATE_BLANK_ROUTE`. Do not add any other blank route placeholders. Do not ship that blank placeholder in a finished app.
 - Build dashboard at `src/routes/_app.index.tsx` only when the app has a management/analytics home; task-first station, review, monitor, kiosk, or other custom apps must replace `_app.index.tsx` with a redirect or matching root entry so `/` does not show a sidebar workspace starter.
 - If the app has only one primary page or one primary workflow surface, make that surface own `/` directly. Do not leave `/` blank and put the only real screen under a secondary route.
 - Build each page under its selected layout group (`src/routes/_app.<module>.tsx`, `station.<task>.tsx`, `review.<queue>.tsx`, `monitor.<view>.tsx`, or a custom `intent.<page>.tsx`) and vary UI patterns across modules.

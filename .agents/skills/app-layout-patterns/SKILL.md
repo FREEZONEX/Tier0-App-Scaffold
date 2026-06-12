@@ -99,10 +99,12 @@ sidebar. In a workspace app, convert those workflows into workspace pages or
 extract them into a separate app. Do not jump from the sidebar Shell into a
 no-sidebar layout.
 
-The scaffold keeps `_app.index.tsx` blank by default. A finished workspace app
-must replace that blank placeholder with a real home/dashboard. If the app has
-only one primary page, make that page own `/` directly instead of leaving `/`
-blank and putting the only screen under another route.
+The scaffold keeps exactly one blank placeholder route by default:
+`_app.index.tsx` with `TEMPLATE_BLANK_ROUTE`. A finished workspace app must
+replace that placeholder with a real home/dashboard. Do not create any other
+blank route placeholders. If the app has only one primary page, make that page
+own `/` directly instead of leaving `/` blank and putting the only screen under
+another route.
 
 System configuration, role/permission setup, tenant settings, audit settings,
 and similar app-specific setup-only pages belong under a sidebar parent as

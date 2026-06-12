@@ -49,7 +49,7 @@ Generate complete, runnable, production-quality applications from requirements d
 
 - Start with foundational files such as package/config files, models, schemas, shared types, utilities, and route structure.
 - Build UI screens and components around the required user workflows, not around decorative landing-page sections.
-- In this scaffold, the default `src/routes/_app.index.tsx` is an intentionally blank placeholder. A finished app must not leave `/` blank. Replace it with the real workspace home, redirect it to the chosen app entry, or make the actual single-page experience own `/` directly.
+- In this scaffold, the default `src/routes/_app.index.tsx` is the only intentionally blank placeholder and is marked with `TEMPLATE_BLANK_ROUTE`. A finished app must not leave `/` blank. Replace it with the real workspace home, redirect it to the chosen app entry, or make the actual single-page experience own `/` directly. Do not add any other blank route placeholders.
 - Implement backend/API logic, persistence adapters, validation, and error handling when the requirements call for them.
 - In this TanStack Start MES scaffold, rely on the shared service-layer
   `bootstrapModule(...)` helper for runtime schema/table/index creation and
