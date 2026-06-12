@@ -39,7 +39,7 @@ export interface NavModule {
 export const defaultModules: NavModule[] = [
   {
     key: "dashboard",
-    label: "Overview",
+    label: "UNS Check",
     href: "/",
     icon: LayoutDashboard,
     actions: ["view_dashboard"],
