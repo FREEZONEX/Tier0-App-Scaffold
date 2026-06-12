@@ -35,8 +35,9 @@ metadata:
    Do not handcraft response interfaces when `components["schemas"]["..."]` or
    the exported SDK types already exist.
 3. **Do not import the SDK React hooks directly into this scaffold’s client
-   layer by default.** The current SDK ships as CommonJS, and
-   `@tier0/sdk/openapi/react` is not the default data path for generated apps.
+   layer by default.** `@tier0/sdk/openapi/react` is not the default data path
+   for generated apps because platform I/O should usually stay behind app-local
+   server routes.
    Prefer app-local React hooks that call this app’s own server routes, and let
    those server routes load the SDK through `@/lib/tier0`.
 4. **Vue3 composables do not apply to this scaffold by default.** This

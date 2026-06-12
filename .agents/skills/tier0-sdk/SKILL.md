@@ -1,6 +1,6 @@
 ---
 name: tier0-sdk
-version: 0.1.1
+version: 0.1.3
 description: "Tier0 SDK - unified TypeScript/JavaScript SDK covering OpenAPI REST access (with React/Vue3 helpers) and MQ over WebSocket. triggers: Tier0, SDK, OpenAPI, REST, API, MQ, MQTT, WebSocket, React, Vue3, TypeScript"
 metadata:
   requires:
@@ -81,12 +81,11 @@ ssr: {
 }
 ```
 
-- Keep `pg`, `@tier0/sdk`, and `mqtt` external. `@tier0/sdk@0.1.1` is
-  published as CommonJS and must stay out of the Vite/Rolldown SSR ESM bundle.
-- Keep `package.json` `postinstall` and `scripts/patch-tier0-sdk.mjs`. Under
-  Node 22 the SDK CJS files can be misdetected as ESM because of `import.meta`.
-  The patch script adds `type: "commonjs"` and removes CJS-side `import.meta`
-  usage after the managed install.
+- Keep `pg`, `@tier0/sdk`, and `mqtt` external. `@tier0/sdk@0.1.3` publishes
+  dual ESM/CJS output, and package exports should select the correct runtime
+  condition instead of being rebundled by Vite/Rolldown SSR.
+- Do not add SDK postinstall patch scripts. The old Node 22 CommonJS package
+  patch was only for `@tier0/sdk@0.1.1` and is obsolete in `0.1.3`.
 - Do not top-level import `@tier0/sdk/openapi`, `@tier0/sdk/mq`, or wrappers
   that eagerly load the SDK during SSR initialization.
 - Use the lazy helpers in `@/lib/tier0`, such as `getTier0UnsApi()`,
@@ -95,9 +94,9 @@ ssr: {
   jobs, dispatch steps, or publish paths.
 - If preview or runtime crashes with `ReferenceError: exports is not defined in
   ES module scope` and the stack points into `@tier0/sdk/openapi` or
-  `@tier0/sdk/mq`, first confirm the postinstall patch ran, then confirm the
-  SDK was not moved into `ssr.noExternal`, and finally check for a top-level
-  SDK import. Move that import to a lazy loader call site.
+  `@tier0/sdk/mq`, first confirm the installed SDK is at least `0.1.3`, then
+  confirm the SDK was not moved into `ssr.noExternal`, and finally check for a
+  top-level SDK import. Move that import to a lazy loader call site.
 - Do not bypass the SDK with a hand-written MQTT client, fetch wrapper,
   reconnect loop, or custom UNS/Flow endpoint map to avoid SSR issues.
 - If another CJS-style dependency is added later, externalize it first and keep
@@ -136,6 +135,7 @@ npm install @tier0/sdk@0.2.0
 
 | Version | Notes |
 |---|---|
+| `0.1.3` | Dual ESM/CJS build, OpenAPI + MQ exports, Node 22 package-format fix |
 | `0.1.1` | OpenAPI endpoints, MQ subscribe/publish, React/Vue3 helpers, env-driven auth |
 | `0.1.0` | Initial release |
 

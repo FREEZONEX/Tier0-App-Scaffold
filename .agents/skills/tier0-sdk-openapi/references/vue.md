@@ -7,10 +7,9 @@ description: "OpenAPI Vue3 composables guide"
 # Vue3 Composables Guide
 
 > This TanStack Start scaffold is not a Vue project and should not default to
-> `@tier0/sdk/openapi/vue`. `@tier0/sdk@0.1.1` ships as CommonJS, and direct
-> client or SSR bundling can trigger `exports is not defined`. Use this page
-> only when the user explicitly asks for a Vue implementation and the SDK's
-> browser/ESM packaging has been confirmed to work.
+> `@tier0/sdk/openapi/vue`. `@tier0/sdk@0.1.3` supports ESM exports, but this
+> page should be used only when the user explicitly asks for a Vue
+> implementation and the runtime safely exposes the required browser-side env.
 
 ## Prerequisites
 

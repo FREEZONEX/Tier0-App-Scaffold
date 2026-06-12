@@ -85,8 +85,9 @@ ReferenceError: exports is not defined in ES module scope
 
 When the stack points at `@tier0/sdk`, `@tier0/sdk/mq`, or `mqtt` during SSR,
 separate SDK package format failures from app-code eager loading failures. The
-current `@tier0/sdk@0.1.1` package ships CommonJS output, so it must remain
-external in SSR and be loaded from server code through `@/lib/tier0`.
+current template uses `@tier0/sdk@0.1.3`, which ships dual ESM/CJS output. It
+still must remain external in SSR and be loaded from server code through
+`@/lib/tier0` so optional platform I/O does not run during page initialization.
 
 Fix sequence:
 
@@ -100,8 +101,9 @@ ssr: {
 }
 ```
 
-4. Do not add `@tier0/sdk` or `mqtt` to `ssr.noExternal`. That causes CJS
-   `exports` output to run as ESM in this template.
+4. Do not add `@tier0/sdk` or `mqtt` to `ssr.noExternal`. Let package exports
+   choose the correct runtime condition instead of forcing Vite to rebundle
+   SDK internals.
 5. Search for top-level SDK imports in app services, route loaders, pages, or
    generated wrappers:
 

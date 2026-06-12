@@ -75,9 +75,10 @@ those values into user-editable settings.
 
 ## Tier0 SDK SSR Compatibility
 
-`@tier0/sdk@0.1.1` currently ships as CommonJS. Under TanStack Start + Vite
-SSR, it must stay out of the ESM SSR bundle. This scaffold pins the following
-in `vite.config.ts`:
+`@tier0/sdk@0.1.3` ships as a dual ESM/CJS package. This scaffold still keeps
+SDK access behind server-side lazy loaders so preview startup and normal SSR do
+not execute optional platform I/O during page initialization. The SSR policy is
+pinned in `vite.config.ts`:
 
 ```ts
 ssr: {
@@ -86,12 +87,9 @@ ssr: {
 ```
 
 SDK calls are loaded on the server through the lazy helper in
-`src/lib/tier0.ts` via `createRequire`. `package.json` runs
-`scripts/patch-tier0-sdk.mjs` in `postinstall` so the managed install remains
-compatible with the Node 22 CJS runtime. Generated apps should not top-level
-import SDK submodules, should not move the SDK into `ssr.noExternal`, and
-should not bypass the SDK with fallback MQTT clients or hand-written fetch
-wrappers.
+`src/lib/tier0.ts`. Generated apps should not top-level import SDK submodules,
+should not move the SDK into `ssr.noExternal`, and should not bypass the SDK
+with fallback MQTT clients or hand-written fetch wrappers.
 
 For deployment details, see
 [docs/platform-integration.md](docs/platform-integration.md).

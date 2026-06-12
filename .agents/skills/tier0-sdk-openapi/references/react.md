@@ -7,11 +7,11 @@ description: "OpenAPI React hooks guide - @tanstack/react-query integration"
 # React Hooks Guide
 
 > In this TanStack Start scaffold, do not default to `@tier0/sdk/openapi/react`.
-> `@tier0/sdk@0.1.1` ships as CommonJS, and direct client or SSR bundling can
-> trigger `exports is not defined`. Prefer app-local server routes that load the
-> SDK through `@/lib/tier0`, then call those routes from app-local React hooks.
-> Use the native SDK React hooks only after the browser/ESM packaging is known
-> to be compatible.
+> `@tier0/sdk@0.1.3` supports browser-facing ESM exports, but generated apps
+> should still prefer app-local server routes that load the SDK through
+> `@/lib/tier0`, then call those routes from app-local React hooks. Use the
+> native SDK React hooks only when the app explicitly needs direct browser SDK
+> access and the runtime exposes the required browser-side env safely.
 
 ## Prerequisites
 
