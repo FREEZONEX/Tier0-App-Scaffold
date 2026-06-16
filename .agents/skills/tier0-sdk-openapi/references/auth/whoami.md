@@ -1,15 +1,14 @@
 ---
 name: tier0-sdk-auth-whoami
 version: 0.1.0
-description: "SDK auth whoami diagnostic - inspect the user, workspace, role, and permissions bound to the current runtime credential"
+description: "SDK 调用 auth whoami — 查看当前 API Key 绑定的用户、Workspace、角色和权限"
 ---
 
-# auth whoami - runtime credential diagnostic
+# auth whoami — API Key 身份诊断
 
-Use this endpoint to verify which user, workspace, role, and permission set is currently bound to the SDK/runtime credential.
+用于排查当前 SDK 配置的 API Key 绑定到了哪个用户、Workspace，以及具备哪些角色和权限。
 
-> `auth/whoami` is for diagnostics only. It is not a prerequisite for calling other APIs.
-> Do not generate API key or connection settings pages just because this diagnostic exists. Surface 401/403 as diagnostic states unless the user explicitly asks for a credential-management console.
+> `auth/whoami` 只用于诊断，不是调用其他 API 的前置步骤。
 
 ## API
 
@@ -17,22 +16,21 @@ Use this endpoint to verify which user, workspace, role, and permission set is c
 POST /openapi/v1/auth/whoami
 ```
 
-## Request Parameters
+## 请求参数
 
-No business parameters are required. Send an empty object.
+无需业务参数，传空对象即可。
 
-## SDK Call Example
+## SDK 调用示例
 
 ```typescript
 import { getTier0SystemApi } from '@/lib/tier0';
 
 const systemApi = await getTier0SystemApi();
-
 const result = await systemApi.openapiv1authwhoami();
 console.log(result);
 ```
 
-## Response Shape
+## 响应结构
 
 ```json
 {
@@ -53,9 +51,9 @@ console.log(result);
 }
 ```
 
-## Diagnostic Rules
+## 排查规则
 
-1. Use `workspaceID` / `workspaceName` to confirm the credential is bound to the expected workspace.
-2. Use `permissions` to confirm the credential has the required access for the target endpoint. `full_access` covers all OpenAPI resources.
-3. Use `keyType` to distinguish personal vs. service credentials.
-4. If the call returns 401, check credential availability and `apiHost` reachability before changing application code.
+1. `workspaceID` / `workspaceName` 用来确认当前 key 是否绑定到目标 Workspace。
+2. `permissions` 用来确认 key 是否具备目标接口所需权限；`full_access` 可访问所有 OpenAPI 资源。
+3. `keyType` 用来区分 personal / service 等 key 类型。
+4. 如果接口返回 401，先检查 `configureClient` 里的 apiKey 是否正确、`apiHost` 是否可达。

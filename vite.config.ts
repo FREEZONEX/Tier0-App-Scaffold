@@ -79,9 +79,16 @@ export default defineConfig({
     external: ["pg", "@tier0/sdk", "mqtt"],
   },
   optimizeDeps: {
+    // Pre-bundle client deps that are only reached through code-split route
+    // boundaries. If Vite discovers one of these *after* the initial scan it
+    // re-optimizes and forces a full page reload, breaking HMR. List the exact
+    // subpath that is actually imported (e.g. "motion/react", not "motion").
     include: [
       "lucide-react",
-      "motion",
+      "motion/react",
+      "clsx",
+      "tailwind-merge",
+      "sonner",
     ],
   },
   plugins: [
