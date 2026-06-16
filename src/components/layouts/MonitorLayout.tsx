@@ -29,7 +29,7 @@ export function MonitorLayout({
           </div>
         </div>
       </header>
-      <main className="monitor-stage min-h-0 flex-1 overflow-hidden bg-surface-inset">
+      <main className="monitor-stage page-y-scroll min-h-0 flex-1 bg-surface-inset">
         {children}
       </main>
     </div>
