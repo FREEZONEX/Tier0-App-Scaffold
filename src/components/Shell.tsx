@@ -1,18 +1,12 @@
 "use client";
 
 import { Link, useRouterState } from "@tanstack/react-router";
-import {
-  useState,
-  useSyncExternalStore,
-  type ReactNode,
-  type ElementType,
-} from "react";
+import { useState, useSyncExternalStore, type ReactNode } from "react";
 import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   Factory,
-  LayoutDashboard,
   Lock,
   Menu,
   X,
@@ -21,30 +15,11 @@ import { cn } from "@/lib/utils";
 import type { AppUser } from "@/lib/users";
 import { filterSidebarModules } from "@/lib/app-chrome";
 import { getRoleMetadata } from "@/lib/role-metadata";
-import { can, type Action } from "@/lib/permissions";
-
-export interface NavModule {
-  key: string;
-  label: string;
-  href?: string;
-  icon?: ElementType;
-  actions?: Action[];
-  children?: NavModule[];
-  badge?: string;
-  locked?: boolean;
-  disabledReason?: string;
-}
-
-// ─── Agent: add workspace modules only; station/review task flows stay out ───
-export const defaultModules: NavModule[] = [
-  {
-    key: "dashboard",
-    label: "Overview",
-    href: "/",
-    icon: LayoutDashboard,
-    actions: ["view_dashboard"],
-  },
-];
+import {
+  defaultModules,
+  filterVisibleModules,
+  type NavModule,
+} from "./shell-modules";
 
 const COLLAPSED_STORAGE_KEY = "tier0-shell-collapsed";
 const COLLAPSED_STORAGE_EVENT = "tier0-shell-collapsed-change";
@@ -56,62 +31,6 @@ const sidebarItemActive =
 const sidebarItemInactive =
   "border-transparent text-secondary-foreground hover:border-border-secondary hover:bg-sidebar-accent/70 hover:text-foreground";
 
-const MODULE_ACTIONS_BY_KEY: Record<string, Action[]> = {
-  dashboard: ["view_dashboard"],
-  overview: ["view_dashboard"],
-  sales_orders: ["manage_sales_orders"],
-  salesOrders: ["manage_sales_orders"],
-  order_chain: ["manage_sales_orders"],
-  orderChain: ["manage_sales_orders"],
-  scheduling: ["manage_scheduling"],
-  gantt_scheduling: ["manage_scheduling"],
-  ganttScheduling: ["manage_scheduling"],
-  kitting: ["manage_kitting"],
-  traceability: ["manage_traceability"],
-  sn_traceability: ["manage_traceability"],
-  snTraceability: ["manage_traceability"],
-  master_data: ["manage_master_data"],
-  masterData: ["manage_master_data"],
-  settings: ["manage_system"],
-  system: ["manage_system"],
-  system_config: ["manage_system"],
-  systemConfig: ["manage_system"],
-};
-
-const MODULE_ACTIONS_BY_LABEL: Record<string, Action[]> = {
-  Overview: ["view_dashboard"],
-  "Order Flow": ["manage_sales_orders"],
-  "Gantt Scheduling": ["manage_scheduling"],
-  "Kitting Management": ["manage_kitting"],
-  "SN Traceability": ["manage_traceability"],
-  "Master Data": ["manage_master_data"],
-  "System Configuration": ["manage_system"],
-  Settings: ["manage_system"],
-};
-
-export function getModuleActions(module: NavModule): Action[] {
-  return (
-    module.actions ??
-    MODULE_ACTIONS_BY_KEY[module.key] ??
-    MODULE_ACTIONS_BY_LABEL[module.label] ??
-    []
-  );
-}
-
-export function canViewModule(
-  role: string | undefined,
-  module: NavModule,
-): boolean {
-  const actions = getModuleActions(module);
-  if (actions.length === 0) {
-    return true;
-  }
-  if (!role) {
-    return false;
-  }
-  return actions.every((action) => can(role, action));
-}
-
 function isModuleActive(module: NavModule, pathname: string): boolean {
   if (module.href === pathname) {
     return true;
@@ -120,35 +39,6 @@ function isModuleActive(module: NavModule, pathname: string): boolean {
   return (
     module.children?.some((child) => isModuleActive(child, pathname)) ?? false
   );
-}
-
-export function filterVisibleModules(
-  modules: NavModule[],
-  role: string | undefined,
-): NavModule[] {
-  return modules.flatMap((module) => {
-    const children = module.children
-      ? filterVisibleModules(module.children, role)
-      : undefined;
-    const canViewParent =
-      module.href || getModuleActions(module).length > 0
-        ? canViewModule(role, module)
-        : true;
-
-    if (!canViewParent && !children?.length) {
-      return [];
-    }
-
-    if (children !== undefined) {
-      if (!children.length) {
-        return module.href && canViewParent ? [{ ...module, children }] : [];
-      }
-
-      return [{ ...module, children }];
-    }
-
-    return module.href && canViewParent ? [module] : [];
-  });
 }
 
 function getCollapsedSnapshot() {

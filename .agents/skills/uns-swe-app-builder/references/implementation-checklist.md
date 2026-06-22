@@ -42,7 +42,7 @@ Use this checklist when planning and reviewing a generated application.
 7. Run checks and fix failures.
 
 For Tier0 platform integrations, use the scaffold's preinstalled `@tier0/sdk`
-and load `$tier0-sdk`, `$tier0-sdk-openapi`, or `$tier0-sdk-mq` for endpoint
+and load `$tier0-sdk` (`references/openapi/*` for REST, `references/mq/*` for MQ) for endpoint
 guidance. Use lazy loaders from `@/lib/tier0`; do not top-level import
 `@tier0/sdk/openapi` or `@tier0/sdk/mq` from services, route loaders, pages, or
 SSR startup paths. Do not duplicate UNS/Flow REST endpoint wrappers or MQTT

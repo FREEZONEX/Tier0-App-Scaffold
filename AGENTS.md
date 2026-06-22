@@ -42,7 +42,7 @@ When building MES-specific visualizations or manufacturing UI patterns such as K
 
 When adding or changing roles, permissions, role labels, role default routes, menu visibility, page guards, API guards, gateway role mapping, or admin-managed RBAC, use the local `$configurable-rbac-mes` skill. Keep it scaffold-level: do not import role sets or business modules from generated example apps unless the current requirements explicitly call for them.
 
-When requirements mention Tier0 platform OpenAPI, UNS reads/writes/history/search/browse, Flow management, MQTT/MQ/WebSocket real-time data, or device command publish/subscribe, use the local `$tier0-sdk` skill and route to `$tier0-sdk-openapi` or `$tier0-sdk-mq` as appropriate. The template already includes `@tier0/sdk`; prefer the lazy loaders in `@/lib/tier0` over hand-written REST/MQ clients. The SDK owns Tier0 platform authentication and connection details through the platform/runtime environment; generated applications must not create user-facing API key, OpenAPI host, MQTT host, token, credential, or integration settings pages for Tier0 SDK configuration unless the user explicitly asks for an operator-managed credential console.
+When requirements mention Tier0 platform OpenAPI, UNS reads/writes/history/search/browse, Flow management, MQTT/MQ/WebSocket real-time data, or device command publish/subscribe, use the local `$tier0-sdk` skill (its `references/openapi/*` cover REST/UNS/Flow and `references/mq/*` cover MQTT/MQ). The template already includes `@tier0/sdk`; prefer the lazy loaders in `@/lib/tier0` over hand-written REST/MQ clients. The SDK owns Tier0 platform authentication and connection details through the platform/runtime environment; generated applications must not create user-facing API key, OpenAPI host, MQTT host, token, credential, or integration settings pages for Tier0 SDK configuration unless the user explicitly asks for an operator-managed credential console.
 
 Recommended Tier0 SDK call convention: import `loadTier0OpenApi`, `getTier0UnsApi`, `getTier0FlowApi`, `getTier0SystemApi`, or `loadTier0Mq` from `@/lib/tier0`, then `await` the loader inside the concrete action that actually needs platform I/O. It is safe to top-level import these lazy helper functions; do not invoke them at module top level. Do not top-level import `@tier0/sdk/openapi` or `@tier0/sdk/mq` from services, route loaders, pages, or modules that are loaded during SSR startup. Dynamic SDK loading is the expected pattern for optional operations such as UNS dispatch, Flow publish, or MQTT command send.
 
@@ -797,6 +797,12 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 - TanStack Router `Route.useParams()` and `Route.useSearch()` are **synchronous** — never `await`
 - Define `validateSearch` (Zod) on routes that read query strings — gives type safety + validation
 - `createServerFn().handler(...)` is the equivalent of a Next server action; like server routes, the handler should delegate to a service for any non-trivial work
+
+### Fast Refresh / HMR
+- **Component `.tsx` files export components only.** Put constants, plain helpers, hooks, and data into a sibling `.ts` module and import them. React Fast Refresh hot-replaces a module only when every export is a component; a single non-component export forces a full page reload on every edit — worst on widely-imported files like the app shell or shared layout/overlay modules
+- `export type` / `export interface` are fine (type-only, erased at build). Route files that export `Route` via `createFileRoute` are handled by the router plugin and are exempt
+- **`optimizeDeps.include` (in `vite.config.ts`) must list client deps reached only through code-split route/component boundaries**, using the exact imported subpath (e.g. `"motion/react"`, not `"motion"`). Otherwise Vite discovers them after its initial scan, re-optimizes, and forces a full reload
+- Frequent full-page reloads during dev are an HMR defect, not a preview/startup failure — see `$preview-runtime-stability` for the diagnosis playbook
 
 ### Recharts
 - **ALWAYS** wrap in `<ResponsiveContainer width="100%" height={300}>` inside a container with explicit height

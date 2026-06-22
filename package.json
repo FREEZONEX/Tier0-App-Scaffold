@@ -7,6 +7,7 @@
     "node": ">=22.12.0"
   },
   "scripts": {
+    "postinstall": "node scripts/sync-tier0-skill.mjs",
     "dev": "vite dev --host 0.0.0.0 --port 5173",
     "dev:local": "VITE_STRICT_PORT=false vite dev --host 127.0.0.1 --port 5173",
     "dev:force": "vite dev --host 0.0.0.0 --port 5173 --force",
@@ -25,7 +26,7 @@
     "@fontsource/ibm-plex-mono": "^5.2.7",
     "@tanstack/react-router": "^1.168.0",
     "@tanstack/react-start": "^1.167.0",
-    "@tier0/sdk": "^0.1.3",
+    "@tier0/sdk": "^0.2.4",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.0",
     "drizzle-zod": "^0.8.0",

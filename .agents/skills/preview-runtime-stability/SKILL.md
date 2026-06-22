@@ -1,6 +1,6 @@
 ---
 name: preview-runtime-stability
-description: Diagnose and fix managed preview startup failures for TanStack Start or Vite apps in UNS-SWE executor sandboxes. Use when the user reports "Failed to load preview", "Preview loading timed out", "dev server exited: exit status 1", `{"status":500,"unhandled":true,"message":"HTTPError"}`, Tier0 SDK SSR/noExternal issues, preview_start, preview/status, live preview, Vite dev server, port 5173, /api/health, stale npm/node processes, or sandbox preview process cleanup problems.
+description: Diagnose and fix managed preview startup failures for TanStack Start or Vite apps in UNS-SWE executor sandboxes. Use when the user reports "Failed to load preview", "Preview loading timed out", "dev server exited: exit status 1", `{"status":500,"unhandled":true,"message":"HTTPError"}`, Tier0 SDK SSR/noExternal issues, preview_start, preview/status, live preview, Vite dev server, port 5173, /api/health, stale npm/node processes, sandbox preview process cleanup problems, missing node_modules or uninstalled dependencies, npm install/npm ci dependency restore (e.g. uploaded projects shipped without node_modules), or frequent full page reloads / broken HMR / React Fast Refresh / Vite optimizeDeps re-optimization during development.
 ---
 
 # Preview Runtime Stability
@@ -8,6 +8,8 @@ description: Diagnose and fix managed preview startup failures for TanStack Star
 ## Purpose
 
 Use this skill when the user says `Failed to load preview`, `Preview loading timed out`, or when a managed preview is stuck, repeatedly times out, or reports port conflicts such as `Port 5173 is already in use`. The goal is to make preview start/stop idempotent inside one executor Pod.
+
+This skill also covers two adjacent runtime concerns: restoring dependencies when an uploaded project ships without `node_modules` (the preview cannot start until they are installed), and fixing frequent full page reloads (broken HMR) during development.
 
 ## Core Diagnosis
 
@@ -31,6 +33,36 @@ For TanStack Start or Vite apps in UNS-SWE templates, keep the preview/dev serve
 - Do not leave preview on `3000`, `3001`, or allow Vite to drift to `5174/5175`; keep `artifact.toml` and `package.json` synchronized.
 
 ## Known Error Playbooks
+
+### Dependencies not installed (missing or partial `node_modules`)
+
+Error examples:
+
+```text
+Cannot find module 'react' (or '@tanstack/react-start', 'vite', ...)
+sh: vite: command not found
+Failed to resolve import "..." — the package is not installed
+```
+
+This happens when an uploaded or imported project ships **without** `node_modules` (common when a user uploads a zip that excludes dependencies). The Core Diagnosis assumes dependency restore already succeeded; if it did not, no port/health work will help — install first. `node_modules` can also be *partial* after an interrupted install, so treat a missing `node_modules/.bin/vite` or any startup `Cannot find module` as "restore dependencies".
+
+Detect:
+
+```bash
+[ -d node_modules ] && [ -x node_modules/.bin/vite ] && echo "deps present" || echo "deps missing/partial"
+```
+
+Fix sequence:
+
+1. Confirm you are at the project root (the directory holding `package.json`).
+2. If a managed install is already running, wait for it to finish; do not start a second install that writes `node_modules` concurrently.
+3. Restore dependencies: run `npm ci` when `package-lock.json` exists (clean, lockfile-exact), otherwise `npm install`.
+4. Always restore **before** `npm run build` or starting preview; build/preview keeps failing until install completes.
+5. After install succeeds, run the preflight and start preview normally.
+
+```bash
+[ -f package-lock.json ] && npm ci || npm install
+```
 
 ### Dev server exited with status 1
 
@@ -196,15 +228,39 @@ Fix sequence:
 6. If the server is compiling slowly but healthy afterward, increase the configured preview health timeout only when the app consistently needs more startup time.
 7. If health never succeeds, fix the application runtime error or missing `/api/health` route before retrying preview.
 
+### Frequent full page reloads during dev/HMR
+
+Symptom: editing a file reloads the whole page instead of hot-updating, repeatedly. The dev server is healthy and on `5173`; this is a developer-experience defect, not a startup failure. Do not restart preview to "fix" it — change the code/config below.
+
+Two distinct root causes:
+
+1. **React Fast Refresh incompatibility (mixed exports).** Fast Refresh only hot-replaces a module when every export is a React component. If a `.tsx` file also exports a constant, plain function, or hook, editing it (or any module that invalidates it) forces a full reload. The worst offenders are widely-imported files such as an app shell or shared overlay/layout module, because they reload on almost every edit.
+
+   Fix: move the non-component exports (constants, helpers, hooks) into a sibling `.ts` module and re-import them, so each `.tsx` exports components only. `export type`/`export interface` are fine (type-only, erased at build). TanStack route files that export `Route` are handled by the router plugin and are exempt.
+
+   ```bash
+   # list .tsx files that export BOTH a component and a non-component value
+   for f in $(rg -l --glob 'src/**/*.tsx' '^export (default )?(function|const) [A-Z]'); do
+     rg -q '^export (const|function|async function) [a-z]' "$f" && echo "$f"
+   done
+   ```
+
+2. **optimizeDeps not pre-bundling code-split deps.** When Vite discovers a dependency *after* its initial scan (because the dep is only imported inside a code-split route/component), it re-optimizes and forces a full reload. Watch dev logs for `optimized dependencies changed. reloading` or `new dependencies optimized`.
+
+   Fix: add such client deps to `vite.config.ts` `optimizeDeps.include`, using the exact imported subpath (e.g. `"motion/react"`, not `"motion"`), then restart dev once.
+
+To keep generated apps clean from the start, enforce both as code conventions: component `.tsx` files export components only, and `optimizeDeps.include` lists client deps reached only through code-split boundaries.
+
 ## Required Runtime Behavior
 
 Before every preview start:
 
-1. Check whether the declared preview port is already listening.
-2. If occupied, probe `http://127.0.0.1:${PREVIEW_PORT}/api/health`.
-3. If health is 2xx, reuse the running preview and return ready instead of starting a second process.
-4. If occupied but unhealthy, kill the old preview process group, wait for the port to free, then start the new preview.
-5. If the port is free, start preview normally.
+1. Ensure dependencies are installed. If `node_modules` is missing or incomplete (uploaded projects may ship without it), run `npm ci` when `package-lock.json` exists, otherwise `npm install`, before any build or preview.
+2. Check whether the declared preview port is already listening.
+3. If occupied, probe `http://127.0.0.1:${PREVIEW_PORT}/api/health`.
+4. If health is 2xx, reuse the running preview and return ready instead of starting a second process.
+5. If occupied but unhealthy, kill the old preview process group, wait for the port to free, then start the new preview.
+6. If the port is free, start preview normally.
 
 When preview stop/restart runs:
 

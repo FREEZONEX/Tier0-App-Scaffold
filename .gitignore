@@ -42,3 +42,6 @@ yarn-error.log*
 
 # TanStack Router auto-generated route tree
 src/routeTree.gen.ts
+
+# tier0-sdk skill synced from @tier0/sdk on postinstall (see scripts/sync-tier0-skill.mjs)
+/.agents/skills/tier0-sdk/

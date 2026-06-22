@@ -75,7 +75,7 @@ Generate complete, runnable, production-quality applications from requirements d
   identical fetch loop.
 - For Tier0 platform integrations, use the preinstalled `@tier0/sdk`.
   Prefer lazy loaders from `@/lib/tier0` when following the
-  `$tier0-sdk-openapi` or `$tier0-sdk-mq` references. Do not top-level import
+  `$tier0-sdk` references (`references/openapi/*` for REST, `references/mq/*` for MQ). Do not top-level import
   `@tier0/sdk/openapi` or `@tier0/sdk/mq` from services, route loaders, pages,
   or SSR startup paths. Do not hand-roll
   OpenAPI fetch wrappers, MQTT connection logic, reconnect logic, or UNS/Flow

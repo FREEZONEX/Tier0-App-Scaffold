@@ -5,9 +5,9 @@ import {
   OverlayFooter,
   OverlayHeader,
   OverlayPortal,
-  useOverlayLifecycle,
   type OverlayFrameProps,
 } from "@/components/overlays/overlay-frame";
+import { useOverlayLifecycle } from "@/components/overlays/overlay-lifecycle";
 import { cn } from "@/lib/utils";
 
 export type DrawerSide = "right" | "left";

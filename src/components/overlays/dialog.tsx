@@ -5,11 +5,13 @@ import {
   OverlayFooter,
   OverlayHeader,
   OverlayPortal,
+  type OverlayFrameProps,
+} from "@/components/overlays/overlay-frame";
+import {
   overlayWidthClass,
   useOverlayLifecycle,
-  type OverlayFrameProps,
   type OverlaySize,
-} from "@/components/overlays/overlay-frame";
+} from "@/components/overlays/overlay-lifecycle";
 import { cn } from "@/lib/utils";
 
 export interface DialogProps extends OverlayFrameProps {
