@@ -174,7 +174,7 @@ npm install
 npx drizzle-kit push    # create tables under DB_SCHEMA
 npx tsx src/db/seed.ts  # seed DB_SCHEMA on first use
 npm run build           # outputs dist/{client,server}
-node server.mjs         # equivalent to npm start, listens on PORT (default 5173)
+node server.mjs         # equivalent to npm start, listens on PORT (default 3000)
 ```
 
 ---

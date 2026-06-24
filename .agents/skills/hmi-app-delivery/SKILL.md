@@ -25,7 +25,7 @@ npm install
 npx drizzle-kit push      # 在 DB_SCHEMA 指定的 schema 下建表（mimics 等）
 npx tsx src/db/seed.ts    # 种子数据——注意：mimics 表不在这里灌（见下）
 npm run build             # vite build → dist/{client,server}
-node server.mjs           # 监听 PORT（默认 5173）
+node server.mjs           # 监听 PORT（默认 3000）
 ```
 
 **默认工艺图不走 seed.ts**：`mimics` 由**运行时 bootstrap** 灌入（`src/services/mimics.ts`，首次 HTTP 请求触发、幂等、**仅空表时**）。默认 seed 的是**空白图**（`src/hmi/data/default-mimic.json`，模板开局空画布；交付时覆盖它写客户 schema）；设 `HMI_SEED_DEMO=1` 改 seed RX-100 示例（`example-mimic.json`，供 E2E/演示）。均内嵌 bundle（import 而非读文件，容器只带 `dist/` 也能 seed）。后果两条：

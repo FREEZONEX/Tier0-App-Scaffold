@@ -340,7 +340,7 @@ npm run db:studio    # Drizzle Studio
 - `dist/server/server.js`: SSR + server-routes fetch handler
 
 `server.mjs` wraps that handler with `node:http`, listens on `PORT` (default
-`5173`), and serves `dist/client/` as static assets. For container deployment,
+`3000`), and serves `dist/client/` as static assets. For container deployment,
 see `artifact.toml`.
 
 ## Notes for Agents

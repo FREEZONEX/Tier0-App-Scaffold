@@ -21,8 +21,8 @@ const SERVER_ENTRY = pathToFileURL(
   join(__dirname, "dist", "server", "server.js"),
 ).href;
 
-const PORT = Number(process.env.PORT || 5173);
-const HOST = process.env.HOST || process.env.HOSTNAME || "0.0.0.0";
+const PORT = Number(process.env.PORT || 3000);
+const HOST = process.env.HOSTNAME || process.env.HOST || "0.0.0.0";
 
 const MIME_TYPES = {
   ".js": "application/javascript; charset=utf-8",

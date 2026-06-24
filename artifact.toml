@@ -11,9 +11,6 @@
 [deployment]
 deploymentTarget = "autoscale"
 
-[deployment.postBuild]
-args = ["npm", "prune", "--omit=dev"]
-
 [[services]]
 name = "web"
 paths = ["/"]
