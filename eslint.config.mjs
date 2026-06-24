@@ -12,6 +12,7 @@ const eslintConfig = defineConfig([
     ".output/**",
     "dist/**",
     "build/**",
+    "runtime/**",
     ".remember/**",
     ".superpowers/**",
     ".codegraph/**",

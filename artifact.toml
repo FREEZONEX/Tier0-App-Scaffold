@@ -11,9 +11,6 @@
 [deployment]
 deploymentTarget = "autoscale"
 
-[deployment.postBuild]
-args = ["npm", "prune", "--omit=dev"]
-
 [[services]]
 name = "web"
 paths = ["/"]
@@ -24,10 +21,15 @@ serve = "dynamic"
 
 [services.production.build]
 args = [
+  "rm", "-rf", "runtime", "&&",
   "npm", "ci", "&&",
-  "npm", "run", "build",
+  "npm", "run", "build", "&&",
+  "rm", "-rf", "node_modules", "&&",
+  "npm", "ci", "--omit=dev", "--ignore-scripts", "--no-audit", "--no-fund", "&&",
+  "mkdir", "-p", "runtime", "&&",
+  "cp", "-R", "dist", "server.mjs", "package.json", "package-lock.json", "node_modules", "runtime/",
 ]
-outputDir = "."
+outputDir = "runtime"
 
 [services.production.run]
 args = ["node", "server.mjs"]

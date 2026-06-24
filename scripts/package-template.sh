@@ -19,6 +19,7 @@ fi
 zip -rq "$OUT" . \
   -x 'node_modules/*' \
   -x 'coverage/*' \
+  -x 'runtime/*' \
   -x 'test-results/*' \
   -x 'playwright-report/*' \
   -x '.playwright-artifacts/*' \
