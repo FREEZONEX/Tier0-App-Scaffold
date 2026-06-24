@@ -69,8 +69,8 @@ function HmiPageInner({ initialMimic, canEdit }: { initialMimic: MimicRecord; ca
   useEffect(() => {
     setCanvasLang(lang);
   }, [lang]);
-  // Tier0 MQTT 配置：走 server fn 读服务端**无前缀** process.env.TIER0_*（平台注入无 VITE_ 前缀，
-  // 客户端读不到，故服务端取后回传）。首屏 null → mock 兜底；拿到 host 非空 → 下方 source effect 重建为真实源。
+  // Tier0 MQTT 配置：走 server fn 读服务端**无前缀** process.env.TIER0_*。
+  // 客户端不直接读 Tier0 环境变量；首屏 null → mock 兜底，拿到 host 非空 → 下方 source effect 重建为真实源。
   const [tier0Config, setTier0Config] = useState<Tier0Config | null>(null);
   // 🔧 诊断（用户要求保留）：把服务端注入的 tier0 配置 + 客户端构建变量明文打到浏览器控制台，
   // 用于核对平台到底有没有把 broker/凭证注进来。想撤掉就删这个 useEffect。

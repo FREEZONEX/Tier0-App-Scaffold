@@ -14,7 +14,7 @@
 
 ## 关键参考
 
-- **`Tier0MQClient`**（`@tier0/sdk/mq`）：`subscribe(topic, (topic,payload:string)=>void)` 懒连接、`unsubscribe`、`publish(topic, payload)`、`on("connect"|"disconnect"|"error", cb)`、`disconnect()`。host/key 从 env（`VITE_TIER0_MQTT_HOST`/`PORT`/`VITE_TIER0_API_KEY`）。
+- **`Tier0MQClient`**（`@tier0/sdk/mq`）：`subscribe(topic, (topic,payload:string)=>void)` 懒连接、`unsubscribe`、`publish(topic, payload)`、`on("connect"|"disconnect"|"error", cb)`、`disconnect()`。host/key 从 env（`TIER0_MQTT_HOST`/`PORT`/`TIER0_API_KEY`）。
 - **现有 `DataSource`**（`src/hmi/data/data-source.ts`）：`connect`/`disconnect`/`onMessage`/`onStatus`/`status`/`publish`。
 - **mock 兜底**：`createMockSource(mockSpecsFromSchema(schema))`（`mock-source.ts` + `mock-spec.ts`，保留）。
 - **删除目标**：`mqtt-client.ts`（mqtt.js 直连）+ `mqtt-client.test.ts`。
@@ -33,7 +33,7 @@
 - **Modify** `src/hmi/components/Topbar.tsx` — 删 source-mode props + UI；broker 显示改 env
 - **Delete** `src/hmi/data/mqtt-client.ts` + `mqtt-client.test.ts`
 - **Modify** `e2e/hmi.spec.ts` — 删失效的"切换实时源"用例
-- **Modify** `.env.example` — 补 `VITE_TIER0_*`
+- **Modify** `docs/platform-integration.md` — 说明平台注入无前缀 `TIER0_*`
 
 ---
 
@@ -269,16 +269,16 @@ import type { DataSource } from "./data-source";
 import type { Mimic } from "@/hmi/schema/schema";
 
 /**
- * 有 Tier0 env 用真实 Tier0 源；否则 mock 兜底（喂当前图仿真数据，本地/E2E 不破）。
- * tier0Available 默认读 env（仅调用时求值，测试可显式传参绕过 import.meta.env）。
+ * 有 Tier0 配置用真实 Tier0 源；否则 mock 兜底（喂当前图仿真数据，本地/E2E 不破）。
+ * config 由 server fn 读取 Node process.env.TIER0_* 后传入。
  */
 export function createDataSource(
   schema: Mimic,
   topics: readonly string[],
-  tier0Available: boolean = !!import.meta.env?.VITE_TIER0_MQTT_HOST,
+  config: Tier0Config | null,
 ): DataSource {
-  return tier0Available
-    ? createTier0Source(topics)
+  return config?.mqttHost
+    ? createTier0Source(topics, () => makeTier0Client(config))
     : createMockSource(mockSpecsFromSchema(schema));
 }
 ```
@@ -339,9 +339,9 @@ import { createDataSource } from "@/hmi/data/source-factory";
 
 - [ ] **Step 6: broker 显示改 env（HmiPage 那侧）**
 
-HmiPage 218 行传给 Topbar 的 `brokerUrl`，从 `schema.broker?.url ?? "—"` 改为：
+HmiPage 218 行传给 Topbar 的 `brokerUrl`，从 `schema.broker?.url ?? "—"` 改为 server fn 返回的配置：
 ```tsx
-        brokerUrl={import.meta.env?.VITE_TIER0_MQTT_HOST ?? "dev (mock)"}
+        brokerUrl={tier0Config?.mqttHost || "dev (mock)"}
 ```
 
 - [ ] **Step 7: 校验**
@@ -393,20 +393,13 @@ git commit -m "chore(hmi): 删 mqtt-client（换 Tier0）+ 失效的 source-mode
 
 **Files:** Modify `.env.example`、`docs/platform-integration.md`
 
-- [ ] **Step 1: .env.example 补 Tier0 变量**
+- [ ] **Step 1: 不在 .env.example 暴露 Tier0 变量**
 
-在 `.env.example` 末尾追加（无该文件则 `touch .env.example` 后写）：
-```bash
-# Tier0 SDK（平台注入；本地留空则用 mock 兜底数据源）
-VITE_TIER0_MQTT_HOST=
-VITE_TIER0_MQTT_PORT=8084
-VITE_TIER0_API_HOST=
-VITE_TIER0_API_KEY=
-```
+Tier0 变量由平台注入，应用代码通过 server fn 读取无前缀 `TIER0_*`。本地未注入时自动走 mock 兜底数据源。
 
 - [ ] **Step 2: platform-integration.md 补一节**
 
-在 `docs/platform-integration.md` 末尾追加说明：MQTT 连接走 `@tier0/sdk`，broker/key 从 `VITE_TIER0_MQTT_HOST`/`PORT`/`VITE_TIER0_API_KEY` 读；缺失时前端回退 mock 兜底源（dev/演示用）。
+在 `docs/platform-integration.md` 末尾追加说明：MQTT 连接走 `@tier0/sdk`，broker/key 从 `TIER0_MQTT_HOST`/`PORT`/`TIER0_API_KEY` 读；缺失时前端回退 mock 兜底源（dev/演示用）。
 
 - [ ] **Step 3: Commit**
 

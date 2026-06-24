@@ -29,7 +29,7 @@
   - `SchemaField = { name: string; type: string; unit?: string }`
 - 所有 `unsApi.*` 方法 TS 签名是 `Promise<any>`——**响应是 `any`，必须运行时取 `.data` 并防御性归一化**（响应可能已被 HttpClient 解包，故 `resp.data ?? resp`）。
 
-**env / 鉴权**：openapi `HttpClient` 默认从 `TIER0_API_HOST` / `TIER0_API_KEY` 读（`Authorization: Bearer <key>`），缺 host 抛 `apiHost is required`。server fn 跑在 Node 服务端，用 `configureClient` 显式注入 getter，**同时读 `TIER0_API_HOST` 与 `VITE_TIER0_API_HOST`**（部署可能只设其一）。
+**env / 鉴权**：openapi `HttpClient` 默认从 `TIER0_API_HOST` / `TIER0_API_KEY` 读（`Authorization: Bearer <key>`），缺 host 抛 `apiHost is required`。server fn 跑在 Node 服务端，用 `configureClient` 显式注入 getter，只读无前缀 `TIER0_*`。
 
 **createServerFn 序列化约束**（见 `mimic-store.ts` 的 `MimicDto` 注释）：TanStack 编译期校验 server fn 返回值可序列化，`unknown` / `Record<string, unknown>` 会编译报错。故 `OpenapiVQT.value`（`Record<string, never>`）**必须以 JSON 字符串穿越边界**（`valueJson: string`），客户端再 `JSON.parse`。
 
@@ -293,11 +293,11 @@ import {
 // 给组件层一个统一入口（picker 从这里取类型 + server fn）。
 export type { UnsTopic, UnsTopicDetail } from "./uns-normalize";
 
-// server fn 跑在 Node 服务端：process.env 有全部变量。部署可能只设 TIER0_* 或 VITE_TIER0_*，两者都读。
+// server fn 跑在 Node 服务端：process.env 有平台注入的无前缀 TIER0_* 变量。
 const env = (k: string): string | undefined =>
   (typeof process !== "undefined" ? process.env[k] : undefined) || undefined;
-const apiHost = (): string | undefined => env("TIER0_API_HOST") || env("VITE_TIER0_API_HOST");
-const apiKey = (): string | undefined => env("TIER0_API_KEY") || env("VITE_TIER0_API_KEY");
+const apiHost = (): string | undefined => env("TIER0_API_HOST");
+const apiKey = (): string | undefined => env("TIER0_API_KEY");
 
 // 显式注入凭证 getter（不依赖 SDK 默认 env 名/前缀假设）。
 configureClient({ getApiHost: apiHost, getApiKey: apiKey });
@@ -700,7 +700,7 @@ git commit -m "feat(hmi): 发布面板 topic 支持从 UNS 选"
 绑定 / 发布面板可从平台 UNS 命名空间选 topic（搜索 + 查看字段 schema 与最新值），走 `@tier0/sdk/openapi` 的 `unsApi`（REST，带 API key）。
 
 - **服务端封装**：调用经 TanStack `createServerFn`（`src/hmi/data/uns-api.ts`）在服务端发起，API key **不进浏览器**。
-- **env**：`VITE_TIER0_API_HOST` / `VITE_TIER0_API_KEY`（或不带前缀的 `TIER0_API_HOST` / `TIER0_API_KEY`，server fn 两者都读）。
+- **env**：`TIER0_API_HOST` / `TIER0_API_KEY`，由平台注入，server fn 从 Node `process.env` 读取。
 - **降级**：未配 env 时 server fn 返回 `available:false`，选择器显示「UNS 不可用，请手填」，不阻断手填 topic。
 ```
 
@@ -768,5 +768,5 @@ git commit -m "test(hmi): UNS 选择器降级 E2E"
 ## 收尾验证清单
 - [ ] `tsc --noEmit` + `npm test` + `eslint` 干净（server fn 返回均可序列化）
 - [ ] dev（无 Tier0）：UNS 按钮→选择器→搜索→「不可用，手填」，不崩、不阻断手填
-- [ ] 真实 Tier0 env 联调（需 `VITE_TIER0_API_HOST`/`KEY`）：search 出真实 topic、点条目读出 fields+最新值、「选用」回填——**需真实凭证，dev 无法验，部署后手测**
+- [ ] 真实 Tier0 env 联调（需 `TIER0_API_HOST`/`KEY`）：search 出真实 topic、点条目读出 fields+最新值、「选用」回填——**需真实凭证，dev 无法验，部署后手测**
 ```

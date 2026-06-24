@@ -10,17 +10,9 @@ import { serializeHistory, type SerialHistoryItem } from "./uns-history";
 export type { UnsTopic } from "./uns-normalize";
 
 // 读 env：部署平台把**无前缀** TIER0_* 注入 process.env（与 MQTT 配置同源，见 tier0-config.ts）。
-// 仅认无前缀这一套命名，不再读 VITE_ 前缀。兜底也试 import.meta.env（dev/SSR）。
-const metaEnv = (k: string): string | undefined => {
-  try {
-    return (import.meta as unknown as { env?: Record<string, string | undefined> }).env?.[k];
-  } catch {
-    return undefined;
-  }
-};
 const env = (k: string): string | undefined => {
   const fromProcess = typeof process !== "undefined" ? process.env?.[k] : undefined;
-  return fromProcess || metaEnv(k) || undefined;
+  return fromProcess || undefined;
 };
 const apiHost = (): string | undefined => env("TIER0_API_HOST");
 const apiKey = (): string | undefined => env("TIER0_API_KEY");
