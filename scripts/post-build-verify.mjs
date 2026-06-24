@@ -5,7 +5,7 @@ const steps = [
   {
     label: "Verify build artifacts",
     run() {
-      const required = ["dist/client", "dist/server"];
+      const required = ["dist/client", "dist/server", "dist/server/server.js"];
       const missing = required.filter((path) => !existsSync(path));
       if (missing.length > 0) {
         throw new Error(`Missing build output: ${missing.join(", ")}`);
