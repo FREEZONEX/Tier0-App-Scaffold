@@ -13,10 +13,7 @@ export const getRouter = () =>
     routeTree,
     defaultPreload: "intent",
     scrollRestoration: true,
-    basepath:
-      (import.meta.env.VITE_BASE_PATH as string | undefined) ||
-      (import.meta.env.NEXT_PUBLIC_BASE_PATH as string | undefined) ||
-      undefined,
+    basepath: (import.meta.env.VITE_BASE_PATH as string | undefined) || undefined,
   });
 
 declare module "@tanstack/react-router" {

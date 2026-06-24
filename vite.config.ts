@@ -64,8 +64,7 @@ function previewGatewayHeaders(): Plugin {
 }
 
 export default defineConfig({
-  envPrefix: "",
-  base: process.env.VITE_BASE_PATH || process.env.NEXT_PUBLIC_BASE_PATH || "/",
+  base: process.env.VITE_BASE_PATH || "/",
   server: {
     port: 5173,
     strictPort,
@@ -98,8 +97,7 @@ export default defineConfig({
     tanstackStart({
       srcDirectory: "src",
       router: {
-        basepath:
-          process.env.VITE_BASE_PATH || process.env.NEXT_PUBLIC_BASE_PATH || undefined,
+        basepath: process.env.VITE_BASE_PATH || undefined,
       },
     }),
     viteReact(),

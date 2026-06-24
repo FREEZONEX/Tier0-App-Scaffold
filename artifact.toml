@@ -24,8 +24,7 @@ serve = "dynamic"
 
 [services.production.build]
 args = [
-  "npm", "ci", "&&",
-  "npm", "run", "build",
+  "sh", "-lc", "npm ci && npm run build",
 ]
 outputDir = "."
 

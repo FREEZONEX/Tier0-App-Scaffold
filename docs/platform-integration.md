@@ -28,7 +28,6 @@ These variables are platform-driven. Local development does not need them.
 | `DB_SCHEMA` | Uses the `public` schema | Runs all queries in the specified schema |
 | `APP_ID` | Defaults to `"monoapp"` | Returned by `/api/manifest` as the app id |
 | `VITE_BASE_PATH` | No URL prefix | Applied by `apiUrl()` and Vite `base` |
-| `NEXT_PUBLIC_BASE_PATH` | Legacy fallback only | Read by `apiUrl()` if `VITE_BASE_PATH` is missing |
 | `TIER0_API_HOST` | — | Tier0 OpenAPI host injected by the platform |
 | `TIER0_API_KEY` | — | Tier0 API credential injected by the platform; shared by OpenAPI and MQTT |
 | `TIER0_MQTT_HOST` | — | Tier0 MQTT WebSocket broker host injected by the platform |
@@ -158,8 +157,6 @@ TIER0_API_HOST="<platform-injected>"
 TIER0_API_KEY="<platform-injected>"
 TIER0_MQTT_HOST="<platform-injected>"
 TIER0_MQTT_PORT="8084"
-# Optional legacy fallback:
-# NEXT_PUBLIC_BASE_PATH="/session-xyz789"
 ```
 
 **Gateway routing:**
@@ -192,7 +189,6 @@ node server.mjs         # equivalent to npm start, listens on PORT (default 3000
 | `DB_SCHEMA` | `db/index.ts` (`search_path`), `drizzle.config.ts` (`schemaFilter`), `db/seed.ts` |
 | `APP_ID` | `routes/api/manifest.ts` |
 | `VITE_BASE_PATH` | `vite.config.ts` (`base`), `router.tsx` (`basepath`), `lib/utils.ts` (`apiUrl` primary source) |
-| `NEXT_PUBLIC_BASE_PATH` | `lib/utils.ts`, and as a fallback in `vite.config.ts` / `router.tsx` |
 | `TIER0_API_HOST` | Injected by the platform; read by `@tier0/sdk/openapi` at runtime |
 | `TIER0_API_KEY` | Injected by the platform; read by `@tier0/sdk/openapi` and `@tier0/sdk/mq` |
 | `TIER0_MQTT_HOST` | Injected by the platform; read by `@tier0/sdk/mq` |

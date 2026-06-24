@@ -899,7 +899,6 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 - `DB_SCHEMA` — PostgreSQL schema for multi-tenant isolation (default: `public`)
 - `APP_ID` — app identifier for `/api/manifest` (default: `"monoapp"`)
 - `VITE_BASE_PATH` — URL prefix for deployed apps; used by Vite `base`, router `basepath`, and `apiUrl()`
-- `NEXT_PUBLIC_BASE_PATH` — backwards-compat alias for the above. Still read but logs a deprecation warning; rename to `VITE_BASE_PATH`
 - See `docs/platform-integration.md` for deployment details.
 
 ## Definition of Done

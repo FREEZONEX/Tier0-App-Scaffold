@@ -52,7 +52,6 @@ enabled.
 | `DB_SCHEMA` | | Uses `public` | Runs all queries inside the specified schema |
 | `APP_ID` | | Defaults to `"monoapp"` | Returned by `/api/manifest` as the app id |
 | `VITE_BASE_PATH` | | No URL prefix | Applied to Vite `base`, router `basepath`, and `apiUrl()` |
-| `NEXT_PUBLIC_BASE_PATH` | | Legacy fallback only | Used by `apiUrl()` when `VITE_BASE_PATH` is absent |
 
 Tier0 SDK auth and connection variables are injected by the platform at deploy
 time. Do not write them into `.env.example`, and do not expose UI in the
