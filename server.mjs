@@ -42,13 +42,23 @@ const MIME_TYPES = {
   ".otf": "font/otf",
 };
 
-const handlerModule = await import(SERVER_ENTRY);
-const handler = handlerModule.default;
-if (!handler || typeof handler.fetch !== "function") {
-  throw new Error(
-    "dist/server/server.js does not export a default { fetch } handler. " +
-      "Did `vite build` succeed?",
-  );
+let handlerPromise;
+
+async function loadHandler() {
+  if (!handlerPromise) {
+    handlerPromise = import(SERVER_ENTRY).then((handlerModule) => {
+      const handler = handlerModule.default;
+      if (!handler || typeof handler.fetch !== "function") {
+        throw new Error(
+          "dist/server/server.js does not export a default { fetch } handler. " +
+            "Did `vite build` succeed?",
+        );
+      }
+      console.log("[server.mjs] TanStack Start handler loaded");
+      return handler;
+    });
+  }
+  return handlerPromise;
 }
 
 function nodeRequestToWebRequest(req, baseUrl) {
@@ -105,7 +115,18 @@ async function tryServeStatic(req, res) {
 
 const server = createServer(async (req, res) => {
   try {
+    if (req.method === "GET" && req.url?.startsWith("/api/health")) {
+      const data = JSON.stringify({ status: "ok", timestamp: Date.now() });
+      res.writeHead(200, {
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(data),
+      });
+      res.end(data);
+      return;
+    }
+
     if (await tryServeStatic(req, res)) return;
+    const handler = await loadHandler();
     const baseUrl = `https://${req.headers.host || `${HOST}:${PORT}`}`;
     const webReq = nodeRequestToWebRequest(req, baseUrl);
     const webRes = await handler.fetch(webReq);
