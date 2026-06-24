@@ -40,13 +40,12 @@ export const Route = createFileRoute("/")({
 function HmiRoute() {
   const { current, lang } = Route.useLoaderData();
   const { user } = Route.useRouteContext();
-  const databaseAvailable = current.source === "db";
 
   return (
     <HmiLayout user={user}>
       <HmiPage
         initialMimic={parseDto(current)}
-        canEdit={databaseAvailable && can(user.role, "edit_mimic")}
+        canEdit={can(user.role, "edit_mimic")}
         initialLang={lang}
       />
     </HmiLayout>

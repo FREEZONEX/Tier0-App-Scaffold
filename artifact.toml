@@ -11,6 +11,9 @@
 [deployment]
 deploymentTarget = "autoscale"
 
+[deployment.postBuild]
+args = ["npm", "prune", "--omit=dev"]
+
 [[services]]
 name = "web"
 paths = ["/"]
@@ -22,8 +25,7 @@ serve = "dynamic"
 [services.production.build]
 args = [
   "npm", "ci", "&&",
-  "npm", "run", "build", "&&",
-  "npm", "ci", "--omit=dev", "--ignore-scripts", "--no-audit", "--no-fund",
+  "npm", "run", "build",
 ]
 outputDir = "."
 
@@ -38,7 +40,7 @@ SESSION_SECRET = "fff03854d9eee4fca8fb13b8ef49c765494bbf984d7590d884393238ba4c59
 
 [services.production.health.startup]
 path = "/api/health"
-timeout = 300
+timeout = 120
 
 # Live preview (dev server running inside the Executor Pod)
 [services.preview]
