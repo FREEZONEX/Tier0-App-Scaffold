@@ -11,6 +11,7 @@
     "dev": "vite dev --host 0.0.0.0 --port 5173",
     "dev:local": "VITE_STRICT_PORT=false vite dev --host 127.0.0.1 --port 5173",
     "dev:force": "vite dev --host 0.0.0.0 --port 5173 --force",
+    "dev:demo": "bash scripts/dev-demo.sh",
     "build": "vite build",
     "postbuild": "npm run build:verify",
     "typecheck": "tsc --noEmit",
@@ -18,9 +19,11 @@
     "build:check": "npm run build",
     "start": "node server.mjs",
     "lint": "eslint .",
+    "test": "node --import tsx --test \"src/**/*.test.ts\"",
     "db:push": "drizzle-kit push",
     "db:seed": "tsx src/db/seed.ts",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "package": "bash scripts/package-template.sh"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.2.7",

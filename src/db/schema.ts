@@ -3,7 +3,9 @@
  * defining schemas. They become "used" the moment the agent adds the first table.
  */
 import { pgTable, pgEnum, text, integer, boolean, timestamp, json, real } from "drizzle-orm/pg-core";
+import { jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-zod";
+import type { Mimic } from "@/hmi/schema/schema";
 
 // ─── Agent: define your enums and tables below ───
 //
@@ -34,3 +36,23 @@ import { createInsertSchema, createSelectSchema, createUpdateSchema } from "driz
 // After editing: npx drizzle-kit push is useful for local pre-sync, but each
 // implemented service must also runtime-bootstrap its own tables so preview
 // and new tenant schemas work before any manual push/seed command runs.
+
+export const mimics = pgTable("mimics", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull(),
+  data: jsonb("data").$type<Mimic>().notNull(),
+  tenant: text("tenant"),
+  owner: text("owner"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull()
+    .$onUpdateFn(() => new Date()),
+});
+
+export const insertMimicSchema = createInsertSchema(mimics);
+export const selectMimicSchema = createSelectSchema(mimics);
+export type MimicRow = typeof mimics.$inferSelect;
+export type NewMimicRow = typeof mimics.$inferInsert;

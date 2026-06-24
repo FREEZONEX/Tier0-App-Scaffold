@@ -1,0 +1,2242 @@
+{
+  "meta": {
+    "name": "T-104 乙二醇精馏",
+    "version": 1
+  },
+  "nodes": [
+    {
+      "id": "T-104",
+      "type": "column",
+      "x": 630.770202693118,
+      "y": 435.90849137725246,
+      "rotation": 0,
+      "sizeX": 3,
+      "sizeY": 3,
+      "label": "T-104",
+      "topics": [
+        "egtower/T-104"
+      ],
+      "bindings": {
+        "level": {
+          "topic": "egtower/T-104",
+          "path": "level",
+          "scale": {
+            "min": 0,
+            "max": 100
+          },
+          "alarms": {
+            "hihi": 92,
+            "hi": 85
+          },
+          "unit": "%"
+        }
+      },
+      "inline": [
+        "level"
+      ]
+    },
+    {
+      "id": "RT1",
+      "type": "readout",
+      "x": 630.770202693118,
+      "y": 248.73557507036122,
+      "rotation": 0,
+      "sizeX": 1.2870144812299606,
+      "sizeY": 1.2870144812299606,
+      "label": "",
+      "topics": [
+        "egtower/T-104-T1"
+      ],
+      "bindings": {
+        "value": {
+          "topic": "egtower/T-104-T1",
+          "path": "value",
+          "unit": "°C"
+        }
+      },
+      "inline": [
+        "value"
+      ]
+    },
+    {
+      "id": "RT2",
+      "type": "readout",
+      "x": 629.1047319416895,
+      "y": 316.1408136344608,
+      "rotation": 0,
+      "sizeX": 1.3698574105376993,
+      "sizeY": 1.3698574105376993,
+      "label": "",
+      "topics": [
+        "egtower/T-104-T2"
+      ],
+      "bindings": {
+        "value": {
+          "topic": "egtower/T-104-T2",
+          "path": "value",
+          "unit": "°C"
+        }
+      },
+      "inline": [
+        "value"
+      ]
+    },
+    {
+      "id": "RT3",
+      "type": "readout",
+      "x": 630.276513875522,
+      "y": 398.589655508466,
+      "rotation": 0,
+      "sizeX": 1.3058669196893913,
+      "sizeY": 1.3058669196893913,
+      "label": "",
+      "topics": [
+        "egtower/T-104-T3"
+      ],
+      "bindings": {
+        "value": {
+          "topic": "egtower/T-104-T3",
+          "path": "value",
+          "unit": "°C"
+        }
+      },
+      "inline": [
+        "value"
+      ]
+    },
+    {
+      "id": "RT4",
+      "type": "readout",
+      "x": 630,
+      "y": 520,
+      "rotation": 0,
+      "sizeX": 1.314682698181612,
+      "sizeY": 1.314682698181612,
+      "label": "",
+      "topics": [
+        "egtower/T-104-T4"
+      ],
+      "bindings": {
+        "value": {
+          "topic": "egtower/T-104-T4",
+          "path": "value",
+          "unit": "°C"
+        }
+      },
+      "inline": [
+        "value"
+      ]
+    },
+    {
+      "id": "RT5",
+      "type": "readout",
+      "x": 630.4081518838891,
+      "y": 618.4190456306479,
+      "rotation": 0,
+      "sizeX": 1.3761169083863751,
+      "sizeY": 1.3761169083863751,
+      "label": "",
+      "topics": [
+        "egtower/T-104-T5"
+      ],
+      "bindings": {
+        "value": {
+          "topic": "egtower/T-104-T5",
+          "path": "value",
+          "unit": "°C"
+        }
+      },
+      "inline": [
+        "value"
+      ]
+    },
+    {
+      "id": "FEED",
+      "type": "terminal",
+      "x": 87.51469463203905,
+      "y": 435.90849137725246,
+      "rotation": 0,
+      "label": "FEED",
+      "topics": [
+        "egtower/FEED"
+      ],
+      "bindings": {
+        "flow": {
+          "topic": "egtower/FEED",
+          "path": "flow",
+          "unit": "t/h"
+        }
+      },
+      "inline": [
+        "flow"
+      ]
+    },
+    {
+      "id": "FV_012A",
+      "type": "controlvalve",
+      "x": 352.066539716328,
+      "y": 435.90849137725246,
+      "rotation": 0,
+      "label": "FV_012A",
+      "topics": [
+        "egtower/FV-012A"
+      ],
+      "bindings": {
+        "opening": {
+          "topic": "egtower/FV-012A",
+          "path": "opening",
+          "unit": "%"
+        }
+      },
+      "inline": [
+        "opening"
+      ]
+    },
+    {
+      "id": "FR_021A",
+      "type": "instrument",
+      "x": 352.066539716328,
+      "y": 363.82369380991486,
+      "rotation": 0,
+      "topics": [
+        "egtower/FR-021A"
+      ],
+      "bindings": {
+        "value": {
+          "topic": "egtower/FR-021A",
+          "path": "value",
+          "unit": "t/h"
+        }
+      },
+      "inline": [
+        "value"
+      ],
+      "props": {
+        "tag": "FR",
+        "display": "box"
+      }
+    },
+    {
+      "id": "TI_060A",
+      "type": "instrument",
+      "x": 430,
+      "y": 341.9244848724997,
+      "rotation": 0,
+      "topics": [
+        "egtower/TI-060A"
+      ],
+      "bindings": {
+        "value": {
+          "topic": "egtower/TI-060A",
+          "path": "value",
+          "unit": "°C"
+        }
+      },
+      "inline": [
+        "value"
+      ],
+      "props": {
+        "tag": "TI",
+        "display": "box"
+      }
+    },
+    {
+      "id": "PI_035A",
+      "type": "instrument",
+      "x": 430,
+      "y": 170,
+      "rotation": 0,
+      "topics": [
+        "egtower/PI-035A"
+      ],
+      "bindings": {
+        "value": {
+          "topic": "egtower/PI-035A",
+          "path": "value",
+          "alarms": {
+            "hihi": 95,
+            "hi": 85
+          },
+          "unit": "kPa"
+        }
+      },
+      "inline": [
+        "value"
+      ],
+      "props": {
+        "tag": "PI",
+        "display": "box"
+      }
+    },
+    {
+      "id": "PDI_005A",
+      "type": "instrument",
+      "x": 430,
+      "y": 235,
+      "rotation": 0,
+      "topics": [
+        "egtower/PDI-005A"
+      ],
+      "bindings": {
+        "value": {
+          "topic": "egtower/PDI-005A",
+          "path": "value",
+          "unit": "kPa"
+        }
+      },
+      "inline": [
+        "value"
+      ],
+      "props": {
+        "tag": "PDI",
+        "display": "box"
+      }
+    },
+    {
+      "id": "PI_036A",
+      "type": "instrument",
+      "x": 430,
+      "y": 555.2667407187988,
+      "rotation": 0,
+      "topics": [
+        "egtower/PI-036A"
+      ],
+      "bindings": {
+        "value": {
+          "topic": "egtower/PI-036A",
+          "path": "value",
+          "unit": "kPa"
+        }
+      },
+      "inline": [
+        "value"
+      ],
+      "props": {
+        "tag": "PI",
+        "display": "box"
+      }
+    },
+    {
+      "id": "LIC_014A",
+      "type": "instrument",
+      "x": 764.3979642063875,
+      "y": 653.7765649807133,
+      "rotation": 0,
+      "topics": [
+        "egtower/LIC-014A"
+      ],
+      "bindings": {
+        "value": {
+          "topic": "egtower/LIC-014A",
+          "path": "value",
+          "alarms": {
+            "hihi": 98,
+            "hi": 90
+          },
+          "unit": "%"
+        }
+      },
+      "inline": [
+        "value"
+      ],
+      "props": {
+        "tag": "LIC",
+        "display": "box"
+      }
+    },
+    {
+      "id": "LIC_015A",
+      "type": "instrument",
+      "x": 1612.5686380102006,
+      "y": 281.74889912445786,
+      "rotation": 0,
+      "topics": [
+        "egtower/LIC-015A"
+      ],
+      "bindings": {
+        "value": {
+          "topic": "egtower/LIC-015A",
+          "path": "value",
+          "alarms": {
+            "hihi": 92,
+            "hi": 85
+          },
+          "unit": "%"
+        }
+      },
+      "inline": [
+        "value"
+      ],
+      "props": {
+        "tag": "LIC",
+        "display": "box"
+      }
+    },
+    {
+      "id": "LV_015A",
+      "type": "controlvalve",
+      "x": 1612.5686380102006,
+      "y": 435.90849137725246,
+      "rotation": 0,
+      "label": "LV_015A",
+      "topics": [
+        "egtower/LV-015A"
+      ],
+      "bindings": {
+        "opening": {
+          "topic": "egtower/LV-015A",
+          "path": "opening",
+          "unit": "%"
+        }
+      },
+      "inline": [
+        "opening"
+      ]
+    },
+    {
+      "id": "TK-003",
+      "type": "terminal",
+      "x": 1895.581996325372,
+      "y": 435.078820483691,
+      "rotation": 0,
+      "label": "TK-003",
+      "topics": [
+        "egtower/TK-003"
+      ],
+      "bindings": {
+        "flow": {
+          "topic": "egtower/TK-003",
+          "path": "flow",
+          "unit": "t/h"
+        }
+      },
+      "inline": [
+        "flow"
+      ]
+    },
+    {
+      "id": "FIC_018A",
+      "type": "instrument",
+      "x": 1368.0726861742287,
+      "y": 329.37038538266864,
+      "rotation": 0,
+      "topics": [
+        "egtower/FIC-018A"
+      ],
+      "bindings": {
+        "value": {
+          "topic": "egtower/FIC-018A",
+          "path": "value",
+          "unit": "t/h"
+        }
+      },
+      "inline": [
+        "value"
+      ],
+      "props": {
+        "tag": "FIC",
+        "display": "box"
+      }
+    },
+    {
+      "id": "FV_018A",
+      "type": "controlvalve",
+      "x": 1193.7625171061734,
+      "y": 435.90849137725246,
+      "rotation": 0,
+      "label": "FV_018A",
+      "topics": [
+        "egtower/FV-018A"
+      ],
+      "bindings": {
+        "opening": {
+          "topic": "egtower/FV-018A",
+          "path": "opening",
+          "unit": "%"
+        }
+      },
+      "inline": [
+        "opening"
+      ]
+    },
+    {
+      "id": "FIC_022A",
+      "type": "instrument",
+      "x": 1499.1307019558596,
+      "y": 549.9884318273159,
+      "rotation": 0,
+      "topics": [
+        "egtower/FIC-022A"
+      ],
+      "bindings": {
+        "value": {
+          "topic": "egtower/FIC-022A",
+          "path": "value",
+          "unit": "t/h"
+        }
+      },
+      "inline": [
+        "value"
+      ],
+      "props": {
+        "tag": "FIC",
+        "display": "box"
+      }
+    },
+    {
+      "id": "FV_022A",
+      "type": "controlvalve",
+      "x": 1500,
+      "y": 640,
+      "rotation": 0,
+      "label": "FV_022A",
+      "topics": [
+        "egtower/FV-022A"
+      ],
+      "bindings": {
+        "opening": {
+          "topic": "egtower/FV-022A",
+          "path": "opening",
+          "unit": "%"
+        }
+      },
+      "inline": [
+        "opening"
+      ]
+    },
+    {
+      "id": "TK-001",
+      "type": "terminal",
+      "x": 1850,
+      "y": 640,
+      "rotation": 0,
+      "label": "TK-001",
+      "topics": [
+        "egtower/TK-001"
+      ],
+      "bindings": {
+        "flow": {
+          "topic": "egtower/TK-001",
+          "path": "flow",
+          "unit": "t/h"
+        }
+      },
+      "inline": [
+        "flow"
+      ]
+    },
+    {
+      "id": "E-118",
+      "type": "exchanger",
+      "x": 811.7352184472724,
+      "y": 555.2667407187988,
+      "rotation": 0,
+      "label": "E-118",
+      "topics": [
+        "egtower/E-118"
+      ],
+      "bindings": {
+        "temp": {
+          "topic": "egtower/E-118",
+          "path": "temp",
+          "unit": "°C"
+        }
+      },
+      "inline": [
+        "temp"
+      ]
+    },
+    {
+      "id": "TV_076A",
+      "type": "controlvalve",
+      "x": 904.8186731712584,
+      "y": 556.1027161298798,
+      "rotation": 0,
+      "label": "TV_076A",
+      "topics": [
+        "egtower/TV-076A"
+      ],
+      "bindings": {
+        "opening": {
+          "topic": "egtower/TV-076A",
+          "path": "opening",
+          "unit": "%"
+        }
+      },
+      "inline": [
+        "opening"
+      ]
+    },
+    {
+      "id": "TIC_076A",
+      "type": "instrument",
+      "x": 904.8186731712584,
+      "y": 478.8352705183749,
+      "rotation": 0,
+      "topics": [
+        "egtower/TIC-076A"
+      ],
+      "bindings": {
+        "value": {
+          "topic": "egtower/TIC-076A",
+          "path": "value",
+          "unit": "°C"
+        }
+      },
+      "inline": [
+        "value"
+      ],
+      "props": {
+        "tag": "TIC",
+        "display": "box"
+      }
+    },
+    {
+      "id": "CWR",
+      "type": "terminal",
+      "x": 1034.8186731712585,
+      "y": 556.1027161298798,
+      "rotation": 0,
+      "label": "CWR",
+      "topics": [
+        "egtower/CWR"
+      ],
+      "bindings": {
+        "flow": {
+          "topic": "egtower/CWR",
+          "path": "flow",
+          "unit": "t/h"
+        }
+      },
+      "inline": [
+        "flow"
+      ]
+    },
+    {
+      "id": "S3S_A",
+      "type": "terminal",
+      "x": 150,
+      "y": 770,
+      "rotation": 0,
+      "label": "S3S",
+      "topics": [
+        "egtower/S3S-A"
+      ],
+      "bindings": {
+        "flow": {
+          "topic": "egtower/S3S-A",
+          "path": "flow",
+          "unit": "t/h"
+        }
+      },
+      "inline": [
+        "flow"
+      ]
+    },
+    {
+      "id": "FV_019A",
+      "type": "controlvalve",
+      "x": 300,
+      "y": 770,
+      "rotation": 0,
+      "label": "FV_019A",
+      "topics": [
+        "egtower/FV-019A"
+      ],
+      "bindings": {
+        "opening": {
+          "topic": "egtower/FV-019A",
+          "path": "opening",
+          "unit": "%"
+        }
+      },
+      "inline": [
+        "opening"
+      ]
+    },
+    {
+      "id": "FIC_019A",
+      "type": "instrument",
+      "x": 300,
+      "y": 690.483332157953,
+      "rotation": 0,
+      "topics": [
+        "egtower/FIC-019A"
+      ],
+      "bindings": {
+        "value": {
+          "topic": "egtower/FIC-019A",
+          "path": "value",
+          "unit": "t/h"
+        }
+      },
+      "inline": [
+        "value"
+      ],
+      "props": {
+        "tag": "FIC",
+        "display": "box"
+      }
+    },
+    {
+      "id": "TIC_066A",
+      "type": "instrument",
+      "x": 430,
+      "y": 640,
+      "rotation": 0,
+      "topics": [
+        "egtower/TIC-066A"
+      ],
+      "bindings": {
+        "value": {
+          "topic": "egtower/TIC-066A",
+          "path": "value",
+          "alarms": {
+            "hihi": 170,
+            "hi": 160
+          },
+          "unit": "°C"
+        }
+      },
+      "inline": [
+        "value"
+      ],
+      "props": {
+        "tag": "TIC",
+        "display": "box"
+      }
+    },
+    {
+      "id": "E-114A",
+      "type": "exchanger",
+      "x": 490,
+      "y": 771.7916492406907,
+      "rotation": 0,
+      "label": "E-114A",
+      "topics": [
+        "egtower/E-114A"
+      ],
+      "bindings": {
+        "temp": {
+          "topic": "egtower/E-114A",
+          "path": "temp",
+          "unit": "°C"
+        }
+      },
+      "inline": [
+        "temp"
+      ]
+    },
+    {
+      "id": "V-121A",
+      "type": "vessel",
+      "x": 490,
+      "y": 910,
+      "rotation": 0,
+      "label": "V-121A",
+      "topics": [
+        "egtower/V-121A"
+      ],
+      "bindings": {
+        "level": {
+          "topic": "egtower/V-121A",
+          "path": "level",
+          "scale": {
+            "min": 0,
+            "max": 100
+          },
+          "unit": "%"
+        }
+      },
+      "inline": [
+        "level"
+      ]
+    },
+    {
+      "id": "LIC_024A",
+      "type": "instrument",
+      "x": 390.823645515428,
+      "y": 812.151277870563,
+      "rotation": 0,
+      "topics": [
+        "egtower/LIC-024A"
+      ],
+      "bindings": {
+        "value": {
+          "topic": "egtower/LIC-024A",
+          "path": "value",
+          "unit": "%"
+        }
+      },
+      "inline": [
+        "value"
+      ],
+      "props": {
+        "tag": "LIC",
+        "display": "box"
+      }
+    },
+    {
+      "id": "LV_024A",
+      "type": "controlvalve",
+      "x": 300,
+      "y": 910,
+      "rotation": 0,
+      "label": "LV_024A",
+      "topics": [
+        "egtower/LV-024A"
+      ],
+      "bindings": {
+        "opening": {
+          "topic": "egtower/LV-024A",
+          "path": "opening",
+          "unit": "%"
+        }
+      },
+      "inline": [
+        "opening"
+      ]
+    },
+    {
+      "id": "SC3_A",
+      "type": "terminal",
+      "x": 150,
+      "y": 910,
+      "rotation": 180,
+      "label": "SC3",
+      "topics": [
+        "egtower/SC3-A"
+      ],
+      "bindings": {
+        "flow": {
+          "topic": "egtower/SC3-A",
+          "path": "flow",
+          "unit": "t/h"
+        }
+      },
+      "inline": [
+        "flow"
+      ]
+    },
+    {
+      "id": "E-114B",
+      "type": "exchanger",
+      "x": 790,
+      "y": 830,
+      "rotation": 0,
+      "label": "E-114B",
+      "topics": [
+        "egtower/E-114B"
+      ],
+      "bindings": {
+        "temp": {
+          "topic": "egtower/E-114B",
+          "path": "temp",
+          "unit": "°C"
+        }
+      },
+      "inline": [
+        "temp"
+      ]
+    },
+    {
+      "id": "FV_118A",
+      "type": "controlvalve",
+      "x": 940,
+      "y": 830,
+      "rotation": 0,
+      "label": "FV_118A",
+      "topics": [
+        "egtower/FV-118A"
+      ],
+      "bindings": {
+        "opening": {
+          "topic": "egtower/FV-118A",
+          "path": "opening",
+          "unit": "%"
+        }
+      },
+      "inline": [
+        "opening"
+      ]
+    },
+    {
+      "id": "FIC_118A",
+      "type": "instrument",
+      "x": 936.1884223934575,
+      "y": 766.8386015371108,
+      "rotation": 0,
+      "topics": [
+        "egtower/FIC-118A"
+      ],
+      "bindings": {
+        "value": {
+          "topic": "egtower/FIC-118A",
+          "path": "value",
+          "unit": "t/h"
+        }
+      },
+      "inline": [
+        "value"
+      ],
+      "props": {
+        "tag": "FIC",
+        "display": "box"
+      }
+    },
+    {
+      "id": "S3S_B",
+      "type": "terminal",
+      "x": 1090,
+      "y": 830,
+      "rotation": 180,
+      "label": "S3S",
+      "topics": [
+        "egtower/S3S-B"
+      ],
+      "bindings": {
+        "flow": {
+          "topic": "egtower/S3S-B",
+          "path": "flow",
+          "unit": "t/h"
+        }
+      },
+      "inline": [
+        "flow"
+      ]
+    },
+    {
+      "id": "V-121B",
+      "type": "vessel",
+      "x": 786.8730881528679,
+      "y": 994.3492338230992,
+      "rotation": 0,
+      "label": "V-121B",
+      "topics": [
+        "egtower/V-121B"
+      ],
+      "bindings": {
+        "level": {
+          "topic": "egtower/V-121B",
+          "path": "level",
+          "scale": {
+            "min": 0,
+            "max": 100
+          },
+          "unit": "%"
+        }
+      },
+      "inline": [
+        "level"
+      ]
+    },
+    {
+      "id": "LIC_025A",
+      "type": "instrument",
+      "x": 923.6595558127204,
+      "y": 907.3483175274669,
+      "rotation": 0,
+      "topics": [
+        "egtower/LIC-025A"
+      ],
+      "bindings": {
+        "value": {
+          "topic": "egtower/LIC-025A",
+          "path": "value",
+          "unit": "%"
+        }
+      },
+      "inline": [
+        "value"
+      ],
+      "props": {
+        "tag": "LIC",
+        "display": "box"
+      }
+    },
+    {
+      "id": "LV_025A",
+      "type": "controlvalve",
+      "x": 1000,
+      "y": 993.4341552628268,
+      "rotation": 0,
+      "label": "LV_025A",
+      "topics": [
+        "egtower/LV-025A"
+      ],
+      "bindings": {
+        "opening": {
+          "topic": "egtower/LV-025A",
+          "path": "opening",
+          "unit": "%"
+        }
+      },
+      "inline": [
+        "opening"
+      ]
+    },
+    {
+      "id": "SC3_B",
+      "type": "terminal",
+      "x": 1150,
+      "y": 993.4341552628268,
+      "rotation": 0,
+      "label": "SC3",
+      "topics": [
+        "egtower/SC3-B"
+      ],
+      "bindings": {
+        "flow": {
+          "topic": "egtower/SC3-B",
+          "path": "flow",
+          "unit": "t/h"
+        }
+      },
+      "inline": [
+        "flow"
+      ]
+    },
+    {
+      "id": "P-108A",
+      "type": "pump",
+      "x": 1230,
+      "y": 900,
+      "rotation": 0,
+      "label": "P-108A",
+      "topics": [
+        "egtower/P-108A"
+      ],
+      "bindings": {
+        "running": {
+          "topic": "egtower/P-108A",
+          "path": "run"
+        },
+        "rpm": {
+          "topic": "egtower/P-108A",
+          "path": "rpm",
+          "unit": "rpm"
+        }
+      },
+      "inline": [
+        "rpm"
+      ]
+    },
+    {
+      "id": "P-108B",
+      "type": "pump",
+      "x": 855.2972319692583,
+      "y": 1106.1582054153062,
+      "rotation": 0,
+      "label": "P-108B",
+      "topics": [
+        "egtower/P-108B"
+      ],
+      "bindings": {
+        "running": {
+          "topic": "egtower/P-108B",
+          "path": "run"
+        },
+        "rpm": {
+          "topic": "egtower/P-108B",
+          "path": "rpm",
+          "unit": "rpm"
+        }
+      },
+      "inline": [
+        "rpm"
+      ]
+    },
+    {
+      "id": "FV_020A",
+      "type": "controlvalve",
+      "x": 1635.7448743354291,
+      "y": 925.7726290945001,
+      "rotation": 0,
+      "label": "FV_020A",
+      "topics": [
+        "egtower/FV-020A"
+      ],
+      "bindings": {
+        "opening": {
+          "topic": "egtower/FV-020A",
+          "path": "opening",
+          "unit": "%"
+        }
+      },
+      "inline": [
+        "opening"
+      ]
+    },
+    {
+      "id": "FIC_020A",
+      "type": "instrument",
+      "x": 1499.1307019558596,
+      "y": 795.2137400408842,
+      "rotation": 0,
+      "topics": [
+        "egtower/FIC-020A"
+      ],
+      "bindings": {
+        "value": {
+          "topic": "egtower/FIC-020A",
+          "path": "value",
+          "unit": "t/h"
+        }
+      },
+      "inline": [
+        "value"
+      ],
+      "props": {
+        "tag": "FIC",
+        "display": "box"
+      }
+    },
+    {
+      "id": "TK-002",
+      "type": "terminal",
+      "x": 1881.3797023881236,
+      "y": 925.7726290945001,
+      "rotation": 0,
+      "label": "TK-002",
+      "topics": [
+        "egtower/TK-002"
+      ],
+      "bindings": {
+        "flow": {
+          "topic": "egtower/TK-002",
+          "path": "flow",
+          "unit": "t/h"
+        }
+      },
+      "inline": [
+        "flow"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-feed1",
+      "from": "FEED",
+      "to": "FV_012A",
+      "points": [
+        [
+          -52.48530536796096,
+          -34.09150862274764
+        ],
+        [
+          43.06653971632798,
+          -33.091508622747625
+        ]
+      ],
+      "toSide": "L"
+    },
+    {
+      "id": "e-tk003",
+      "from": "LV_015A",
+      "to": "TK-003",
+      "points": [
+        [
+          52.56863801020031,
+          -104.09150862274767
+        ],
+        [
+          146.58199632537278,
+          -103.9211795163089
+        ]
+      ],
+      "fromSide": "R"
+    },
+    {
+      "id": "e-rfx2",
+      "from": "FV_018A",
+      "to": "T-104",
+      "points": [
+        [
+          13.76251710617339,
+          -4.09150862274754
+        ],
+        [
+          1.7702026931179478,
+          -53.09150862274692
+        ]
+      ],
+      "fromSide": "L",
+      "toSide": "R"
+    },
+    {
+      "id": "e-prod2",
+      "from": "FV_022A",
+      "to": "TK-001",
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "fromSide": "R"
+    },
+    {
+      "id": "e-side1",
+      "from": "T-104",
+      "to": "E-118",
+      "points": [
+        [
+          0.7702026931179445,
+          -54.091508622746865
+        ],
+        [
+          52.7352184472716,
+          61.26674071879786
+        ]
+      ],
+      "fromSide": "R"
+    },
+    {
+      "id": "e-side2",
+      "from": "E-118",
+      "to": "TV_076A",
+      "points": [
+        [
+          56.55389161853001,
+          121.36945684867776
+        ],
+        [
+          10.637346342516862,
+          123.20543225975982
+        ]
+      ],
+      "toSide": "L"
+    },
+    {
+      "id": "e-side3",
+      "from": "TV_076A",
+      "to": "CWR",
+      "points": [
+        [
+          9.637346342516864,
+          122.20543225975982
+        ],
+        [
+          10.637346342516862,
+          123.20543225975982
+        ]
+      ],
+      "fromSide": "R"
+    },
+    {
+      "id": "e-rebA0",
+      "from": "S3S_A",
+      "to": "FV_019A",
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "toSide": "L"
+    },
+    {
+      "id": "e-rebA1",
+      "from": "FV_019A",
+      "to": "E-114A",
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          -17.20835075930944
+        ]
+      ],
+      "fromSide": "R"
+    },
+    {
+      "id": "e-rebA2",
+      "from": "T-104",
+      "to": "E-114A",
+      "points": [
+        [
+          0.7702026931179445,
+          -54.091508622746865
+        ],
+        [
+          1,
+          -17.20835075930944
+        ]
+      ],
+      "fromSide": "B",
+      "toSide": "T"
+    },
+    {
+      "id": "e-rebA3",
+      "from": "E-114A",
+      "to": "V-121A",
+      "points": [
+        [
+          0,
+          -18.208350759309443
+        ],
+        [
+          1,
+          1
+        ]
+      ]
+    },
+    {
+      "id": "e-rebA4",
+      "from": "V-121A",
+      "to": "LV_024A",
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "toSide": "R"
+    },
+    {
+      "id": "e-rebA5",
+      "from": "LV_024A",
+      "to": "SC3_A",
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "fromSide": "L"
+    },
+    {
+      "id": "e-rebB0",
+      "from": "S3S_B",
+      "to": "FV_118A",
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "toSide": "R"
+    },
+    {
+      "id": "e-rebB1",
+      "from": "FV_118A",
+      "to": "E-114B",
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "fromSide": "L"
+    },
+    {
+      "id": "e-rebB2",
+      "from": "T-104",
+      "to": "E-114B",
+      "points": [
+        [
+          0.7702026931179445,
+          -54.091508622746865
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "fromSide": "B",
+      "toSide": "T"
+    },
+    {
+      "id": "e-rebB3",
+      "from": "E-114B",
+      "to": "V-121B",
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          -2.1269118471321007,
+          45.34923382309961
+        ]
+      ]
+    },
+    {
+      "id": "e-rebB5",
+      "from": "LV_025A",
+      "to": "SC3_B",
+      "points": [
+        [
+          0,
+          86.86831052565323
+        ],
+        [
+          1,
+          87.86831052565323
+        ]
+      ],
+      "fromSide": "R"
+    },
+    {
+      "id": "e-btm1",
+      "from": "T-104",
+      "to": "P-108A",
+      "points": [
+        [
+          0.7702026931179445,
+          -54.091508622746865
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "fromSide": "B",
+      "toSide": "L"
+    },
+    {
+      "id": "e-btm2",
+      "from": "T-104",
+      "to": "P-108B",
+      "points": [
+        [
+          0.7702026931179445,
+          -54.091508622746865
+        ],
+        [
+          -453.7027680307422,
+          132.1582054153047
+        ]
+      ],
+      "fromSide": "B",
+      "toSide": "L"
+    },
+    {
+      "id": "e-btm3",
+      "from": "P-108A",
+      "to": "FV_020A",
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          96.74487433542909,
+          36.77262909450014
+        ]
+      ],
+      "fromSide": "R",
+      "toSide": "L"
+    },
+    {
+      "id": "e-btm4",
+      "from": "P-108B",
+      "to": "FV_020A",
+      "points": [
+        [
+          -454.7027680307423,
+          131.1582054153047
+        ],
+        [
+          96.74487433542909,
+          36.77262909450014
+        ]
+      ],
+      "fromSide": "R",
+      "toSide": "L"
+    },
+    {
+      "id": "e-btm5",
+      "from": "FV_020A",
+      "to": "TK-002",
+      "points": [
+        [
+          95.74487433542909,
+          35.77262909450014
+        ],
+        [
+          162.37970238812358,
+          36.77262909450031
+        ]
+      ],
+      "fromSide": "R"
+    },
+    {
+      "id": "l-fr021",
+      "from": "FR_021A",
+      "to": "FV_012A",
+      "points": [
+        [
+          122.06653971632801,
+          -6.176306190085143
+        ],
+        [
+          43.06653971632798,
+          -33.091508622747625
+        ]
+      ],
+      "lead": true,
+      "fromSide": "B",
+      "toSide": "T"
+    },
+    {
+      "id": "l-ti060",
+      "lead": true,
+      "fromPoint": [
+        460,
+        341.9244848724997
+      ],
+      "toPoint": [
+        610.770202693118,
+        341.9244848724997
+      ],
+      "points": [
+        [
+          460,
+          341.9244848724997
+        ],
+        [
+          610.770202693118,
+          341.9244848724997
+        ]
+      ]
+    },
+    {
+      "id": "l-pi035",
+      "lead": true,
+      "fromPoint": [
+        460,
+        170
+      ],
+      "toPoint": [
+        610.770202693118,
+        170
+      ],
+      "points": [
+        [
+          460,
+          170
+        ],
+        [
+          610.770202693118,
+          170
+        ]
+      ]
+    },
+    {
+      "id": "l-pdi005",
+      "lead": true,
+      "fromPoint": [
+        461.8,
+        235
+      ],
+      "toPoint": [
+        610.770202693118,
+        235
+      ],
+      "points": [
+        [
+          461.8,
+          235
+        ],
+        [
+          610.770202693118,
+          235
+        ]
+      ]
+    },
+    {
+      "id": "l-lic014",
+      "lead": true,
+      "fromPoint": [
+        732.5979642063876,
+        653.7765649807133
+      ],
+      "toPoint": [
+        650.770202693118,
+        653.7765649807133
+      ],
+      "points": [
+        [
+          732.5979642063876,
+          653.7765649807133
+        ],
+        [
+          650.770202693118,
+          653.7765649807133
+        ]
+      ]
+    },
+    {
+      "id": "l-lic015c",
+      "from": "LIC_015A",
+      "to": "LV_015A",
+      "points": [
+        [
+          52.56863801019975,
+          106.74889912445775
+        ],
+        [
+          53.5686380102003,
+          -103.09150862274767
+        ]
+      ],
+      "lead": true,
+      "fromSide": "B",
+      "toSide": "T"
+    },
+    {
+      "id": "l-fic022c",
+      "from": "FIC_022A",
+      "to": "FV_022A",
+      "points": [
+        [
+          379.13070195586073,
+          -30.01156817268384
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "lead": true,
+      "fromSide": "B",
+      "toSide": "T"
+    },
+    {
+      "id": "l-tic076m",
+      "from": "TIC_076A",
+      "to": "E-118",
+      "points": [
+        [
+          4.818673171257458,
+          68.83527051837528
+        ],
+        [
+          52.7352184472716,
+          61.26674071879786
+        ]
+      ],
+      "lead": true,
+      "fromSide": "L",
+      "toSide": "T"
+    },
+    {
+      "id": "l-fic019m",
+      "from": "FIC_019A",
+      "to": "E-114A",
+      "points": [
+        [
+          30,
+          0.48333215795298656
+        ],
+        [
+          1,
+          -17.20835075930944
+        ]
+      ],
+      "lead": true,
+      "fromSide": "R",
+      "toSide": "T"
+    },
+    {
+      "id": "l-tic066m",
+      "lead": true,
+      "fromPoint": [
+        461.8,
+        640
+      ],
+      "toPoint": [
+        610.770202693118,
+        640
+      ],
+      "points": [
+        [
+          461.8,
+          640
+        ],
+        [
+          610.770202693118,
+          640
+        ]
+      ]
+    },
+    {
+      "id": "l-fic118c",
+      "from": "FIC_118A",
+      "to": "FV_118A",
+      "points": [
+        [
+          -3.8115776065432554,
+          26.838601537111092
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "lead": true,
+      "fromSide": "B",
+      "toSide": "T"
+    },
+    {
+      "id": "l-fic118m",
+      "from": "FIC_118A",
+      "to": "E-114B",
+      "points": [
+        [
+          -3.8115776065432554,
+          26.838601537111092
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "lead": true,
+      "fromSide": "L",
+      "toSide": "T"
+    },
+    {
+      "id": "l-lic025c",
+      "from": "LIC_025A",
+      "to": "LV_025A",
+      "points": [
+        [
+          -21.340444187279317,
+          30.78247279029347
+        ],
+        [
+          1,
+          87.86831052565323
+        ]
+      ],
+      "lead": true,
+      "fromSide": "B",
+      "toSide": "L"
+    },
+    {
+      "id": "l-lic025m",
+      "from": "LIC_025A",
+      "to": "V-121B",
+      "points": [
+        [
+          -21.340444187279317,
+          30.78247279029347
+        ],
+        [
+          -2.1269118471321007,
+          88.78338908592622
+        ]
+      ],
+      "lead": true,
+      "fromSide": "L",
+      "toSide": "T"
+    },
+    {
+      "id": "l-fic020c",
+      "from": "FIC_020A",
+      "to": "FV_020A",
+      "points": [
+        [
+          -40.86929804414035,
+          -4.786259959115796
+        ],
+        [
+          96.74487433542909,
+          36.77262909450014
+        ]
+      ],
+      "lead": true,
+      "fromSide": "R",
+      "toSide": "T"
+    },
+    {
+      "id": "e-6",
+      "from": "FV_018A",
+      "to": "LV_015A",
+      "points": [
+        [
+          1198.7625171061734,
+          435.90849137725246
+        ],
+        [
+          1195,
+          440
+        ],
+        [
+          1209,
+          440
+        ],
+        [
+          1560,
+          440
+        ],
+        [
+          1560,
+          569
+        ],
+        [
+          1560,
+          555
+        ],
+        [
+          1612.5686380102006,
+          440.9084913772524
+        ]
+      ],
+      "auto": true,
+      "fromSide": "R",
+      "toSide": "B"
+    },
+    {
+      "id": "e-8",
+      "from": "E-118",
+      "to": "FV_022A",
+      "points": [
+        [
+          796.3180192985641,
+          620.8320237141772
+        ],
+        [
+          744.5828008512917,
+          570.5652829953785
+        ],
+        [
+          744.5828008512917,
+          584.5652829953785
+        ],
+        [
+          1455.5828008512913,
+          584.5652829953785
+        ],
+        [
+          1455.5828008512913,
+          693.5652829953785
+        ],
+        [
+          1469.5828008512913,
+          693.5652829953785
+        ],
+        [
+          1479.5828008512913,
+          693.5652829953785
+        ]
+      ],
+      "auto": true,
+      "fromSide": "B",
+      "toSide": "L"
+    },
+    {
+      "id": "e-9",
+      "from": "T-104",
+      "to": "P-108B",
+      "points": [
+        [
+          630.770202693118,
+          782.908491377252
+        ],
+        [
+          630,
+          847
+        ],
+        [
+          630,
+          861
+        ],
+        [
+          1273.2674792564283,
+          861
+        ],
+        [
+          1273.2674792564283,
+          1072.532655507287
+        ],
+        [
+          1287.2674792564283,
+          1072.532655507287
+        ],
+        [
+          846.2972319692583,
+          1106.1582054153062
+        ]
+      ],
+      "auto": true,
+      "fromSide": "B",
+      "toSide": "L"
+    },
+    {
+      "id": "e-10",
+      "from": "T-104",
+      "to": "P-108B",
+      "points": [
+        [
+          630.770202693118,
+          782.908491377252
+        ],
+        [
+          630,
+          847
+        ],
+        [
+          630,
+          861
+        ],
+        [
+          1273.2674792564283,
+          861
+        ],
+        [
+          1273.2674792564283,
+          1072.532655507287
+        ],
+        [
+          1287.2674792564283,
+          1072.532655507287
+        ],
+        [
+          846.2972319692583,
+          1106.1582054153062
+        ]
+      ],
+      "auto": true,
+      "fromSide": "B",
+      "toSide": "L"
+    },
+    {
+      "id": "e-11",
+      "from": "LV_025A",
+      "toPoint": [
+        1005.9692914784217,
+        983.5495426271309
+      ],
+      "points": [
+        [
+          1000,
+          993.4341552628268
+        ],
+        [
+          1005.9692914784217,
+          983.5495426271309
+        ]
+      ],
+      "auto": true,
+      "fromSide": "T"
+    },
+    {
+      "id": "e-12",
+      "from": "V-121B",
+      "to": "LV_025A",
+      "points": [
+        [
+          814.8730881528679,
+          980.9341552628268
+        ],
+        [
+          995,
+          980.9341552628268
+        ]
+      ],
+      "auto": true,
+      "fromSide": "R",
+      "toSide": "L"
+    },
+    {
+      "id": "e-13",
+      "from": "FV_012A",
+      "to": "T-104",
+      "points": [
+        [
+          357.066539716328,
+          435.90849137725246
+        ],
+        [
+          346.0522995617491,
+          435.90849137725246
+        ],
+        [
+          446.41125112743356,
+          435.90849137725246
+        ],
+        [
+          546.770202693118,
+          435.90849137725246
+        ],
+        [
+          556.770202693118,
+          435.90849137725246
+        ]
+      ],
+      "auto": true,
+      "fromSide": "R",
+      "toSide": "L"
+    },
+    {
+      "id": "e-14",
+      "lead": true,
+      "fromPoint": [
+        460,
+        555.2667407187988
+      ],
+      "toPoint": [
+        610.770202693118,
+        555.2667407187988
+      ],
+      "points": [
+        [
+          460,
+          555.2667407187988
+        ],
+        [
+          610.770202693118,
+          555.2667407187988
+        ]
+      ]
+    },
+    {
+      "id": "e-15",
+      "from": "FR_021A",
+      "toPoint": [
+        198.29633790224003,
+        433.5716865696069
+      ],
+      "points": [
+        [
+          352.066539716328,
+          363.82369380991486
+        ],
+        [
+          198.29633790224003,
+          433.5716865696069
+        ]
+      ],
+      "lead": true,
+      "auto": true,
+      "fromSide": "L"
+    },
+    {
+      "id": "e-16",
+      "from": "TIC_076A",
+      "to": "TV_076A",
+      "points": [
+        [
+          928.6186731712585,
+          478.8352705183749
+        ],
+        [
+          892.8410466132067,
+          481.0956794971095
+        ],
+        [
+          904.8186731712584,
+          481.0956794971095
+        ],
+        [
+          904.8186731712584,
+          516.1027161298798
+        ],
+        [
+          904.8186731712584,
+          526.1027161298798
+        ]
+      ],
+      "lead": true,
+      "auto": true,
+      "fromSide": "R",
+      "toSide": "T"
+    },
+    {
+      "id": "e-7",
+      "from": "FIC_019A",
+      "to": "FV_019A",
+      "points": [
+        [
+          300,
+          700.483332157953
+        ],
+        [
+          300,
+          710.483332157953
+        ],
+        [
+          300,
+          720.2416660789766
+        ],
+        [
+          300,
+          730
+        ],
+        [
+          300,
+          740
+        ]
+      ],
+      "lead": true,
+      "auto": true,
+      "fromSide": "B",
+      "toSide": "T"
+    },
+    {
+      "id": "e-1",
+      "from": "FIC_018A",
+      "to": "FV_018A",
+      "points": [
+        [
+          1391.8726861742286,
+          329.37038538266864
+        ],
+        [
+          1148.2989649149738,
+          341.9244848724997
+        ],
+        [
+          1193.7625171061734,
+          341.9244848724997
+        ],
+        [
+          1193.7625171061734,
+          395.90849137725246
+        ],
+        [
+          1193.7625171061734,
+          405.90849137725246
+        ]
+      ],
+      "lead": true,
+      "auto": true,
+      "fromSide": "R",
+      "toSide": "T"
+    },
+    {
+      "id": "e-2",
+      "from": "FIC_018A",
+      "toPoint": [
+        1354.3210334729997,
+        435.18052593701987
+      ],
+      "points": [
+        [
+          1368.0726861742287,
+          329.37038538266864
+        ],
+        [
+          1354.3210334729997,
+          435.18052593701987
+        ]
+      ],
+      "lead": true,
+      "auto": true,
+      "fromSide": "R"
+    },
+    {
+      "id": "e-3",
+      "from": "FIC_020A",
+      "toPoint": [
+        1364.3124713143345,
+        898.2707946172591
+      ],
+      "points": [
+        [
+          1499.1307019558596,
+          795.2137400408842
+        ],
+        [
+          1364.3124713143345,
+          898.2707946172591
+        ]
+      ],
+      "lead": true,
+      "auto": true,
+      "fromSide": "L"
+    },
+    {
+      "id": "e-4",
+      "from": "LIC_024A",
+      "to": "LV_024A",
+      "points": [
+        [
+          367.023645515428,
+          812.151277870563
+        ],
+        [
+          318.266539716328,
+          847.6564361323349
+        ],
+        [
+          300,
+          847.6564361323349
+        ],
+        [
+          300,
+          870
+        ],
+        [
+          300,
+          880
+        ]
+      ],
+      "lead": true,
+      "auto": true,
+      "fromSide": "L",
+      "toSide": "T"
+    },
+    {
+      "id": "e-5",
+      "from": "LIC_024A",
+      "to": "V-121A",
+      "points": [
+        [
+          414.623645515428,
+          812.151277870563
+        ],
+        [
+          425.68965502424,
+          830
+        ],
+        [
+          490,
+          830
+        ],
+        [
+          490,
+          846
+        ],
+        [
+          490,
+          856
+        ]
+      ],
+      "lead": true,
+      "auto": true,
+      "fromSide": "R",
+      "toSide": "T"
+    }
+  ],
+  "interlocks": []
+}

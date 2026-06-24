@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+test-results/
+playwright-report/
 
 # build output
 /dist
@@ -45,3 +47,12 @@ src/routeTree.gen.ts
 
 # tier0-sdk skill synced from @tier0/sdk on postinstall (see scripts/sync-tier0-skill.mjs)
 /.agents/skills/tier0-sdk/
+
+# Visual brainstorm companion
+.superpowers/
+
+# Local code graph artifacts
+.codegraph/
+
+# Local assistant scratch state
+.remember/

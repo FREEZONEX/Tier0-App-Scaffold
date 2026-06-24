@@ -13,7 +13,7 @@
 
   --tier0-highlight: #b2ed1d;
   --tier0-highlight-foreground: #050b14;
-  --tier0-highlight-text: #a2db1a;
+  --tier0-highlight-text: #73b200;
   --tier0-highlight-deep: #73b200;
   --tier0-highlight-bg-primary: #cef368;
   --tier0-highlight-bg-accent: #e7f9b9;
@@ -109,6 +109,7 @@
   --border-strong: #cfcfcf;
   --input: var(--tier0-border);
   --ring: var(--tier0-highlight);
+  --focus-accent: #2f8f83;
 
   --card: #ffffff;
   --card-foreground: var(--tier0-text-color);
@@ -189,6 +190,7 @@
   --color-text: var(--tier0-text-color);
   --color-highlight: var(--tier0-highlight);
   --color-highlight-text: var(--tier0-highlight-text);
+  --color-focus-accent: var(--focus-accent);
   --color-highlight-bg-primary: var(--tier0-highlight-bg-primary);
   --color-highlight-bg-accent: var(--tier0-highlight-bg-accent);
   --color-button-primary: var(--tier0-primary);
@@ -698,6 +700,15 @@ body {
     background-color: var(--state-info-bg);
     border-color: var(--state-info-border);
   }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @keyframes ping-dot {
@@ -749,4 +760,55 @@ body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+:root,
+[data-hmi-theme="light"] {
+  --hmi-canvas: #d4d7da;
+  --hmi-stroke: #545960;
+  --hmi-fill-light: #eef0f2;
+  --hmi-fill-deep: #6b7178;
+  --hmi-liquid: #8fa0ad;
+  --hmi-text: #2b2e33;
+  --hmi-text-muted: #6c7178;
+  --hmi-alarm: #b0473d;
+  --hmi-running: #4a9d6f;
+  --hmi-interlock: #b58a2e;
+  --hmi-selection: #2f8f83;
+  --hmi-stale: #aeb3b8;
+  --hmi-guide: #e93d82;
+  --hmi-badge-fg: #ffffff;
+}
+
+[data-hmi-theme="dark"] {
+  --hmi-canvas: #20242a;
+  --hmi-stroke: #8b929b;
+  --hmi-fill-light: #2f353d;
+  --hmi-fill-deep: #9aa1aa;
+  --hmi-liquid: #43525f;
+  --hmi-text: #d4d8dc;
+  --hmi-text-muted: #868d95;
+  --hmi-alarm: #db6a5d;
+  --hmi-running: #5cb585;
+  --hmi-interlock: #c59a3a;
+  --hmi-selection: #3aa597;
+  --hmi-stale: #5a626b;
+  --hmi-guide: #e93d82;
+  --hmi-badge-fg: #f2f4f6;
+
+  --background: #1b1e22;
+  --foreground: #d6dade;
+  --muted: #2a2e33;
+  --muted-foreground: #8a9097;
+  --border: #353a41;
+  --border-strong: #454b52;
+  --input: #353a41;
+  --card: #23272c;
+  --card-foreground: #d6dade;
+  --popover: #23272c;
+  --popover-foreground: #d6dade;
+  --surface-raised: #2a2e33;
+  --surface-inset: #2a2e33;
+  --tier0-highlight-text: #a2db1a;
+  --focus-accent: #3aa597;
 }

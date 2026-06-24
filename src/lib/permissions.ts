@@ -17,6 +17,7 @@ export const ADMIN_ROLE = "admin";
 
 export const ACTIONS = [
   "view_dashboard",
+  "edit_mimic",
   "manage_system",
   "manage_sales_orders",
   "manage_scheduling",
