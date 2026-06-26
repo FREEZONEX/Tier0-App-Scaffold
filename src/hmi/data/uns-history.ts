@@ -266,27 +266,6 @@ export function alignSeries(list: readonly NamedSeries[]): AlignedSeries {
   return { times, columns };
 }
 
-/**
- * 按系列归一化：每列按自身有限值 min/max 映射到 0..1（缺口 null 保持），
- * 用于不同量纲的多系列在共享 y 轴下对比**走势**（绝对值看 hover tooltip）。
- * 常量列归一为 0.5（避免贴边）；无有限值的列原样返回。
- */
-export function normalizeColumns(
-  columns: readonly { name: string; values: (number | null)[] }[],
-): { name: string; values: (number | null)[] }[] {
-  return columns.map((col) => {
-    const finite = col.values.filter((v): v is number => v !== null && Number.isFinite(v));
-    if (finite.length === 0) return { name: col.name, values: [...col.values] };
-    const min = Math.min(...finite);
-    const max = Math.max(...finite);
-    const span = max - min;
-    return {
-      name: col.name,
-      values: col.values.map((v) => (v === null || !Number.isFinite(v) ? null : span === 0 ? 0.5 : (v - min) / span)),
-    };
-  });
-}
-
 // ───────────── 跨边界序列化 / 解析 ─────────────
 
 /** 原始历史项 → 边界安全形态（value 转 JSON 串；空值落为 "null" 而非丢成 undefined）。 */

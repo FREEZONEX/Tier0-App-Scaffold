@@ -13,7 +13,6 @@ import {
   serializeHistory,
   parseHistory,
   alignSeries,
-  normalizeColumns,
   tablePageCount,
   MAX_TREND_POINTS,
   TABLE_PAGE_SIZE,
@@ -180,26 +179,6 @@ describe("serialize/parse history（跨 server fn 边界）", () => {
     const serial = serializeHistory([item([{ timeStamp: 1, value: undefined }])]);
     assert.equal(serial[0].values[0].valueJson, "null");
     assert.equal(parseHistory(serial)[0].result!.values![0].value, null);
-  });
-});
-
-describe("normalizeColumns（按系列归一化，对比不同量纲走势）", () => {
-  it("每列按自身 min/max 归一到 0..1，缺口 null 保持", () => {
-    const r = normalizeColumns([
-      { name: "A", values: [0, 50, 100] },
-      { name: "B", values: [2, null, 4] },
-    ]);
-    assert.deepEqual(r[0].values, [0, 0.5, 1]);
-    assert.deepEqual(r[1].values, [0, null, 1]);
-    assert.equal(r[0].name, "A");
-  });
-  it("常量列归一为 0.5（避免贴边）；全 null 列原样", () => {
-    const r = normalizeColumns([
-      { name: "C", values: [7, 7, 7] },
-      { name: "D", values: [null, null] },
-    ]);
-    assert.deepEqual(r[0].values, [0.5, 0.5, 0.5]);
-    assert.deepEqual(r[1].values, [null, null]);
   });
 });
 

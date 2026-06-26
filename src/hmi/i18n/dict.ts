@@ -354,8 +354,6 @@ export const EN: Record<string, string> = {
   "查询": "Query",
   "未配置 UNS 历史数据源": "UNS history source not configured",
   "间隔 {iv} · 约 {n} 点": "Interval {iv} · ~{n} pts",
-  "按系列归一化": "Normalize per series",
-  "各系列按自身量程铺满高度，便于对比不同量纲的走势；数值看悬停提示": "Each series scaled to its own range for shape comparison across units; hover for actual values",
   "拖拽框选放大 · 双击复位": "Drag to zoom · double-click to reset",
   "该图元无映射字段，无法绘制趋势": "No mapped fields on this element — cannot plot a trend",
   "字段/系列过多，仅展示前 {n} 个（共 {total}）": "Too many series — showing first {n} of {total}",

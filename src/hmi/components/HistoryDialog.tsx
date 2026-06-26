@@ -78,8 +78,6 @@ export function HistoryDialog({ node, onClose }: { node: MimicNode; onClose: () 
   const [draftRange, setDraftRange] = useState<Range | null>(null);
   const [tab, setTab] = useState<Tab>("trend");
   const [tablePage, setTablePage] = useState(1);
-  // 按系列归一化（多系列不同量纲时对比走势）；纯绘制开关，不重查
-  const [normalize, setNormalize] = useState(false);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -250,17 +248,11 @@ export function HistoryDialog({ node, onClose }: { node: MimicNode; onClose: () 
                   </div>
                   <div className="mb-2 flex flex-wrap items-center gap-2">
                     <span className="text-[10px] text-muted-foreground">{t("间隔 {iv} · 约 {n} 点", { iv: trend.interval, n: trend.approxPoints })}</span>
-                    {trendKeys.length > 1 ? (
-                      <label className="flex cursor-pointer items-center gap-1 text-[10px] text-muted-foreground" title={t("各系列按自身量程铺满高度，便于对比不同量纲的走势；数值看悬停提示")}>
-                        <input type="checkbox" checked={normalize} onChange={(e) => setNormalize(e.target.checked)} className="size-3 accent-[var(--focus-accent)]" data-testid="history-normalize" />
-                        {t("按系列归一化")}
-                      </label>
-                    ) : null}
                   </div>
                   {trend.note?.kind === "truncated" ? (
                     <p className="mb-2 text-[11px] text-state-paused-fg">{t("字段/系列过多，仅展示前 {n} 个（共 {total}）", { n: trend.note.shown, total: trend.note.total })}</p>
                   ) : null}
-                  <HistoryTrendChart series={trend.series} formatTime={fmtTs} emptyLabel={t("暂无历史数据")} normalize={normalize && trendKeys.length > 1} />
+                  <HistoryTrendChart series={trend.series} formatTime={fmtTs} emptyLabel={t("暂无历史数据")} />
                 </div>
               ) : (
                 <div className="flex min-h-0 flex-1 flex-col gap-2">

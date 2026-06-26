@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { alignSeries, normalizeColumns, nearestPointIndex, cellText, type TrendPoint } from "@/hmi/data/uns-history";
+import { alignSeries, nearestPointIndex, cellText, type TrendPoint } from "@/hmi/data/uns-history";
 
 interface TrendSeriesInput {
   name: string;
@@ -39,15 +39,12 @@ export function HistoryTrendChart({
   series,
   formatTime,
   emptyLabel,
-  normalize = false,
   width = 660,
   height = 280,
 }: {
   series: readonly TrendSeriesInput[];
   formatTime: (ms: number) => string;
   emptyLabel: string;
-  /** 按系列归一化绘制（每条线按自身 min/max 铺满高度）：对比不同量纲走势；tooltip 仍显示真实值。 */
-  normalize?: boolean;
   width?: number;
   height?: number;
 }) {
@@ -57,9 +54,7 @@ export function HistoryTrendChart({
   // hover/drag 是 60fps 高频 setState：对齐/归一/范围都包 useMemo，只在数据或归一开关变化时重算
   const aligned = useMemo(() => alignSeries(series.map((s) => ({ name: s.name, points: s.points }))), [series]);
   const times = aligned.times;
-  // rawColumns 供 tooltip 真实值；归一化时绘制列换成各列 0..1
-  const rawColumns = aligned.columns;
-  const columns = useMemo(() => (normalize ? normalizeColumns(rawColumns) : rawColumns), [normalize, rawColumns]);
+  const columns = aligned.columns;
   const { min, max } = useMemo(() => bounds(columns), [columns]);
   const plotW = width - M.left - M.right;
   const plotH = height - M.top - M.bottom;
@@ -91,8 +86,7 @@ export function HistoryTrendChart({
           {[0, 0.5, 1].map((f) => (
             <line key={f} x1={0} y1={plotH * f} x2={plotW} y2={plotH * f} stroke="var(--border, #ccc)" strokeWidth={0.5} />
           ))}
-          {hasData && !normalize ? (
-            // 归一化模式下各系列量纲不同，统一 y 轴数值无意义 → 隐藏标签（真实值看 tooltip）
+          {hasData ? (
             <>
               <text x={-6} y={4} textAnchor="end" className="fill-muted-foreground text-[9px]">
                 {round2(max)}
@@ -177,8 +171,7 @@ export function HistoryTrendChart({
           style={{ left: Math.min(width - 140, M.left + xOf(hover) + 8), top: M.top + 4 }}
         >
           <div className="mb-0.5 font-mono text-muted-foreground">{formatTime(times[hover])}</div>
-          {rawColumns.map((col, ci) => (
-            // tooltip 恒显示真实值（归一化只影响绘制坐标）
+          {columns.map((col, ci) => (
             <div key={ci} className="flex items-center gap-1.5">
               <span className="inline-block size-1.5 rounded-full" style={{ backgroundColor: COLORS[ci % COLORS.length] }} />
               <span className="text-muted-foreground">{col.name}</span>
