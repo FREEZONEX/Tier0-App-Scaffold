@@ -1,4 +1,0 @@
-interface:
-  display_name: "UNS-SWE App Builder"
-  short_description: "Build fullstack apps from requirements docs"
-  default_prompt: "Use $uns-swe-app-builder to build a fullstack app from this requirements document."

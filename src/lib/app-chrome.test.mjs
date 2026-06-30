@@ -3,6 +3,10 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, it } from "node:test";
 
+function toPosixPath(filePath) {
+  return filePath.replaceAll("\\", "/");
+}
+
 describe("app chrome policy", () => {
   function walkRouteFiles(root) {
     const files = [];
@@ -45,7 +49,7 @@ describe("app chrome policy", () => {
     const routeFiles = walkRouteFiles(join(process.cwd(), "src/routes"));
     const markerFiles = routeFiles
       .filter((file) => readFileSync(file, "utf8").includes("TEMPLATE_BLANK_ROUTE"))
-      .map((file) => relative(process.cwd(), file));
+      .map((file) => toPosixPath(relative(process.cwd(), file)));
 
     assert.ok(
       markerFiles.length <= 1,
