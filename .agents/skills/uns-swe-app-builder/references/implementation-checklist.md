@@ -75,7 +75,7 @@ data.
 - Check for syntax errors, missing imports, incorrect paths, and unused exports.
 - Verify every required workflow is reachable from the UI or API.
 - Verify each frontend route uses the layout group that matches the workflow intent.
-- Verify forms enforce required fields and validation rules, and that workspace CRUD create/edit forms are launched from buttons, row actions, or empty states into `FormDialog`/`Drawer` instead of being permanently flattened on the page.
+- Verify forms enforce required fields and validation rules, use the shared `FieldLabel` / `RequiredMark` or `data-required-marker` convention for required asterisks, and launch workspace CRUD create/edit forms from buttons, row actions, or empty states into `FormDialog`/`Drawer` instead of permanently flattening them on the page.
 - Verify status transitions and business rules match the requirements.
 - Verify errors are surfaced to users or callers clearly.
 - Verify no required feature is represented only by placeholder text.

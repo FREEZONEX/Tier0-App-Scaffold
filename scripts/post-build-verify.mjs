@@ -28,6 +28,7 @@ const steps = [
       "src/lib/permissions.test.mjs",
       "src/lib/app-chrome.test.mjs",
       "src/lib/button-contracts.test.mjs",
+      "src/lib/form-contracts.test.mjs",
       "src/lib/hooks-contracts.test.mjs",
       "src/lib/runtime-safety.test.mjs",
     ],
