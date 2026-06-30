@@ -400,20 +400,28 @@ body {
     opacity: 1;
   }
 
-  label[data-required="true"]::after,
-  .field-label[data-required="true"]::after,
-  .field-label.required::after,
-  label:has(input:required)::after,
-  label:has(select:required)::after,
-  label:has(textarea:required)::after,
-  label:has([aria-required="true"])::after,
-  label:has(+ input:required)::after,
-  label:has(+ select:required)::after,
-  label:has(+ textarea:required)::after,
-  label:has(+ [aria-required="true"])::after {
+  label[data-required="true"]:not([data-required-rendered="true"])::after,
+  .field-label[data-required="true"]:not([data-required-rendered="true"])::after,
+  .field-label.required:not([data-required-rendered="true"])::after,
+  label[aria-required="true"]:not([data-required-rendered="true"])::after,
+  label:has(input:required):not([data-required-rendered="true"])::after,
+  label:has(select:required):not([data-required-rendered="true"])::after,
+  label:has(textarea:required):not([data-required-rendered="true"])::after,
+  label:has([aria-required="true"]):not([data-required-rendered="true"])::after,
+  label:has(+ input:required):not([data-required-rendered="true"])::after,
+  label:has(+ select:required):not([data-required-rendered="true"])::after,
+  label:has(+ textarea:required):not([data-required-rendered="true"])::after,
+  label:has(+ [aria-required="true"]):not([data-required-rendered="true"])::after {
     content: "*";
     margin-left: 0.25rem;
     color: var(--destructive);
+    font-weight: 600;
+  }
+
+  .required-mark,
+  .field-required-mark,
+  [data-required-marker="true"] {
+    color: var(--destructive) !important;
     font-weight: 600;
   }
 

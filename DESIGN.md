@@ -333,6 +333,7 @@ defaults here:
 - Use one primary or highlighted action per local decision area.
 - Use lucide-react icons at normal Tailwind icon sizes such as `size-4` or `size-5`.
 - Use `FormDialog` or `Drawer` for workspace CRUD create/edit forms by default.
+- Use `FieldLabel` / `RequiredMark` from `@/components/forms` for required fields. The required asterisk is always the semantic error color from `--destructive`; do not hand-type bare `*` markers or override them with local text-color utilities.
 - Keep row actions quiet: icon buttons, dropdown menus, or compact text actions.
 - Pair color with icon or text for industrial status readability.
 - Preserve truncation with `min-w-0`, `truncate`, and tooltip fallbacks.

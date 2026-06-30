@@ -28,6 +28,7 @@ After installing a new npm dependency (e.g. `npm install uuid`), call `preview_r
 - Every core entity must support full function through the UI — seed data is only the starting point. Full function means reachable actions, not permanently visible full-page create/edit forms.
 - No placeholder text ("Coming soon", "Sample data", "Demo mode") anywhere
 - Forms must validate input and give clear error/success feedback via `toast()`. CRUD create/edit forms for workspace, master-data, material, equipment, route, configuration, and admin pages should open in `FormDialog` or `Drawer` by default.
+- Required field asterisks must use the shared `FieldLabel` / `RequiredMark` from `@/components/forms`, or `data-required="true"` / `data-required-marker="true"` for custom wrappers. Do not hand-write bare `<span>*</span>` markers or style required stars with ad hoc text-color classes.
 - Empty states should offer a "Create" action — not explain what the feature "will" do. That action should launch `FormDialog` or `Drawer` unless the page is a station execution flow, filter bar, scan/manual entry flow, or required review reason capture.
 
 ## Design Source Of Truth
@@ -359,6 +360,7 @@ This template intentionally does **not** ship a component library. Generate UI t
 - Do not import from `@/components/ui` or `@/components/mes`; those directories are not part of the scaffold.
 - Do not copy the support Gantt `components/ui` directory wholesale. Its Button/Input/Panel/Badge styling is represented here by the Tier0 tokens and recipes in `DESIGN.md` and `$uns-swe-ui-generation`.
 - Use `@/components/overlays` for common app-local overlays: `Dialog`, `FormDialog`, `ConfirmDialog`, and `Drawer`. Do not recreate a shadcn-style overlay library.
+- Use `@/components/forms` for shared form label helpers: `FieldLabel` and `RequiredMark` keep required asterisks consistent across generated apps.
 - Keep reusable app-specific components small and explicit. Prefer local composition over generic primitives unless repetition becomes real.
 - Use `@/components/toaster` only through the root mount; call `toast()`, `toast.success()`, and `toast.error()` from `sonner` in mutations.
 - Use `@/components/client-only` for Recharts, dnd-kit, motion layout features, or any subtree that touches browser APIs during render.
@@ -845,6 +847,7 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 - Default controls are about 40px high; station, kiosk, PDA, scan, tap, and confirm flows should use 44-48px touch targets.
 - Keep tables compact, with explicit truncation (`min-w-0`, `truncate`, `line-clamp-*`) and quiet row actions.
 - Master data, workstation configuration, material, equipment, route, and process-parameter create/edit forms should normally open from a button in `FormDialog` or `Drawer` instead of staying permanently expanded on the page.
+- Required fields use `FieldLabel required` or `RequiredMark`; the star color comes from the global required-marker rule, not local color classes.
 - Tags use grey by default; use signal green only for Tier0 highlight states.
 
 **Motion**
