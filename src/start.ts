@@ -90,8 +90,8 @@ const authBridge = createMiddleware().server(
     const gatewayUser = parseGatewayUser(request.headers);
     if (!gatewayUser) {
       return new Response(
-        JSON.stringify({ error: "Platform authentication required" }),
-        { status: 401, headers: { "Content-Type": "application/json" } },
+        `<!DOCTYPE html><html><body><script>try{if(window.parent!==window){window.parent.postMessage({type:'tier0.preview.error',error:'Platform authentication required',kind:'auth'},'*')}}catch(e){}</script></body></html>`,
+        { status: 401, headers: { "Content-Type": "text/html" } },
       );
     }
 

@@ -5,7 +5,7 @@
  * `beforeLoad` runs server-side, reads the signed session cookie, and
  * places the resolved `AppUser` into the route context. Every nested
  * route can then read it via `Route.useRouteContext()` without an extra
- * client-side fetch (no `/api/auth/me` round-trip after navigation).
+ * client-side `/api/auth/me` round-trip after navigation.
  *
  * Loading + error fallbacks are configured here as well — they replace
  * the old Next.js `loading.tsx` / `error.tsx` segment files.
@@ -21,23 +21,55 @@ import { createServerFn } from "@tanstack/react-start";
 import { useEffect } from "react";
 import { Shell } from "@/components/Shell";
 import { getCurrentUser } from "@/lib/auth";
-import { sendPreviewError } from "@/lib/preview-bridge";
+import { sendPreviewError, sendPreviewReady } from "@/lib/preview-bridge";
 import type { AppUser } from "@/lib/users";
 
-const fetchSessionUser = createServerFn().handler(
+const loadSessionUser = createServerFn().handler(
   async (): Promise<AppUser | null> => getCurrentUser(),
 );
 
+const SESSION_USER_CACHE_TTL_MS = 30_000;
+let cachedSessionUser:
+  | { user: AppUser | null; expiresAt: number }
+  | undefined;
+
+function rememberSessionUser(user: AppUser | null) {
+  if (typeof window === "undefined") return;
+  cachedSessionUser = {
+    user,
+    expiresAt: Date.now() + SESSION_USER_CACHE_TTL_MS,
+  };
+}
+
+function getCachedSessionUser(): AppUser | null | undefined {
+  if (typeof window === "undefined") return undefined;
+  if (!cachedSessionUser || cachedSessionUser.expiresAt <= Date.now()) {
+    return undefined;
+  }
+  return cachedSessionUser.user;
+}
+
+function requireWorkspaceUser(user: AppUser | null, pathname: string) {
+  if (!user) {
+    throw redirect({
+      to: "/login",
+      search: { from: pathname },
+    });
+  }
+  return { user };
+}
+
 export const Route = createFileRoute("/_app")({
-  beforeLoad: async ({ location }) => {
-    const user = await fetchSessionUser();
-    if (!user) {
-      throw redirect({
-        to: "/login",
-        search: { from: location.pathname },
-      });
+  beforeLoad: ({ location }) => {
+    const cachedUser = getCachedSessionUser();
+    if (cachedUser !== undefined) {
+      return requireWorkspaceUser(cachedUser, location.pathname);
     }
-    return { user };
+
+    return loadSessionUser().then((user) => {
+      rememberSessionUser(user);
+      return requireWorkspaceUser(user, location.pathname);
+    });
   },
   component: AppLayout,
   pendingComponent: AppPending,
@@ -46,6 +78,12 @@ export const Route = createFileRoute("/_app")({
 
 function AppLayout() {
   const user = (Route.useRouteContext() as { user?: AppUser | null }).user;
+
+  useEffect(() => {
+    rememberSessionUser(user ?? null);
+    sendPreviewReady();
+  }, [user]);
+
   if (!user) {
     return <AppPending />;
   }
@@ -70,7 +108,7 @@ function AppPending() {
 
 function AppError({ error, reset }: ErrorComponentProps) {
   useEffect(() => {
-    sendPreviewError(error.message || 'Page failed to load');
+    sendPreviewError(error.message || 'Page failed to load', 'app');
   }, [error]);
 
   return (

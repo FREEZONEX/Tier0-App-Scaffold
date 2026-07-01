@@ -76,7 +76,7 @@ export const Route = createFileRoute("/login")({
 
 function LoginBridge() {
   useEffect(() => {
-    sendPreviewError('Platform authentication required');
+    sendPreviewError('Platform authentication required', 'auth');
   }, []);
   return null;
 }
