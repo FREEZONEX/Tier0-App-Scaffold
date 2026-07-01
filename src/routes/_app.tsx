@@ -22,32 +22,15 @@ import { useEffect } from "react";
 import { Shell } from "@/components/Shell";
 import { getCurrentUser } from "@/lib/auth";
 import { sendPreviewError, sendPreviewReady } from "@/lib/preview-bridge";
+import {
+  getCachedSessionUser,
+  rememberSessionUser,
+} from "@/lib/session-user-cache";
 import type { AppUser } from "@/lib/users";
 
 const loadSessionUser = createServerFn().handler(
   async (): Promise<AppUser | null> => getCurrentUser(),
 );
-
-const SESSION_USER_CACHE_TTL_MS = 30_000;
-let cachedSessionUser:
-  | { user: AppUser | null; expiresAt: number }
-  | undefined;
-
-function rememberSessionUser(user: AppUser | null) {
-  if (typeof window === "undefined") return;
-  cachedSessionUser = {
-    user,
-    expiresAt: Date.now() + SESSION_USER_CACHE_TTL_MS,
-  };
-}
-
-function getCachedSessionUser(): AppUser | null | undefined {
-  if (typeof window === "undefined") return undefined;
-  if (!cachedSessionUser || cachedSessionUser.expiresAt <= Date.now()) {
-    return undefined;
-  }
-  return cachedSessionUser.user;
-}
 
 function requireWorkspaceUser(user: AppUser | null, pathname: string) {
   if (!user) {
