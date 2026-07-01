@@ -45,6 +45,17 @@ describe("app chrome policy", () => {
     assert.doesNotMatch(shell, /NO_SIDEBAR_ROUTE_PREFIXES/);
   });
 
+  it("does not delegate sidebar selection to fuzzy Link active matching", () => {
+    const shell = readFileSync(
+      join(process.cwd(), "src/components/Shell.tsx"),
+      "utf8",
+    );
+
+    assert.match(shell, /activeSidebarKey/);
+    assert.doesNotMatch(shell, /activeProps=/);
+    assert.doesNotMatch(shell, /inactiveProps=/);
+  });
+
   it("keeps the template blank route unique", () => {
     const routeFiles = walkRouteFiles(join(process.cwd(), "src/routes"));
     const markerFiles = routeFiles
