@@ -1,4 +1,0 @@
-interface:
-  display_name: "App Layout Patterns"
-  short_description: "Choose layout shells by workflow and device"
-  default_prompt: "Use $app-layout-patterns to choose the right layout shell, route group, and device profile for this workflow."
