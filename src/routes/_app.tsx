@@ -18,8 +18,10 @@ import {
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
+import { useEffect } from "react";
 import { Shell } from "@/components/Shell";
 import { getCurrentUser } from "@/lib/auth";
+import { sendPreviewError } from "@/lib/preview-bridge";
 import type { AppUser } from "@/lib/users";
 
 const fetchSessionUser = createServerFn().handler(
@@ -67,6 +69,10 @@ function AppPending() {
 }
 
 function AppError({ error, reset }: ErrorComponentProps) {
+  useEffect(() => {
+    sendPreviewError(error.message || 'Page failed to load');
+  }, [error]);
+
   return (
     <div className="flex h-full items-center justify-center p-12">
       <div className="text-center">
