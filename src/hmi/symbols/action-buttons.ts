@@ -5,12 +5,13 @@ import type { Palette } from "../engine/theme";
 /** 直达/溢出规则：≤3 全直达；≥4 前 MAX_DIRECT 个直达、其余进 ⋯ 菜单（溢出只剩 1 个不值得占 ⋯ 位）。 */
 const MAX_DIRECT = 2;
 const MAX_NO_OVERFLOW = 3;
+/** 以下像素常量均为 scale=1（节点默认大小）时的基准值；用前一律 ×scale 跟节点等比缩放。 */
 const BTN_H = 18;
 const BTN_R = 9;
 const GAP = 4;
 const PAD_X = 8;
 const MAX_CHARS = 6;
-const FONT = "10px ui-sans-serif, system-ui";
+const FONT_PX = 10;
 /**
  * 行起点距 bounds 底边的额外间距（在标签/内联占位之后）。
  * 各 symbol 的标签/内联基线实际落在 bounds 底 +14~18（文字底≈+36），
@@ -68,12 +69,20 @@ export function truncateLabel(label: string): string {
 /**
  * 停靠布局：按钮行在 bounds 底边 → 标签行(若有) → 内联行(若有) → ROW_GAP 之下，整行水平居中于 node.x。
  * 返回世界坐标盒（含 ⋯）。无动作返回空数组。
+ *
+ * scale：节点缩放系数（默认 1，等比拉伸时 = sizeX = sizeY）。两个用途：
+ * ① 标签/内联文字随 body 一起被外层 scale 变换整体缩放，世界坐标偏移量 = 原始偏移 × scale；这里的
+ *   bounds 已是缩放后的世界坐标框，但 LABEL_H/INLINE_H/ROW_GAP 是常量像素——若不乘 scale，节点被
+ *   拉伸时按钮固定偏移量追不上文字实际下移距离，两者错位、按钮盖住数值。
+ * ② 按钮本身尺寸（高/宽/间距）也乘 scale，让按钮跟设备等比变大变小——否则设备拉得越大，固定尺寸的
+ *   按钮相对越显得小（反之设备缩小时按钮显得过大），比例失衡。
  */
 export function layoutActionButtons(
   node: MimicNode,
   bounds: { x: number; y: number; w: number; h: number },
   hasLabel: boolean,
   hasInline: boolean,
+  scale = 1,
 ): ActionButtonBox[] {
   const actions = node.actions ?? [];
   if (actions.length === 0) return [];
@@ -82,13 +91,16 @@ export function layoutActionButtons(
     ...direct.map((i) => ({ action: i as number | "overflow", text: truncateLabel(actions[i].label) })),
     ...(overflow.length > 0 ? [{ action: "overflow" as const, text: "⋯" }] : []),
   ];
-  const widths = entries.map((e) => Math.max(BTN_H, estimateTextWidth(e.text) + PAD_X * 2));
-  const totalW = widths.reduce((a, b) => a + b, 0) + GAP * (entries.length - 1);
-  const y = bounds.y + bounds.h + (hasLabel ? LABEL_H : 0) + (hasInline ? INLINE_H : 0) + ROW_GAP;
+  const btnH = BTN_H * scale;
+  const padX = PAD_X * scale;
+  const gap = GAP * scale;
+  const widths = entries.map((e) => Math.max(btnH, estimateTextWidth(e.text) * scale + padX * 2));
+  const totalW = widths.reduce((a, b) => a + b, 0) + gap * (entries.length - 1);
+  const y = bounds.y + bounds.h + ((hasLabel ? LABEL_H : 0) + (hasInline ? INLINE_H : 0) + ROW_GAP) * scale;
   let x = node.x - totalW / 2;
   return entries.map((e, i) => {
-    const box: ActionButtonBox = { nodeId: node.id, action: e.action, x, y, w: widths[i], h: BTN_H, text: e.text };
-    x += widths[i] + GAP;
+    const box: ActionButtonBox = { nodeId: node.id, action: e.action, x, y, w: widths[i], h: btnH, text: e.text };
+    x += widths[i] + gap;
     return box;
   });
 }
@@ -107,14 +119,15 @@ export function hitTestActionButtons(boxes: readonly ActionButtonBox[], wx: numb
  * 早前还有「框顶短线 + 指向设备的小三角箭头」，用户反馈不好看已移除——
  * 按钮停靠在设备正下方，归属关系靠位置已足够明确。无按钮时返回空。
  */
-function buildTether(boxes: readonly ActionButtonBox[], theme: Palette): Primitive[] {
+function buildTether(boxes: readonly ActionButtonBox[], theme: Palette, scale: number): Primitive[] {
   if (boxes.length === 0) return [];
   const first = boxes[0];
   const last = boxes[boxes.length - 1];
-  const left = first.x - CONTAINER_PAD;
-  const right = last.x + last.w + CONTAINER_PAD;
-  const top = first.y - CONTAINER_PAD;
-  const bottom = first.y + first.h + CONTAINER_PAD;
+  const pad = CONTAINER_PAD * scale;
+  const left = first.x - pad;
+  const right = last.x + last.w + pad;
+  const top = first.y - pad;
+  const bottom = first.y + first.h + pad;
   return [
     // 容器框：极浅半透明衬底 + 结构色细描边（textMuted），克制不抢异常色。
     {
@@ -123,8 +136,8 @@ function buildTether(boxes: readonly ActionButtonBox[], theme: Palette): Primiti
       y: top,
       w: right - left,
       h: bottom - top,
-      r: CONTAINER_R,
-      style: { fill: theme.fillLight, opacity: CONTAINER_FILL_OPACITY, stroke: theme.textMuted, strokeWidth: CONTAINER_STROKE_W },
+      r: CONTAINER_R * scale,
+      style: { fill: theme.fillLight, opacity: CONTAINER_FILL_OPACITY, stroke: theme.textMuted, strokeWidth: CONTAINER_STROKE_W * scale },
     },
   ];
 }
@@ -132,20 +145,24 @@ function buildTether(boxes: readonly ActionButtonBox[], theme: Palette): Primiti
 /**
  * 胶囊绘制：idle=浅底描边；pressed=深底；sent=运行绿底白字「✓」由调用方换 text。
  * 先画归属容器框 + 连接线（在按钮之下，不遮按钮文字），再叠胶囊行。
+ * scale：节点缩放系数（默认 1）——圆角/描边/字号/文字基线偏移全部跟按钮尺寸同步缩放，
+ * 否则大按钮配细描边、小按钮配粗描边，观感失调。
  */
 export function buildActionButtons(
   boxes: readonly ActionButtonBox[],
   theme: Palette,
   visualOf: (box: ActionButtonBox) => ActionVisual,
+  scale = 1,
 ): Primitive[] {
-  const out: Primitive[] = [...buildTether(boxes, theme)];
+  const out: Primitive[] = [...buildTether(boxes, theme, scale)];
+  const font = `${FONT_PX * scale}px ui-sans-serif, system-ui`;
   for (const b of boxes) {
     const visual = visualOf(b);
     const fill = visual === "sent" ? theme.running : visual === "pressed" ? theme.fillDeep : theme.fillLight;
     const textFill = visual === "idle" ? theme.text : theme.badgeFg;
     out.push(
-      { kind: "rect", x: b.x, y: b.y, w: b.w, h: b.h, r: BTN_R, style: { fill, stroke: theme.stroke, strokeWidth: 1.25 } },
-      { kind: "text", x: b.x + b.w / 2, y: b.y + b.h / 2 + 3.5, text: visual === "sent" ? "✓" : b.text, style: { fill: textFill, font: FONT, textAlign: "center" } },
+      { kind: "rect", x: b.x, y: b.y, w: b.w, h: b.h, r: BTN_R * scale, style: { fill, stroke: theme.stroke, strokeWidth: 1.25 * scale } },
+      { kind: "text", x: b.x + b.w / 2, y: b.y + b.h / 2 + 3.5 * scale, text: visual === "sent" ? "✓" : b.text, style: { fill: textFill, font, textAlign: "center" } },
     );
   }
   return out;

@@ -293,9 +293,9 @@ export const HmiCanvas = forwardRef<HmiCanvasHandle, HmiCanvasProps>(function Hm
           if (ag.h !== undefined) guides.push({ kind: "line", x1: tl.x, y1: ag.h, x2: br.x, y2: ag.h, style: { stroke: G, strokeWidth: 2, dash: [6, 4] } });
           if (guides.length) primitives = [...primitives, ...guides];
         }
-        // 拉伸框叠加（编辑+选择工具+单选）：紧贴可见主体的虚线包围框 + 四角实心圆角抓点，
-        // 一眼读作「可拖角缩放」（取代易误解的孤立小方块）。尺寸反算世界系，保持常驻屏幕大小。
-        if (p.onResizeNode && (p.tool ?? "pan") === "select" && p.selectedIds.length === 1) {
+        // 拉伸框叠加（编辑+单选，平移/选择工具皆可——跟拉线一样不挑工具）：紧贴可见主体的虚线包围框 +
+        // 四角实心圆角抓点，一眼读作「可拖角缩放」（取代易误解的孤立小方块）。尺寸反算世界系，保持常驻屏幕大小。
+        if (p.onResizeNode && p.selectedIds.length === 1) {
           const node = p.scene.byId[p.selectedIds[0]];
           if (node) {
             const b = p.registry.get(node.type).bounds(node);
@@ -509,10 +509,10 @@ export const HmiCanvas = forwardRef<HmiCanvasHandle, HmiCanvasProps>(function Hm
     return null;
   };
 
-  /** 单选且可拉伸（编辑+选择工具+恰好选 1 个）时返回该节点 id，否则 null —— 拉伸手柄的显示/命中门控。 */
+  /** 单选且可拉伸（编辑+恰好选 1 个，平移/选择工具皆可）时返回该节点 id，否则 null —— 拉伸手柄的显示/命中门控。 */
   const soleResizable = (): string | null => {
     const p = propsRef.current;
-    if (!p.onResizeNode || (p.tool ?? "pan") !== "select") return null;
+    if (!p.onResizeNode) return null;
     return p.selectedIds.length === 1 ? p.selectedIds[0] : null;
   };
 
@@ -727,6 +727,8 @@ export const HmiCanvas = forwardRef<HmiCanvasHandle, HmiCanvasProps>(function Hm
               : overAction ? "pointer"
               : portHit(pos.sx, pos.sy) ? "crosshair"
               : (propsRef.current.onSelectEdge && hitTestEdges(edgePathsRef.current, vpRef.current, pos.sx, pos.sy)) ? "pointer"
+              // 无特殊命中时按工具回落：select=普通箭头（点选语义），pan=空串交给 className 的 grab（平移语义）。
+              : (propsRef.current.tool ?? "pan") === "select" ? "default"
               : "";
           }
         } else if (canvas) {

@@ -310,9 +310,9 @@ export function renderScene(
     // 动作按钮：停靠设备下方的胶囊（按 UI 处理，不随失联褪色——applyStale 只作用于主体）。
     if (node.actions?.length) {
       const inlineNode = node.inline?.length ? node : { ...node, inline: [...(def.inlineFields ?? [])] };
-      const boxes = layoutActionButtons(node, sb, !!node.label, inlineLine(inlineNode, state) !== "");
+      const boxes = layoutActionButtons(node, sb, !!node.label, inlineLine(inlineNode, state) !== "", sizeY);
       actionHitBoxes.push(...boxes);
-      decoTarget.push(...buildActionButtons(boxes, theme, (box) => getActionVisual?.(box.nodeId, box.action) ?? "idle"));
+      decoTarget.push(...buildActionButtons(boxes, theme, (box) => getActionVisual?.(box.nodeId, box.action) ?? "idle", sizeY));
     }
   }
 

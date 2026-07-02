@@ -56,6 +56,45 @@ describe("layoutActionButtons", () => {
   it("无动作 → 空数组", () => {
     assert.deepEqual(layoutActionButtons({ ...mkNode(1), actions: undefined }, bounds, true, false), []);
   });
+  it("sizeY 放大：按钮偏移量随之放大，与被同等放大的标签/内联文字保持间距不被追上", () => {
+    // bounds 已是缩放后的世界坐标框（scene-render 传入 sb），此处模拟节点纵向放大 2 倍时的 sb。
+    const scaledBounds = { x: bounds.x, y: bounds.y, w: bounds.w, h: bounds.h * 2 };
+    const y1 = layoutActionButtons(mkNode(1), bounds, true, true, 1)[0].y;
+    const y2 = layoutActionButtons(mkNode(1), scaledBounds, true, true, 2)[0].y;
+    // 文字偏移量（LABEL_H+INLINE_H+ROW_GAP=42）在 sizeY=2 时应整体翻倍：
+    // y2 - scaledBounds底 应约等于 (y1 - bounds底) * 2。
+    const gap1 = y1 - (bounds.y + bounds.h);
+    const gap2 = y2 - (scaledBounds.y + scaledBounds.h);
+    assert.ok(Math.abs(gap2 - gap1 * 2) < 0.01, `放大后偏移量应等比缩放，got gap1=${gap1} gap2=${gap2}`);
+  });
+  it("sizeY 缺省 = 1，行为与不传一致（向后兼容）", () => {
+    const withDefault = layoutActionButtons(mkNode(1), bounds, true, true)[0];
+    const explicit1 = layoutActionButtons(mkNode(1), bounds, true, true, 1)[0];
+    assert.equal(withDefault.y, explicit1.y);
+  });
+  it("按钮尺寸跟节点等比缩放：scale=2 时按钮高度翻倍，不会显得比设备小", () => {
+    const b1 = layoutActionButtons(mkNode(1), bounds, false, false, 1)[0];
+    const b2 = layoutActionButtons(mkNode(1), bounds, false, false, 2)[0];
+    assert.equal(b2.h, b1.h * 2);
+    assert.equal(b2.w, b1.w * 2);
+  });
+  it("buildActionButtons：scale 传入时按钮圆角/描边/字号随之放大（视觉比例协调）", () => {
+    const boxes = layoutActionButtons(mkNode(1), bounds, false, false, 2);
+    const prims1x = buildActionButtons(layoutActionButtons(mkNode(1), bounds, false, false, 1), theme, () => "idle", 1);
+    const prims2x = buildActionButtons(boxes, theme, () => "idle", 2);
+    const r1 = prims1x.find((p) => p.kind === "rect" && p.r !== undefined && p.r < 12);
+    const r2 = prims2x.find((p) => p.kind === "rect" && p.r !== undefined && p.r < 24);
+    assert.ok(r1 && r2 && r1.kind === "rect" && r2.kind === "rect");
+    if (r1?.kind === "rect" && r2?.kind === "rect") assert.equal(r2.r, (r1.r ?? 0) * 2, "按钮圆角应按 scale 等比放大");
+    const text2x = prims2x.find((p) => p.kind === "text");
+    const text1x = prims1x.find((p) => p.kind === "text");
+    assert.ok(text1x?.kind === "text" && text2x?.kind === "text");
+    if (text1x?.kind === "text" && text2x?.kind === "text") {
+      const size1 = Number(/^(\d+)px/.exec(text1x.style.font ?? "")?.[1]);
+      const size2 = Number(/^(\d+)px/.exec(text2x.style.font ?? "")?.[1]);
+      assert.equal(size2, size1 * 2, "按钮字号应按 scale 等比放大");
+    }
+  });
 });
 
 describe("hitTestActionButtons", () => {

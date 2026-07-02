@@ -312,6 +312,8 @@ export const EN: Record<string, string> = {
   "添加操作": "Add action",
   "按钮文字": "Button label",
   "留空则不保存、不显示按钮": "Empty label: won't save or show",
+  "未填发布主题，不会保存、不会显示按钮": "No topic set: won't save or show",
+  "按钮文字、发布主题都要填，否则不会保存": "Label and topic both required, or it won't save",
   "图上直达": "On canvas",
   "收进 ⋯ 菜单": "In ⋯ menu",
   "试发送": "Test send",

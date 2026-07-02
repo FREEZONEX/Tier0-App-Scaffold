@@ -108,15 +108,21 @@ export function ActionsEditor({
             <button type="button" disabled={i === drafts.length - 1} onClick={() => { const n = [...drafts]; [n[i + 1], n[i]] = [n[i], n[i + 1]]; update(n, true); }} aria-label={t("下移")} className="shrink-0 text-muted-foreground hover:text-foreground disabled:opacity-30"><ChevronDown className="size-3" /></button>
             <button type="button" onClick={() => update(drafts.filter((_, j) => j !== i), true)} aria-label={t("删除该操作")} className="shrink-0 text-muted-foreground hover:text-destructive"><X className="size-3" /></button>
           </div>
-          {d.label.trim() === "" ? (
-            <p
-              className="mb-1 flex items-center gap-1 rounded-sm border border-state-paused-border bg-state-paused-bg px-1.5 py-1 text-[10px] font-medium text-state-paused-fg"
-              data-testid={`action-label-hint-${i}`}
-            >
-              <AlertTriangle className="size-3 shrink-0" />
-              {t("留空则不保存、不显示按钮")}
-            </p>
-          ) : null}
+          {(() => {
+            const noLabel = d.label.trim() === "";
+            const noTopic = d.items.every((m) => m.topic.trim() === "");
+            if (!noLabel && !noTopic) return null;
+            const msg = noLabel && noTopic ? t("按钮文字、发布主题都要填，否则不会保存") : noLabel ? t("留空则不保存、不显示按钮") : t("未填发布主题，不会保存、不会显示按钮");
+            return (
+              <p
+                className="mb-1 flex items-center gap-1 rounded-sm border border-state-paused-border bg-state-paused-bg px-1.5 py-1 text-[10px] font-medium text-state-paused-fg"
+                data-testid={`action-label-hint-${i}`}
+              >
+                <AlertTriangle className="size-3 shrink-0" />
+                {msg}
+              </p>
+            );
+          })()}
           {/* 第一条消息默认展开（必填项就近）；其余收进「更多」 */}
           {(d.more ? d.items : d.items.slice(0, 1)).map((m, mi) => (
             <div key={mi} className="mb-1 rounded-sm border border-border p-1">
