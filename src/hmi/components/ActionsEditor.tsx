@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Plus, X, ChevronUp, ChevronDown, Play } from "lucide-react";
+import { Plus, X, ChevronUp, ChevronDown, Play, AlertTriangle } from "lucide-react";
 import { useT } from "@/hmi/i18n/context";
 import { UnsTopicInput } from "./UnsTopicInput";
 import { splitActions } from "@/hmi/symbols/action-buttons";
@@ -77,7 +77,7 @@ export function ActionsEditor({
     return (
       <button
         type="button"
-        onClick={() => update([NEW_DRAFT(t("启动"))], false)}
+        onClick={() => update([NEW_DRAFT("")], false)}
         data-testid="actions-empty-add"
         className="mb-4 flex w-full items-center justify-center gap-1 rounded-sm border border-dashed border-border px-2 py-3 text-xs text-muted-foreground hover:bg-surface-inset hover:text-foreground"
       >
@@ -108,6 +108,15 @@ export function ActionsEditor({
             <button type="button" disabled={i === drafts.length - 1} onClick={() => { const n = [...drafts]; [n[i + 1], n[i]] = [n[i], n[i + 1]]; update(n, true); }} aria-label={t("下移")} className="shrink-0 text-muted-foreground hover:text-foreground disabled:opacity-30"><ChevronDown className="size-3" /></button>
             <button type="button" onClick={() => update(drafts.filter((_, j) => j !== i), true)} aria-label={t("删除该操作")} className="shrink-0 text-muted-foreground hover:text-destructive"><X className="size-3" /></button>
           </div>
+          {d.label.trim() === "" ? (
+            <p
+              className="mb-1 flex items-center gap-1 rounded-sm border border-state-paused-border bg-state-paused-bg px-1.5 py-1 text-[10px] font-medium text-state-paused-fg"
+              data-testid={`action-label-hint-${i}`}
+            >
+              <AlertTriangle className="size-3 shrink-0" />
+              {t("留空则不保存、不显示按钮")}
+            </p>
+          ) : null}
           {/* 第一条消息默认展开（必填项就近）；其余收进「更多」 */}
           {(d.more ? d.items : d.items.slice(0, 1)).map((m, mi) => (
             <div key={mi} className="mb-1 rounded-sm border border-border p-1">
@@ -149,7 +158,13 @@ export function ActionsEditor({
               ) : null}
             </div>
           ))}
-          <button type="button" onClick={() => update(drafts.map((x, j) => (j === i ? { ...x, more: !x.more } : x)), false)} data-testid={`action-more-${i}`} className="text-[10px] text-muted-foreground hover:text-foreground">
+          <button
+            type="button"
+            onClick={() => update(drafts.map((x, j) => (j === i ? { ...x, more: !x.more } : x)), false)}
+            data-testid={`action-more-${i}`}
+            className="flex items-center gap-1 rounded-sm border border-dashed border-border px-1.5 py-1 text-[10px] text-muted-foreground hover:bg-surface-inset hover:text-foreground"
+          >
+            {d.more ? <ChevronUp className="size-3 shrink-0" /> : <ChevronDown className="size-3 shrink-0" />}
             {d.more ? t("收起更多设置") : t("更多设置（多条消息 / 发送确认）")}
           </button>
           {d.more ? (
@@ -166,7 +181,7 @@ export function ActionsEditor({
           ) : null}
         </div>
       ))}
-      <button type="button" onClick={() => update([...drafts, NEW_DRAFT(t("启动"))], false)} data-testid="actions-add" className="flex w-full items-center justify-center gap-0.5 rounded-sm border border-dashed border-border px-1.5 py-1 text-[10px] text-muted-foreground hover:bg-surface-inset hover:text-foreground">
+      <button type="button" onClick={() => update([...drafts, NEW_DRAFT("")], false)} data-testid="actions-add" className="flex w-full items-center justify-center gap-0.5 rounded-sm border border-dashed border-border px-1.5 py-1 text-[10px] text-muted-foreground hover:bg-surface-inset hover:text-foreground">
         <Plus className="size-3" />
         {t("添加操作")}
       </button>

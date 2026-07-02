@@ -99,6 +99,9 @@ export interface HmiCanvasHandle {
 
 const DRAG_THRESHOLD = 3; // 像素：超过即判定为拖拽（抑制选中）
 const PORT_GRAB_PX = 9; // 屏幕像素：按下点离连接点多近算「抓住端口」（拉线 vs 拖节点的分界）
+// 拉线提交阈值：端口误触（手抖/点按）常轻微超过 DRAG_THRESHOLD，若沿用它会把误触判成「拖出一条线」；
+// 拉线是破坏性动作（凭空新增边），故单独给更高阈值，只有真拖拽（意图明确）才提交。
+const CONNECT_COMMIT_PX = 24;
 const HANDLE_PX = 9; // 屏幕像素：四角拉伸手柄边长（常驻屏幕尺寸，随缩放反算世界尺寸）
 const HANDLE_GRAB_PX = 10; // 屏幕像素：按下点离手柄多近算「抓住手柄」
 const ALIGN_PX = 10; // 屏幕像素：拖动节点时与邻居中线对齐的吸附阈值（Figma 式智能对齐参考线）
@@ -888,8 +891,11 @@ export const HmiCanvas = forwardRef<HmiCanvasHandle, HmiCanvasProps>(function Hm
     }
     if (d?.mode === "connect") {
       // 松手：落在其他图元上 → 提交连线；落空白/原图元 → 取消。
+      // 提交判定用「按下点→松手点」净位移（非 d.moved 的 3px 微抖阈值）：误触端口的手抖/点按常超 3px
+      // 但达不到这里，避免凭空多出一条线；真拖拽（意图明确）位移远超此阈值，不受影响。
       const pos = relPos(e);
-      if (pos && d.nodeId && d.moved) commitConnect(d.nodeId, d.fromSide, pos.sx, pos.sy);
+      const movedFarEnough = !!pos && Math.hypot(pos.sx - d.sx0, pos.sy - d.sy0) >= CONNECT_COMMIT_PX;
+      if (pos && d.nodeId && movedFarEnough) commitConnect(d.nodeId, d.fromSide, pos.sx, pos.sy);
       cancelConnect();
       if (d.moved) suppressClickRef.current = true;
       dragRef.current = null;

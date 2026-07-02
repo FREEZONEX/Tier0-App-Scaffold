@@ -12,8 +12,7 @@ export async function makeTier0Client(config: Tier0Config): Promise<Tier0ClientL
   const rand = Math.random().toString(36).slice(2, 10); // 仅 clientId 去重，非安全用途
   const creds = tier0MqCredentials(config.apiKey || undefined, rand);
   const mqConfig = {
-    host: config.mqttHost || undefined,
-    port: config.mqttPort ? Number(config.mqttPort) : undefined,
+    host: config.mqttHost && config.mqttHost.startsWith("wss://") ? `${config.mqttHost}:8084` : `wss://${config.mqttHost || undefined}:8084`,
     password: config.apiKey || undefined,
     ...creds,
   };
@@ -21,7 +20,6 @@ export async function makeTier0Client(config: Tier0Config): Promise<Tier0ClientL
   // 凭证是否解析成功（apiKey 格式不符 → username 退化 → broker 鉴权被拒）。排查完删。
   console.log("[MQTT] 建连配置", {
     host: mqConfig.host ?? "(空)",
-    port: mqConfig.port ?? "(空)",
     apiKey: config.apiKey ? `${config.apiKey.slice(0, 8)}…(len=${config.apiKey.length})` : "(空)",
     username: mqConfig.username ?? "(解析失败·无效)",
     clientId: mqConfig.clientId ?? "(无)",

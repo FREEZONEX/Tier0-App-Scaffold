@@ -2,8 +2,17 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { instrument } from "./instrument";
 import { getPalette } from "../engine/theme";
+import type { Primitive } from "../engine/primitives";
 
 const theme = getPalette("light");
+
+/** 递归收集文本（"value" 文字裁到 clip.children 内，顶层 flatMap 找不到）。 */
+const collectTexts = (prims: readonly Primitive[]): string[] =>
+  prims.flatMap((p) => {
+    if (p.kind === "text") return [p.text];
+    if (p.kind === "clip" || p.kind === "rotate" || p.kind === "scale") return collectTexts(p.children);
+    return [];
+  });
 
 const mk = (over = {}) => ({ id: "X", type: "instrument", x: 100, y: 100, rotation: 0, label: "X", topics: [], bindings: {}, inline: [], ...over });
 const build = (
@@ -62,10 +71,28 @@ describe("instrument symbol", () => {
     });
     assert.ok(!prims.some((p) => p.kind === "circle"), "box 模式不画圆");
     assert.ok(prims.some((p) => p.kind === "rect"), "box 模式有矩形框");
-    const texts = prims.flatMap((p) => (p.kind === "text" ? [p.text] : []));
+    const texts = collectTexts(prims);
     assert.ok(texts.includes("PI-035A"), `应显示完整位号 id, got ${JSON.stringify(texts)}`);
     assert.ok(texts.some((t) => /78\.1/.test(t)), `应显示数值, got ${JSON.stringify(texts)}`);
     assert.ok(texts.includes("塔顶压力"), "应显示中文名");
+  });
+
+  it("值+单位比位号长时（框按位号定宽）自动缩字号避免溢出框外", () => {
+    const prims = instrument.build({
+      node: mk({ id: "FT-201", label: "流量指示", props: { display: "box" } }),
+      state: { values: { value: 41.8 }, units: { value: "m³/h" }, running: false, fault: false, stale: false },
+      theme,
+    });
+    const clip = prims.find((p) => p.kind === "clip");
+    assert.ok(clip && clip.kind === "clip", "值文字应裁在 clip 内，兜底不溢出框体");
+    const valueText = clip && clip.kind === "clip" ? clip.children.find((c) => c.kind === "text") : undefined;
+    assert.ok(valueText && valueText.kind === "text");
+    if (valueText && valueText.kind === "text") {
+      assert.match(valueText.style.font ?? "", /^600 \d+px/);
+      const size = Number(/^600 (\d+)px/.exec(valueText.style.font ?? "")?.[1]);
+      assert.ok(size < 13, `值文字过长应缩字号（<13px），got ${size}`);
+      assert.ok(size >= 9, `字号不应缩到 9px 以下, got ${size}`);
+    }
   });
 
   it("circular 按 node 判定：默认/box 模式非圆形、bubble 为圆形", () => {

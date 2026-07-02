@@ -80,7 +80,7 @@ export function EditToolbar({
         onClick={onDelete}
         disabled={selectedCount === 0}
         className={`${iconBtn} hover:text-destructive`}
-        title={selectedCount > 0 ? t("删除选中的 {n} 个元件（Del）", { n: selectedCount }) : t("先选中元件再删除")}
+        title={selectedCount > 0 ? t("删除选中的 {n} 项（Del）", { n: selectedCount }) : t("先选中元件或连线再删除")}
         aria-label={t("删除选中")}
         data-testid="delete-selected"
       >

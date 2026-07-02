@@ -3,6 +3,7 @@ import type { MimicNode } from "../schema/schema";
 import type { Primitive } from "../engine/primitives";
 import { labelAndInline } from "./labels";
 import { formatInlineValue } from "./inline";
+import { estimateTextWidth } from "./action-buttons";
 
 const R = 18;
 // ISA-5.1 线宽规范：外圈描边 OUTLINE_W。
@@ -14,6 +15,9 @@ const BOX_HEADER_H = 15;
 const BOX_CHAR_W = 6.2;
 const BOX_PAD = 14;
 const BOX_MIN_W = 60;
+// 数值字号：默认 13px，值+单位过长（框宽按位号定，非按值）时逐级缩到不超框。
+const VALUE_FONT_MAX = 13;
+const VALUE_FONT_MIN = 9;
 
 /** 默认 DCS 数据框；显式 display==="bubble" 才回圆气泡。 */
 function isBox(node: MimicNode): boolean {
@@ -62,8 +66,12 @@ function buildBox({ node, state, theme }: SymbolContext): Primitive[] {
   const value = formatInlineValue("value", state.values.value, state.units?.value);
   const level = state.levels?.value ?? state.alarm;
   const valColor = level === "alarm" ? theme.alarm : level === "warn" ? theme.interlock : theme.text;
+  // 值+单位常比位号长（如 "41.8 m³/h" vs "FT-201"），框宽却按位号定死——按估算宽逐级缩字号让它不越框，缩到底仍超则靠 clip 兜底裁切。
+  const valueAvailW = w - 6;
+  const estWidthAt10 = estimateTextWidth(value) || 1;
+  const valueFontSize = Math.max(VALUE_FONT_MIN, Math.min(VALUE_FONT_MAX, Math.floor((valueAvailW * 10) / estWidthAt10)));
   return [
-    // 框体（裁到圆角内）：浅底 + 顶部深色位号带
+    // 框体（裁到圆角内）：浅底 + 顶部深色位号带 + 实时值（值文字一并裁到框内，杜绝溢出框外）
     {
       kind: "clip",
       x: left,
@@ -74,14 +82,19 @@ function buildBox({ node, state, theme }: SymbolContext): Primitive[] {
       children: [
         { kind: "rect", x: left, y: top, w, h: BOX_H, style: { fill: theme.fillLight } },
         { kind: "rect", x: left, y: top, w, h: BOX_HEADER_H, style: { fill: theme.fillDeep } },
+        {
+          kind: "text",
+          x: cx,
+          y: top + BOX_HEADER_H + (BOX_H - BOX_HEADER_H) / 2 + 4,
+          text: value,
+          style: { fill: valColor, font: `600 ${valueFontSize}px ui-sans-serif, system-ui`, textAlign: "center" },
+        },
       ],
     },
     // 外框描边（无填充，画在带子之上保住边框）
     { kind: "rect", x: left, y: top, w, h: BOX_H, r: 3, style: { stroke: theme.stroke, strokeWidth: 1.5 } },
     // 位号（带上浅色文字）
     { kind: "text", x: cx, y: top + BOX_HEADER_H - 4, text: node.id, style: { fill: theme.fillLight, font: "600 9px ui-sans-serif, system-ui", textAlign: "center" } },
-    // 实时值（越限变色）
-    { kind: "text", x: cx, y: top + BOX_HEADER_H + (BOX_H - BOX_HEADER_H) / 2 + 4, text: value, style: { fill: valColor, font: "600 13px ui-sans-serif, system-ui", textAlign: "center" } },
     // 中文名（框下方，与圆气泡的标签排版一致）
     ...(node.label
       ? [{ kind: "text", x: cx, y: bottom + 12, text: node.label, style: { fill: theme.textMuted, font: "10px ui-sans-serif, system-ui", textAlign: "center", halo: theme.canvas } } as Primitive]

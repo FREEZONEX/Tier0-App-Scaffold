@@ -316,12 +316,16 @@ function HmiPageInner({ initialMimic, canEdit }: { initialMimic: MimicRecord; ca
   // 历史数据查看器（只读，编辑/预览两态可用）：入口在 Inspector「查看历史数据」，本体为模态。
   const [historyNodeId, setHistoryNodeId] = useState<string | null>(null);
 
-  // 删除当前选中：进历史栈可撤销，清空选择；被删节点的配置弹窗一并关闭。
+  // 删除当前选中：进历史栈可撤销，清空选择；被删节点的配置弹窗一并关闭。节点、连线可同时或分别选中，需一并处理。
   const deleteSelected = () => {
-    if (selectedIds.length === 0) return;
-    history.commit((s) => removeNodes(s, selectedIds));
+    if (selectedIds.length === 0 && selectedEdgeIds.length === 0) return;
+    history.commit((s) => {
+      const withoutEdges = selectedEdgeIds.reduce((m, id) => removeEdge(m, id), s);
+      return selectedIds.length ? removeNodes(withoutEdges, selectedIds) : withoutEdges;
+    });
     if (actionsDialogId && selectedIds.includes(actionsDialogId)) setActionsDialogId(null);
     setSelectedIds([]);
+    setSelectedEdgeIds([]);
   };
 
   // 键盘导航：方向键/Home/End 在节点间循环移动选择，Escape 取消，Del 删除选中（节点或连线）。
@@ -331,13 +335,7 @@ function HmiPageInner({ initialMimic, canEdit }: { initialMimic: MimicRecord; ca
       if (selectedEdgeIds.length) setSelectedEdgeIds([]);
       return;
     }
-    if ((e.key === "Delete" || e.key === "Backspace") && selectedEdgeIds.length && editing) {
-      e.preventDefault();
-      history.commit((s) => selectedEdgeIds.reduce((m, id) => removeEdge(m, id), s));
-      setSelectedEdgeIds([]);
-      return;
-    }
-    if ((e.key === "Delete" || e.key === "Backspace") && selectedIds.length && editing) {
+    if ((e.key === "Delete" || e.key === "Backspace") && (selectedIds.length || selectedEdgeIds.length) && editing) {
       e.preventDefault();
       deleteSelected();
       return;
@@ -540,7 +538,7 @@ function HmiPageInner({ initialMimic, canEdit }: { initialMimic: MimicRecord; ca
                   canRedo={history.canRedo}
                   onUndo={history.undo}
                   onRedo={history.redo}
-                  selectedCount={selectedIds.length}
+                  selectedCount={selectedIds.length + selectedEdgeIds.length}
                   onDelete={deleteSelected}
                   onSave={async () => {
                     if (demoEdit) await saveDemoFn({ data: { data: schema } }); // 演示编辑：写回 demo-mimic.json

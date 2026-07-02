@@ -77,12 +77,12 @@ export const EN: Record<string, string> = {
   "撤销（Ctrl+Z）": "Undo (Ctrl+Z)",
   "重做（Ctrl+Shift+Z）": "Redo (Ctrl+Shift+Z)",
   "删除选中": "Delete selected",
-  "先选中元件再删除": "Select elements to delete",
+  "先选中元件或连线再删除": "Select elements or lines to delete",
   "保存画布（写回 schema，刷新保留）": "Save canvas (persist schema, kept after refresh)",
 
   // ── 多选条 ──
   "已选 {n} 个": "{n} selected",
-  "删除选中的 {n} 个元件（Del）": "Delete {n} selected (Del)",
+  "删除选中的 {n} 项（Del）": "Delete {n} selected (Del)",
 
   // ── 元件库 / 卡片 ──
   "元件库": "Components",
@@ -309,9 +309,9 @@ export const EN: Record<string, string> = {
   "旋转压缩机（楔形机壳）": "Rotary compressor (wedge casing)",
   // ── 设备动作按钮（配置弹窗 / 检视入口 / 运行确认）──
   "给这台设备加一个操作按钮": "Add an action button to this device",
-  "启动": "Start",
   "添加操作": "Add action",
   "按钮文字": "Button label",
+  "留空则不保存、不显示按钮": "Empty label: won't save or show",
   "图上直达": "On canvas",
   "收进 ⋯ 菜单": "In ⋯ menu",
   "试发送": "Test send",
