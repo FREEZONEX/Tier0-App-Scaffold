@@ -147,15 +147,15 @@ const btnRectsOf = (prims: readonly Primitive[], boxes: readonly ActionButtonBox
   );
 
 describe("buildActionButtons", () => {
-  it("每盒产出胶囊 rect + 文字；sent 态用 running 配色", () => {
+  it("每盒产出胶囊 rect + 文字；sent 态用 actionSuccess 配色（与设备运行态 running 语义不同）", () => {
     const boxes = layoutActionButtons(mkNode(2), ANCHOR);
     const prims = buildActionButtons(boxes, theme, (b) => (b.action === 0 ? "sent" : "idle"));
     const btnRects = btnRectsOf(prims, boxes);
     assert.equal(btnRects.length, 2);
-    // 与 box[0]（action 0=sent）同几何的胶囊用 running 配色
+    // 与 box[0]（action 0=sent）同几何的胶囊用 actionSuccess 配色
     const sentRect = btnRects.find((r) => r.x === boxes[0].x);
     assert.ok(sentRect, "应有与 box[0] 同几何的胶囊");
-    assert.equal(sentRect!.style.fill, theme.running);
+    assert.equal(sentRect!.style.fill, theme.actionSuccess);
     assert.ok(prims.some((p) => p.kind === "text"));
   });
   it("pressed 态用 fillDeep 深底", () => {

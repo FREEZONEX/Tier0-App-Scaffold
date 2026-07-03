@@ -7,7 +7,8 @@ const MAX_DIRECT = 2;
 const MAX_NO_OVERFLOW = 3;
 /** 以下像素常量均为 scale=1（节点默认大小）时的基准值；用前一律 ×scale 跟节点等比缩放。 */
 const BTN_H = 18;
-const BTN_R = 9;
+/** 圆角（Tier0 设计系统按钮参考：34px 高配 4px 圆角≈0.12 比例，非胶囊形）。 */
+const BTN_R = 3;
 const GAP = 4;
 const PAD_X = 8;
 const MAX_CHARS = 6;
@@ -21,7 +22,7 @@ const TEXT_DESCENT = 3;
  * 表达「这排按钮属于上方设备」。padding=按钮行四周留白；半径略大于按钮胶囊。
  */
 const CONTAINER_PAD = 4;
-const CONTAINER_R = 12;
+const CONTAINER_R = 6;
 const CONTAINER_STROKE_W = 1;
 /** 极浅衬底透明度：让框内区域与画布微弱区分，又不抢异常色。 */
 const CONTAINER_FILL_OPACITY = 0.5;
@@ -146,8 +147,9 @@ function buildTether(boxes: readonly ActionButtonBox[], theme: Palette, scale: n
 }
 
 /**
- * 胶囊绘制：idle=浅底描边；pressed=深底；sent=运行绿底白字「✓」由调用方换 text。
- * 先画归属容器框 + 连接线（在按钮之下，不遮按钮文字），再叠胶囊行。
+ * 按钮绘制：idle=浅底描边；pressed=深底；sent=成功绿底「✓」由调用方换 text
+ * （成功绿很亮，配深字/深勾才够对比；pressed 底深，配近白字）。
+ * 先画归属容器框 + 连接线（在按钮之下，不遮按钮文字），再叠按钮行。
  * scale：节点缩放系数（默认 1）——圆角/描边/字号/文字基线偏移全部跟按钮尺寸同步缩放，
  * 否则大按钮配细描边、小按钮配粗描边，观感失调。
  */
@@ -161,8 +163,8 @@ export function buildActionButtons(
   const font = `${FONT_PX * scale}px ui-sans-serif, system-ui`;
   for (const b of boxes) {
     const visual = visualOf(b);
-    const fill = visual === "sent" ? theme.running : visual === "pressed" ? theme.fillDeep : theme.fillLight;
-    const textFill = visual === "idle" ? theme.text : theme.badgeFg;
+    const fill = visual === "sent" ? theme.actionSuccess : visual === "pressed" ? theme.fillDeep : theme.fillLight;
+    const textFill = visual === "pressed" ? theme.badgeFg : theme.text;
     out.push(
       { kind: "rect", x: b.x, y: b.y, w: b.w, h: b.h, r: BTN_R * scale, style: { fill, stroke: theme.stroke, strokeWidth: 1.25 * scale } },
       { kind: "text", x: b.x + b.w / 2, y: b.y + b.h / 2 + 3.5 * scale, text: visual === "sent" ? "✓" : b.text, style: { fill: textFill, font, textAlign: "center" } },

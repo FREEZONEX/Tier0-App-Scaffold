@@ -82,7 +82,7 @@ export interface HmiCanvasProps {
   ariaLabel?: string;
   /** 预览模式点击直达动作按钮（编辑模式命中按钮仅 onSelect 选中设备，配置入口统一在 Inspector）。 */
   onActionClick?: (nodeId: string, actionIndex: number) => void;
-  /** 预览模式点击 ⋯ 溢出按钮：anchor 为该按钮右下角的屏幕坐标（浮层菜单定位用）。 */
+  /** 预览模式点击 ⋯ 溢出按钮：anchor 为该按钮左下角的屏幕坐标（浮层菜单定位用，菜单左边与按钮左边对齐）。 */
   onActionOverflow?: (nodeId: string, anchorX: number, anchorY: number) => void;
   /** 按钮视觉态注入（pressed 由本组件内部管理，sent 由上层反馈状态驱动）。 */
   getActionFeedback?: (nodeId: string, actionIndex: number) => boolean;
@@ -843,7 +843,7 @@ export const HmiCanvas = forwardRef<HmiCanvasHandle, HmiCanvasProps>(function Hm
 
   const handlePointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
     // 动作按钮松手：仍命中同一盒才触发——编辑/预览两态都执行动作（直达 onActionClick / 溢出
-    // onActionOverflow，锚点=按钮右下角屏幕坐标）。按钮 = 触发动作；配置入口在 Inspector「配置操作…」，
+    // onActionOverflow，锚点=按钮左下角屏幕坐标，菜单左边与按钮左边对齐）。按钮 = 触发动作；配置入口在 Inspector「配置操作…」，
     // 选中设备改点设备本体（按钮区在设备盒外）。
     const pressed = pressedActionRef.current;
     if (pressed) {
@@ -855,7 +855,7 @@ export const HmiCanvas = forwardRef<HmiCanvasHandle, HmiCanvasProps>(function Hm
         const p = propsRef.current;
         if (box.action === "overflow") {
           const rect = canvasRef.current?.getBoundingClientRect();
-          const corner = toScreen(vpRef.current, box.x + box.w, box.y + box.h);
+          const corner = toScreen(vpRef.current, box.x, box.y + box.h);
           p.onActionOverflow?.(box.nodeId, (rect?.left ?? 0) + corner.x, (rect?.top ?? 0) + corner.y);
         } else {
           p.onActionClick?.(box.nodeId, box.action);

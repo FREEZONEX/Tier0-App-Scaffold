@@ -778,6 +778,8 @@ body {
   --hmi-stale: #aeb3b8;
   --hmi-guide: #e93d82;
   --hmi-badge-fg: #ffffff;
+  /* 动作按钮点击成功反馈（Tier0 设计系统 Primary/Green/500）：与设备运行态 --hmi-running 是两套语义，不复用。 */
+  --hmi-action-success: #b2ed1d;
 }
 
 [data-hmi-theme="dark"] {
@@ -795,6 +797,7 @@ body {
   --hmi-stale: #5a626b;
   --hmi-guide: #e93d82;
   --hmi-badge-fg: #f2f4f6;
+  --hmi-action-success: #b2ed1d;
 
   --background: #1b1e22;
   --foreground: #d6dade;

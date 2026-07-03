@@ -298,8 +298,8 @@ function HmiPageInner({ initialMimic, canEdit }: { initialMimic: MimicRecord; ca
     sendItems(action.items);
     flashSent(`${nodeId}:${actionIndex}`);
   };
+  // 菜单自身在点选后展示「成功」反馈并延时关闭（见 ActionOverflowMenu）；这里只管执行，不再抢先关闭。
   const pickOverflowAction = (nodeId: string, actionIndex: number) => {
-    setOverflowMenu(null);
     executeAction(nodeId, actionIndex);
   };
   const openOverflow = (nodeId: string, x: number, y: number) => setOverflowMenu({ nodeId, x, y });
