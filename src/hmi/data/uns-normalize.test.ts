@@ -97,6 +97,15 @@ describe("uns-normalize", () => {
     assert.equal(isLeafNode({}), true); // 类型未知且无子节点 → 当叶子可选
   });
 
+  it("isLeafNode：test.tier0.dev 实测形状——type 恒为 PATH，靠 topicType 区分叶子/文件夹", () => {
+    // 2026-07-03 对 test.tier0.dev 实测：文件夹与指标的 type 都是 "PATH"，
+    // 文件夹 topicType=""、指标 topicType="METRIC"。按 type==="folder" 判分支会把
+    // 全部文件夹误判成叶子（用户截图：根层 Factory 等全显示成文件图标、点了直接选中）。
+    assert.equal(isLeafNode({ type: "PATH", topicType: "" }), false); // 命名空间文件夹 → 分支
+    assert.equal(isLeafNode({ type: "PATH", topicType: "METRIC" }), true); // 指标 → 叶子
+    assert.equal(isLeafNode({ type: "path" }), false); // 大小写不敏感
+  });
+
   it("searchToTopics 返回 items + total/page/size", () => {
     const r = searchToTopics(searchResp);
     assert.equal(r.total, 1);

@@ -40,16 +40,17 @@ export function pickData(resp: unknown): unknown {
  * 判定一个 UNS 节点是「叶子」（可选中的 topic/指标）还是「分支」（命名空间文件夹，只可展开）。
  * 关键：懒加载（maxDepth:1）下分支节点的 children 往往没返回，绝不能用 children 长度判分支/叶子，
  * 否则下层文件夹会被误判成叶子、点了直接 onPick 选中（用户反馈 2 的根因）。
- * 真值来自节点自身的类型标记：
- *   - 文件夹/命名空间：type === "folder"（topicType 为空）→ 分支
- *   - 实际 topic/指标：type === "topic"（topicType 非空，如 "json"，且常带 fields）→ 叶子
- * 兜底：type 缺失时，凭 topicType 非空 / 有 fields 视为叶子；既无类型又无 children → 当叶子可选（避免死分支无法选）。
+ * 真值来自节点自身的类型标记，且 **topicType 优先于 type**：
+ *   - test.tier0.dev（2026-07-03 实测）：文件夹和指标的 type 都是 "PATH"，唯一区分是
+ *     topicType——文件夹为空、指标非空（如 "METRIC"）。按 type 判会全员误判成叶子。
+ *   - 旧形状（pre.tier0.dev）：type "folder"/"topic" 直接可判。
+ * 兜底：类型全缺时，有 fields 视为叶子；已加载到 children → 分支；否则当叶子可选（避免死分支无法选）。
  */
 export function isLeafNode(n: Pick<RawNode, "type" | "topicType" | "fields" | "children">): boolean {
+  if (n.topicType) return true; // topicType 非空（"json"/"METRIC"）→ 叶子（对 PATH 形状是唯一可靠标记，最先判）
   const type = n.type?.toLowerCase();
-  if (type === "folder") return false; // 明确是文件夹 → 分支
   if (type === "topic" || type === "metric") return true; // 明确是 topic/指标 → 叶子
-  if (n.topicType) return true; // topicType 非空（如 "json"）→ 叶子
+  if (type === "folder" || type === "path") return false; // 文件夹/命名空间 → 分支
   if (n.fields?.length) return true; // 带 schema 字段 → 叶子
   if (n.children?.length) return false; // 已加载到子节点 → 分支
   return true; // 类型未知且无子节点：当叶子可选，避免无法选中的死分支
