@@ -14,11 +14,20 @@ export const tank: SymbolDef = {
   type: "tank",
   inlineFields: ["level"],
   // 命中框：上覆拱顶+位号。锚点 node.x/y 视觉居中于壳体。
+  // （位号在拱顶上方、液位值在罐体内，下方无文字——动作按钮的 contentBottomOf 会自动贴壳体底。）
   bounds: (node) => ({
     x: node.x - W / 2,
     y: node.y - H / 2 - (DOME_H + TOP_RESERVE + LABEL_GAP + 12),
     w: W,
     h: H + (DOME_H + TOP_RESERVE + LABEL_GAP + 12),
+  }),
+  // 真实图形轮廓（壳体+拱顶，不含 bounds 顶部为位号多留的 TOP_RESERVE+LABEL_GAP+12）：
+  // 选中环据此贴合——否则上下不对称的 bounds 让对称近似把真实拱顶也裁到环外。
+  coreBox: (node) => ({
+    x: node.x - W / 2,
+    y: node.y - H / 2 - DOME_H,
+    w: W,
+    h: H + DOME_H,
   }),
   build: ({ node, state, theme }: SymbolContext): Primitive[] => {
     const left = node.x - W / 2;

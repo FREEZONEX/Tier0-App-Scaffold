@@ -28,6 +28,13 @@ export const damper: SymbolDef = {
     w: W,
     h: H + (ACT_H + ACT_GAP) + 16 + 14,
   }),
+  // 真实图形轮廓（不含 bounds 里为下方位号/内联两行文字多留的 +16+14）。
+  coreBox: (node) => ({
+    x: node.x - W / 2,
+    y: node.y - H / 2 - (ACT_H + ACT_GAP),
+    w: W,
+    h: H + (ACT_H + ACT_GAP),
+  }),
   build: ({ node, state, theme, scale }: SymbolContext): Primitive[] => {
     const left = node.x - W / 2;
     const top = node.y - H / 2;

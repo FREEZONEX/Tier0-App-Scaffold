@@ -6,6 +6,8 @@ import { tank } from "./tank";
 import { pump } from "./pump";
 import { motor } from "./motor";
 import { readout } from "./readout";
+import { cyclone } from "./cyclone";
+import { condenser } from "./condenser";
 import { getPalette } from "../engine/theme";
 import { buildScene } from "../scene/scene";
 import { parseMimic } from "../schema/schema";
@@ -275,6 +277,83 @@ describe("动作按钮渲染", () => {
     ) as { style: { opacity?: number } } | undefined;
     assert.ok(btnRect, "应有与命中盒同几何的按钮 rect");
     assert.equal(btnRect!.style.opacity, undefined, "按钮 opacity 不被乘 STALE_OPACITY");
+  });
+
+  it("按钮停靠位置仍用原始 bounds 底边（改用紧致对称高度会在长尾结构 symbol 上把按钮顶到文字上方，已验证并放弃）", () => {
+    const cyReg = createRegistry([cyclone]);
+    const cyScene = buildScene(parseMimic({
+      meta: { name: "x", version: 1 },
+      nodes: [{ id: "CY-01", type: "cyclone", x: 100, y: 100, topics: [], bindings: {}, actions: [{ label: "开启", items: [{ topic: "t", template: "{}" }] }] }],
+      edges: [],
+    }).data!);
+    const r = renderScene(cyScene, cyReg, idleState, () => false, theme);
+    const box = r.actionHitBoxes[0];
+    const b = cyclone.bounds({ id: "CY-01", type: "cyclone", x: 100, y: 100, rotation: 0, topics: [], bindings: {}, inline: [] });
+    const origBottom = b.y + b.h;
+    assert.ok(box.y >= origBottom, `按钮应停靠在原始 bounds 底边之下，got box.y=${box.y}, origBottom=${origBottom}`);
+    assert.ok(box.y - origBottom < 60, "按钮到 bounds 底边应是个不大的固定间距");
+  });
+
+  it("选中环贴合紧致对称主体，不是原始 bounds（cyclone 的 bounds 因底部管嘴留白明显偏大，环不该飘在轮廓外）", () => {
+    const cyReg = createRegistry([cyclone]);
+    const cyScene = buildScene(parseMimic({
+      meta: { name: "x", version: 1 },
+      nodes: [{ id: "CY-01", type: "cyclone", x: 100, y: 100, topics: [], bindings: {} }],
+      edges: [],
+    }).data!);
+    const r = renderScene(cyScene, cyReg, idleState, (id) => id === "CY-01", theme);
+    const ring = r.primitives.find((p) => p.kind === "rect" && (p as { style: { stroke?: string } }).style.stroke === theme.selection) as
+      | { x: number; y: number; w: number; h: number }
+      | undefined;
+    assert.ok(ring, "选中态应画出环形 rect");
+    const b = cyclone.bounds({ id: "CY-01", type: "cyclone", x: 100, y: 100, rotation: 0, topics: [], bindings: {}, inline: [] });
+    const origH = b.h + 9 * 2; // ringPrim pad=9
+    assert.ok(ring!.h < origH - 20, `环高度应比原始 bounds+pad 明显收紧，got ring.h=${ring!.h}, origH=${origH}`);
+  });
+
+  it("有 coreBox 的 symbol（condenser）：按钮/选中环贴 coreBox，不贴 bounds 里为文字多留的 +40", () => {
+    const cdReg = createRegistry([condenser]);
+    const cdNode = { id: "CD-01", type: "condenser", x: 100, y: 100, rotation: 0, topics: [], bindings: {}, inline: [] };
+    const b = condenser.bounds(cdNode);
+    const core = condenser.coreBox!(cdNode);
+    assert.ok(b.h - core.h > 20, "condenser 的 bounds 确实比 coreBox 高出一大截（前提断言）");
+
+    const cdScene = buildScene(parseMimic({
+      meta: { name: "x", version: 1 },
+      nodes: [{ id: "CD-01", type: "condenser", x: 100, y: 100, topics: [], bindings: {}, actions: [{ label: "开启", items: [{ topic: "t", template: "{}" }] }] }],
+      edges: [],
+    }).data!);
+    const r = renderScene(cdScene, cdReg, idleState, (id) => id === "CD-01", theme);
+
+    const box = r.actionHitBoxes[0];
+    const coreBottom = core.y + core.h;
+    // 锚点 = 实际内容底：condenser 内联值基线在 coreBox 底 +LABEL_GAP(8)+4+14=+26（labelAndInline
+    // 的 belowY+14），+TEXT_DESCENT(3) 得内容底 +29；再 +ROW_GAP(6)+CONTAINER_PAD(4)——净距按容器框边算。
+    const expected = coreBottom + 26 + 3 + 6 + 4;
+    assert.ok(Math.abs(box.y - expected) < 0.01, `按钮应停靠在实际内联文字底之下，got box.y=${box.y}, expected=${expected}（若仍用原始 bounds 会是 ${b.y + b.h + 39}）`);
+
+    const ring = r.primitives.find((p) => p.kind === "rect" && (p as { style: { stroke?: string } }).style.stroke === theme.selection) as
+      | { h: number }
+      | undefined;
+    assert.ok(ring, "选中态应画出环形 rect");
+    assert.ok(Math.abs(ring!.h - (core.h + 9 * 2)) < 0.01, `选中环高度应精确等于 coreBox+pad，got ${ring!.h}, expected ${core.h + 18}`);
+  });
+
+  it("下方无文字的 symbol（tank：位号在顶、值在罐内）：contentBottomOf 自动退回图形底，按钮贴 coreBox 底边", () => {
+    const tkReg = createRegistry([tank]);
+    const tkNode = { id: "TK-A", type: "tank", x: 100, y: 100, rotation: 0, topics: [], bindings: {}, inline: [] };
+    const core = tank.coreBox!(tkNode);
+    const tkScene = buildScene(parseMimic({
+      meta: { name: "x", version: 1 },
+      nodes: [{ id: "TK-A", type: "tank", x: 100, y: 100, label: "原料罐", topics: [], bindings: {}, actions: [{ label: "进料", items: [{ topic: "t", template: "{}" }] }] }],
+      edges: [],
+    }).data!);
+    const r = renderScene(tkScene, tkReg, idleState, () => false, theme);
+    const box = r.actionHitBoxes[0];
+    // 即便节点带 label 且 inlineFields 有值，文字全在图形上方/内部 → 锚点=图形底：
+    // y = coreBox底 + ROW_GAP(6) + CONTAINER_PAD(4)——归属容器框比按钮顶高出 pad，净距按框边算。
+    const expected = core.y + core.h + 10;
+    assert.ok(Math.abs(box.y - expected) < 0.01, `按钮应贴壳体底边，got box.y=${box.y}, expected=${expected}`);
   });
 });
 

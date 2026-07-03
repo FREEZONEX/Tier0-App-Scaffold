@@ -31,6 +31,11 @@ export const cooler: SymbolDef = {
       h: H + fanTop + LEG_H + 30, // 下方支腿 + 标签/内联两行
     };
   },
+  // 真实图形轮廓（不含 bounds 里为下方标签/内联两行文字多留的 +30，支架腿 LEG_H 是真实图元故保留）。
+  coreBox: (node) => {
+    const fanTop = FAN_R * 2 + FAN_GAP + NOZ_H;
+    return { x: node.x - W / 2, y: node.y - H / 2 - fanTop, w: W, h: H + fanTop + LEG_H };
+  },
   build: ({ node, state, theme, scale }: SymbolContext): Primitive[] => {
     const cx = node.x;
     const cy = node.y;

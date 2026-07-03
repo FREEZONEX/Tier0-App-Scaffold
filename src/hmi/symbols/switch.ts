@@ -41,6 +41,10 @@ export const switchSymbol: SymbolDef = {
   inlineFields: ["opening"],
   // 命中框：左右覆盖端子引线外端，纵向覆盖断开态最高抬起的刀片 + 位号/内联两行。
   bounds: (node) => ({ x: node.x - HW - LEAD - 2, y: node.y - MAX_LIFT - 4, w: (HW + LEAD + 2) * 2, h: MAX_LIFT + 4 + 40 }),
+  // 真实图形轮廓（不含 bounds 里为下方位号/内联两行文字多留的 +40）。
+  // 底边下沉 TERM_R+3 覆盖固定触点小圆的下半段（触点圆心在 cy 水平线）——若底边停在 cy，
+  // 触点露在环外，且本 symbol 的文字比惯例画得低（cy+22 起，为躲触点），按钮从 cy 起算会压住数值行。
+  coreBox: (node) => ({ x: node.x - HW - LEAD - 2, y: node.y - MAX_LIFT - 4, w: (HW + LEAD + 2) * 2, h: MAX_LIFT + 4 + TERM_R + 3 }),
   build: ({ node, state, theme, scale }: SymbolContext): Primitive[] => {
     const cx = node.x;
     const cy = node.y;

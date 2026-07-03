@@ -3,13 +3,12 @@ import type { NodeState } from "../scene/scene";
 import type { MimicEdge, MimicNode } from "../schema/schema";
 import type { Primitive } from "../engine/primitives";
 import type { Palette } from "../engine/theme";
-import type { Registry } from "./registry";
+import { tightHalfExtent, type Registry } from "./registry";
 import type { HitBox, EdgePath } from "../engine/hit-test";
 import { resolveDecoration } from "./state-language";
 import { buildDecoration } from "./decoration";
 import { sideRoute, type Side } from "../engine/edge-route";
-import { layoutActionButtons, buildActionButtons, type ActionButtonBox, type ActionVisual } from "./action-buttons";
-import { inlineLine } from "./inline";
+import { contentBottomOf, layoutActionButtons, buildActionButtons, type ActionButtonBox, type ActionVisual } from "./action-buttons";
 
 export interface RenderResult {
   readonly primitives: Primitive[];
@@ -252,9 +251,17 @@ export function renderScene(
     const sizeX = node.sizeX ?? 1;
     const sizeY = node.sizeY ?? 1;
     const scaled = sizeX !== 1 || sizeY !== 1;
-    const sb = scaled
-      ? { x: node.x - (node.x - b.x) * sizeX, y: node.y - (node.y - b.y) * sizeY, w: b.w * sizeX, h: b.h * sizeY }
-      : b;
+    const scaleBox = (box: { x: number; y: number; w: number; h: number }) =>
+      scaled
+        ? { x: node.x - (node.x - box.x) * sizeX, y: node.y - (node.y - box.y) * sizeY, w: box.w * sizeX, h: box.h * sizeY }
+        : box;
+    const sb = scaleBox(b);
+    // 精确「贴主体」盒（coreBox，若 symbol 定义了）：选中环/动作按钮优先用它——不少 symbol 的 bounds
+    // 故意为下方标签/内联文字多留几十像素命中空间（如 condenser），直接用 bounds 会显得环/按钮飘在
+    // 图形外一大截。未定义 coreBox 的 symbol（bounds 本身就是真实轮廓，如 vessel/cyclone 的长尾结构）
+    // 不受影响，继续走原逻辑。
+    const coreB = def.coreBox?.(node);
+    const scb = coreB ? scaleBox(coreB) : undefined;
     const scaleWrap = (prims: readonly Primitive[]): readonly Primitive[] =>
       scaled ? [{ kind: "scale", cx: node.x, cy: node.y, sx: sizeX, sy: sizeY, children: prims }] : prims;
     // 不透明背板（画布底色）：垫在主体之下，把下穿管线 / 连线端头藏住 —— 连线收口贴齐、且主体
@@ -291,7 +298,10 @@ export function renderScene(
         ]
       : body;
     bodyTarget.push(...applyStale(scaleWrap(oriented), deco.faded, deco.dashed));
-    const r = Math.max(sb.w, sb.h) / 2;
+    // 装饰环外接圆半径：有 coreBox 用真实图形盒——circular 元件（如 motor）的 bounds 同样可能含文字
+    // 预留虚高，若按 bounds 算 r，选中/报警圆环会比可见机身大一圈。
+    const rBox = scb ?? sb;
+    const r = Math.max(rBox.w, rBox.h) / 2;
     // 标注层(overlay)命中框进 overlayHitBoxes，循环后追加到末尾 → hitTest 从尾往前先撞到它，
     // 命中优先级与视觉 z 序一致（overlay 盖在大节点如精馏塔上，点它就该选中它而非底下的塔）。
     (isOverlay ? overlayHitBoxes : hitBoxes).push({
@@ -306,11 +316,27 @@ export function renderScene(
       ...(circular ? { circle: { cx: node.x, cy: node.y, r: Math.min(sb.w, sb.h) / 2 } } : {}),
       ...(def.lrOnly ? { lrOnly: true } : {}),
     });
-    decoTarget.push(...buildDecoration(deco, { cx: node.x, cy: node.y, r, ...(circular ? {} : { box: sb }) }, theme));
+    // 选中/报警/联锁环 + 角标贴合主体：有精确 coreBox 用它；否则回落紧致对称近似（与拉伸框手柄同一
+    // 公式）。两者都是为了不让环画得比可见轮廓大一圈、飘在元件外。环纯装饰、不承载文本定位语义。
+    const decoBox = circular
+      ? undefined
+      : scb ?? {
+          x: node.x - tightHalfExtent(node.x, b.x, b.x + b.w) * sizeX,
+          y: node.y - tightHalfExtent(node.y, b.y, b.y + b.h) * sizeY,
+          w: tightHalfExtent(node.x, b.x, b.x + b.w) * sizeX * 2,
+          h: tightHalfExtent(node.y, b.y, b.y + b.h) * sizeY * 2,
+        };
+    decoTarget.push(...buildDecoration(deco, { cx: node.x, cy: node.y, r, ...(decoBox ? { box: decoBox } : {}) }, theme));
     // 动作按钮：停靠设备下方的胶囊（按 UI 处理，不随失联褪色——applyStale 只作用于主体）。
     if (node.actions?.length) {
-      const inlineNode = node.inline?.length ? node : { ...node, inline: [...(def.inlineFields ?? [])] };
-      const boxes = layoutActionButtons(node, sb, !!node.label, inlineLine(inlineNode, state) !== "", sizeY);
+      // 按钮锚点 = 实际内容底：图形底（coreBox 优先，排除 bounds 里为文字多留的命中空间，如
+      // condenser 的 +40）与下方位号/内联文字最低点取大者。contentBottomOf 扫真实 body 图元——
+      // tank 位号在拱顶上方/值在罐内会自动退回图形底，无需旗子；比「常量假设文字占位」精确，
+      // 否则各 symbol 手调的 belowY（图形底 +12~16 不等）让按钮离内容忽近忽远。
+      const refBox = coreB ?? b;
+      const local = contentBottomOf(body, refBox.y + refBox.h);
+      const anchorY = node.y + (local - node.y) * sizeY; // 与 scaleWrap 同一缩放模型（绕节点中心）
+      const boxes = layoutActionButtons(node, anchorY, sizeY);
       actionHitBoxes.push(...boxes);
       decoTarget.push(...buildActionButtons(boxes, theme, (box) => getActionVisual?.(box.nodeId, box.action) ?? "idle", sizeY));
     }

@@ -25,6 +25,13 @@ export const motor: SymbolDef = {
     w: BODY_W + 4 + SHAFT_LEN,
     h: BODY_H + TERM_H + 14 + 30,
   }),
+  // 真实图形轮廓（机身+接线盒+轴伸，不含 bounds 里为下方内联值多留的 +30）。
+  coreBox: (node) => ({
+    x: node.x - BODY_W / 2 - 2,
+    y: node.y - BODY_H / 2 - TERM_H - 14,
+    w: BODY_W + 4 + SHAFT_LEN,
+    h: BODY_H + TERM_H + 14,
+  }),
   build: ({ node, state, theme, scale }: SymbolContext): Primitive[] => {
     const fill = state.running ? theme.running : theme.fillLight;
     const cx = node.x;

@@ -15,7 +15,7 @@ import { hitTestActionButtons, type ActionButtonBox } from "@/hmi/symbols/action
 import { sceneBounds } from "@/hmi/scene/scene-bounds";
 import type { Scene, NodeState } from "@/hmi/scene/scene";
 import type { MimicEdge } from "@/hmi/schema/schema";
-import type { Registry } from "@/hmi/symbols/registry";
+import { tightHalfExtent, type Registry } from "@/hmi/symbols/registry";
 import type { Palette } from "@/hmi/engine/theme";
 
 export interface HmiCanvasProps {
@@ -299,8 +299,8 @@ export const HmiCanvas = forwardRef<HmiCanvasHandle, HmiCanvasProps>(function Hm
           const node = p.scene.byId[p.selectedIds[0]];
           if (node) {
             const b = p.registry.get(node.type).bounds(node);
-            const hw = Math.min(node.x - b.x, b.x + b.w - node.x) * (node.sizeX ?? 1);
-            const hh = Math.min(node.y - b.y, b.y + b.h - node.y) * (node.sizeY ?? 1);
+            const hw = tightHalfExtent(node.x, b.x, b.x + b.w) * (node.sizeX ?? 1);
+            const hh = tightHalfExtent(node.y, b.y, b.y + b.h) * (node.sizeY ?? 1);
             const inv = 1 / vpRef.current.scale;
             const k = HANDLE_PX * inv; // 抓点边长（屏幕常驻）
             const pad = 4 * inv; // 框离主体外扩，避免压住轮廓
@@ -527,8 +527,8 @@ export const HmiCanvas = forwardRef<HmiCanvasHandle, HmiCanvasProps>(function Hm
     return {
       ax: node.x,
       ay: node.y,
-      hw: Math.min(node.x - b.x, b.x + b.w - node.x),
-      hh: Math.min(node.y - b.y, b.y + b.h - node.y),
+      hw: tightHalfExtent(node.x, b.x, b.x + b.w),
+      hh: tightHalfExtent(node.y, b.y, b.y + b.h),
       sx: node.sizeX ?? 1,
       sy: node.sizeY ?? 1,
     };

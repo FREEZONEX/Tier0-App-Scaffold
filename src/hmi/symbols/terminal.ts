@@ -24,6 +24,8 @@ export const terminal: SymbolDef = {
     w: L,
     h: HEAD_H * 2 + 16, // 下留 label/inline 行
   }),
+  // 真实图形轮廓（箭身+箭头，不含 bounds 里为下方文字多留的 +16）。
+  coreBox: (node) => ({ x: node.x - L / 2, y: node.y - HEAD_H, w: L, h: HEAD_H * 2 }),
   build: ({ node, state, theme }: SymbolContext): Primitive[] => {
     const cx = node.x;
     const cy = node.y;

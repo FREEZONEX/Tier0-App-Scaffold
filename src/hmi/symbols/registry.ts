@@ -29,7 +29,10 @@ export interface SymbolDef {
   readonly coreRadius?: number;
   /** 非圆形图元的可见连接盒（世界坐标，未缩放）：连线收口按此贴齐**真实壳体**，排除 bounds/bodyBBox 里
    *  外凸的管嘴/底座（如精馏塔侧管嘴把 bbox 撑大 → 线收口到管嘴区、露出画布色缝）。缺省回落 bodyBBox；
-   *  connectBox 会按 node.sizeX/sizeY 缩放它。背板用本体剪影、非管嘴处本就贴圆筒，故只需修收口盒。 */
+   *  connectBox 会按 node.sizeX/sizeY 缩放它。背板用本体剪影、非管嘴处本就贴圆筒，故只需修收口盒。
+   *  同时也是选中/报警/联锁环与动作按钮停靠位置的贴合基准（优先于 bounds）——部分 symbol 的 bounds
+   *  故意为下方标签/内联文字多留几十像素命中空间（如 condenser），若环/按钮仍以 bounds 为准会显得
+   *  飘在图形外一大截；定义了 coreBox 就排除这段虚高，贴着真实图形轮廓（含管嘴/封头，不含文字留白）。 */
   readonly coreBox?: (node: MimicNode) => { x: number; y: number; w: number; h: number };
   /** 标注/叠加层：渲染到最上层（盖在所有设备+装饰之上）且不画不透明背板——
    *  数值点等"贴在别的组件上做标记"的元件需要它，否则会被后画的设备背板盖住。 */
@@ -57,6 +60,15 @@ const fallback: SymbolDef = {
   ],
   bounds: (node) => ({ x: node.x - 16, y: node.y - 16, w: 32, h: 32 }),
 };
+
+/**
+ * 锚点到 bounds 一侧边缘的距离，取两侧最小值做对称化：排除标签/侧桩/管嘴等非对称留白撑大的
+ * 那一侧，逼近真实可见半径。用于拉伸框手柄、动作按钮停靠位置等「贴主体」场景——两处必须用
+ * 同一公式，否则各自算出的「主体边界」不一致，视觉上会显得选中框/按钮跟元件本体对不上。
+ */
+export function tightHalfExtent(anchor: number, boundsMin: number, boundsMax: number): number {
+  return Math.min(anchor - boundsMin, boundsMax - anchor);
+}
 
 export function createRegistry(defs: readonly SymbolDef[]): Registry {
   const byType = new Map<string, SymbolDef>();

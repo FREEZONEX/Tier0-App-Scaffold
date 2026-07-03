@@ -27,6 +27,13 @@ export const condenser: SymbolDef = {
     w: W,
     h: H + (HEAD_H + IN_H + 4) + (HEAD_H + OUT_H + LABEL_GAP + 4 + 28),
   }),
+  // 真实图形轮廓（不含 bounds 里为下方文字多留的 +LABEL_GAP+4+28）：选中环/动作按钮据此贴合壳体+管嘴。
+  coreBox: (node) => ({
+    x: node.x - W / 2,
+    y: node.y - H / 2 - (HEAD_H + IN_H + 4),
+    w: W,
+    h: H + (HEAD_H + IN_H + 4) + (HEAD_H + OUT_H),
+  }),
   build: ({ node, state, theme, scale }: SymbolContext): Primitive[] => {
     const cx = node.x;
     const left = cx - W / 2;

@@ -12,12 +12,10 @@ const GAP = 4;
 const PAD_X = 8;
 const MAX_CHARS = 6;
 const FONT_PX = 10;
-/**
- * 行起点距 bounds 底边的额外间距（在标签/内联占位之后）。
- * 各 symbol 的标签/内联基线实际落在 bounds 底 +14~18（文字底≈+36），
- * 取 12（按钮顶=底+42）：归属容器框 + 连接线在按钮上方绘制后，与文字底仍留余量。
- */
-const ROW_GAP = 12;
+/** 内容底（图形/文字）到归属容器框顶边的净距。按钮 y 会再加 CONTAINER_PAD——净距按框边算而非按钮顶，否则框把间距吃掉、按钮贴脸内容。 */
+const ROW_GAP = 6;
+/** 文字图元 y 是基线；视觉底 ≈ 基线 + 字体下伸（10~11px 字号 ≈ 3px）。 */
+const TEXT_DESCENT = 3;
 /**
  * 归属容器：圆角矩形描边把该设备的全部动作按钮框起来（结构色细描边 + 极浅半透明衬底），
  * 表达「这排按钮属于上方设备」。padding=按钮行四周留白；半径略大于按钮胶囊。
@@ -27,8 +25,6 @@ const CONTAINER_R = 12;
 const CONTAINER_STROKE_W = 1;
 /** 极浅衬底透明度：让框内区域与画布微弱区分，又不抢异常色。 */
 const CONTAINER_FILL_OPACITY = 0.5;
-const LABEL_H = 16;
-const INLINE_H = 14;
 
 export type ActionVisual = "idle" | "pressed" | "sent";
 
@@ -67,23 +63,30 @@ export function truncateLabel(label: string): string {
 }
 
 /**
- * 停靠布局：按钮行在 bounds 底边 → 标签行(若有) → 内联行(若有) → ROW_GAP 之下，整行水平居中于 node.x。
+ * 内容底：图形底（refBottom）与其**下方**全部文字图元视觉底的最大值（递归进 clip/rotate/scale 组）。
+ * 按钮锚这里而非「常量估算文字占位」——各 symbol 的位号/内联 belowY 是手调值（图形底 +12~16 不等），
+ * 常量假设导致按钮与内容的间距忽近忽远（agitator 远、motor 近的真实反馈）。高于 refBottom 的文字
+ * （tank 拱顶位号/罐内液位值）天然不参与，无需 noBelowText 之类的旗子。
+ */
+export function contentBottomOf(prims: readonly Primitive[], refBottom: number): number {
+  let bottom = refBottom;
+  for (const p of prims) {
+    if (p.kind === "text" && p.y > refBottom) bottom = Math.max(bottom, p.y + TEXT_DESCENT);
+    else if ("children" in p) bottom = Math.max(bottom, contentBottomOf(p.children, refBottom));
+  }
+  return bottom;
+}
+
+/**
+ * 停靠布局：按钮行水平居中于 node.x，纵向在 anchorY（内容底：图形或下方文字最低点的世界 y，
+ * 调用方经 contentBottomOf 算出）之下 (ROW_GAP+CONTAINER_PAD)×scale——归属容器框比按钮顶
+ * 高出 CONTAINER_PAD，这样**框顶边到内容的净距恒为 ROW_GAP**，所有 symbol 一致。
  * 返回世界坐标盒（含 ⋯）。无动作返回空数组。
  *
- * scale：节点缩放系数（默认 1，等比拉伸时 = sizeX = sizeY）。两个用途：
- * ① 标签/内联文字随 body 一起被外层 scale 变换整体缩放，世界坐标偏移量 = 原始偏移 × scale；这里的
- *   bounds 已是缩放后的世界坐标框，但 LABEL_H/INLINE_H/ROW_GAP 是常量像素——若不乘 scale，节点被
- *   拉伸时按钮固定偏移量追不上文字实际下移距离，两者错位、按钮盖住数值。
- * ② 按钮本身尺寸（高/宽/间距）也乘 scale，让按钮跟设备等比变大变小——否则设备拉得越大，固定尺寸的
- *   按钮相对越显得小（反之设备缩小时按钮显得过大），比例失衡。
+ * scale：节点缩放系数（默认 1，等比拉伸时 = sizeY）——按钮尺寸（高/宽/间距/偏移）随设备等比
+ * 缩放，否则设备拉得越大固定尺寸的按钮相对越显得小，比例失衡。
  */
-export function layoutActionButtons(
-  node: MimicNode,
-  bounds: { x: number; y: number; w: number; h: number },
-  hasLabel: boolean,
-  hasInline: boolean,
-  scale = 1,
-): ActionButtonBox[] {
+export function layoutActionButtons(node: MimicNode, anchorY: number, scale = 1): ActionButtonBox[] {
   const actions = node.actions ?? [];
   if (actions.length === 0) return [];
   const { direct, overflow } = splitActions(actions.length);
@@ -96,7 +99,7 @@ export function layoutActionButtons(
   const gap = GAP * scale;
   const widths = entries.map((e) => Math.max(btnH, estimateTextWidth(e.text) * scale + padX * 2));
   const totalW = widths.reduce((a, b) => a + b, 0) + gap * (entries.length - 1);
-  const y = bounds.y + bounds.h + ((hasLabel ? LABEL_H : 0) + (hasInline ? INLINE_H : 0) + ROW_GAP) * scale;
+  const y = anchorY + (ROW_GAP + CONTAINER_PAD) * scale;
   let x = node.x - totalW / 2;
   return entries.map((e, i) => {
     const box: ActionButtonBox = { nodeId: node.id, action: e.action, x, y, w: widths[i], h: btnH, text: e.text };
