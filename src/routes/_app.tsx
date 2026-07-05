@@ -23,6 +23,7 @@ import { Shell } from "@/components/Shell";
 import { getCurrentUser } from "@/lib/auth";
 import { sendPreviewError, sendPreviewReady } from "@/lib/preview-bridge";
 import {
+  enableSessionUserCache,
   getCachedSessionUser,
   rememberSessionUser,
 } from "@/lib/session-user-cache";
@@ -63,6 +64,7 @@ function AppLayout() {
   const user = (Route.useRouteContext() as { user?: AppUser | null }).user;
 
   useEffect(() => {
+    enableSessionUserCache();
     rememberSessionUser(user ?? null);
     sendPreviewReady();
   }, [user]);
