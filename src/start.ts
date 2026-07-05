@@ -10,22 +10,24 @@
  *      defense-in-depth against CSRF on top of `sameSite: "lax"` cookie.
  *   2. Public paths (login page, auth endpoints, health/manifest, build assets)
  *      pass through with no auth check.
- *   3. Has mes-session cookie → pass through (already has a session).
- *   4. No cookie + gateway provides a role that's valid in PERMISSION_MATRIX →
+ *   3. Has mes-session cookie + gateway role unchanged → pass through.
+ *   4. Has mes-session cookie + gateway role changed → refresh the session
+ *      cookie and 302 to the same URL.
+ *   5. No cookie + gateway provides a role that's valid in PERMISSION_MATRIX →
  *      auto-issue the session cookie and 302 to the same URL. The next request
  *      runs with the cookie present. The user never sees `/login`.
- *   5. No cookie + gateway has user but no/invalid role → redirect to /login
+ *   6. No cookie + gateway has user but no/invalid role → redirect to /login
  *      so the user can pick from PERMISSION_MATRIX.
- *   6. No cookie + no gateway header → 401.
+ *   7. No cookie + no gateway header → 401.
  *
  * This file replaces the Next.js `src/proxy.ts` middleware. DO NOT modify.
  */
 
 import { createMiddleware, createStart } from "@tanstack/react-start";
 import { getCookie, setCookie } from "@tanstack/react-start/server";
-import { parseGatewayUser } from "@/lib/gateway";
+import { parseGatewayUser, type GatewayUser } from "@/lib/gateway";
 import { PERMISSION_MATRIX } from "@/lib/permissions";
-import { encodeSession } from "@/lib/session";
+import { decodeSession, encodeSession } from "@/lib/session";
 
 const SESSION_COOKIE = "mes-session";
 
@@ -70,6 +72,68 @@ function isSameOrigin(request: Request): boolean {
 
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
+interface SessionPayload {
+  userId?: unknown;
+  role?: unknown;
+  username?: unknown;
+  displayName?: unknown;
+  email?: unknown;
+}
+
+type GatewayUserWithRole = GatewayUser & { role: string };
+
+function hasValidGatewayRole(
+  gatewayUser: GatewayUser | null,
+  validRoles: string[],
+): gatewayUser is GatewayUserWithRole {
+  return Boolean(
+    gatewayUser?.role &&
+      validRoles.length > 0 &&
+      validRoles.includes(gatewayUser.role),
+  );
+}
+
+function buildSessionPayload(gatewayUser: GatewayUserWithRole): SessionPayload {
+  return {
+    userId: gatewayUser.id,
+    role: gatewayUser.role,
+    username: gatewayUser.name,
+    displayName: gatewayUser.name,
+    email: gatewayUser.email,
+  };
+}
+
+function setGatewaySession(gatewayUser: GatewayUserWithRole): void {
+  setCookie(SESSION_COOKIE, encodeSession(buildSessionPayload(gatewayUser)), {
+    path: "/",
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: SESSION_MAX_AGE,
+  });
+}
+
+function sessionMatchesGatewayUser(
+  rawSession: string | undefined,
+  gatewayUser: GatewayUserWithRole,
+): boolean {
+  const session = decodeSession<SessionPayload>(rawSession);
+  return (
+    session?.userId === gatewayUser.id &&
+    session.role === gatewayUser.role &&
+    session.username === gatewayUser.name &&
+    session.displayName === gatewayUser.name &&
+    session.email === gatewayUser.email
+  );
+}
+
+function redirectToCurrentRequest(request: Request): Response {
+  return new Response(null, {
+    status: 302,
+    headers: { Location: request.url },
+  });
+}
+
 const authBridge = createMiddleware().server(
   async ({ request, pathname, next }) => {
     if (MUTATING.has(request.method) && !isSameOrigin(request)) {
@@ -83,11 +147,22 @@ const authBridge = createMiddleware().server(
       return next();
     }
 
-    if (getCookie(SESSION_COOKIE)) {
+    const rawSession = getCookie(SESSION_COOKIE);
+    const gatewayUser = parseGatewayUser(request.headers);
+    const validRoles = Object.keys(PERMISSION_MATRIX);
+
+    if (rawSession) {
+      if (
+        hasValidGatewayRole(gatewayUser, validRoles) &&
+        !sessionMatchesGatewayUser(rawSession, gatewayUser)
+      ) {
+        setGatewaySession(gatewayUser);
+        return redirectToCurrentRequest(request);
+      }
+
       return next();
     }
 
-    const gatewayUser = parseGatewayUser(request.headers);
     if (!gatewayUser) {
       return new Response(
         `<!DOCTYPE html><html><body><script>try{if(window.parent!==window){window.parent.postMessage({type:'tier0.preview.error',error:'Platform authentication required',kind:'auth'},'*')}}catch(e){}</script></body></html>`,
@@ -99,33 +174,9 @@ const authBridge = createMiddleware().server(
     // session cookie ourselves and bounce back to the original URL. The
     // round-trip is the cost of carrying the freshly-set cookie into a normal
     // request flow; it only happens once per session.
-    const validRoles = Object.keys(PERMISSION_MATRIX);
-    if (
-      gatewayUser.role &&
-      validRoles.length > 0 &&
-      validRoles.includes(gatewayUser.role)
-    ) {
-      setCookie(
-        SESSION_COOKIE,
-        encodeSession({
-          userId: gatewayUser.id,
-          role: gatewayUser.role,
-          username: gatewayUser.name,
-          displayName: gatewayUser.name,
-          email: gatewayUser.email,
-        }),
-        {
-          path: "/",
-          httpOnly: true,
-          sameSite: "lax",
-          secure: process.env.NODE_ENV === "production",
-          maxAge: SESSION_MAX_AGE,
-        },
-      );
-      return new Response(null, {
-        status: 302,
-        headers: { Location: request.url },
-      });
+    if (hasValidGatewayRole(gatewayUser, validRoles)) {
+      setGatewaySession(gatewayUser);
+      return redirectToCurrentRequest(request);
     }
 
     // Gateway didn't supply a usable role — fall back to the role-selection page.

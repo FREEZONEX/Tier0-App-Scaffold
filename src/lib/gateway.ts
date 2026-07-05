@@ -11,12 +11,15 @@
  *
  *   Format 3 (minimal): `X-App-User-ID` only (name/email/role default)
  *
+ * Preview role override:
+ *   `X-Tier0-Preview-Role` wins over the normal user role when present.
+ *
  * At minimum, a user ID must be present.
  *
  * `role` is OPTIONAL. When the gateway supplies it, `src/start.ts` middleware
  * auto-issues a session cookie (Mode A: gateway-driven role assignment) and
- * the user skips the hidden auth bridge. When absent, the bridge currently
- * creates an admin session until the platform iframe owns role selection.
+ * keeps that cookie aligned with later preview role changes. When absent, the
+ * bridge falls back to `/login`.
  */
 
 export interface GatewayUser {
@@ -25,6 +28,20 @@ export interface GatewayUser {
   email: string;
   /** Gateway-supplied role. Validated against PERMISSION_MATRIX before use. */
   role?: string;
+}
+
+function normalizeHeaderValue(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function resolveGatewayRole(headers: Headers, fallback: unknown): string | undefined {
+  return (
+    normalizeHeaderValue(headers.get("X-Tier0-Preview-Role")) ??
+    normalizeHeaderValue(headers.get("X-App-User-Role")) ??
+    normalizeHeaderValue(fallback)
+  );
 }
 
 /**
@@ -43,9 +60,7 @@ export function parseGatewayUser(headers: Headers): GatewayUser | null {
           id,
           name: parsed.userName ?? parsed.username ?? parsed.name ?? id,
           email: parsed.email ?? "",
-          role: typeof parsed.role === "string" && parsed.role.length > 0
-            ? parsed.role
-            : undefined,
+          role: resolveGatewayRole(headers, parsed.role),
         };
       }
     } catch {
@@ -56,8 +71,6 @@ export function parseGatewayUser(headers: Headers): GatewayUser | null {
   // Format 2 & 3: individual X-App-User-* headers
   const id = headers.get("X-App-User-ID") || headers.get("x-app-user-id");
   if (id) {
-    const role =
-      headers.get("X-App-User-Role") || headers.get("x-app-user-role") || "";
     return {
       id,
       name:
@@ -68,7 +81,7 @@ export function parseGatewayUser(headers: Headers): GatewayUser | null {
         headers.get("X-App-User-Email") ||
         headers.get("x-app-user-email") ||
         "",
-      role: role.length > 0 ? role : undefined,
+      role: resolveGatewayRole(headers, undefined),
     };
   }
 
