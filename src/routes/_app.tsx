@@ -5,7 +5,7 @@
  * `beforeLoad` runs server-side, reads the signed session cookie, and
  * places the resolved `AppUser` into the route context. Every nested
  * route can then read it via `Route.useRouteContext()` without an extra
- * client-side fetch (no `/api/auth/me` round-trip after navigation).
+ * client-side `/api/auth/me` round-trip after navigation.
  *
  * Loading + error fallbacks are configured here as well — they replace
  * the old Next.js `loading.tsx` / `error.tsx` segment files.
@@ -18,24 +18,42 @@ import {
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
+import { useEffect } from "react";
 import { Shell } from "@/components/Shell";
 import { getCurrentUser } from "@/lib/auth";
+import { sendPreviewError, sendPreviewReady } from "@/lib/preview-bridge";
+import {
+  enableSessionUserCache,
+  getCachedSessionUser,
+  rememberSessionUser,
+} from "@/lib/session-user-cache";
 import type { AppUser } from "@/lib/users";
 
-const fetchSessionUser = createServerFn().handler(
+const loadSessionUser = createServerFn().handler(
   async (): Promise<AppUser | null> => getCurrentUser(),
 );
 
+function requireWorkspaceUser(user: AppUser | null, pathname: string) {
+  if (!user) {
+    throw redirect({
+      to: "/login",
+      search: { from: pathname },
+    });
+  }
+  return { user };
+}
+
 export const Route = createFileRoute("/_app")({
-  beforeLoad: async ({ location }) => {
-    const user = await fetchSessionUser();
-    if (!user) {
-      throw redirect({
-        to: "/login",
-        search: { from: location.pathname },
-      });
+  beforeLoad: ({ location }) => {
+    const cachedUser = getCachedSessionUser();
+    if (cachedUser !== undefined) {
+      return requireWorkspaceUser(cachedUser, location.pathname);
     }
-    return { user };
+
+    return loadSessionUser().then((user) => {
+      rememberSessionUser(user);
+      return requireWorkspaceUser(user, location.pathname);
+    });
   },
   component: AppLayout,
   pendingComponent: AppPending,
@@ -44,6 +62,13 @@ export const Route = createFileRoute("/_app")({
 
 function AppLayout() {
   const user = (Route.useRouteContext() as { user?: AppUser | null }).user;
+
+  useEffect(() => {
+    enableSessionUserCache();
+    rememberSessionUser(user ?? null);
+    sendPreviewReady();
+  }, [user]);
+
   if (!user) {
     return <AppPending />;
   }
@@ -67,6 +92,10 @@ function AppPending() {
 }
 
 function AppError({ error, reset }: ErrorComponentProps) {
+  useEffect(() => {
+    sendPreviewError(error.message || 'Page failed to load', 'app');
+  }, [error]);
+
   return (
     <div className="flex h-full items-center justify-center p-12">
       <div className="text-center">

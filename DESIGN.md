@@ -196,12 +196,13 @@ motion:
 # Tier0 Frontend Design Guidelines
 
 `DESIGN.md` is the visual source for Tier0. It defines the look, token intent,
-and product feel. Generation behavior lives in the UI skills:
+and product feel. Platform-managed Builder Skills own generation behavior when
+they are injected by the App Builder orchestrator:
 
-- Layout and route chrome: `$app-layout-patterns`
-- General frontend UI generation: `$uns-swe-ui-generation`
-- MES visual patterns, KPI cards, Gantt, and dashboards: `$mes-ui-patterns`
-- Product copy and locale consistency: `$app-i18n-copy`
+- Layout and route chrome: layout-pattern Skill
+- General frontend UI generation: UI generation Skill
+- MES visual patterns, KPI cards, Gantt, and dashboards: MES UI pattern Skill
+- Product copy and locale consistency: copy/i18n Skill
 
 Color, spacing, radius, typography, motion, and Tailwind mappings are executable
 tokens in `src/styles/globals.css`. The YAML block above mirrors those tokens for
@@ -228,10 +229,10 @@ Do not use IBM Blue as the default primary color. Do not turn the product into a
 - Runtime class helpers: `src/lib/utils.ts`
 - Overlay primitives: `src/components/overlays`
 - App-specific generated components: `src/components/<domain>/`
-- Layout shell decisions: `$app-layout-patterns`
-- Component behavior and recipes: `$uns-swe-ui-generation`
-- MES visual snippets: `$mes-ui-patterns`
-- Locale/copy consistency: `$app-i18n-copy`
+- Layout shell decisions: platform layout-pattern Skill, when injected
+- Component behavior and recipes: platform UI generation Skill, when injected
+- MES visual snippets: platform MES UI pattern Skill, when injected
+- Locale/copy consistency: platform copy/i18n Skill, when injected
 
 Use semantic variables such as `--tier0-bg-color`, `--tier0-text-color`,
 `--tier0-highlight`, and Tailwind aliases such as `bg-bg`, `text-text`,
@@ -306,8 +307,8 @@ Prefer compact page composition. The always-visible page body should expose
 entry points, current operational state, primary actions, and necessary
 visualizations. Detailed forms, secondary attributes, audit trails,
 configuration, and rarely used actions should open from an explicit control or
-live behind focused tabs. For concrete layout selection and route groups, use
-`$app-layout-patterns`.
+live behind focused tabs. For concrete layout selection and route groups, apply
+the platform layout-pattern Skill when it is injected.
 
 Page title rows are structural headers, not content containers. Put only the
 page title, short description/breadcrumb/status text, and compact primary
@@ -317,7 +318,8 @@ panels inside the title row; those belong in separate sections below it.
 
 Big-number KPI cards are denser than general panels: keep label and value close,
 avoid tall empty cards, and prefer compact summary strips when showing many
-counts. For reusable MES snippets, use `$mes-ui-patterns`.
+counts. For reusable MES snippets, apply the platform MES UI pattern Skill when
+it is injected.
 
 ## Component Principles
 
@@ -327,8 +329,8 @@ the route or domain that owns them until repetition justifies sharing under
 feature folder.
 
 Buttons, forms, dialogs, drawers, empty states, tables, charts, and responsive
-behavior are specified in `$uns-swe-ui-generation`. Keep only these visual
-defaults here:
+behavior are specified by the platform UI generation Skill when it is injected.
+Keep only these visual defaults here:
 
 - Use one primary or highlighted action per local decision area.
 - Use lucide-react icons at normal Tailwind icon sizes such as `size-4` or `size-5`.
@@ -343,7 +345,7 @@ defaults here:
 Visible app copy should describe the user's work, data, action, state, or
 consequence. Do not render design-system commentary as product UI. For locale
 selection, mixed-language cleanup, dialog button text, accessibility labels, and
-runtime i18n decisions, use `$app-i18n-copy`.
+runtime i18n decisions, apply the platform copy/i18n Skill when it is injected.
 
 ## Motion
 

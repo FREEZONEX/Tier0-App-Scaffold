@@ -6,6 +6,10 @@ import { describe, it } from "node:test";
 const ROOTS = ["src/components", "src/routes", "src/lib"];
 const INTERVAL_ALLOWLIST = new Set(["src/lib/hooks.ts"]);
 
+function toPosixPath(filePath) {
+  return filePath.replaceAll("\\", "/");
+}
+
 function walkFiles(root) {
   const entries = readdirSync(root, { withFileTypes: true });
   const files = [];
@@ -39,7 +43,7 @@ describe("runtime safety contracts", () => {
       }
 
       for (const file of walkFiles(root)) {
-        const rel = relative(process.cwd(), file);
+        const rel = toPosixPath(relative(process.cwd(), file));
         if (INTERVAL_ALLOWLIST.has(rel)) {
           continue;
         }
@@ -67,7 +71,7 @@ describe("runtime safety contracts", () => {
       }
 
       for (const file of walkFiles(root)) {
-        const rel = relative(process.cwd(), file);
+        const rel = toPosixPath(relative(process.cwd(), file));
         const source = readFileSync(file, "utf8");
         if (!/addEventListener\s*\(/.test(source)) {
           continue;
@@ -95,7 +99,7 @@ describe("runtime safety contracts", () => {
       }
 
       for (const file of walkFiles(root)) {
-        const rel = relative(process.cwd(), file);
+        const rel = toPosixPath(relative(process.cwd(), file));
         if (rel === "src/lib/hooks.ts") {
           continue;
         }
