@@ -1,0 +1,10 @@
+{
+  "roles": [
+    {
+      "key": "admin",
+      "name": "Admin",
+      "description": "Full access to all features and settings.",
+      "is_admin": true
+    }
+  ]
+}

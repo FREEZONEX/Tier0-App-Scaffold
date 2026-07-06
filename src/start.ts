@@ -20,13 +20,14 @@
  *      so the user can pick from PERMISSION_MATRIX.
  *   7. No cookie + no gateway header → 401.
  *
- * Mode P (preview):
- *   When `X-Tier0-Runtime: preview` AND `X-Tier0-Preview-Role` is non-empty,
- *   the gateway's previewRoleStore has already authenticated that this user +
- *   sandbox selected this business role. We skip PERMISSION_MATRIX validation
- *   and mint / refresh the session with the injected role directly. This
- *   ensures role switches in the preview panel are reflected immediately
- *   without needing to enumerate the app's internal PERMISSION_MATRIX.
+ * Mode P (preview) / Mode D (deployed):
+ *   When the gateway injects a business role header the session must always
+ *   track it, bypassing PERMISSION_MATRIX:
+ *   - Preview  (X-Tier0-Runtime: preview)  → X-Tier0-Preview-Role
+ *   - Deployed (X-Tier0-Runtime: deployed) → X-Tier0-Active-Role
+ *   In both cases the gateway has already authenticated the user and validated
+ *   their role (previewRoleStore / runtime-roles API). PERMISSION_MATRIX is
+ *   only relevant for the manual /login fallback flow.
  *
  * This file replaces the Next.js `src/proxy.ts` middleware. DO NOT modify.
  */
@@ -159,22 +160,31 @@ const authBridge = createMiddleware().server(
     const gatewayUser = parseGatewayUser(request.headers);
     const validRoles = Object.keys(PERMISSION_MATRIX);
 
-    // Mode P: preview — X-Tier0-Preview-Role is the authoritative business role.
-    // Bypass PERMISSION_MATRIX: the gateway's previewRoleStore has already bound
-    // this role to the current user + sandbox. pfRoleCode (workspace membership)
-    // must NOT be used as the app business role.
-    const rawPreviewRole =
-      request.headers.get("X-Tier0-Runtime") === "preview"
+    // Mode P / Mode D: extract gateway-injected business role.
+    // Preview  → X-Tier0-Preview-Role (set by previewRoleStore after role registration)
+    // Deployed → X-Tier0-Active-Role  (set by runtime-roles API result)
+    // Both headers are stripped and re-injected by the gateway, so they cannot
+    // be forged by the client (B4: stripTier0Headers runs before injection).
+    const tier0Runtime = request.headers.get("X-Tier0-Runtime") ?? "";
+    const rawGatewayRole =
+      tier0Runtime === "preview"
         ? (request.headers.get("X-Tier0-Preview-Role") ?? "").trim()
-        : "";
-    const previewRole = rawPreviewRole.length > 0 ? rawPreviewRole : undefined;
+        : tier0Runtime === "deployed"
+          ? (request.headers.get("X-Tier0-Active-Role") ?? "").trim()
+          : "";
+    const gatewayInjectedRole =
+      rawGatewayRole.length > 0 ? rawGatewayRole : undefined;
 
     if (rawSession) {
-      if (previewRole && gatewayUser) {
-        // Keep session aligned with the injected preview role.
-        const previewUser: GatewayUserWithRole = { ...gatewayUser, role: previewRole };
-        if (!sessionMatchesGatewayUser(rawSession, previewUser)) {
-          setGatewaySession(previewUser);
+      if (gatewayInjectedRole && gatewayUser) {
+        // Keep session aligned with the gateway-injected role, bypassing
+        // PERMISSION_MATRIX — the gateway has already validated this role.
+        const injectedUser: GatewayUserWithRole = {
+          ...gatewayUser,
+          role: gatewayInjectedRole,
+        };
+        if (!sessionMatchesGatewayUser(rawSession, injectedUser)) {
+          setGatewaySession(injectedUser);
           return redirectToCurrentRequest(request);
         }
         return next();
@@ -198,9 +208,9 @@ const authBridge = createMiddleware().server(
       );
     }
 
-    // Mode P (no session): mint session with the injected preview role directly.
-    if (previewRole) {
-      setGatewaySession({ ...gatewayUser, role: previewRole });
+    // Mode P / Mode D (no session): mint session with the injected role directly.
+    if (gatewayInjectedRole) {
+      setGatewaySession({ ...gatewayUser, role: gatewayInjectedRole });
       return redirectToCurrentRequest(request);
     }
 
