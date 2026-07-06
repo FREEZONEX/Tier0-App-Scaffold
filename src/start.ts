@@ -20,6 +20,14 @@
  *      so the user can pick from PERMISSION_MATRIX.
  *   7. No cookie + no gateway header → 401.
  *
+ * Mode P (preview):
+ *   When `X-Tier0-Runtime: preview` AND `X-Tier0-Preview-Role` is non-empty,
+ *   the gateway's previewRoleStore has already authenticated that this user +
+ *   sandbox selected this business role. We skip PERMISSION_MATRIX validation
+ *   and mint / refresh the session with the injected role directly. This
+ *   ensures role switches in the preview panel are reflected immediately
+ *   without needing to enumerate the app's internal PERMISSION_MATRIX.
+ *
  * This file replaces the Next.js `src/proxy.ts` middleware. DO NOT modify.
  */
 
@@ -151,7 +159,27 @@ const authBridge = createMiddleware().server(
     const gatewayUser = parseGatewayUser(request.headers);
     const validRoles = Object.keys(PERMISSION_MATRIX);
 
+    // Mode P: preview — X-Tier0-Preview-Role is the authoritative business role.
+    // Bypass PERMISSION_MATRIX: the gateway's previewRoleStore has already bound
+    // this role to the current user + sandbox. pfRoleCode (workspace membership)
+    // must NOT be used as the app business role.
+    const rawPreviewRole =
+      request.headers.get("X-Tier0-Runtime") === "preview"
+        ? (request.headers.get("X-Tier0-Preview-Role") ?? "").trim()
+        : "";
+    const previewRole = rawPreviewRole.length > 0 ? rawPreviewRole : undefined;
+
     if (rawSession) {
+      if (previewRole && gatewayUser) {
+        // Keep session aligned with the injected preview role.
+        const previewUser: GatewayUserWithRole = { ...gatewayUser, role: previewRole };
+        if (!sessionMatchesGatewayUser(rawSession, previewUser)) {
+          setGatewaySession(previewUser);
+          return redirectToCurrentRequest(request);
+        }
+        return next();
+      }
+
       if (
         hasValidGatewayRole(gatewayUser, validRoles) &&
         !sessionMatchesGatewayUser(rawSession, gatewayUser)
@@ -168,6 +196,12 @@ const authBridge = createMiddleware().server(
         `<!DOCTYPE html><html><body><script>try{if(window.parent!==window){window.parent.postMessage({type:'tier0.preview.error',error:'Platform authentication required',kind:'auth'},'*')}}catch(e){}</script></body></html>`,
         { status: 401, headers: { "Content-Type": "text/html" } },
       );
+    }
+
+    // Mode P (no session): mint session with the injected preview role directly.
+    if (previewRole) {
+      setGatewaySession({ ...gatewayUser, role: previewRole });
+      return redirectToCurrentRequest(request);
     }
 
     // Mode A: gateway supplied a role, and it is one we know about — mint the

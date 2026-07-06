@@ -11,8 +11,13 @@
  *
  *   Format 3 (minimal): `X-App-User-ID` only (name/email/role default)
  *
- * Preview role override:
- *   `X-Tier0-Preview-Role` wins over the normal user role when present.
+ * Preview / deployed role override (checked in order):
+ *   1. `X-Tier0-Preview-Role`  — gateway-injected preview role (preview mode)
+ *   2. `X-Tier0-Active-Role`   — gateway-injected active role (deployed mode)
+ *   3. `X-App-User-Role`       — legacy individual header
+ *   These are distinct from `pfRoleCode` in the `user` JSON header, which is
+ *   the workspace/platform membership role and must NOT be used as the app
+ *   business role.
  *
  * At minimum, a user ID must be present.
  *
@@ -39,6 +44,7 @@ function normalizeHeaderValue(value: unknown): string | undefined {
 function resolveGatewayRole(headers: Headers, fallback: unknown): string | undefined {
   return (
     normalizeHeaderValue(headers.get("X-Tier0-Preview-Role")) ??
+    normalizeHeaderValue(headers.get("X-Tier0-Active-Role")) ??
     normalizeHeaderValue(headers.get("X-App-User-Role")) ??
     normalizeHeaderValue(fallback)
   );
