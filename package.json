@@ -15,6 +15,7 @@
     "typecheck": "tsc --noEmit",
     "build:verify": "node scripts/post-build-verify.mjs",
     "build:check": "npm run build",
+    "smoke:routes": "node scripts/route-smoke.mjs",
     "start": "node server.mjs",
     "lint": "eslint .",
     "db:push": "drizzle-kit push",

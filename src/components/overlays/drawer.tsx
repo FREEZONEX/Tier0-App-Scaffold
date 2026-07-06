@@ -88,7 +88,7 @@ export function Drawer({
           />
           <div
             className={cn(
-              "page-y-scroll min-h-0 flex-1 px-6 py-6 sm:px-8",
+              "page-y-scroll min-h-0 min-w-0 flex-1 overflow-x-hidden px-6 py-6 sm:px-8",
               contentClassName,
             )}
           >

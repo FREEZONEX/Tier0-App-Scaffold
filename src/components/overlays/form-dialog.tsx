@@ -50,7 +50,7 @@ export function FormDialog({
     >
       <form
         id={formId}
-        className="grid gap-4"
+        className="grid min-w-0 gap-4 [&>*]:min-w-0"
         onSubmit={(event) => void onSubmit(event)}
       >
         {children}
