@@ -48,6 +48,7 @@ const PUBLIC_PATHS = [
   "/api/auth", // /api/auth/{me,logout,select-role}
   "/api/health", // health check
   "/api/manifest", // app manifest
+  "/__gateway", // preview session compatibility endpoints
   "/favicon.ico", // browser auto-fetch
   "/_build", // vite build assets
   "/__tsr", // tanstack runtime
