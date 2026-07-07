@@ -24,6 +24,19 @@ function walkFiles(root) {
   return files;
 }
 
+const ID_ONLY_OPTION =
+  /<option\b[^>]*>\s*\{\s*[\w$]+(?:\.[\w$]+)*\.id\s*\}\s*<\/option>/g;
+
+function findIdOnlyOptions(source) {
+  const stripped = source
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/^\s*\/\/.*$/gm, "");
+
+  return [...stripped.matchAll(ID_ONLY_OPTION)].map(([block]) =>
+    block.replace(/\s+/g, " "),
+  );
+}
+
 function findBareRequiredStarSpans(source) {
   return [...source.matchAll(/<span\b[^>]*>\s*(?:\{\s*["']\*["']\s*\}|\*)\s*<\/span>/g)]
     .map(([block]) => block)
@@ -48,6 +61,87 @@ describe("form contracts", () => {
     assert.match(fieldLabel, /data-required-marker="true"/);
     assert.match(globals, /\[data-required-marker="true"\]/);
     assert.match(globals, /color: var\(--destructive\) !important/);
+  });
+
+  it("provides safe form layout primitives for generated enterprise forms", () => {
+    const formLayout = readFileSync(
+      join(process.cwd(), "src/components/forms/form-layout.tsx"),
+      "utf8",
+    );
+    const index = readFileSync(
+      join(process.cwd(), "src/components/forms/index.ts"),
+      "utf8",
+    );
+
+    assert.match(formLayout, /export function FieldGroup/);
+    assert.match(formLayout, /export function FormGrid/);
+    assert.match(formLayout, /export function LineItemSection/);
+    assert.match(formLayout, /\[&>\*\]:min-w-0/);
+    assert.match(index, /FieldGroup/);
+    assert.match(index, /FormGrid/);
+    assert.match(index, /LineItemSection/);
+  });
+
+  it("provides a generic record picker for object selections", () => {
+    const recordSelect = readFileSync(
+      join(process.cwd(), "src/components/forms/record-select.tsx"),
+      "utf8",
+    );
+    const index = readFileSync(
+      join(process.cwd(), "src/components/forms/index.ts"),
+      "utf8",
+    );
+
+    assert.match(recordSelect, /export interface RecordSelectOption/);
+    assert.match(recordSelect, /export interface RecordSelectMetaLabels/);
+    assert.match(recordSelect, /export function RecordSelect/);
+    assert.match(recordSelect, /quantity/);
+    assert.match(recordSelect, /location/);
+    assert.match(recordSelect, /date/);
+    assert.match(recordSelect, /metaLabels/);
+    assert.match(index, /RecordSelect/);
+  });
+
+  it("flags select options that render only a record id", () => {
+    const idOnly = `<option value={batch.id}>{batch.id}</option>`;
+    assert.equal(findIdOnlyOptions(idOnly).length, 1);
+
+    const nestedId = `<option value={line.batch.id}>{line.batch.id}</option>`;
+    assert.equal(findIdOnlyOptions(nestedId).length, 1);
+
+    const labeled = `<option value={batch.id}>{batch.code} - {batch.location}</option>`;
+    assert.deepEqual(findIdOnlyOptions(labeled), []);
+
+    const formatted = `<option value={option.value}>{formatRecordOptionLabel(option)}</option>`;
+    assert.deepEqual(findIdOnlyOptions(formatted), []);
+  });
+
+  it("keeps generated record options from exposing only IDs", () => {
+    const offenders = [];
+
+    for (const root of UI_ROOTS) {
+      if (!statSync(root).isDirectory()) {
+        continue;
+      }
+
+      for (const file of walkFiles(root)) {
+        const idOnlyOptions = findIdOnlyOptions(readFileSync(file, "utf8"));
+        if (idOnlyOptions.length === 0) {
+          continue;
+        }
+
+        offenders.push({
+          file: relative(process.cwd(), file),
+          options: idOnlyOptions,
+        });
+      }
+    }
+
+    assert.deepEqual(
+      offenders,
+      [],
+      `Record options must show label/status/quantity context, not bare IDs - use RecordSelect from @/components/forms:\n${JSON.stringify(offenders, null, 2)}`,
+    );
   });
 
   it("keeps generated UI from hand-writing required asterisks", () => {
