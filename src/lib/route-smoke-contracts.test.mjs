@@ -49,4 +49,43 @@ describe("route smoke contracts", () => {
       true,
     );
   });
+
+  it("carries the auth session cookie across gateway redirects", async () => {
+    const { smokePath } = await import("../../scripts/route-smoke.mjs");
+    const calls = [];
+
+    const fetchImpl = async (url, init) => {
+      calls.push({
+        url,
+        headers: Object.fromEntries(new Headers(init.headers).entries()),
+        redirect: init.redirect,
+      });
+
+      if (calls.length === 1) {
+        return {
+          status: 302,
+          headers: new Headers({
+            location: "http://preview.local/",
+            "set-cookie": "mes-session=signed-session; Path=/; HttpOnly",
+          }),
+          text: async () => "",
+        };
+      }
+
+      return {
+        status: 200,
+        headers: new Headers(),
+        text: async () => "<main>R&D WMS</main>",
+      };
+    };
+
+    const result = await smokePath("http://preview.local", "/", {
+      fetchImpl,
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(calls.length, 2);
+    assert.equal(calls[0].redirect, "manual");
+    assert.match(calls[1].headers.cookie, /mes-session=signed-session/);
+  });
 });
