@@ -3,31 +3,37 @@
  *
  * All traffic arrives through the UNS-SWE App Gateway, which injects a user
  * identity header for authenticated platform users. The gateway MAY also
- * inject a `role` field (Mode A: gateway-driven role assignment).
+ * inject an active role header.
  *
  * Flow:
  *   1. Mutating requests (POST/PUT/PATCH/DELETE) must be same-origin —
  *      defense-in-depth against CSRF on top of `sameSite: "lax"` cookie.
  *   2. Public paths (login page, auth endpoints, health/manifest, build assets)
  *      pass through with no auth check.
- *   3. Has mes-session cookie → pass through (already has a session).
- *   4. No cookie + gateway provides a role that's valid in PERMISSION_MATRIX →
- *      auto-issue the session cookie and 302 to the same URL. The next request
- *      runs with the cookie present. The user never sees `/login`.
- *   5. No cookie + gateway has user but no/invalid role → redirect to /login
- *      so the user can pick from PERMISSION_MATRIX.
- *   6. No cookie + no gateway header → 401.
- *
- * This file replaces the Next.js `src/proxy.ts` middleware. DO NOT modify.
+ *   3. If the gateway supplies a valid app role, it is authoritative:
+ *      the middleware refreshes `mes-session` when missing or stale and
+ *      continues the same request so iframe reloads do not need a second manual refresh.
+ *   4. If the gateway supplies an unknown role, fail closed with 403.
+ *   5. If no gateway role is present, fall back to the existing session cookie.
+ *   6. If there is a gateway user but no role and no session, redirect to /login.
+ *   7. If there is neither gateway identity nor session, return 401.
  */
 
 import { createMiddleware, createStart } from "@tanstack/react-start";
 import { getCookie, setCookie } from "@tanstack/react-start/server";
 import { parseGatewayUser } from "@/lib/gateway";
 import { PERMISSION_MATRIX } from "@/lib/permissions";
-import { encodeSession } from "@/lib/session";
+import { decodeSession, encodeSession } from "@/lib/session";
 
 const SESSION_COOKIE = "mes-session";
+
+interface SessionPayload {
+  userId?: unknown;
+  role?: unknown;
+  username?: unknown;
+  displayName?: unknown;
+  email?: unknown;
+}
 
 // `pathname === p` (exact) OR `pathname.startsWith(p + "/")` (proper segment).
 // Using a slash boundary prevents `/login` from accidentally matching
@@ -70,71 +76,90 @@ function isSameOrigin(request: Request): boolean {
 
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
+function matchesDesiredSession(
+  rawCookie: string | undefined,
+  desired: Required<Pick<SessionPayload, "userId" | "role" | "username" | "displayName" | "email">>,
+): boolean {
+  const current = decodeSession<SessionPayload>(rawCookie);
+  if (!current) {
+    return false;
+  }
+
+  return current.userId === desired.userId &&
+    current.role === desired.role &&
+    current.username === desired.username &&
+    current.displayName === desired.displayName &&
+    current.email === desired.email;
+}
+
+function jsonError(status: number, error: string): Response {
+  return new Response(JSON.stringify({ error }), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
 const authBridge = createMiddleware().server(
   async ({ request, pathname, next }) => {
     if (MUTATING.has(request.method) && !isSameOrigin(request)) {
-      return new Response(
-        JSON.stringify({ error: "Cross-origin request blocked" }),
-        { status: 403, headers: { "Content-Type": "application/json" } },
-      );
+      return jsonError(403, "Cross-origin request blocked");
     }
 
     if (isPublicPath(pathname)) {
       return next();
     }
 
-    if (getCookie(SESSION_COOKIE)) {
+    const rawSessionCookie = getCookie(SESSION_COOKIE);
+    const validRoles = Object.keys(PERMISSION_MATRIX);
+    const gatewayUser = parseGatewayUser(request.headers);
+
+    if (gatewayUser?.role) {
+      if (validRoles.length === 0) {
+        return jsonError(503, "No roles configured for this app");
+      }
+      if (!validRoles.includes(gatewayUser.role)) {
+        return jsonError(403, `Platform role is not recognized by this app: ${gatewayUser.role}`);
+      }
+
+      const desiredSession = {
+        userId: gatewayUser.id,
+        role: gatewayUser.role,
+        username: gatewayUser.name,
+        displayName: gatewayUser.name,
+        email: gatewayUser.email,
+      };
+
+      if (!matchesDesiredSession(rawSessionCookie, desiredSession)) {
+        setCookie(
+          SESSION_COOKIE,
+          encodeSession(desiredSession),
+          {
+            path: "/",
+            httpOnly: true,
+            sameSite: "lax",
+            secure: process.env.NODE_ENV === "production",
+            maxAge: SESSION_MAX_AGE,
+          },
+        );
+      }
+
       return next();
     }
 
-    const gatewayUser = parseGatewayUser(request.headers);
-    if (!gatewayUser) {
-      return new Response(
-        JSON.stringify({ error: "Platform authentication required" }),
-        { status: 401, headers: { "Content-Type": "application/json" } },
-      );
+    if (rawSessionCookie) {
+      return next();
     }
 
-    // Mode A: gateway supplied a role, and it is one we know about — mint the
-    // session cookie ourselves and bounce back to the original URL. The
-    // round-trip is the cost of carrying the freshly-set cookie into a normal
-    // request flow; it only happens once per session.
-    const validRoles = Object.keys(PERMISSION_MATRIX);
-    if (
-      gatewayUser.role &&
-      validRoles.length > 0 &&
-      validRoles.includes(gatewayUser.role)
-    ) {
-      setCookie(
-        SESSION_COOKIE,
-        encodeSession({
-          userId: gatewayUser.id,
-          role: gatewayUser.role,
-          username: gatewayUser.name,
-          displayName: gatewayUser.name,
-          email: gatewayUser.email,
-        }),
-        {
-          path: "/",
-          httpOnly: true,
-          sameSite: "lax",
-          secure: process.env.NODE_ENV === "production",
-          maxAge: SESSION_MAX_AGE,
-        },
-      );
+    if (gatewayUser) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("from", pathname);
       return new Response(null, {
         status: 302,
-        headers: { Location: request.url },
+        headers: { Location: loginUrl.toString() },
       });
     }
 
-    // Gateway didn't supply a usable role — fall back to the role-selection page.
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("from", pathname);
-    return new Response(null, {
-      status: 302,
-      headers: { Location: loginUrl.toString() },
-    });
+    return jsonError(401, "Platform authentication required");
   },
 );
 

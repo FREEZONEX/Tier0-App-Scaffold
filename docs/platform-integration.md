@@ -45,10 +45,9 @@ variables are injected by the platform during deployment. Do not place them in
 Authentication is handled by the platform gateway. The app does not manage
 passwords or user accounts.
 
-### Supported Header Formats
+### Supported Identity Header Formats
 
-The `role` field is optional. If the gateway provides it, the app uses it
-directly. If not, the app falls back to `/login` for role selection.
+At minimum, a user id must be present. The app accepts these identity formats:
 
 **Format 1: JSON `user` header**
 
@@ -71,34 +70,52 @@ X-App-User-Role:  operator
 X-App-User-ID: uuid-123
 ```
 
-At minimum, a user id must be present. If `name` or `email` is missing, the
-app falls back to the user id. If `role` is missing, the app does not
-automatically sign a session.
+If `name` or `email` is missing, the app falls back to the user id.
 
-### Authentication Flow (Mode A: gateway role first)
+### Active Role Header Precedence
+
+When the platform is the authority for role switching, the app reads the active
+role in this order:
+
+1. `X-Tier0-Runtime: preview` + `X-Tier0-Preview-Role`
+2. `X-Tier0-Active-Role`
+3. `X-Tier0-Preview-Role`
+4. `X-App-User-Role`
+5. `user.role`
+
+This allows the platform to switch roles by updating its own active-role state,
+reloading the iframe, and re-injecting the next request with the desired role.
+
+### Authentication Flow (platform role is authoritative)
 
 ```text
-Browser -> Gateway (validates platform login) -> injects user + role headers -> App
-  -> src/start.ts middleware:
+Browser -> Platform UI switches active role
+        -> Platform session / gateway context stores active role
+        -> iframe reloads
+        -> Gateway injects user + active role headers -> App
+        -> src/start.ts middleware:
 
-      has mes-session cookie
-        -> allow request
+            gateway role present and valid
+              -> refresh mes-session if missing or stale
+              -> continue the same request
+              -> allow request
 
-      no cookie + gateway role exists in PERMISSION_MATRIX
-        -> sign mes-session cookie automatically
-        -> 302 back to the same URL
-        -> allow request
+            gateway role present but unknown to PERMISSION_MATRIX
+              -> 403 fail closed
 
-      no cookie + gateway role missing or invalid
-        -> 302 /login?from=...
-        -> POST /api/auth/select-role writes cookie
+            no gateway role + valid mes-session cookie
+              -> allow request
 
-      no cookie + no gateway header
-        -> 401
+            gateway user present but no role + no session
+              -> 302 /login?from=...
+
+            no gateway user and no session
+              -> 401
 ```
 
-The second branch is the core of Mode A: users never see `/login` when the
-gateway already provides a valid app role.
+The key behavior is that the gateway role now overrides a stale app session.
+A previously signed `mes-session` cookie is treated as a cache, not the source
+of truth, whenever the platform sends a role header.
 
 ### Role Management
 
@@ -106,16 +123,17 @@ Role definitions belong to the app. Role assignment belongs to the platform.
 
 1. The agent defines `PERMISSION_MATRIX` in `permissions.ts`
 2. The platform calls `GET /api/manifest` to discover valid roles
-3. The platform assigns a role to each user in its admin UI
-4. The gateway injects that role into forwarded requests
-5. The app validates the role against `PERMISSION_MATRIX` and signs the session
+3. The platform assigns one or more roles to each user in its admin UI
+4. The platform stores the user's current active role in its own session/context
+5. The gateway injects that active role into forwarded requests
+6. The app validates the role against `PERMISSION_MATRIX` and refreshes session state
 
-The injected `role` string must exactly match a `PERMISSION_MATRIX` key.
-`"Operator"` and `"operator"` are different values. Unknown roles fail closed:
-they do not gain access automatically and fall back to `/login`.
+The injected role string must exactly match a `PERMISSION_MATRIX` key.
+`"Operator"` and `"operator"` are different values. Unknown roles fail closed.
 
-The Shell no longer exposes a "Switch Role" action. In Mode A, the platform is
-authoritative for role changes.
+The Shell should not be treated as the authority for role switching. In the
+platform-authoritative model, the platform owns the active role and the iframe
+app only consumes the forwarded identity and role.
 
 ---
 
@@ -166,6 +184,11 @@ TIER0_MQTT_PORT="8084"
 
 For matched requests, the gateway must inject user headers in either JSON or
 separate-header format and then proxy the request to the app.
+
+For platform-authoritative role switching, the gateway should additionally
+inject the currently active app role using either Tier0 role headers or the
+legacy `X-App-User-Role` header. After the platform changes the active role,
+it should reload the iframe so the next request carries the updated role.
 
 ### App Container Startup
 
