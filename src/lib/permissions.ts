@@ -23,6 +23,10 @@ export type Action = (typeof ACTIONS)[number];
 
 export const PERMISSION_MATRIX: Record<string, Action[]> = {
   [ADMIN_ROLE]: [...ACTIONS],
+  // Test roles for platform role-switch verification (mirrored in roles.json).
+  // Generated apps should replace these with real business roles.
+  test_role_a: [],
+  test_role_b: [],
 };
 
 export const ROLE_LABELS: Record<string, string> = Object.fromEntries(

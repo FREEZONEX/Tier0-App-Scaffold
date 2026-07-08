@@ -12,6 +12,16 @@ export const ROLE_METADATA = {
     description: "Full access to all features and settings.",
     defaultRoute: APP_HOME_ROUTE,
   },
+  test_role_a: {
+    label: "测试角色A",
+    description: "用于预览和联调的测试角色A。",
+    defaultRoute: APP_HOME_ROUTE,
+  },
+  test_role_b: {
+    label: "测试角色B",
+    description: "用于预览和联调的测试角色B。",
+    defaultRoute: APP_HOME_ROUTE,
+  },
 } as const satisfies Record<string, RoleMetadata>;
 
 export type RoleKey = keyof typeof ROLE_METADATA;

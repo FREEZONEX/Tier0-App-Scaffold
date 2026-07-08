@@ -1,0 +1,19 @@
+{
+  "roles": [
+    {
+      "role_key": "admin",
+      "name": "Admin",
+      "description": "Full access to all features and settings."
+    },
+    {
+      "role_key": "test_role_a",
+      "name": "测试角色A",
+      "description": "用于预览和联调的测试角色A。"
+    },
+    {
+      "role_key": "test_role_b",
+      "name": "测试角色B",
+      "description": "用于预览和联调的测试角色B。"
+    }
+  ]
+}
