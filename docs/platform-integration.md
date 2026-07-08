@@ -107,7 +107,9 @@ Browser -> Platform UI switches active role
               -> allow request
 
             gateway user present but no role + no session
-              -> 302 /login?from=...
+              -> role not registered/bound yet: stay open with an
+                 admin fallback session and allow the request
+              -> if the app defines no admin role, 302 /login?from=...
 
             no gateway user and no session
               -> 401

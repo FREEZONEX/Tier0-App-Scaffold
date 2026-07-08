@@ -15,14 +15,17 @@
  *      continues the same request so iframe reloads do not need a second manual refresh.
  *   4. If the gateway supplies an unknown role, fail closed with 403.
  *   5. If no gateway role is present, fall back to the existing session cookie.
- *   6. If there is a gateway user but no role and no session, redirect to /login.
+ *   6. If there is a gateway user but no role and no session (role not
+ *      registered/bound on the platform yet), stay open: issue an admin
+ *      fallback session so the preview is not blocked. If the app defines no
+ *      admin role, redirect to /login instead.
  *   7. If there is neither gateway identity nor session, return 401.
  */
 
 import { createMiddleware, createStart } from "@tanstack/react-start";
 import { getCookie, setCookie } from "@tanstack/react-start/server";
-import { parseGatewayUser } from "@/lib/gateway";
-import { PERMISSION_MATRIX } from "@/lib/permissions";
+import { parseGatewayUser, type GatewayUser } from "@/lib/gateway";
+import { ADMIN_ROLE, PERMISSION_MATRIX } from "@/lib/permissions";
 import { decodeSession, encodeSession } from "@/lib/session";
 
 const SESSION_COOKIE = "mes-session";
@@ -99,6 +102,32 @@ function jsonError(status: number, error: string): Response {
   });
 }
 
+function refreshSessionIfStale(
+  rawCookie: string | undefined,
+  gatewayUser: GatewayUser,
+  role: string,
+): void {
+  const desiredSession = {
+    userId: gatewayUser.id,
+    role,
+    username: gatewayUser.name,
+    displayName: gatewayUser.name,
+    email: gatewayUser.email,
+  };
+
+  if (matchesDesiredSession(rawCookie, desiredSession)) {
+    return;
+  }
+
+  setCookie(SESSION_COOKIE, encodeSession(desiredSession), {
+    path: "/",
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: SESSION_MAX_AGE,
+  });
+}
+
 const authBridge = createMiddleware().server(
   async ({ request, pathname, next }) => {
     if (MUTATING.has(request.method) && !isSameOrigin(request)) {
@@ -121,28 +150,7 @@ const authBridge = createMiddleware().server(
         return jsonError(403, `Platform role is not recognized by this app: ${gatewayUser.role}`);
       }
 
-      const desiredSession = {
-        userId: gatewayUser.id,
-        role: gatewayUser.role,
-        username: gatewayUser.name,
-        displayName: gatewayUser.name,
-        email: gatewayUser.email,
-      };
-
-      if (!matchesDesiredSession(rawSessionCookie, desiredSession)) {
-        setCookie(
-          SESSION_COOKIE,
-          encodeSession(desiredSession),
-          {
-            path: "/",
-            httpOnly: true,
-            sameSite: "lax",
-            secure: process.env.NODE_ENV === "production",
-            maxAge: SESSION_MAX_AGE,
-          },
-        );
-      }
-
+      refreshSessionIfStale(rawSessionCookie, gatewayUser, gatewayUser.role);
       return next();
     }
 
@@ -151,6 +159,14 @@ const authBridge = createMiddleware().server(
     }
 
     if (gatewayUser) {
+      // Gateway identity without a role: the platform has not registered/bound
+      // a role yet. Stay open with an admin fallback session instead of
+      // blocking the preview behind the role picker.
+      if (validRoles.includes(ADMIN_ROLE)) {
+        refreshSessionIfStale(rawSessionCookie, gatewayUser, ADMIN_ROLE);
+        return next();
+      }
+
       const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("from", pathname);
       return new Response(null, {

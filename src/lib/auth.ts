@@ -1,9 +1,9 @@
 import { getCookie, getRequestHeaders } from "@tanstack/react-start/server";
 import type { AppUser } from "./users";
-import { parseGatewayUser } from "./gateway";
+import { parseGatewayUser, type GatewayUser } from "./gateway";
 import { decodeSession } from "./session";
 import { HttpError } from "./route-handlers";
-import { PERMISSION_MATRIX } from "./permissions";
+import { ADMIN_ROLE, PERMISSION_MATRIX } from "./permissions";
 
 const SESSION_COOKIE = "mes-session";
 
@@ -19,31 +19,18 @@ function isValidRole(role: string | undefined): role is string {
   return typeof role === "string" && Object.prototype.hasOwnProperty.call(PERMISSION_MATRIX, role);
 }
 
-/**
- * Read the current user from the gateway headers first, then the signed session
- * cookie as fallback.
- *
- * Returns null if no valid authenticated identity exists.
- *
- * Async signature is intentional — keeps the API forward-compatible with a
- * future DB-backed session lookup without breaking call sites.
- *
- * Must only be called inside server-route handlers, server functions,
- * or request middleware — never from client components.
- */
-export async function getCurrentUser(): Promise<AppUser | null> {
-  const gatewayUser = parseGatewayUser(new Headers(getRequestHeaders()));
-  if (gatewayUser?.id && isValidRole(gatewayUser.role)) {
-    const username = gatewayUser.name || gatewayUser.id;
-    return {
-      id: gatewayUser.id,
-      username,
-      displayName: gatewayUser.name || username,
-      role: gatewayUser.role,
-      email: gatewayUser.email || undefined,
-    };
-  }
+function toAppUser(gatewayUser: GatewayUser, role: string): AppUser {
+  const username = gatewayUser.name || gatewayUser.id;
+  return {
+    id: gatewayUser.id,
+    username,
+    displayName: gatewayUser.name || username,
+    role,
+    email: gatewayUser.email || undefined,
+  };
+}
 
+function readSessionUser(): AppUser | null {
   const raw = getCookie(SESSION_COOKIE);
   const session = decodeSession<SessionPayload>(raw);
   if (!session) return null;
@@ -59,6 +46,38 @@ export async function getCurrentUser(): Promise<AppUser | null> {
   const email = typeof session.email === "string" ? session.email : undefined;
 
   return { id: userId, username, displayName, role, email };
+}
+
+/**
+ * Read the current user from the gateway headers first, then the signed session
+ * cookie as fallback. A gateway identity without a bound role falls back to the
+ * admin role (when the app defines one) so the preview stays open before the
+ * platform registers/binds roles.
+ *
+ * Returns null if no valid authenticated identity exists.
+ *
+ * Async signature is intentional — keeps the API forward-compatible with a
+ * future DB-backed session lookup without breaking call sites.
+ *
+ * Must only be called inside server-route handlers, server functions,
+ * or request middleware — never from client components.
+ */
+export async function getCurrentUser(): Promise<AppUser | null> {
+  const gatewayUser = parseGatewayUser(new Headers(getRequestHeaders()));
+  if (gatewayUser?.id && isValidRole(gatewayUser.role)) {
+    return toAppUser(gatewayUser, gatewayUser.role);
+  }
+
+  const sessionUser = readSessionUser();
+  if (sessionUser) return sessionUser;
+
+  // Gateway identity without a role and no session yet: mirror the middleware's
+  // open admin fallback so the very first SSR request can already render.
+  if (gatewayUser?.id && isValidRole(ADMIN_ROLE)) {
+    return toAppUser(gatewayUser, ADMIN_ROLE);
+  }
+
+  return null;
 }
 
 /**
