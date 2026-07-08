@@ -22,11 +22,6 @@ import { useEffect } from "react";
 import { Shell } from "@/components/Shell";
 import { getCurrentUser } from "@/lib/auth";
 import { sendPreviewError, sendPreviewReady } from "@/lib/preview-bridge";
-import {
-  enableSessionUserCache,
-  getCachedSessionUser,
-  rememberSessionUser,
-} from "@/lib/session-user-cache";
 import type { AppUser } from "@/lib/users";
 
 const loadSessionUser = createServerFn().handler(
@@ -45,13 +40,7 @@ function requireWorkspaceUser(user: AppUser | null, pathname: string) {
 
 export const Route = createFileRoute("/_app")({
   beforeLoad: ({ location }) => {
-    const cachedUser = getCachedSessionUser();
-    if (cachedUser !== undefined) {
-      return requireWorkspaceUser(cachedUser, location.pathname);
-    }
-
     return loadSessionUser().then((user) => {
-      rememberSessionUser(user);
       return requireWorkspaceUser(user, location.pathname);
     });
   },
@@ -64,8 +53,6 @@ function AppLayout() {
   const user = (Route.useRouteContext() as { user?: AppUser | null }).user;
 
   useEffect(() => {
-    enableSessionUserCache();
-    rememberSessionUser(user ?? null);
     sendPreviewReady();
   }, [user]);
 

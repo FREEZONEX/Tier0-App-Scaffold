@@ -1,5 +1,4 @@
 import type { ElementType } from "react";
-import { LayoutDashboard } from "lucide-react";
 import { can, type Action } from "@/lib/permissions";
 
 export interface NavModule {
@@ -15,32 +14,9 @@ export interface NavModule {
 }
 
 // ─── Agent: add workspace modules only; station/review task flows stay out ───
-export const defaultModules: NavModule[] = [
-  {
-    key: "dashboard",
-    label: "Overview",
-    href: "/",
-    icon: LayoutDashboard,
-    actions: ["view_dashboard"],
-  },
-];
+export const defaultModules: NavModule[] = [];
 
 const MODULE_ACTIONS_BY_KEY: Record<string, Action[]> = {
-  dashboard: ["view_dashboard"],
-  overview: ["view_dashboard"],
-  sales_orders: ["manage_sales_orders"],
-  salesOrders: ["manage_sales_orders"],
-  order_chain: ["manage_sales_orders"],
-  orderChain: ["manage_sales_orders"],
-  scheduling: ["manage_scheduling"],
-  gantt_scheduling: ["manage_scheduling"],
-  ganttScheduling: ["manage_scheduling"],
-  kitting: ["manage_kitting"],
-  traceability: ["manage_traceability"],
-  sn_traceability: ["manage_traceability"],
-  snTraceability: ["manage_traceability"],
-  master_data: ["manage_master_data"],
-  masterData: ["manage_master_data"],
   settings: ["manage_system"],
   system: ["manage_system"],
   system_config: ["manage_system"],
@@ -48,14 +24,8 @@ const MODULE_ACTIONS_BY_KEY: Record<string, Action[]> = {
 };
 
 const MODULE_ACTIONS_BY_LABEL: Record<string, Action[]> = {
-  Overview: ["view_dashboard"],
-  "Order Flow": ["manage_sales_orders"],
-  "Gantt Scheduling": ["manage_scheduling"],
-  "Kitting Management": ["manage_kitting"],
-  "SN Traceability": ["manage_traceability"],
-  "Master Data": ["manage_master_data"],
-  "System Configuration": ["manage_system"],
   Settings: ["manage_system"],
+  "System Configuration": ["manage_system"],
 };
 
 export function getModuleActions(module: NavModule): Action[] {

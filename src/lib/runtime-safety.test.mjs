@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, it } from "node:test";
 
@@ -124,5 +124,13 @@ describe("runtime safety contracts", () => {
         ...offenders,
       ].join("\n"),
     );
+  });
+
+  it("does not keep a client TTL cache for the _app session user", () => {
+    const appRoute = readFileSync(join(process.cwd(), "src/routes/_app.tsx"), "utf8");
+    const cacheFile = join(process.cwd(), "src/lib/session-user-cache.ts");
+
+    assert.doesNotMatch(appRoute, /session-user-cache/);
+    assert.equal(existsSync(cacheFile), false, "Delete src/lib/session-user-cache.ts");
   });
 });
