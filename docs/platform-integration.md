@@ -70,7 +70,12 @@ X-App-User-Role:  operator
 X-App-User-ID: uuid-123
 ```
 
-If `name` or `email` is missing, the app falls back to the user id.
+If `name` is missing, the app falls back to the user id. If `email` is
+missing, the app stores an empty string.
+
+Role header values may be plain ASCII, percent-encoded UTF-8, or raw UTF-8
+bytes read as latin-1. The gateway parser normalizes all three before matching
+`PERMISSION_MATRIX`, so non-ASCII role keys remain stable across proxies.
 
 ### Active Role Header Precedence
 
@@ -95,6 +100,12 @@ Browser -> Platform UI switches active role
         -> Gateway injects user + active role headers -> App
         -> src/start.ts middleware:
 
+            mutating request with cross-origin Origin
+              -> 403 blocked
+
+            public path (/login, /api/auth/*, /api/health, /api/manifest, runtime/build assets)
+              -> allow request
+
             gateway role present and valid
               -> refresh mes-session if missing or stale
               -> continue the same request
@@ -118,6 +129,10 @@ Browser -> Platform UI switches active role
 The key behavior is that the gateway role now overrides a stale app session.
 A previously signed `mes-session` cookie is treated as a cache, not the source
 of truth, whenever the platform sends a role header.
+
+`/login` is now only a hidden fallback auth bridge. It tries to create the
+default admin session from gateway identity and redirects back to `from`; it
+does not render the old role-picker UI.
 
 ### Role Management
 
