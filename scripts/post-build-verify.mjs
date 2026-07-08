@@ -25,7 +25,10 @@ const steps = [
     label: "Contract tests",
     command: [
       "node",
+      "--import",
+      "tsx",
       "--test",
+      "src/lib/gateway.test.ts",
       "src/lib/permissions.test.mjs",
       "src/lib/app-chrome.test.mjs",
       "src/lib/navigation-contracts.test.mjs",

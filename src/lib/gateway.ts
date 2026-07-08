@@ -34,6 +34,16 @@ function readHeader(headers: Headers, key: string): string | null {
   return headers.get(key) ?? headers.get(key.toLowerCase());
 }
 
+function isLatin1Only(value: string): boolean {
+  for (let index = 0; index < value.length; index += 1) {
+    if (value.charCodeAt(index) > 0xff) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 /**
  * HTTP header values are latin-1 on the wire, so a non-ASCII role key
  * (e.g. `老板`) arrives either percent-encoded or as raw UTF-8 bytes read
@@ -53,7 +63,7 @@ function decodeHeaderText(value: string): string {
   // outside latin-1 range is genuine text and must not be re-decoded.
   if (
     /[\u0080-\u00ff]/.test(value) &&
-    !/[^\u0000-\u00ff]/.test(value)
+    isLatin1Only(value)
   ) {
     const decoded = Buffer.from(value, "latin1").toString("utf8");
     if (!decoded.includes("�")) {
