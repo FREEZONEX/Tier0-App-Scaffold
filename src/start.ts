@@ -10,33 +10,22 @@
  *      defense-in-depth against CSRF on top of `sameSite: "lax"` cookie.
  *   2. Public paths (login page, auth endpoints, health/manifest, build assets)
  *      pass through with no auth check.
- *   3. Has mes-session cookie + gateway role unchanged → pass through.
- *   4. Has mes-session cookie + gateway role changed → refresh the session
- *      cookie and 302 to the same URL.
- *   5. No cookie + gateway provides a role that's valid in PERMISSION_MATRIX →
+ *   3. Has mes-session cookie → pass through (already has a session).
+ *   4. No cookie + gateway provides a role that's valid in PERMISSION_MATRIX →
  *      auto-issue the session cookie and 302 to the same URL. The next request
  *      runs with the cookie present. The user never sees `/login`.
- *   6. No cookie + gateway has user but no/invalid role → redirect to /login
+ *   5. No cookie + gateway has user but no/invalid role → redirect to /login
  *      so the user can pick from PERMISSION_MATRIX.
- *   7. No cookie + no gateway header → 401.
- *
- * Mode P (preview) / Mode D (deployed):
- *   When the gateway injects a business role header the session must always
- *   track it, bypassing PERMISSION_MATRIX:
- *   - Preview  (X-Tier0-Runtime: preview)  → X-Tier0-Preview-Role
- *   - Deployed (X-Tier0-Runtime: deployed) → X-Tier0-Active-Role
- *   In both cases the gateway has already authenticated the user and validated
- *   their role (previewRoleStore / runtime-roles API). PERMISSION_MATRIX is
- *   only relevant for the manual /login fallback flow.
+ *   6. No cookie + no gateway header → 401.
  *
  * This file replaces the Next.js `src/proxy.ts` middleware. DO NOT modify.
  */
 
 import { createMiddleware, createStart } from "@tanstack/react-start";
 import { getCookie, setCookie } from "@tanstack/react-start/server";
-import { parseGatewayUser, type GatewayUser } from "@/lib/gateway";
+import { parseGatewayUser } from "@/lib/gateway";
 import { PERMISSION_MATRIX } from "@/lib/permissions";
-import { decodeSession, encodeSession } from "@/lib/session";
+import { encodeSession } from "@/lib/session";
 
 const SESSION_COOKIE = "mes-session";
 
@@ -48,7 +37,6 @@ const PUBLIC_PATHS = [
   "/api/auth", // /api/auth/{me,logout,select-role}
   "/api/health", // health check
   "/api/manifest", // app manifest
-  "/__gateway", // preview session compatibility endpoints
   "/favicon.ico", // browser auto-fetch
   "/_build", // vite build assets
   "/__tsr", // tanstack runtime
@@ -82,68 +70,6 @@ function isSameOrigin(request: Request): boolean {
 
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
-interface SessionPayload {
-  userId?: unknown;
-  role?: unknown;
-  username?: unknown;
-  displayName?: unknown;
-  email?: unknown;
-}
-
-type GatewayUserWithRole = GatewayUser & { role: string };
-
-function hasValidGatewayRole(
-  gatewayUser: GatewayUser | null,
-  validRoles: string[],
-): gatewayUser is GatewayUserWithRole {
-  return Boolean(
-    gatewayUser?.role &&
-      validRoles.length > 0 &&
-      validRoles.includes(gatewayUser.role),
-  );
-}
-
-function buildSessionPayload(gatewayUser: GatewayUserWithRole): SessionPayload {
-  return {
-    userId: gatewayUser.id,
-    role: gatewayUser.role,
-    username: gatewayUser.name,
-    displayName: gatewayUser.name,
-    email: gatewayUser.email,
-  };
-}
-
-function setGatewaySession(gatewayUser: GatewayUserWithRole): void {
-  setCookie(SESSION_COOKIE, encodeSession(buildSessionPayload(gatewayUser)), {
-    path: "/",
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    maxAge: SESSION_MAX_AGE,
-  });
-}
-
-function sessionMatchesGatewayUser(
-  rawSession: string | undefined,
-  gatewayUser: GatewayUserWithRole,
-): boolean {
-  const session = decodeSession<SessionPayload>(rawSession);
-  return (
-    session?.userId === gatewayUser.id &&
-    session.role === gatewayUser.role &&
-    session.username === gatewayUser.name &&
-    session.displayName === gatewayUser.name &&
-    session.email === gatewayUser.email
-  );
-}
-
-function redirectToCurrentRequest(request: Request): Response {
-  return new Response(null, {
-    status: 302,
-    headers: { Location: request.url },
-  });
-}
-
 const authBridge = createMiddleware().server(
   async ({ request, pathname, next }) => {
     if (MUTATING.has(request.method) && !isSameOrigin(request)) {
@@ -157,71 +83,49 @@ const authBridge = createMiddleware().server(
       return next();
     }
 
-    const rawSession = getCookie(SESSION_COOKIE);
-    const gatewayUser = parseGatewayUser(request.headers);
-    const validRoles = Object.keys(PERMISSION_MATRIX);
-
-    // Mode P / Mode D: extract gateway-injected business role.
-    // Preview  → X-Tier0-Preview-Role (set by previewRoleStore after role registration)
-    // Deployed → X-Tier0-Active-Role  (set by runtime-roles API result)
-    // Both headers are stripped and re-injected by the gateway, so they cannot
-    // be forged by the client (B4: stripTier0Headers runs before injection).
-    const tier0Runtime = request.headers.get("X-Tier0-Runtime") ?? "";
-    const rawGatewayRole =
-      tier0Runtime === "preview"
-        ? (request.headers.get("X-Tier0-Preview-Role") ?? "").trim()
-        : tier0Runtime === "deployed"
-          ? (request.headers.get("X-Tier0-Active-Role") ?? "").trim()
-          : "";
-    const gatewayInjectedRole =
-      rawGatewayRole.length > 0 ? rawGatewayRole : undefined;
-
-    if (rawSession) {
-      if (gatewayInjectedRole && gatewayUser) {
-        // Keep session aligned with the gateway-injected role, bypassing
-        // PERMISSION_MATRIX — the gateway has already validated this role.
-        const injectedUser: GatewayUserWithRole = {
-          ...gatewayUser,
-          role: gatewayInjectedRole,
-        };
-        if (!sessionMatchesGatewayUser(rawSession, injectedUser)) {
-          setGatewaySession(injectedUser);
-          return redirectToCurrentRequest(request);
-        }
-        return next();
-      }
-
-      if (
-        hasValidGatewayRole(gatewayUser, validRoles) &&
-        !sessionMatchesGatewayUser(rawSession, gatewayUser)
-      ) {
-        setGatewaySession(gatewayUser);
-        return redirectToCurrentRequest(request);
-      }
-
+    if (getCookie(SESSION_COOKIE)) {
       return next();
     }
 
+    const gatewayUser = parseGatewayUser(request.headers);
     if (!gatewayUser) {
       return new Response(
-        `<!DOCTYPE html><html><body><script>try{if(window.parent!==window){window.parent.postMessage({type:'tier0.preview.error',error:'Platform authentication required',kind:'auth'},'*')}}catch(e){}</script></body></html>`,
-        { status: 401, headers: { "Content-Type": "text/html" } },
+        JSON.stringify({ error: "Platform authentication required" }),
+        { status: 401, headers: { "Content-Type": "application/json" } },
       );
-    }
-
-    // Mode P / Mode D (no session): mint session with the injected role directly.
-    if (gatewayInjectedRole) {
-      setGatewaySession({ ...gatewayUser, role: gatewayInjectedRole });
-      return redirectToCurrentRequest(request);
     }
 
     // Mode A: gateway supplied a role, and it is one we know about — mint the
     // session cookie ourselves and bounce back to the original URL. The
     // round-trip is the cost of carrying the freshly-set cookie into a normal
     // request flow; it only happens once per session.
-    if (hasValidGatewayRole(gatewayUser, validRoles)) {
-      setGatewaySession(gatewayUser);
-      return redirectToCurrentRequest(request);
+    const validRoles = Object.keys(PERMISSION_MATRIX);
+    if (
+      gatewayUser.role &&
+      validRoles.length > 0 &&
+      validRoles.includes(gatewayUser.role)
+    ) {
+      setCookie(
+        SESSION_COOKIE,
+        encodeSession({
+          userId: gatewayUser.id,
+          role: gatewayUser.role,
+          username: gatewayUser.name,
+          displayName: gatewayUser.name,
+          email: gatewayUser.email,
+        }),
+        {
+          path: "/",
+          httpOnly: true,
+          sameSite: "lax",
+          secure: process.env.NODE_ENV === "production",
+          maxAge: SESSION_MAX_AGE,
+        },
+      );
+      return new Response(null, {
+        status: 302,
+        headers: { Location: request.url },
+      });
     }
 
     // Gateway didn't supply a usable role — fall back to the role-selection page.

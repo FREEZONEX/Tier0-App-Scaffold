@@ -16,7 +16,6 @@ import { ROLE_METADATA, getRoleMetadata } from "./role-metadata";
 export const ADMIN_ROLE = "admin";
 
 export const ACTIONS = [
-  "view_dashboard",
   "manage_system",
 ] as const;
 

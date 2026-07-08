@@ -48,10 +48,6 @@ install = ["npm", "install"]
 args = ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]
 port = 5173
 
-[services.preview.health]
-path = "/api/health"
-timeout = 180
-
 [services.preview.env]
 NODE_ENV = "development"
 HOST = "0.0.0.0"

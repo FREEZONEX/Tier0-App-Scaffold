@@ -30,6 +30,7 @@ After installing a new npm dependency (e.g. `npm install uuid`), call `preview_r
 - Forms must validate input and give clear error/success feedback via `toast()`. CRUD create/edit forms for workspace, master-data, material, equipment, route, configuration, and admin pages should open in `FormDialog` or `Drawer` by default.
 - Required field asterisks must use the shared `FieldLabel` / `RequiredMark` from `@/components/forms`, or `data-required="true"` / `data-required-marker="true"` for custom wrappers. Do not hand-write bare `<span>*</span>` markers or style required stars with ad hoc text-color classes.
 - Empty states should offer a "Create" action — not explain what the feature "will" do. That action should launch `FormDialog` or `Drawer` unless the page is a station execution flow, filter bar, scan/manual entry flow, or required review reason capture.
+- Role display belongs to the global `Shell` user block only. Business page content must not show current-role/current-permission cards, permission-mode panels, role comparison tables, or persistent role capability explanations.
 
 ## Design Source Of Truth
 
@@ -321,6 +322,7 @@ X-App-User-ID: u123
 - The `role` shipped by the gateway MUST exactly match a key in `PERMISSION_MATRIX`. Coordinate naming with the platform — "operator" vs "Operator" matters.
 - An unknown gateway role does NOT auto-elevate; it falls back to the picker (where the user can only choose roles that DO exist). Fail-closed by default.
 - The `Switch Role` button has been removed from `Shell` — under Mode A, the gateway is authoritative. Users who need a different role get it from the platform.
+- Role differences should appear as real permission effects: menu visibility, button availability, action guards, and data scope. Do not add page-body copy explaining what Admin, Operator, Member, or any other role can do.
 
 **What you (the Agent) need to do:**
 - Define roles and permissions in `permissions.ts` (`PERMISSION_MATRIX`)
@@ -743,14 +745,14 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 ### Step 4: Frontend (all UI in one step)
 
 - First classify each UI workflow and choose a route group automatically: `station` for task-first scan/tap/confirm execution, `review` for queue/evidence/decision work, `monitor` for passive wallboards/andon/TV displays/fixed large screens, `_app` for workspace/admin/planning/analytics, or a custom layout when the workflow needs another distinct interaction model.
-- For `_app` workspace pages only: update `src/components/Shell.tsx`, add modules to `defaultModules`, and implement collapsible sidebar + mobile overlay when the app needs persistent module navigation.
+- For `_app` workspace pages only: update `src/components/Shell.tsx`, add modules to `defaultModules`, and implement collapsible sidebar + mobile overlay when the app needs persistent module navigation. `defaultModules` starts empty; do not create an `Overview` menu item unless the requested product explicitly needs an overview/home/dashboard page.
 - System configuration, admin configuration, role/permission setup, tenant settings, audit settings, and similar setup-only pages must be nested under a sidebar parent as second-level menu items. Do not put "System Configuration" or "Settings" as a first-level sidebar module unless the whole app is only a configuration console. Do not generate Tier0 SDK authentication, OpenAPI endpoint, MQTT endpoint, API key, token, or credential configuration pages; SDK auth is prebuilt and app users should not manage those values in generated MES UIs.
 - Use Shell `NavModule` metadata (`badge`, `locked`, `disabledReason`) for sidebar-only product state such as beta, upgrade required, unavailable, or read-only. Do not create one-off sidebar badge/disabled-link implementations in page code.
 - Same-app layout chrome must be consistent. Do not mix Shell-sidebar pages and no-sidebar pages in one app. Sidebar modules, role default routes, and in-app navigation targets must preserve the chosen app chrome.
 - Sidebar modules must preserve the sidebar. Do not add `station`, `review`, `monitor`, or other no-sidebar task-flow routes to `defaultModules`; convert those workflows into workspace pages or split them into a separate app/entry surface.
 - Every authenticated layout shell must include a visible logout action. Put it in the shared layout (`Shell`, `StationLayout`, `ReviewLayout`, `MonitorLayout`, or the custom shell), not individual pages.
 - The scaffold keeps exactly one intentionally blank route: `src/routes/_app.index.tsx` with `TEMPLATE_BLANK_ROUTE`. Do not add any other blank route placeholders. Do not ship that blank placeholder in a finished app.
-- Build dashboard at `src/routes/_app.index.tsx` only when the app has a management/analytics home; task-first station, review, monitor, kiosk, or other custom apps must replace `_app.index.tsx` with a redirect or matching root entry so `/` does not show a sidebar workspace starter.
+- Build an overview, home, or dashboard at `src/routes/_app.index.tsx` only when the app requirements call for one; task-first station, review, monitor, kiosk, single-workflow, or other custom apps must replace `_app.index.tsx` with a redirect or matching root entry so `/` lands in the primary experience.
 - If the app has only one primary page or one primary workflow surface, make that surface own `/` directly. Do not leave `/` blank and put the only real screen under a secondary route.
 - Build each page under its selected layout group (`src/routes/_app.<module>.tsx`, `station.<task>.tsx`, `review.<queue>.tsx`, `monitor.<view>.tsx`, or a custom `intent.<page>.tsx`) and vary UI patterns across modules.
 - Pages use the selected route group's path in `createFileRoute(...)` and inherit that authenticated layout automatically: `"/_app/..."` for workspace, `"/station/..."`, `"/review/..."`, `"/monitor/..."`, or the matching custom route prefix.
