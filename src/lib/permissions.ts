@@ -25,6 +25,7 @@ export const PERMISSION_MATRIX: Record<string, Action[]> = {
   [ADMIN_ROLE]: [...ACTIONS],
   // Test roles for platform role-switch verification (mirrored in roles.json).
   // Generated apps should replace these with real business roles.
+  老板: [...ACTIONS],
   test_role_a: [],
   test_role_b: [],
 };

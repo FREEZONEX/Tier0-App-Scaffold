@@ -1,18 +1,18 @@
 {
   "roles": [
     {
-      "role_key": "admin",
-      "name": "Admin",
+      "role_key": "老板",
+      "name": "老板",
       "description": "Full access to all features and settings."
     },
     {
       "role_key": "test_role_a",
-      "name": "测试角色A",
+      "name": "雨晴",
       "description": "用于预览和联调的测试角色A。"
     },
     {
       "role_key": "test_role_b",
-      "name": "测试角色B",
+      "name": "安妮",
       "description": "用于预览和联调的测试角色B。"
     }
   ]
