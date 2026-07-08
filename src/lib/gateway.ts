@@ -34,9 +34,39 @@ function readHeader(headers: Headers, key: string): string | null {
   return headers.get(key) ?? headers.get(key.toLowerCase());
 }
 
+/**
+ * HTTP header values are latin-1 on the wire, so a non-ASCII role key
+ * (e.g. `老板`) arrives either percent-encoded or as raw UTF-8 bytes read
+ * back as latin-1 mojibake. Decode both so the role matches
+ * PERMISSION_MATRIX keys; plain ASCII values pass through untouched.
+ */
+function decodeHeaderText(value: string): string {
+  if (/%[0-9A-Fa-f]{2}/.test(value)) {
+    try {
+      return decodeURIComponent(value);
+    } catch {
+      // not actually percent-encoded — fall through
+    }
+  }
+
+  // Only code units 0x80-0xFF can be latin-1-misread UTF-8; anything already
+  // outside latin-1 range is genuine text and must not be re-decoded.
+  if (
+    /[\u0080-\u00ff]/.test(value) &&
+    !/[^\u0000-\u00ff]/.test(value)
+  ) {
+    const decoded = Buffer.from(value, "latin1").toString("utf8");
+    if (!decoded.includes("�")) {
+      return decoded;
+    }
+  }
+
+  return value;
+}
+
 function normalizeRole(value: string | null | undefined): string | undefined {
   const trimmed = value?.trim();
-  return trimmed ? trimmed : undefined;
+  return trimmed ? decodeHeaderText(trimmed) : undefined;
 }
 
 export function getGatewayRole(headers: Headers): string | undefined {
@@ -68,18 +98,14 @@ export function parseGatewayUser(headers: Headers): GatewayUser | null {
   const userHeader = readHeader(headers, "user");
   if (userHeader) {
     try {
-      const parsed = JSON.parse(userHeader);
+      const parsed = JSON.parse(decodeHeaderText(userHeader));
       const id = String(parsed.userID ?? parsed.userId ?? parsed.id ?? "");
       if (id) {
         return {
           id,
           name: parsed.userName ?? parsed.username ?? parsed.name ?? id,
           email: parsed.email ?? "",
-          role:
-            gatewayRole ??
-            (typeof parsed.role === "string" && parsed.role.length > 0
-              ? parsed.role
-              : undefined),
+          role: gatewayRole ?? normalizeRole(parsed.role),
         };
       }
     } catch {
