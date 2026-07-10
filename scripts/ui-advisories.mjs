@@ -91,6 +91,20 @@ if (existsSync(PAGE_ROOT) && statSync(PAGE_ROOT).isDirectory()) {
     }
   }
 
+  // Template test fixtures must not survive into delivered apps. The platform
+  // role-switch fixtures (老板 / test_role_a / test_role_b) ship with the
+  // template for gateway verification and will appear in every generated app
+  // until the agent replaces them with the product's real business roles.
+  const permissionsPath = join(process.cwd(), "src/lib/permissions.ts");
+  if (existsSync(permissionsPath)) {
+    const permissionsSource = readFileSync(permissionsPath, "utf8");
+    if (/test_role_a|test_role_b|老板/.test(permissionsSource)) {
+      advisories.push(
+        "src/lib/permissions.ts: template test roles (老板/test_role_a/test_role_b) are still registered - replace them with the app's real business roles in permissions.ts, role-metadata.ts, and roles.json before delivery.",
+      );
+    }
+  }
+
   // Core first-version capabilities should be discoverable from the primary
   // workspace shell. Generated station/review routes are valid when the app
   // truly needs a dedicated no-sidebar surface, but hiding them from the

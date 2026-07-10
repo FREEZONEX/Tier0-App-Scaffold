@@ -75,7 +75,7 @@ those values into user-editable settings.
 
 ## Tier0 SDK SSR Compatibility
 
-`@tier0/sdk@0.1.3` ships as a dual ESM/CJS package. This scaffold still keeps
+`@tier0/sdk` ships as a dual ESM/CJS package. This scaffold still keeps
 SDK access behind server-side lazy loaders so preview startup and normal SSR do
 not execute optional platform I/O during page initialization. The SSR policy is
 pinned in `vite.config.ts`:

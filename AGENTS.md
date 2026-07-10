@@ -56,7 +56,7 @@ Recommended Tier0 SDK call convention: import `loadTier0OpenApi`, `getTier0UnsAp
 
 Tier0 SDK env such as `TIER0_API_HOST`, `TIER0_API_KEY`, `TIER0_MQTT_HOST`, and `TIER0_MQTT_PORT` is injected automatically by the platform when the app is deployed. Do not add these values to `.env.example`, generated app settings, database tables, or user-editable forms. If browser-side `VITE_TIER0_*` values are needed, the platform/runtime must inject them too.
 
-Tier0 SDK SSR compatibility is both a scaffold-level Vite policy and an app-code loading policy. `@tier0/sdk@0.1.3` ships dual ESM/CJS output, so keep `vite.config.ts` `ssr.external: ["pg", "@tier0/sdk", "mqtt"]` and load SDK values through `@/lib/tier0`, which uses server-side `createRequire` to select the CJS condition. Avoid importing SDK submodules on page/SSR initialization paths. If preview fails with `ReferenceError: exports is not defined in ES module scope` from `@tier0/sdk/openapi` or `@tier0/sdk/mq`, confirm the installed package is at least `0.1.3`, do not bundle the SDK with `ssr.noExternal`, and move the SDK access behind the lazy helpers in `@/lib/tier0`. Do not replace the SDK with fallback clients or hand-written UNS/Flow/MQ fetch wrappers.
+Tier0 SDK SSR compatibility is both a scaffold-level Vite policy and an app-code loading policy. `@tier0/sdk` ships dual ESM/CJS output, so keep `vite.config.ts` `ssr.external: ["pg", "@tier0/sdk", "mqtt"]` and load SDK values through `@/lib/tier0`, which uses server-side `createRequire` to select the CJS condition. Avoid importing SDK submodules on page/SSR initialization paths. If preview fails with `ReferenceError: exports is not defined in ES module scope` from `@tier0/sdk/openapi` or `@tier0/sdk/mq`, confirm the installed version matches `package.json`, do not bundle the SDK with `ssr.noExternal`, and move the SDK access behind the lazy helpers in `@/lib/tier0`. Do not replace the SDK with fallback clients or hand-written UNS/Flow/MQ fetch wrappers.
 When using the Tier0 SDK to create UNS nodes/topics, Flow resources, or other platform-side objects, do not derive the resource namespace from `package.json` `name`; the scaffold default is `scaffold` and is not a business app name. Resolve the app name from the spec/user request or existing app branding first. If only a technical runtime identifier exists, prefer `APP_ID` or `/api/manifest` `appId` as the machine identifier and keep it distinct from the human-readable app name.
 
 **Think before you code.** Use your native planning / thinking / todo capabilities at every step:
@@ -388,10 +388,15 @@ UTF-8 bytes read back as latin-1; the parser normalizes them before matching
 - The `Switch Role` button has been removed from `Shell` — under Mode A, the gateway is authoritative. Users who need a different role get it from the platform.
 - Role differences should appear as real permission effects: menu visibility, button availability, action guards, and data scope. Do not add page-body copy explaining what Admin, Operator, Member, or any other role can do.
 
-**What you (the Agent) need to do:**
-- Define roles and permissions in `permissions.ts` (`PERMISSION_MATRIX`)
-- Use `requireAuth("admin")` / `requireAuth("operator")` in server routes to enforce access
-- Use `can(role, action)` for fine-grained permission checks in UI or routes
+**What you (the Agent) need to do — complete ALL of these in one pass:**
+1. `src/lib/permissions.ts` — add every permissioned operation to `ACTIONS`, map each role in `PERMISSION_MATRIX`. Keep `[ADMIN_ROLE]: [...ACTIONS]` exactly as-is (contract-tested).
+2. `src/lib/role-metadata.ts` — add a `ROLE_METADATA` entry (label, description, defaultRoute) for every matrix role.
+3. `roles.json` — mirror every business role. `role_key` must equal the matrix key exactly (ASCII snake_case for new roles); admin is the app-internal fallback and stays out of this file. This file is what the platform reads to assign/switch roles.
+4. Replace the template test roles (`老板`, `test_role_a`, `test_role_b`) in all three files with the app's real business roles — never deliver them.
+5. Enforce with `requireAuth("<role>")` in server routes and `can(role, action)` in the UI.
+6. Verify each delivered workflow as every defined role: admin must reach everything; each business role must reach the workflows the requirements assign to it.
+
+A contract test enforces that the three role surfaces stay in sync; partial registration fails the build.
 
 **What you must NOT do:**
 - Do NOT create login/register API routes — authentication is gateway-managed
