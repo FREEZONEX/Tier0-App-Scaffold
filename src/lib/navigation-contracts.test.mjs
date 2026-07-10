@@ -101,24 +101,4 @@ describe("navigation contracts", () => {
     assert.doesNotMatch(shell, /\binactiveProps\s*=/);
   });
 
-  it("does not ship Overview as a required default workspace page", () => {
-    const shellModules = readFileSync(
-      join(process.cwd(), "src/components/shell-modules.ts"),
-      "utf8",
-    );
-    const permissions = readFileSync(
-      join(process.cwd(), "src/lib/permissions.ts"),
-      "utf8",
-    );
-    const blankRoute = readFileSync(
-      join(process.cwd(), "src/routes/_app.index.tsx"),
-      "utf8",
-    );
-
-    assert.match(shellModules, /export const defaultModules: NavModule\[\] = \[\]/);
-    assert.doesNotMatch(shellModules, /\bOverview\b/);
-    assert.doesNotMatch(shellModules, /\bview_dashboard\b/);
-    assert.doesNotMatch(permissions, /\bview_dashboard\b/);
-    assert.match(blankRoute, /Do not create an\s+ \* overview\/dashboard page unless/);
-  });
 });

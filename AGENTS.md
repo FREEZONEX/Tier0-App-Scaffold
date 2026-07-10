@@ -967,6 +967,9 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 
 ### Step 5: Final Build & Lint
 
+- **Locked gates vs template-state tests.** Contract tests come in two kinds:
+  - *Template-state test — adapt it*: `src/lib/template-state.test.mjs` asserts the blank-template condition (empty navigation, no Overview). Building a real app makes those assertions wrong by design — rewrite them to describe your app, or empty the describe block. This is the ONLY contract file you may edit.
+  - *Locked invariant gates — never edit*: every other test file in `src/lib/`, plus `scripts/ui-advisories.mjs`, `scripts/route-smoke.mjs`, `scripts/post-build-verify.mjs`, `scripts/gate-integrity.mjs`, and `scripts/gate-integrity.json`. The postbuild `Gate integrity` stage hash-pins these files and fails the build on any edit or deletion. If a locked gate blocks a legitimate case: use its documented opt-out marker (`EXTERNAL_CALLER`, `READ_ONLY_SURFACE`), restructure the code to satisfy the rule, or stop and surface the conflict to the user. Editing the gate is never the fix.
 - Run `npm run build` — fix errors and retry, max 3 attempts. In this scaffold `npm run build` is not build-only: `postbuild` automatically runs the required local verification flow (`typecheck`, `lint`, contract tests, and runtime-safety checks), then prints non-blocking `[advisory]` UI suggestions. Advisories never fail the build: treat them as improvement hints and apply them when they fit the current slice, not as errors to retry.
 - Do not bypass the required gate by running `vite build` directly unless you are debugging the bundler itself. Normal completion must go through `npm run build`.
 - When `postbuild` fails, fix the reported verification stage before declaring success.
