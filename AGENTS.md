@@ -392,7 +392,7 @@ UTF-8 bytes read back as latin-1; the parser normalizes them before matching
 1. `src/lib/permissions.ts` — add every permissioned operation to `ACTIONS`, map each role in `PERMISSION_MATRIX`. Keep `[ADMIN_ROLE]: [...ACTIONS]` exactly as-is (contract-tested).
 2. `src/lib/role-metadata.ts` — add a `ROLE_METADATA` entry (label, description, defaultRoute) for every matrix role.
 3. `roles.json` — mirror every business role. `role_key` must equal the matrix key exactly (ASCII snake_case for new roles); admin is the app-internal fallback and stays out of this file. This file is what the platform reads to assign/switch roles.
-4. Replace the template test roles (`老板`, `test_role_a`, `test_role_b`) in all three files with the app's real business roles — never deliver them.
+4. The template ships with no business roles: `roles.json` starts empty and only the internal admin fallback exists. Add every business role to all three files; never invent demo/test roles to fill the gap.
 5. Enforce with `requireAuth("<role>")` in server routes and `can(role, action)` in the UI.
 6. Verify each delivered workflow as every defined role: admin must reach everything; each business role must reach the workflows the requirements assign to it.
 
