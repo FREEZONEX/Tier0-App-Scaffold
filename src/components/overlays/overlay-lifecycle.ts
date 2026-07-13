@@ -27,6 +27,17 @@ export function useOverlayLifecycle({
   const restoreFocusRef = useRef<HTMLElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
 
+  // The open/close lifecycle must run exactly once per open, no matter how
+  // often the parent re-renders. Controlled forms re-render on every
+  // keystroke, and an inline onOpenChange gets a new identity each time — if
+  // the effect depended on it, its cleanup would run mid-typing and steal
+  // focus back to the trigger element (issue #22). Latest callback/config
+  // values are read through refs instead.
+  const latestRef = useRef({ onOpenChange, initialFocusRef, closeOnEsc });
+  useEffect(() => {
+    latestRef.current = { onOpenChange, initialFocusRef, closeOnEsc };
+  });
+
   useEffect(() => {
     if (!open) return;
 
@@ -37,14 +48,15 @@ export function useOverlayLifecycle({
     document.body.style.overflow = "hidden";
 
     const focusTimeoutId = window.setTimeout(() => {
-      const target = initialFocusRef?.current ?? closeButtonRef.current;
+      const target =
+        latestRef.current.initialFocusRef?.current ?? closeButtonRef.current;
       target?.focus();
     }, 0);
 
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape" && closeOnEsc) {
+      if (event.key === "Escape" && latestRef.current.closeOnEsc) {
         event.preventDefault();
-        onOpenChange(false);
+        latestRef.current.onOpenChange(false);
       }
     }
 
@@ -56,7 +68,7 @@ export function useOverlayLifecycle({
       document.removeEventListener("keydown", handleKeyDown);
       restoreFocusRef.current?.focus();
     };
-  }, [closeOnEsc, initialFocusRef, onOpenChange, open]);
+  }, [open]);
 
   return { closeButtonRef };
 }

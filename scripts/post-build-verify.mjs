@@ -14,6 +14,10 @@ const steps = [
     },
   },
   {
+    label: "Gate integrity",
+    command: ["node", "scripts/gate-integrity.mjs"],
+  },
+  {
     label: "TypeScript",
     command: ["npm", "run", "typecheck"],
   },
@@ -43,6 +47,8 @@ const steps = [
       "src/lib/route-smoke-contracts.test.mjs",
       "src/lib/hooks-contracts.test.mjs",
       "src/lib/runtime-safety.test.mjs",
+      "src/lib/write-path-contracts.test.mjs",
+      "src/lib/template-state.test.mjs",
     ],
   },
   {

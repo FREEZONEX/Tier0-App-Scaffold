@@ -202,4 +202,30 @@ describe("overlay contracts", () => {
       `Overlay bodies must use FormGrid (max 2 columns) and avoid fixed pixel widths >= ${OVERLAY_FIXED_WIDTH_MIN}px unless inside an overflow-x-auto viewport:\n${offenders.join("\n")}`,
     );
   });
+
+  it("keeps the overlay lifecycle effect keyed on open state only (issue #22)", () => {
+    // Controlled forms re-render per keystroke; an inline onOpenChange gets a
+    // new identity each render. If the lifecycle effect lists callbacks or
+    // config in its dependency array, its cleanup runs mid-typing and the
+    // focus restore steals focus from the active input.
+    const source = readProjectFile("src/components/overlays/overlay-lifecycle.ts");
+    const effectDeps = [...source.matchAll(/\}, \[([^\]]*)\]\);/g)].map((m) =>
+      m[1]
+        .split(",")
+        .map((dep) => dep.trim())
+        .filter(Boolean),
+    );
+
+    const badDeps = effectDeps.filter((deps) =>
+      deps.some((dep) =>
+        ["onOpenChange", "initialFocusRef", "closeOnEsc"].includes(dep),
+      ),
+    );
+
+    assert.deepEqual(
+      badDeps,
+      [],
+      "useOverlayLifecycle effects must not depend on onOpenChange/initialFocusRef/closeOnEsc — read them through a ref so parent re-renders cannot interrupt input focus.",
+    );
+  });
 });

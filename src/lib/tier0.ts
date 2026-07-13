@@ -2,7 +2,7 @@
 // - Import this helper, then load the SDK inside the action that actually
 //   needs platform I/O. Do not statically import @tier0/sdk from pages,
 //   loaders, or services that run during SSR initialization.
-// - @tier0/sdk@0.1.3 publishes dual ESM/CJS output. These server helpers use
+// - @tier0/sdk publishes dual ESM/CJS output. These server helpers use
 //   createRequire so SSR consistently loads the CJS condition while client
 //   bundles can resolve the ESM condition when explicitly imported.
 // - Business pages should not expose SDK auth or connection configuration UI.
