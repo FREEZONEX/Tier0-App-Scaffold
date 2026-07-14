@@ -80,6 +80,11 @@ describe("form contracts", () => {
     assert.match(index, /FieldGroup/);
     assert.match(index, /FormGrid/);
     assert.match(index, /LineItemSection/);
+    // Incident guard (2026-07-13): side-by-side fields misaligned when one
+    // had helper text — grid stretch pushed the shorter field's input down.
+    // FormGrid cells must top-align; FieldGroup rows must pack to the top.
+    assert.match(formLayout ?? readFileSync(join(process.cwd(), "src/components/forms/form-layout.tsx"), "utf8"), /items-start/);
+    assert.match(formLayout ?? readFileSync(join(process.cwd(), "src/components/forms/form-layout.tsx"), "utf8"), /content-start/);
   });
 
   it("provides a generic record picker for object selections", () => {

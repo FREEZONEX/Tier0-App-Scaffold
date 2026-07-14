@@ -6,7 +6,7 @@
     "src/lib/navigation-contracts.test.mjs": "f8dd18b8ad26fd04a35b7aefeb7ed1ef1cd6954b68fbed833420d9f21fe950fa",
     "src/lib/content-contracts.test.mjs": "121a12caef5a10413c485fdffbea69747063910636eded193d8ae9c3a63b1e79",
     "src/lib/button-contracts.test.mjs": "b791163536f37c5090d0b5e57e8a5574a41d250ec50d0aae66ef59c65abbe0d8",
-    "src/lib/form-contracts.test.mjs": "344a21f3403593540eac9356ce831eb5a8d8deed3e9ccde4ad8278fe1c93d770",
+    "src/lib/form-contracts.test.mjs": "87868cbb7628d05c19fccc87bf71e2a072358fbc1185addcf5f440898ac12405",
     "src/lib/overlay-contracts.test.mjs": "8793c80d10b89be330797b67cb760ad1d1f9bbb2362360bfacaba6178ab5744d",
     "src/lib/interaction-contracts.test.mjs": "8e1ca72783142d4416035bc3c01dea3d5bb16acc1959fa69aedde289acf4fa7f",
     "src/lib/table-contracts.test.mjs": "bce68248ad728a4c4ca7172b5359befe7b2063b0e7e141e00fc554196a91bf36",
