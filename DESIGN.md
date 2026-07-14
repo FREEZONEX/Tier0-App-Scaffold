@@ -25,6 +25,8 @@ colors:
   surface-3: "var(--tier0-surface-muted)"
   hairline: "var(--tier0-border)"
   hairline-subtle: "var(--tier0-border-secondary)"
+  input-fill: "var(--tier0-input-bg)"
+  input-border: "var(--tier0-input-border)"
   semantic-success: "var(--tier0-success-color)"
   semantic-success-soft: "var(--tier0-success-tertiary)"
   semantic-error: "var(--tier0-error-color)"
@@ -149,10 +151,13 @@ components:
     minHeight: "var(--tier0-control-height-md)"
     padding: "0 var(--tier0-space-sm)"
   input:
-    backgroundColor: "{colors.surface-1}"
+    backgroundColor: "{colors.input-fill}"
     textColor: "{colors.ink}"
-    borderColor: "{colors.hairline}"
+    borderColor: "{colors.input-border}"
     focusColor: "{colors.highlight}"
+    # Form controls use a subtle fill + deeper border (not the hairline color)
+    # so a field reads as an editable box on white surfaces even unfocused.
+    # On focus the fill brightens to the surface color alongside the ring.
     typography: "{typography.body}"
     rounded: "{rounded.md}"
     minHeight: "var(--tier0-control-height-md)"

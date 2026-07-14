@@ -31,6 +31,11 @@
   --tier0-surface-muted: #e3e3e3;
   --tier0-border: #dcdcdc;
   --tier0-border-secondary: #e8e8e8;
+  /* Form controls need more definition than hairline dividers: a subtle fill
+     plus a deeper border so a field reads as an editable box on white
+     surfaces even when unfocused. */
+  --tier0-input-bg: #f4f4f5;
+  --tier0-input-border: #c2c2c4;
 
   --tier0-success-color: #166534;
   --tier0-success-tertiary: #dcfce7;
@@ -107,7 +112,8 @@
   --muted-foreground: var(--tier0-text-tertiary);
   --border: var(--tier0-border);
   --border-strong: #cfcfcf;
-  --input: var(--tier0-border);
+  --input: var(--tier0-input-border);
+  --input-bg: var(--tier0-input-bg);
   --ring: var(--tier0-highlight);
 
   --card: #ffffff;
@@ -202,6 +208,7 @@
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
   --color-input: var(--input);
+  --color-input-bg: var(--input-bg);
   --color-ring: var(--ring);
 
   --color-card: var(--card);
@@ -379,9 +386,19 @@ body {
   [role="combobox"],
   [role="listbox"],
   [role="menu"] {
-    background-color: var(--card) !important;
+    background-color: var(--input-bg) !important;
     color: var(--foreground);
     border-color: var(--input);
+  }
+
+  /* Brighten to the surface color on focus so the active field lifts off the
+     resting fill, alongside the highlight ring. */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):focus,
+  select:focus,
+  textarea:focus,
+  [role="combobox"]:focus,
+  [role="textbox"]:focus {
+    background-color: var(--card) !important;
   }
 
   input::placeholder,
