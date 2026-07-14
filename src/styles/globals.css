@@ -613,6 +613,13 @@ body {
     }
   }
 
+  /* Shrink a table column to its content (actions, checkboxes, badges) so
+     data columns get the freed width instead of stretching evenly. */
+  .table-col-fit {
+    width: 0.1%;
+    white-space: nowrap;
+  }
+
   .page-y-scroll {
     overflow-x: hidden;
     overflow-y: auto;

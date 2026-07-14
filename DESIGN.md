@@ -200,6 +200,10 @@ components:
     borderColor: "{colors.highlight-bg-primary}"
     rounded: "{rounded.sm}"
 
+layout:
+  workspace-container: "1440px centered"  # Shell caps content width; wide boards scroll internally
+  table-actions-column: "table-col-fit"   # trailing action/badge columns shrink to content
+
 motion:
   fast: "var(--tier0-motion-fast)"
   normal: "var(--tier0-motion-base)"
