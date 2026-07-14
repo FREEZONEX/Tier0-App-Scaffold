@@ -17,7 +17,7 @@ colors:
   ink-secondary: "var(--tier0-text-secondary)"
   ink-tertiary: "var(--tier0-text-tertiary)"
   ink-placeholder: "var(--tier0-text-placeholder)"
-  canvas: "var(--tier0-canvas)"  # page background — one step below white cards
+  canvas: "var(--tier0-canvas)"  # page background (pure white by user decision; depth via card border+shadow)
   canvas-raised: "var(--card)"
   canvas-offwhite: "var(--tier0-bg-secondary)"
   surface-1: "var(--tier0-bg-tertiary)"

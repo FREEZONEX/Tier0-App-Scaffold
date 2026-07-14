@@ -25,9 +25,11 @@
   --tier0-text-placeholder: #d9d9d9;
 
   --tier0-bg-color: #ffffff;
-  /* Page canvas sits one perceptible step below white cards so surfaces read
-     as layers instead of one flat plane. Cards/dialogs stay pure white. */
-  --tier0-canvas: #f7f7f8;
+  /* Page canvas. User decision 2026-07-13: pure white — the gray canvas
+     (#f7f7f8) read worse than white. Depth comes from card borders +
+     shadow-sm instead of background layering. Keep the token: canvas is the
+     one knob if this is ever revisited. */
+  --tier0-canvas: #ffffff;
   --tier0-bg-secondary: #fcfcfc;
   --tier0-bg-tertiary: #f9f9f9;
   --tier0-bg-accent: #f3f3f3;
