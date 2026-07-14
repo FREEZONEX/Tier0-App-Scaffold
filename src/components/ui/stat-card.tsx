@@ -115,13 +115,16 @@ export function StatCard({
       </div>
       <p
         className={cn(
-          "mt-1.5 text-2xl font-semibold leading-8 tabular-nums",
+          // Sized to read as a deliberate big-number KPI even when the card
+          // carries nothing but a label + value (its most common generated
+          // form) — a small number floating in a wide tile reads as hollow.
+          "mt-1 text-3xl font-semibold leading-9 tracking-tight tabular-nums",
           toneValueClass[tone],
         )}
       >
         {value}
         {unit && (
-          <span className="ml-1 text-sm font-normal text-muted-foreground">
+          <span className="ml-1 text-base font-normal text-muted-foreground">
             {unit}
           </span>
         )}
