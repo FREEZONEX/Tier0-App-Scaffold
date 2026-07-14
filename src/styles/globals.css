@@ -728,6 +728,22 @@ body {
     color: var(--tier0-text-tertiary);
   }
 
+  /* Inline text link. Brand-deep green marks "interactive" without competing
+     with status pills (those always carry a border + fill, so a bare green
+     link never reads as a running badge). Underline is a soft hairline that
+     firms up on hover — no color change, keeping the resting rhythm calm. */
+  .text-link {
+    color: var(--tier0-highlight-deep);
+    font-weight: var(--tier0-text-label-weight);
+    text-decoration: none;
+    border-bottom: 1px solid color-mix(in srgb, var(--tier0-highlight-deep) 30%, transparent);
+    transition: border-color var(--tier0-motion-fast);
+  }
+
+  .text-link:hover {
+    border-bottom-color: var(--tier0-highlight-deep);
+  }
+
   .typo-mono {
     font-family: var(--font-geist-mono);
     font-size: var(--tier0-text-mono-size);

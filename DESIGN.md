@@ -119,6 +119,7 @@ spacing:
 # - identifiers (doc/lot/location codes) render in font-mono
 # - highlight lime is a fill color only; text accents use highlight-deep
 # - status = StatusBadge + optional card accent bar; never tint whole cards
+# - available where useful: .text-link (inline links), StatCard tone + trend props
 components:
   button-highlight:
     backgroundColor: "{colors.highlight-bg-primary}"
