@@ -13,6 +13,16 @@ type ChromeRouteRule = {
 export const APP_PRIMARY_CHROME: AppChrome = "workspace";
 export const APP_HOME_ROUTE = "/";
 
+/**
+ * Product name shown in the sidebar brand mark and the browser tab title.
+ * This is the ONE place the app name is defined — change it here and it
+ * updates everywhere. Generated apps MUST replace this default with the real
+ * business app name (see AGENTS.md). Keep it short: it renders on at most two
+ * lines in the sidebar, so aim for one or two words plus an optional
+ * qualifier (e.g. "研发仓 WMS", "Supplier Portal").
+ */
+export const APP_NAME = "Manufacturing App";
+
 // Register every non-workspace route family here so navigation, default entry
 // routes, and sidebar modules all follow the same app chrome policy.
 const APP_CHROME_ROUTE_RULES: readonly ChromeRouteRule[] = [

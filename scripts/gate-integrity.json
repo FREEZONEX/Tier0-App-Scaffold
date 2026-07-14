@@ -16,7 +16,7 @@
     "src/lib/hooks-contracts.test.mjs": "36a2745d7a2f09b6846538f1940a76fdf62cd65840278ffd150a0d27662aa465",
     "src/lib/runtime-safety.test.mjs": "28bf080a1d3472dbc598ee3d27335a908c41041b10b277b393bd1dd239b96725",
     "src/lib/write-path-contracts.test.mjs": "b5d37d243fbbe3e92622e3d867d30797c7fd6a753f8eb680d599be68ee3ac2a8",
-    "scripts/ui-advisories.mjs": "fa50de39159b6bf39b3e154b1d19bb0149cf1455ed6b18bb8947100e5115f4fc",
+    "scripts/ui-advisories.mjs": "0c5a59eba4886dbfb03cdc5d6f88ec99e2b77eaf5066660fb996a2efe72b3e89",
     "scripts/route-smoke.mjs": "78aa61bcb4bdffcaff01bca357170f3bcfda48f13029f44ac8f2d42f82ee507c",
     "scripts/post-build-verify.mjs": "03980196c75bc2a317bab93883bfbcb95fe8750d8e8bd91422e5c7c5ebce48d6",
     "scripts/gate-integrity.mjs": "f3eedd033d027cb7ae47103bdff08a10def5ba89c636e9c261c015f2aaccf6ca"

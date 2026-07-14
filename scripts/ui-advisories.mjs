@@ -91,6 +91,19 @@ if (existsSync(PAGE_ROOT) && statSync(PAGE_ROOT).isDirectory()) {
     }
   }
 
+  // The app name is a template default until the generator sets it. A
+  // delivered app named "Manufacturing App" reads as unfinished — it should
+  // carry the real business name (APP_NAME in src/lib/app-chrome.ts).
+  const appChromePath = join(process.cwd(), "src/lib/app-chrome.ts");
+  if (existsSync(appChromePath)) {
+    const appChromeSource = readFileSync(appChromePath, "utf8");
+    if (/APP_NAME\s*=\s*["'`]Manufacturing App["'`]/.test(appChromeSource)) {
+      advisories.push(
+        'src/lib/app-chrome.ts: APP_NAME is still the template default "Manufacturing App" - set it to the business app name (short, fits two lines in the sidebar).',
+      );
+    }
+  }
+
   // Template test fixtures must not survive into delivered apps. The platform
   // role-switch fixtures (老板 / test_role_a / test_role_b) ship with the
   // template for gateway verification and will appear in every generated app
