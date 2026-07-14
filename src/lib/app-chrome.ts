@@ -23,6 +23,24 @@ export const APP_HOME_ROUTE = "/";
  */
 export const APP_NAME = "Manufacturing App";
 
+/**
+ * Product locale. Set it together with APP_NAME — it drives `<html lang>`
+ * (native date inputs localize from it: zh-CN renders 年/月/日) and the
+ * default labels of shared dialogs. Generated apps set this to the app's
+ * product language.
+ */
+export const APP_LOCALE: "en" | "zh-CN" = "en";
+
+const UI_COPY = {
+  en: { save: "Save", cancel: "Cancel", confirm: "Confirm" },
+  "zh-CN": { save: "保存", cancel: "取消", confirm: "确认" },
+} as const;
+
+/** Locale-aware default labels for shared UI primitives. */
+export function uiText(key: keyof (typeof UI_COPY)["en"]): string {
+  return UI_COPY[APP_LOCALE][key];
+}
+
 // Register every non-workspace route family here so navigation, default entry
 // routes, and sidebar modules all follow the same app chrome policy.
 const APP_CHROME_ROUTE_RULES: readonly ChromeRouteRule[] = [

@@ -17,7 +17,7 @@ colors:
   ink-secondary: "var(--tier0-text-secondary)"
   ink-tertiary: "var(--tier0-text-tertiary)"
   ink-placeholder: "var(--tier0-text-placeholder)"
-  canvas: "var(--tier0-bg-color)"
+  canvas: "var(--tier0-canvas)"  # page background — one step below white cards
   canvas-raised: "var(--card)"
   canvas-offwhite: "var(--tier0-bg-secondary)"
   surface-1: "var(--tier0-bg-tertiary)"
@@ -112,6 +112,13 @@ spacing:
   xxl: "var(--tier0-space-xxl)"
   section: "var(--tier0-space-section)"
 
+# The recipes below are implemented as scaffold primitives in
+# src/components/ui/ (Button variants, StatusBadge≈tag-status, Card≈panel,
+# PageHeader, StatusFilterChips, RiskBanner, EmptyState, StatCard) — compose
+# those instead of re-deriving styles from this file. Usage rules:
+# - identifiers (doc/lot/location codes) render in font-mono
+# - highlight lime is a fill color only; text accents use highlight-deep
+# - status = StatusBadge + optional card accent bar; never tint whole cards
 components:
   button-highlight:
     backgroundColor: "{colors.highlight-bg-primary}"
@@ -171,6 +178,7 @@ components:
     backgroundColor: "{colors.canvas-raised}"
     textColor: "{colors.ink}"
     borderColor: "{colors.hairline}"
+    boxShadow: "{shadow.sm}"  # raised surfaces carry subtle elevation on the canvas
     rounded: "{rounded.md}"
     padding: "{spacing.md}"
   table:

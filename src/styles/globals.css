@@ -25,6 +25,9 @@
   --tier0-text-placeholder: #d9d9d9;
 
   --tier0-bg-color: #ffffff;
+  /* Page canvas sits one perceptible step below white cards so surfaces read
+     as layers instead of one flat plane. Cards/dialogs stay pure white. */
+  --tier0-canvas: #f7f7f8;
   --tier0-bg-secondary: #fcfcfc;
   --tier0-bg-tertiary: #f9f9f9;
   --tier0-bg-accent: #f3f3f3;
@@ -106,7 +109,7 @@
   --tier0-text-mono-weight: 400;
 
   /* Minimal scaffold compatibility aliases */
-  --background: var(--tier0-bg-color);
+  --background: var(--tier0-canvas);
   --foreground: var(--tier0-text-color);
   --muted: var(--tier0-bg-tertiary);
   --muted-foreground: var(--tier0-text-tertiary);

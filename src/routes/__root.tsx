@@ -6,7 +6,13 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { Toaster } from "@/components/toaster";
-import { APP_NAME } from "@/lib/app-chrome";
+import { APP_LOCALE, APP_NAME } from "@/lib/app-chrome";
+import "@fontsource/ibm-plex-sans/400.css";
+import "@fontsource/ibm-plex-sans/500.css";
+import "@fontsource/ibm-plex-sans/600.css";
+import "@fontsource/ibm-plex-sans/700.css";
+import "@fontsource/inter/600.css";
+import "@fontsource/inter/700.css";
 import "@fontsource/ibm-plex-mono/400.css";
 import "@fontsource/ibm-plex-mono/500.css";
 import "@fontsource/ibm-plex-mono/600.css";
@@ -31,11 +37,11 @@ export const Route = createRootRoute({
 
 function RootDocument() {
   return (
-    <html lang="en" className="h-full antialiased font-sans">
+    <html lang={APP_LOCALE} className="h-full antialiased font-sans">
       <head>
         <HeadContent />
       </head>
-      <body className="min-h-full font-mono">
+      <body className="min-h-full font-sans">
         <Outlet />
         <Toaster />
         <Scripts />
