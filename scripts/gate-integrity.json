@@ -9,7 +9,7 @@
     "src/lib/form-contracts.test.mjs": "344a21f3403593540eac9356ce831eb5a8d8deed3e9ccde4ad8278fe1c93d770",
     "src/lib/overlay-contracts.test.mjs": "8793c80d10b89be330797b67cb760ad1d1f9bbb2362360bfacaba6178ab5744d",
     "src/lib/interaction-contracts.test.mjs": "8e1ca72783142d4416035bc3c01dea3d5bb16acc1959fa69aedde289acf4fa7f",
-    "src/lib/table-contracts.test.mjs": "08acba831f8b038964b0d736f7e4facb30ffc8e7683d8d9c908fef0d52b5d6b9",
+    "src/lib/table-contracts.test.mjs": "bce68248ad728a4c4ca7172b5359befe7b2063b0e7e141e00fc554196a91bf36",
     "src/lib/copy-contracts.test.mjs": "088e966a88889542f51f52e1fdb320fefdc4fed7861d8caddd9034ab465f05c2",
     "src/lib/db-contracts.test.mjs": "bc0a767ac93bdab7cbd0eb986af0bb9521124fa431adb3488ecaf65015ac8fbf",
     "src/lib/route-smoke-contracts.test.mjs": "7637b99326fa725c5a46d10d5c3fe1856b336e6d61339a99d45293de37b54da5",

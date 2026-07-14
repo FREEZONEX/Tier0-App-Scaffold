@@ -62,6 +62,18 @@ describe("table layout contracts", () => {
     assert.match(index, /TableStatusCell/);
     assert.match(tableLayout, /export function DataTable/);
     assert.match(index, /DataTable/);
+
+    // Incident guard (2026-07-13): generated pages once rendered bare
+    // <table> with zero padding because guidance redirected lists into
+    // tables while nothing styled them. The base-layer table defaults in
+    // globals.css are the safety net — they must never be removed.
+    const globals = readFileSync(
+      join(process.cwd(), "src/styles/globals.css"),
+      "utf8",
+    );
+    assert.match(globals, /table th \{[^}]*padding/s, "base th padding missing");
+    assert.match(globals, /table td \{[^}]*padding/s, "base td padding missing");
+    assert.match(globals, /table tbody tr:hover/, "base row hover missing");
   });
 
   it("flags generated tables without an intentional horizontal viewport", () => {
