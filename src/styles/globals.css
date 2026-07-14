@@ -454,6 +454,36 @@ body {
     font-feature-settings: "tnum", "zero";
   }
 
+  /* Business tables get usable defaults even when hand-written: column
+     padding, header treatment, row dividers, hover. Base layer — any utility
+     class on the element overrides these. */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--tier0-text-body-size);
+    line-height: var(--tier0-text-body-line);
+  }
+
+  table th {
+    padding: 8px 16px;
+    text-align: left;
+    font-size: var(--tier0-text-caption-size);
+    font-weight: 500;
+    color: var(--tier0-text-tertiary);
+    white-space: nowrap;
+    border-bottom: 1px solid var(--border);
+  }
+
+  table td {
+    padding: 10px 16px;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--border-secondary);
+  }
+
+  table tbody tr:hover {
+    background-color: var(--tier0-bg-tertiary);
+  }
+
   table td,
   table th {
     font-variant-numeric: tabular-nums;

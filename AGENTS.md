@@ -438,7 +438,10 @@ This template ships design-system primitives, not a business component library. 
   - `LineItemSection` contains multi-row line-item editors (order lines, BOM components, allocations, route steps) inside dialogs and pages without horizontal overflow.
   - `RecordSelect` is the default picker for business objects (orders, customers, equipment, assets, materials, batches, tasks). Pass `status` / `quantity` / `location` / `date` option metadata so users can identify the correct record, and pass `metaLabels` when the app locale is not English.
 - Use `@/components/actions` for action transparency: recommended, automatic, rule-based, optimized, and bulk operations must go through `RecommendationAction` (trigger button + preview dialog) or `ImpactPreviewDialog` (dialog only) so users see the recommendation basis, affected records, before/after changes, and reason before execution. Pass `labels` for non-English apps. Do not ship opaque one-click mutations for these actions.
-- Use `@/components/data` for dense business tables: wrap wide tables in
+- Use `@/components/data` for dense business tables: render entity lists with
+  `DataTable` (card frame + scroll viewport + full-width table; column padding,
+  header treatment, row dividers and hover come from the global table styles —
+  never hand-write a bare unpadded `<table>`), wrap other wide tables in
   `TableViewport`, use `TableStatusCell` for nowrap status/action cells, and
   use `TableCellText` or equivalent intentional wrapping/truncation for long
   object names, identifiers, quantities, locations, and dates. Do not rely on

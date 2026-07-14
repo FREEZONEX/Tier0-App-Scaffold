@@ -60,6 +60,8 @@ describe("table layout contracts", () => {
     assert.match(index, /TableViewport/);
     assert.match(index, /TableCellText/);
     assert.match(index, /TableStatusCell/);
+    assert.match(tableLayout, /export function DataTable/);
+    assert.match(index, /DataTable/);
   });
 
   it("flags generated tables without an intentional horizontal viewport", () => {
