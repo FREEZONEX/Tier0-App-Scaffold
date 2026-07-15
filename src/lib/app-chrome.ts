@@ -32,8 +32,22 @@ export const APP_NAME = "Manufacturing App";
 export const APP_LOCALE: "en" | "zh-CN" = "en";
 
 const UI_COPY = {
-  en: { save: "Save", cancel: "Cancel", confirm: "Confirm" },
-  "zh-CN": { save: "保存", cancel: "取消", confirm: "确认" },
+  en: {
+    save: "Save",
+    cancel: "Cancel",
+    confirm: "Confirm",
+    loadError: "Couldn't load data",
+    retry: "Reload",
+    empty: "No data yet",
+  },
+  "zh-CN": {
+    save: "保存",
+    cancel: "取消",
+    confirm: "确认",
+    loadError: "数据加载失败",
+    retry: "重新加载",
+    empty: "暂无数据",
+  },
 } as const;
 
 /** Locale-aware default labels for shared UI primitives. */

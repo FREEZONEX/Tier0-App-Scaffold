@@ -696,7 +696,7 @@ const userId = getRequestHeaders().get("X-App-User-ID");
 ### Step 1: Database Schema
 
 - Edit `src/db/schema.ts` — define enums, tables, Zod schemas, and types (see examples in file comments)
-- Every table MUST include `createdAt` and `updatedAt` timestamp columns
+- Every table MUST include `createdAt` and `updatedAt` — spread `...timestamps` (exported from `schema.ts`) into each table so they always exist; then `order by createdAt desc` is safe everywhere (never order by a column a table might not have)
 - Derive Zod schemas with `createInsertSchema()` / `createUpdateSchema()` — NEVER hand-write validation
 - Derive types with `$inferSelect` / `$inferInsert` — NEVER hand-write type interfaces
 - Runtime bootstrap is mandatory for implemented modules: each service must
@@ -1007,6 +1007,7 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 - **`db` imports ONLY in `src/services/**` and `src/db/seed.ts`** — never in routes, never in lib, never in client components
 - Server routes are thin HTTP shells: `requireAuth → parse → service call → Response.json`. If you find yourself calling `db.*` from a route handler, move that code into a service first
 - Client data fetching must be keyed by stable values, not render-created function identities. Prefer `useRequest(requestKey, loader)` from `@/lib/hooks` for reusable client loads. Page calls must pass stable keys for list/detail/filter state so successful `setState` does not immediately trigger another identical request. Reusable polling must stay single-flight; do not let slow responses accumulate across interval ticks.
+- Render a `useRequest` result through `<AsyncView result={...}>` (from `@/components/data`) rather than `if (!data) return null` — it shows loading / error-with-Reload / empty for you, so a failed fetch surfaces an error instead of an endless "loading".
 - TanStack Router `Route.useParams()` and `Route.useSearch()` are **synchronous** — never `await`
 - Define `validateSearch` (Zod) on routes that read query strings — gives type safety + validation
 - `createServerFn().handler(...)` is the equivalent of a Next server action; like server routes, the handler should delegate to a service for any non-trivial work

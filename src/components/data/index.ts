@@ -8,3 +8,4 @@ export {
   type TableStatusCellProps,
   type TableViewportProps,
 } from "./table-layout";
+export { AsyncView, type AsyncViewProps } from "./async-view";
