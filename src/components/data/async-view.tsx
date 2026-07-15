@@ -11,11 +11,13 @@ import { cn } from "@/lib/utils";
  * `if (!data) return null` (which stalls on an error as a fake "loading"):
  *
  *   - error with no data → message + Reload button (calls result.refresh)
- *   - no data yet        → skeleton
- *   - loaded             → children(data), or the empty view when isEmpty hits
+ *   - loading            → skeleton (only while in flight — a settled request
+ *                          with no data shows the empty view, never a spinner)
+ *   - loaded             → children(data); empty arrays show the empty view
+ *                          automatically, other shapes via isEmpty
  *
  *   const orders = useRequest("orders", loadOrders);
- *   <AsyncView result={orders} isEmpty={(d) => d.length === 0}>
+ *   <AsyncView result={orders}>
  *     {(data) => <OrderTable rows={data} />}
  *   </AsyncView>
  */
@@ -36,11 +38,13 @@ export function AsyncView<T>({
   empty,
   className,
 }: AsyncViewProps<T>) {
-  const { data, error, refresh } = result;
+  const { data, error, isLoading, refresh } = result;
+  const emptyView = empty ?? <EmptyState title={uiText("empty")} />;
 
   if (error && data == null) {
     return (
       <div
+        role="alert"
         className={cn(
           "flex flex-col items-center justify-center gap-3 rounded-lg border border-border bg-card px-6 py-10 text-center",
           className,
@@ -55,7 +59,10 @@ export function AsyncView<T>({
     );
   }
 
-  if (data == null) {
+  // Skeleton only while a request is actually in flight. A settled request
+  // with no data (e.g. `enabled: false`) falls through to the empty view —
+  // never an infinite skeleton, which is the fake-loading bug in disguise.
+  if (data == null && isLoading) {
     return (
       <div
         className={cn("space-y-3", className)}
@@ -72,8 +79,18 @@ export function AsyncView<T>({
     );
   }
 
-  if (isEmpty?.(data)) {
-    return <>{empty ?? <EmptyState title={uiText("empty")} />}</>;
+  if (data == null) {
+    return <>{emptyView}</>;
+  }
+
+  // Array payloads get the empty view by default; non-array payloads need an
+  // explicit isEmpty since we can't guess their shape.
+  const showEmpty = isEmpty
+    ? isEmpty(data)
+    : Array.isArray(data) && data.length === 0;
+
+  if (showEmpty) {
+    return <>{emptyView}</>;
   }
 
   return <>{children(data)}</>;

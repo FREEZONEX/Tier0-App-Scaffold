@@ -1,5 +1,5 @@
 export { Button, type ButtonProps, type ButtonVariant, type ButtonSize } from "./button";
-export { StatusBadge, type StatusBadgeProps, type StatusTone } from "./status-badge";
+export { StatusBadge, statusTone, type StatusBadgeProps, type StatusTone } from "./status-badge";
 export { Card, type CardProps } from "./card";
 export { PageHeader, type PageHeaderProps } from "./page-header";
 export {
