@@ -504,13 +504,22 @@ body {
     border-bottom: 1px solid var(--border);
   }
 
+  table thead {
+    background-color: var(--tier0-bg-tertiary);
+  }
+
   table td {
     padding: 10px 16px;
     vertical-align: middle;
-    border-bottom: 1px solid var(--border-secondary);
+    border-bottom: 1px solid var(--border);
   }
 
-  table tbody tr:hover {
+  table tbody tr {
+    transition: background-color var(--tier0-motion-fast);
+  }
+
+  table tbody tr:hover,
+  table tbody tr:focus-within {
     background-color: var(--tier0-bg-tertiary);
   }
 
