@@ -725,6 +725,8 @@ Pure configuration — no UI, no route handlers.
 - `bootstrapModule(...)` runs in two phases inside one transaction: first all
   `prepare` / `createTable` / `createIndexes` statements for the module, then
   all `seed` callbacks. Do not hand-roll create/seed ordering in services.
+- These runtime bootstrap and seed invariants are build-enforced. If a generated
+  service violates them, fix the service before reporting the app complete.
 
 ### Step 3: Services + Server Routes
 
@@ -978,7 +980,7 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 - **Locked gates vs template-state tests.** Contract tests come in two kinds:
   - *Template-state test — adapt it*: `src/lib/template-state.test.mjs` asserts the blank-template condition (empty navigation, no Overview). Building a real app makes those assertions wrong by design — rewrite them to describe your app, or empty the describe block. This is the ONLY contract file you may edit.
   - *Locked invariant gates — never edit*: every other test file in `src/lib/`, plus `scripts/ui-advisories.mjs`, `scripts/route-smoke.mjs`, `scripts/post-build-verify.mjs`, `scripts/gate-integrity.mjs`, and `scripts/gate-integrity.json`. The postbuild `Gate integrity` stage hash-pins these files and fails the build on any edit or deletion. If a locked gate blocks a legitimate case: use its documented opt-out marker (`EXTERNAL_CALLER`, `READ_ONLY_SURFACE`), restructure the code to satisfy the rule, or stop and surface the conflict to the user. Editing the gate is never the fix.
-- Run `npm run build` — fix errors and retry, max 3 attempts. In this scaffold `npm run build` is not build-only: `postbuild` automatically runs the required local verification flow (`typecheck`, `lint`, contract tests, and runtime-safety checks), then prints non-blocking `[advisory]` UI suggestions. Advisories never fail the build: treat them as improvement hints and apply them when they fit the current slice, not as errors to retry.
+- Run `npm run build` — fix errors and retry, max 3 attempts. In this scaffold `npm run build` is not build-only: `postbuild` automatically runs the required local verification flow (`typecheck`, `lint`, contract tests, runtime-safety checks, and the first-load runtime audit), then prints non-blocking `[advisory]` UI suggestions. Advisories never fail the build: treat them as improvement hints and apply them when they fit the current slice, not as errors to retry.
 - Do not bypass the required gate by running `vite build` directly unless you are debugging the bundler itself. Normal completion must go through `npm run build`.
 - When `postbuild` fails, fix the reported verification stage before declaring success.
 
@@ -1007,7 +1009,7 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 - **`db` imports ONLY in `src/services/**` and `src/db/seed.ts`** — never in routes, never in lib, never in client components
 - Server routes are thin HTTP shells: `requireAuth → parse → service call → Response.json`. If you find yourself calling `db.*` from a route handler, move that code into a service first
 - Client data fetching must be keyed by stable values, not render-created function identities. Prefer `useRequest(requestKey, loader)` from `@/lib/hooks` for reusable client loads. Page calls must pass stable keys for list/detail/filter state so successful `setState` does not immediately trigger another identical request. Reusable polling must stay single-flight; do not let slow responses accumulate across interval ticks.
-- Render a `useRequest` result through `<AsyncView result={...}>` (from `@/components/data`) rather than `if (!data) return null` — it shows loading / error-with-Reload / empty for you, so a failed fetch surfaces an error instead of an endless "loading".
+- Render a `useRequest` result through `<AsyncView result={...}>` (from `@/components/data`) rather than `if (!data) return null` — it shows loading / error-with-Reload / empty for you, so a failed fetch surfaces an error instead of an endless "loading". This is build-enforced; a generated app must not report completion while a request failure can masquerade as loading.
 - TanStack Router `Route.useParams()` and `Route.useSearch()` are **synchronous** — never `await`
 - Define `validateSearch` (Zod) on routes that read query strings — gives type safety + validation
 - `createServerFn().handler(...)` is the equivalent of a Next server action; like server routes, the handler should delegate to a service for any non-trivial work

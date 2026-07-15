@@ -7,6 +7,127 @@ import reactHooksPlugin from "eslint-plugin-react-hooks";
 import routerPlugin from "@tanstack/eslint-plugin-router";
 import globals from "globals";
 
+function staticName(node) {
+  if (!node) return null;
+  if (node.type === "Identifier" || node.type === "JSXIdentifier") {
+    return node.name;
+  }
+  return null;
+}
+
+function isNullReturn(statement) {
+  if (statement?.type === "ReturnStatement") {
+    return statement.argument?.type === "Literal" && statement.argument.value === null;
+  }
+  return (
+    statement?.type === "BlockStatement" &&
+    statement.body.length === 1 &&
+    isNullReturn(statement.body[0])
+  );
+}
+
+const runtimeFirstLoadRule = {
+  meta: {
+    type: "problem",
+    docs: {
+      description: "Keep generated data loading and runtime seed initialization fail-safe",
+    },
+    schema: [],
+  },
+  create(context) {
+    const filename = context.getFilename().replaceAll("\\", "/");
+    const sourceCode = context.sourceCode;
+    const isDataUiFile = /\/src\/(?:components|routes)\//.test(filename);
+    const isServiceFile = /\/src\/services\//.test(filename);
+    let requestCount = 0;
+    let asyncViewCount = 0;
+    let seedCount = 0;
+    let bootstrapCount = 0;
+
+    return {
+      CallExpression(node) {
+        const callee = node.callee;
+        if (callee.type !== "Identifier") return;
+        if (callee.name === "useRequest" && isDataUiFile) requestCount += 1;
+        if (callee.name === "bootstrapModule" && isServiceFile) bootstrapCount += 1;
+      },
+
+      JSXOpeningElement(node) {
+        if (staticName(node.name) === "AsyncView") asyncViewCount += 1;
+      },
+
+      IfStatement(node) {
+        if (
+          !isDataUiFile ||
+          node.test.type !== "UnaryExpression" ||
+          node.test.operator !== "!" ||
+          node.test.argument.type !== "Identifier" ||
+          node.test.argument.name !== "data" ||
+          !isNullReturn(node.consequent)
+        ) {
+          return;
+        }
+
+        context.report({
+          node,
+          message:
+            "Do not use if (!data) return null as a loading state; render the request through <AsyncView> so errors and empty data stay visible.",
+        });
+      },
+
+      Property(node) {
+        if (!isServiceFile || staticName(node.key) !== "seed") return;
+        seedCount += 1;
+
+        if (
+          node.value.type !== "ArrowFunctionExpression" &&
+          node.value.type !== "FunctionExpression"
+        ) {
+          context.report({
+            node,
+            message:
+              "Runtime seed callbacks must be inline functions so the idempotency contract can be checked.",
+          });
+          return;
+        }
+
+        const seedBody = sourceCode.getText(node.value.body);
+        if (!/\bonConflictDo(?:Update|Nothing)\s*\(/.test(seedBody)) {
+          context.report({
+            node,
+            message:
+              "Runtime seed callbacks must use onConflictDoUpdate() or onConflictDoNothing().",
+          });
+        }
+        if (/\bdb\s*\.\s*(?:insert|update|delete)\s*\(/.test(seedBody)) {
+          context.report({
+            node,
+            message:
+              "Runtime seed callbacks must write through the transactional tx, not the shared db client.",
+          });
+        }
+      },
+
+      "Program:exit"(node) {
+        if (isDataUiFile && requestCount > 0 && asyncViewCount === 0) {
+          context.report({
+            node,
+            message:
+              "Files using useRequest must render the result through <AsyncView>.",
+          });
+        }
+        if (isServiceFile && seedCount > 0 && bootstrapCount === 0) {
+          context.report({
+            node,
+            message:
+              "Runtime seed callbacks must be owned by bootstrapModule().",
+          });
+        }
+      },
+    };
+  },
+};
+
 const eslintConfig = defineConfig([
   globalIgnores([
     ".output/**",
@@ -35,6 +156,7 @@ const eslintConfig = defineConfig([
       react: reactPlugin,
       "react-hooks": reactHooksPlugin,
       "@tanstack/router": routerPlugin,
+      "tier0-runtime": { rules: { "first-load": runtimeFirstLoadRule } },
     },
     rules: {
       ...js.configs.recommended.rules,
@@ -43,6 +165,7 @@ const eslintConfig = defineConfig([
       ...reactHooksPlugin.configs.recommended.rules,
       "react/react-in-jsx-scope": "off",
       "react/prop-types": "off",
+      "tier0-runtime/first-load": "error",
       // TypeScript already enforces undefined identifiers — disable the JS rule
       // so TS-aware namespaces (e.g. React.HTMLAttributes) don't false-positive.
       "no-undef": "off",
