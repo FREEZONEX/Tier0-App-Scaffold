@@ -373,8 +373,8 @@ UTF-8 bytes read back as latin-1; the parser normalizes them before matching
 2. `src/start.ts` global middleware sees the request:
    - Mutating requests must be same-origin.
    - Public paths (`/login`, `/api/auth/*`, `/api/health`, `/api/manifest`, TanStack runtime/build assets) bypass auth.
-   - Gateway role present and valid in `PERMISSION_MATRIX`? → refresh the signed `mes-session` cookie if missing or stale, then continue the same request.
-   - Gateway role present but unknown to this app? → 403 fail closed.
+   - Gateway role authoritative — in `PERMISSION_MATRIX`, OR a gateway-injected Tier0 runtime role (`X-Tier0-Active-Role`/`X-Tier0-Preview-Role`)? → refresh the signed `mes-session` cookie if missing or stale, then continue. A gateway-injected role with no matrix entry enters with zero permissions (via `can()`).
+   - Role present but unknown AND not gateway-injected (a forgeable legacy/login value)? → 403 fail closed.
    - No gateway role + valid `mes-session` cookie? → pass through.
    - Gateway user present but no role and no session? → if `ADMIN_ROLE` exists, issue that fallback session and continue; otherwise 302 `/login?from=...`.
    - No gateway user and no session? → 401.
@@ -384,12 +384,12 @@ UTF-8 bytes read back as latin-1; the parser normalizes them before matching
 
 **Implications for Agent design:**
 - The `role` shipped by the gateway MUST exactly match a key in `PERMISSION_MATRIX`. Coordinate naming with the platform — "operator" vs "Operator" matters.
-- An unknown gateway role does NOT auto-elevate and does NOT fall back to a picker. It fails closed with 403.
+- A gateway-injected Tier0 role with no `PERMISSION_MATRIX` entry enters with zero permissions (it does NOT auto-elevate); an unknown role that is NOT gateway-injected fails closed with 403. Never fall back to a picker. Full rules: `docs/role-registration.md`.
 - When the gateway sends a role, `mes-session` is a cache of the resolved identity/role, not the source of truth.
 - The `Switch Role` button has been removed from `Shell` — under Mode A, the gateway is authoritative. Users who need a different role get it from the platform.
 - Role differences should appear as real permission effects: menu visibility, button availability, action guards, and data scope. Do not add page-body copy explaining what Admin, Operator, Member, or any other role can do.
 
-**What you (the Agent) need to do — complete ALL of these in one pass:**
+**What you (the Agent) need to do — complete ALL of these in one pass** (full conventions, format, and trust model: `docs/role-registration.md`):
 1. `src/lib/permissions.ts` — add every permissioned operation to `ACTIONS`, map each role in `PERMISSION_MATRIX`. Keep `[ADMIN_ROLE]: [...ACTIONS]` exactly as-is (contract-tested).
 2. `src/lib/role-metadata.ts` — add a `ROLE_METADATA` entry (label, description, defaultRoute) for every matrix role.
 3. `roles.json` — mirror every business role. `role_key` must equal the matrix key exactly (ASCII snake_case for new roles); admin is the app-internal fallback and stays out of this file. This file is what the platform reads to assign/switch roles.

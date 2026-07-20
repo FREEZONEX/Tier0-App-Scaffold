@@ -106,12 +106,15 @@ Browser -> Platform UI switches active role
             public path (/login, /api/auth/*, /api/health, /api/manifest, runtime/build assets)
               -> allow request
 
-            gateway role present and valid
+            gateway role authoritative (in PERMISSION_MATRIX, OR a
+            gateway-injected Tier0 runtime role — see role-registration.md)
               -> refresh mes-session if missing or stale
               -> continue the same request
-              -> allow request
+              -> allow request (a gateway-injected role with no matrix entry
+                 enters with zero permissions via can())
 
-            gateway role present but unknown to PERMISSION_MATRIX
+            role present but unknown AND not gateway-injected
+            (a forgeable legacy/login value)
               -> 403 fail closed
 
             no gateway role + valid mes-session cookie
@@ -145,8 +148,11 @@ Role definitions belong to the app. Role assignment belongs to the platform.
 5. The gateway injects that active role into forwarded requests
 6. The app validates the role against `PERMISSION_MATRIX` and refreshes session state
 
-The injected role string must exactly match a `PERMISSION_MATRIX` key.
-`"Operator"` and `"operator"` are different values. Unknown roles fail closed.
+The injected role string should match a `PERMISSION_MATRIX` key exactly
+(`"Operator"` ≠ `"operator"`) so it also carries permissions. A gateway-injected
+Tier0 role with no matrix entry still enters (zero permissions); only unknown
+roles that are NOT gateway-injected fail closed. Full rules and the three-file
+sync convention are in [`role-registration.md`](./role-registration.md).
 
 The Shell should not be treated as the authority for role switching. In the
 platform-authoritative model, the platform owns the active role and the iframe

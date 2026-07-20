@@ -10,10 +10,16 @@
  *      defense-in-depth against CSRF on top of `sameSite: "lax"` cookie.
  *   2. Public paths (login page, auth endpoints, health/manifest, build assets)
  *      pass through with no auth check.
- *   3. If the gateway supplies a valid app role, it is authoritative:
+ *   3. If the gateway supplies an authoritative app role, it wins:
  *      the middleware refreshes `mes-session` when missing or stale and
  *      continues the same request so iframe reloads do not need a second manual refresh.
- *   4. If the gateway supplies an unknown role, fail closed with 403.
+ *      A role is authoritative when it is either defined in PERMISSION_MATRIX
+ *      OR injected by the gateway's Tier0 runtime headers (deployed/preview) —
+ *      the latter is validated upstream by the gateway and is trusted even when
+ *      the app's PERMISSION_MATRIX has no matching entry yet (it simply resolves
+ *      to zero permissions via `can()` until the app defines them).
+ *   4. If the gateway supplies an unknown role that is NOT gateway-injected
+ *      (i.e. a forgeable legacy/login role), fail closed with 403.
  *   5. If no gateway role is present, fall back to the existing session cookie.
  *   6. If there is a gateway user but no role and no session (role not
  *      registered/bound on the platform yet), stay open: issue an admin
@@ -24,7 +30,7 @@
 
 import { createMiddleware, createStart } from "@tanstack/react-start";
 import { getCookie, setCookie } from "@tanstack/react-start/server";
-import { parseGatewayUser, type GatewayUser } from "@/lib/gateway";
+import { parseGatewayUser, getTrustedGatewayRole, type GatewayUser } from "@/lib/gateway";
 import { ADMIN_ROLE, PERMISSION_MATRIX } from "@/lib/permissions";
 import { decodeSession, encodeSession } from "@/lib/session";
 
@@ -143,10 +149,19 @@ const authBridge = createMiddleware().server(
     const gatewayUser = parseGatewayUser(request.headers);
 
     if (gatewayUser?.role) {
-      if (validRoles.length === 0) {
-        return jsonError(503, "No roles configured for this app");
-      }
-      if (!validRoles.includes(gatewayUser.role)) {
+      // A gateway-injected Tier0 runtime role (deployed/preview) is validated
+      // upstream and cannot be forged, so it is authoritative even when the
+      // app's PERMISSION_MATRIX has no entry for it yet. Matrix roles remain
+      // authoritative too. Any other unknown role is a forgeable legacy/login
+      // value → fail closed.
+      const roleIsAuthoritative =
+        getTrustedGatewayRole(request.headers) === gatewayUser.role ||
+        validRoles.includes(gatewayUser.role);
+
+      if (!roleIsAuthoritative) {
+        if (validRoles.length === 0) {
+          return jsonError(503, "No roles configured for this app");
+        }
         return jsonError(403, `Platform role is not recognized by this app: ${gatewayUser.role}`);
       }
 

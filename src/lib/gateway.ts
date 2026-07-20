@@ -98,6 +98,30 @@ export function getGatewayRole(headers: Headers): string | undefined {
 }
 
 /**
+ * Resolve the role ONLY when it is injected by the gateway's Tier0 runtime
+ * headers (`X-Tier0-Preview-Role` / `X-Tier0-Active-Role` under an explicit
+ * `X-Tier0-Runtime`). The gateway strips and re-injects `X-Tier0-*` on every
+ * request (B4) after validating the user against previewRoleStore / the
+ * runtime-roles API, so such a role cannot be forged by the client and is
+ * authoritative even when it is not present in the app's PERMISSION_MATRIX.
+ *
+ * Returns undefined for the legacy `X-App-User-Role` / JSON `user.role` paths,
+ * which are NOT stripped by the gateway and therefore must stay gated by
+ * PERMISSION_MATRIX. Reuses the same decode as getGatewayRole so non-ASCII
+ * role keys (e.g. `老板`) match.
+ */
+export function getTrustedGatewayRole(headers: Headers): string | undefined {
+  const runtime = readHeader(headers, "X-Tier0-Runtime")?.toLowerCase();
+  if (runtime === "preview") {
+    return normalizeRole(readHeader(headers, "X-Tier0-Preview-Role"));
+  }
+  if (runtime === "deployed") {
+    return normalizeRole(readHeader(headers, "X-Tier0-Active-Role"));
+  }
+  return undefined;
+}
+
+/**
  * Parse gateway-injected user identity from request headers.
  * Returns null if no recognizable user header is found.
  */
