@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, type FormEvent, type ReactNode } from "react";
+import { uiText } from "@/lib/app-chrome";
 import { Dialog, type DialogProps } from "@/components/overlays/dialog";
 import { OverlayActionButton } from "@/components/overlays/overlay-frame";
 
@@ -16,8 +17,8 @@ export interface FormDialogProps
 
 export function FormDialog({
   children,
-  submitLabel = "Save",
-  cancelLabel = "Cancel",
+  submitLabel = uiText("save"),
+  cancelLabel = uiText("cancel"),
   pending = false,
   submitVariant = "primary",
   onSubmit,

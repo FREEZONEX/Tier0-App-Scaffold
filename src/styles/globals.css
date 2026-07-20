@@ -25,12 +25,22 @@
   --tier0-text-placeholder: #d9d9d9;
 
   --tier0-bg-color: #ffffff;
+  /* Page canvas. User decision 2026-07-13: pure white — the gray canvas
+     (#f7f7f8) read worse than white. Depth comes from card borders +
+     shadow-sm instead of background layering. Keep the token: canvas is the
+     one knob if this is ever revisited. */
+  --tier0-canvas: #ffffff;
   --tier0-bg-secondary: #fcfcfc;
   --tier0-bg-tertiary: #f9f9f9;
   --tier0-bg-accent: #f3f3f3;
   --tier0-surface-muted: #e3e3e3;
   --tier0-border: #dcdcdc;
   --tier0-border-secondary: #e8e8e8;
+  /* Form controls need more definition than hairline dividers: a subtle fill
+     plus a deeper border so a field reads as an editable box on white
+     surfaces even when unfocused. */
+  --tier0-input-bg: #f4f4f5;
+  --tier0-input-border: #c2c2c4;
 
   --tier0-success-color: #166534;
   --tier0-success-tertiary: #dcfce7;
@@ -101,13 +111,14 @@
   --tier0-text-mono-weight: 400;
 
   /* Minimal scaffold compatibility aliases */
-  --background: var(--tier0-bg-color);
+  --background: var(--tier0-canvas);
   --foreground: var(--tier0-text-color);
   --muted: var(--tier0-bg-tertiary);
   --muted-foreground: var(--tier0-text-tertiary);
   --border: var(--tier0-border);
   --border-strong: #cfcfcf;
-  --input: var(--tier0-border);
+  --input: var(--tier0-input-border);
+  --input-bg: var(--tier0-input-bg);
   --ring: var(--tier0-highlight);
 
   --card: #ffffff;
@@ -202,6 +213,7 @@
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
   --color-input: var(--input);
+  --color-input-bg: var(--input-bg);
   --color-ring: var(--ring);
 
   --color-card: var(--card);
@@ -379,9 +391,47 @@ body {
   [role="combobox"],
   [role="listbox"],
   [role="menu"] {
-    background-color: var(--card) !important;
+    background-color: var(--input-bg) !important;
     color: var(--foreground);
     border-color: var(--input);
+  }
+
+  /* Base control sizing (companion to the color rule above): a bare <input>
+     written without classes renders at the scaffold control size instead of
+     the browser default — which on a form grid looks broken: tiny, unpadded,
+     content-width, so fields don't even fill their column. Same failure class
+     as the bare-table incident: color was backstopped, box model wasn't.
+     Base layer — any utility class on the element overrides. */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="file"]):not([type="range"]):not([type="color"]),
+  select,
+  [role="combobox"] {
+    width: 100%;
+    min-height: var(--tier0-control-height-md);
+    padding: 0 12px;
+    border-width: 1px;
+    border-radius: var(--tier0-radius);
+    font-size: var(--tier0-text-body-size);
+    line-height: var(--tier0-text-body-line);
+  }
+
+  textarea {
+    width: 100%;
+    min-height: calc(var(--tier0-control-height-md) * 2);
+    padding: 9px 12px;
+    border-width: 1px;
+    border-radius: var(--tier0-radius);
+    font-size: var(--tier0-text-body-size);
+    line-height: var(--tier0-text-body-line);
+  }
+
+  /* Brighten to the surface color on focus so the active field lifts off the
+     resting fill, alongside the highlight ring. */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):focus,
+  select:focus,
+  textarea:focus,
+  [role="combobox"]:focus,
+  [role="textbox"]:focus {
+    background-color: var(--card) !important;
   }
 
   input::placeholder,
@@ -432,6 +482,45 @@ body {
   samp {
     font-family: var(--font-geist-mono);
     font-feature-settings: "tnum", "zero";
+  }
+
+  /* Business tables get usable defaults even when hand-written: column
+     padding, header treatment, row dividers, hover. Base layer — any utility
+     class on the element overrides these. */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--tier0-text-body-size);
+    line-height: var(--tier0-text-body-line);
+  }
+
+  table th {
+    padding: 8px 16px;
+    text-align: left;
+    font-size: var(--tier0-text-caption-size);
+    font-weight: 500;
+    color: var(--tier0-text-tertiary);
+    white-space: nowrap;
+    border-bottom: 1px solid var(--border);
+  }
+
+  table thead {
+    background-color: var(--tier0-bg-tertiary);
+  }
+
+  table td {
+    padding: 10px 16px;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--border);
+  }
+
+  table tbody tr {
+    transition: background-color var(--tier0-motion-fast);
+  }
+
+  table tbody tr:hover,
+  table tbody tr:focus-within {
+    background-color: var(--tier0-bg-tertiary);
   }
 
   table td,
@@ -561,6 +650,13 @@ body {
     }
   }
 
+  /* Shrink a table column to its content (actions, checkboxes, badges) so
+     data columns get the freed width instead of stretching evenly. */
+  .table-col-fit {
+    width: 0.1%;
+    white-space: nowrap;
+  }
+
   .page-y-scroll {
     overflow-x: hidden;
     overflow-y: auto;
@@ -667,6 +763,22 @@ body {
     font-weight: var(--tier0-text-caption-weight);
     line-height: var(--tier0-text-caption-line);
     color: var(--tier0-text-tertiary);
+  }
+
+  /* Inline text link. Brand-deep green marks "interactive" without competing
+     with status pills (those always carry a border + fill, so a bare green
+     link never reads as a running badge). Underline is a soft hairline that
+     firms up on hover — no color change, keeping the resting rhythm calm. */
+  .text-link {
+    color: var(--tier0-highlight-deep);
+    font-weight: var(--tier0-text-label-weight);
+    text-decoration: none;
+    border-bottom: 1px solid color-mix(in srgb, var(--tier0-highlight-deep) 30%, transparent);
+    transition: border-color var(--tier0-motion-fast);
+  }
+
+  .text-link:hover {
+    border-bottom-color: var(--tier0-highlight-deep);
   }
 
   .typo-mono {

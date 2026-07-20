@@ -48,6 +48,7 @@ const steps = [
       "src/lib/hooks-contracts.test.mjs",
       "src/lib/runtime-safety.test.mjs",
       "src/lib/write-path-contracts.test.mjs",
+      "src/lib/ui-primitives-contracts.test.mjs",
       "src/lib/template-state.test.mjs",
     ],
   },

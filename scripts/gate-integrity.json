@@ -2,23 +2,24 @@
   "locked": {
     "src/lib/gateway.test.ts": "d28e53bb60cd381afbca8390e08c0e74c999d46d877450a822fbd93b5f68ba36",
     "src/lib/permissions.test.mjs": "c570af6942c0a347ae7697766f7953c84eea605ac1efe60b6d14cee4fb094fb8",
-    "src/lib/app-chrome.test.mjs": "7f126af7d5426a2470784f781f1b9549d61879ef00f8032bf966c1a3638c543f",
+    "src/lib/app-chrome.test.mjs": "fd34212c01e21000665423c95d7ce35acfaf416d758fb4cf8d9996ca72811796",
     "src/lib/navigation-contracts.test.mjs": "f8dd18b8ad26fd04a35b7aefeb7ed1ef1cd6954b68fbed833420d9f21fe950fa",
     "src/lib/content-contracts.test.mjs": "121a12caef5a10413c485fdffbea69747063910636eded193d8ae9c3a63b1e79",
     "src/lib/button-contracts.test.mjs": "b791163536f37c5090d0b5e57e8a5574a41d250ec50d0aae66ef59c65abbe0d8",
-    "src/lib/form-contracts.test.mjs": "344a21f3403593540eac9356ce831eb5a8d8deed3e9ccde4ad8278fe1c93d770",
+    "src/lib/form-contracts.test.mjs": "87868cbb7628d05c19fccc87bf71e2a072358fbc1185addcf5f440898ac12405",
     "src/lib/overlay-contracts.test.mjs": "8793c80d10b89be330797b67cb760ad1d1f9bbb2362360bfacaba6178ab5744d",
     "src/lib/interaction-contracts.test.mjs": "8e1ca72783142d4416035bc3c01dea3d5bb16acc1959fa69aedde289acf4fa7f",
-    "src/lib/table-contracts.test.mjs": "4ce41ea845b1b71af50b606e224c4cad4265a07f2e9635c4f741f945a296dad7",
+    "src/lib/table-contracts.test.mjs": "bce68248ad728a4c4ca7172b5359befe7b2063b0e7e141e00fc554196a91bf36",
     "src/lib/copy-contracts.test.mjs": "088e966a88889542f51f52e1fdb320fefdc4fed7861d8caddd9034ab465f05c2",
     "src/lib/db-contracts.test.mjs": "bc0a767ac93bdab7cbd0eb986af0bb9521124fa431adb3488ecaf65015ac8fbf",
     "src/lib/route-smoke-contracts.test.mjs": "7637b99326fa725c5a46d10d5c3fe1856b336e6d61339a99d45293de37b54da5",
     "src/lib/hooks-contracts.test.mjs": "36a2745d7a2f09b6846538f1940a76fdf62cd65840278ffd150a0d27662aa465",
     "src/lib/runtime-safety.test.mjs": "28bf080a1d3472dbc598ee3d27335a908c41041b10b277b393bd1dd239b96725",
     "src/lib/write-path-contracts.test.mjs": "b5d37d243fbbe3e92622e3d867d30797c7fd6a753f8eb680d599be68ee3ac2a8",
-    "scripts/ui-advisories.mjs": "fa50de39159b6bf39b3e154b1d19bb0149cf1455ed6b18bb8947100e5115f4fc",
+    "src/lib/ui-primitives-contracts.test.mjs": "1095b071be5230e942bbc1b5f5daa90458f63d3a12b4ac898d9801400df7a1a5",
+    "scripts/ui-advisories.mjs": "8ffe547642e714e90d1eab10091eb63d97d4a97d16142521b690c4755d8409de",
     "scripts/route-smoke.mjs": "78aa61bcb4bdffcaff01bca357170f3bcfda48f13029f44ac8f2d42f82ee507c",
-    "scripts/post-build-verify.mjs": "03980196c75bc2a317bab93883bfbcb95fe8750d8e8bd91422e5c7c5ebce48d6",
-    "scripts/gate-integrity.mjs": "f3eedd033d027cb7ae47103bdff08a10def5ba89c636e9c261c015f2aaccf6ca"
+    "scripts/post-build-verify.mjs": "090444e99f245213ecba410507045903ec777bafdb543d34e93323ea6ac9b681",
+    "scripts/gate-integrity.mjs": "7a58775112e32de09f80b9773a1192c42e6da7b5e17c5a08eb59dccc3a886080"
   }
 }

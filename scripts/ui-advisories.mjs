@@ -91,6 +91,50 @@ if (existsSync(PAGE_ROOT) && statSync(PAGE_ROOT).isDirectory()) {
     }
   }
 
+  // One product language: a page whose copy is CJK must not leak English UI
+  // verbs from hand-written controls (the shared dialogs localize via
+  // APP_LOCALE; this catches hand-rolled leftovers). Conservative word list to
+  // avoid flagging codes, units, or brand names.
+  const ENGLISH_UI_WORDS = />\s*(Cancel|Save|Confirm|Submit|Search|Loading\.{0,3})\s*</;
+  for (const file of walkFiles(PAGE_ROOT)) {
+    const name = relative(process.cwd(), file).replaceAll("\\", "/");
+    if (!/src\/routes\//.test(name)) continue;
+    const source = readFileSync(file, "utf8");
+    if (!/[一-鿿]/.test(source)) continue;
+    const match = source.match(ENGLISH_UI_WORDS);
+    if (match) {
+      advisories.push(
+        `${name}: mixed-language control copy ("${match[1]}") in a Chinese-copy page - product copy uses one language; use the app locale (shared dialogs localize via APP_LOCALE).`,
+      );
+    }
+  }
+
+  // Hand-styled primary buttons drift from the design system. The scaffold
+  // ships a Button primitive implementing the DESIGN.md recipes.
+  for (const file of walkFiles(PAGE_ROOT)) {
+    const name = relative(process.cwd(), file).replaceAll("\\", "/");
+    if (!/src\/routes\//.test(name)) continue;
+    const source = readFileSync(file, "utf8");
+    if (/<button[^>]*className="[^"]*\b(bg-primary|bg-button-primary|bg-highlight-bg-primary)\b/.test(source)) {
+      advisories.push(
+        `${name}: hand-styled primary button - use the Button primitive from @/components/ui (variants: highlight/primary/secondary/outline/ghost) so buttons stay on the design system.`,
+      );
+    }
+  }
+
+  // The app name is a template default until the generator sets it. A
+  // delivered app named "Manufacturing App" reads as unfinished — it should
+  // carry the real business name (APP_NAME in src/lib/app-chrome.ts).
+  const appChromePath = join(process.cwd(), "src/lib/app-chrome.ts");
+  if (existsSync(appChromePath)) {
+    const appChromeSource = readFileSync(appChromePath, "utf8");
+    if (/APP_NAME\s*=\s*["'`]Manufacturing App["'`]/.test(appChromeSource)) {
+      advisories.push(
+        'src/lib/app-chrome.ts: APP_NAME is still the template default "Manufacturing App" - set it to the business app name (short, fits two lines in the sidebar).',
+      );
+    }
+  }
+
   // Template test fixtures must not survive into delivered apps. The platform
   // role-switch fixtures (老板 / test_role_a / test_role_b) ship with the
   // template for gateway verification and will appear in every generated app

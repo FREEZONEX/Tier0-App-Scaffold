@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AppUser } from "@/lib/users";
-import { filterSidebarModules } from "@/lib/app-chrome";
+import { APP_NAME, filterSidebarModules } from "@/lib/app-chrome";
 import { getRoleMetadata } from "@/lib/role-metadata";
 import {
   defaultModules,
@@ -218,8 +218,11 @@ export function Shell({
           )}
           {!isCollapsed && showBrandIdentity && (
             <div className="min-w-0 overflow-hidden transition-[max-width,opacity,transform] duration-200 ease-out">
-              <p className="truncate text-sm font-semibold leading-5">
-                Manufacturing App
+              <p
+                className="line-clamp-2 break-words text-sm font-semibold leading-5"
+                title={APP_NAME}
+              >
+                {APP_NAME}
               </p>
             </div>
           )}
@@ -512,7 +515,11 @@ export function Shell({
             <Menu className="size-4" />
           </button>
         </div>
-        {children}
+        {/* Workspace content container: caps line lengths on wide monitors so
+            tables/cards don't stretch edge-to-edge with hollow gaps. Wide
+            boards scroll internally (TableViewport/wide-operational-scroll);
+            monitor/station chromes are separate layouts and stay full-bleed. */}
+        <div className="mx-auto w-full max-w-[1440px]">{children}</div>
       </main>
     </div>
   );

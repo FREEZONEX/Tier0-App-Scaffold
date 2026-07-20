@@ -35,6 +35,17 @@ describe("app chrome policy", () => {
     assert.match(policy, /prefix: "\/monitor"/);
   });
 
+  it("keeps the workspace content container (layout incident guard)", () => {
+    const shell = readFileSync(
+      join(process.cwd(), "src/components/Shell.tsx"),
+      "utf8",
+    );
+
+    // Wide-monitor guard: without the centered container, tables and cards
+    // stretch edge-to-edge with hollow gaps between sparse columns.
+    assert.match(shell, /max-w-\[1440px\]/);
+  });
+
   it("uses the centralized sidebar filter in Shell", () => {
     const shell = readFileSync(
       join(process.cwd(), "src/components/Shell.tsx"),

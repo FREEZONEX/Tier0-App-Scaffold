@@ -32,7 +32,7 @@ export function FieldGroup({
     <div
       {...props}
       data-field-group="true"
-      className={cn("grid min-w-0 gap-1.5", className)}
+      className={cn("grid min-w-0 content-start gap-1.5", className)}
     >
       {label ? (
         <FieldLabel
@@ -72,7 +72,7 @@ export function FormGrid({
       {...props}
       data-form-grid="true"
       className={cn(
-        "grid min-w-0 grid-cols-1 gap-4 [&>*]:min-w-0",
+        "grid min-w-0 grid-cols-1 items-start gap-4 [&>*]:min-w-0",
         columns === 2 && "md:grid-cols-2",
         className,
       )}

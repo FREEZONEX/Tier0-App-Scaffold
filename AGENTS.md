@@ -126,6 +126,7 @@ src/
     Shell.tsx                 ← Left sidebar nav rail — update defaultModules array; uses TanStack Router <Link> + useNavigate
     layouts/                  ← Minimal layout contracts: StationLayout, ReviewLayout, MonitorLayout, and app-specific custom layouts
     overlays/                 ← Lightweight Dialog, Drawer, ConfirmDialog, FormDialog primitives for app-local forms and decisions
+    ui/                       ← Design-system primitives (DESIGN.md recipes): Button, StatusBadge, Card, PageHeader, StatusFilterChips, RiskBanner, EmptyState, StatCard
     data/                     ← TableViewport and table cell helpers for dense enterprise data tables
     toaster.tsx               ← Sonner Toaster mount component
     client-only.tsx           ← Hydration boundary for libraries that cannot SSR
@@ -392,7 +393,7 @@ UTF-8 bytes read back as latin-1; the parser normalizes them before matching
 1. `src/lib/permissions.ts` — add every permissioned operation to `ACTIONS`, map each role in `PERMISSION_MATRIX`. Keep `[ADMIN_ROLE]: [...ACTIONS]` exactly as-is (contract-tested).
 2. `src/lib/role-metadata.ts` — add a `ROLE_METADATA` entry (label, description, defaultRoute) for every matrix role.
 3. `roles.json` — mirror every business role. `role_key` must equal the matrix key exactly (ASCII snake_case for new roles); admin is the app-internal fallback and stays out of this file. This file is what the platform reads to assign/switch roles.
-4. Replace the template test roles (`老板`, `test_role_a`, `test_role_b`) in all three files with the app's real business roles — never deliver them.
+4. The template ships with no business roles: `roles.json` starts empty and only the internal admin fallback exists. Add every business role to all three files; never invent demo/test roles to fill the gap.
 5. Enforce with `requireAuth("<role>")` in server routes and `can(role, action)` in the UI.
 6. Verify each delivered workflow as every defined role: admin must reach everything; each business role must reach the workflows the requirements assign to it.
 
@@ -422,10 +423,14 @@ A contract test enforces that the three role surfaces stay in sync; partial regi
 
 ## Minimal UI Scaffold
 
-This template intentionally does **not** ship a component library. Generate UI that fits the app being built, using Tailwind utilities, the tokens in `src/styles/globals.css`, and small app-specific components under `src/components/<domain>/` or next to the route that owns them.
+This template ships design-system primitives, not a business component library. `@/components/ui` implements the DESIGN.md recipes (buttons, badges, cards, page anatomy); domain primitives live in `forms/`, `overlays/`, `data/`, `actions/`. Business components are generated per app, using Tailwind utilities, the tokens in `src/styles/globals.css`, and small app-specific components under `src/components/<domain>/` or next to the route that owns them.
 
-- Do not import from `@/components/ui` or `@/components/mes`; those directories are not part of the scaffold.
-- Do not copy the support Gantt `components/ui` directory wholesale. Its Button/Input/Panel/Badge styling is represented here by the Tier0 tokens and the platform UI generation Skill.
+- Use `@/components/ui` for page anatomy and control styling: `PageHeader` opens every workspace page (eyebrow/title/description + right-side primary action slot); `Button` replaces hand-styled `<button>` (variants highlight/primary/secondary/outline/ghost — `highlight` is for THE one key action on a screen); `StatusBadge` is the one status shape — pass it the status value (`<StatusBadge status={x} />`) and it maps to a tone automatically (running/idle/paused/error/info); pass `tone` only to override; list pages get `StatusFilterChips` with live counts and a `RiskBanner` when the data contains risk states; empty lists render `EmptyState` with a working create action; dashboards use `StatCard` fed by real data; `Card` is the standard raised surface, with the `accent` left bar as the sanctioned per-card risk marker.
+- Layout rhythm: workspace content renders inside the Shell's centered 1440px container — do not fight it with your own page-level max-widths or full-viewport stretches; wide data boards scroll internally (`TableViewport` / `wide-operational-scroll`). In tables, give the trailing actions column (and checkbox/badge-only columns) `table-col-fit` so data columns absorb the width; tables with only 3-4 sparse columns should gain informative columns (dates, owners, locations) rather than stretching thin ones. Dashboards compose a stat row plus a work region (main queue : side risk panel ≈ 2:1) so the page does not end mid-screen.
+- Identifiers (document numbers, lot/batch numbers, location codes, SKUs) render in `font-mono` — tabular, scannable, visually distinct from prose.
+- Brand lime (`--tier0-highlight`) is a FILL color (selected states, focus ring, progress, chips); never use it as text color below 18px — text-level accents use `text-accent-strong`.
+- Status signals live in `StatusBadge` plus the Card `accent` left bar when a card carries risk. Do not tint whole card borders/backgrounds with status colors; page-level severity belongs in `RiskBanner`.
+- Do not import from `@/components/mes`; that directory is not part of the scaffold. Do not copy external Button/Input/Panel/Badge libraries wholesale — the `ui/` primitives already carry the Tier0 identity.
 - Use `@/components/overlays` for common app-local overlays: `Dialog`, `FormDialog`, `ConfirmDialog`, and `Drawer`. Do not recreate a shadcn-style overlay library.
 - Use `@/components/forms` for shared form primitives:
   - `FieldLabel` / `RequiredMark` keep required asterisks consistent across generated apps.
@@ -434,7 +439,10 @@ This template intentionally does **not** ship a component library. Generate UI t
   - `LineItemSection` contains multi-row line-item editors (order lines, BOM components, allocations, route steps) inside dialogs and pages without horizontal overflow.
   - `RecordSelect` is the default picker for business objects (orders, customers, equipment, assets, materials, batches, tasks). Pass `status` / `quantity` / `location` / `date` option metadata so users can identify the correct record, and pass `metaLabels` when the app locale is not English.
 - Use `@/components/actions` for action transparency: recommended, automatic, rule-based, optimized, and bulk operations must go through `RecommendationAction` (trigger button + preview dialog) or `ImpactPreviewDialog` (dialog only) so users see the recommendation basis, affected records, before/after changes, and reason before execution. Pass `labels` for non-English apps. Do not ship opaque one-click mutations for these actions.
-- Use `@/components/data` for dense business tables: wrap wide tables in
+- Use `@/components/data` for dense business tables: render entity lists with
+  `DataTable` (card frame + scroll viewport + full-width table; column padding,
+  header treatment, row dividers and hover come from the global table styles —
+  never hand-write a bare unpadded `<table>`), wrap other wide tables in
   `TableViewport`, use `TableStatusCell` for nowrap status/action cells, and
   use `TableCellText` or equivalent intentional wrapping/truncation for long
   object names, identifiers, quantities, locations, and dates. Do not rely on
@@ -688,7 +696,7 @@ const userId = getRequestHeaders().get("X-App-User-ID");
 ### Step 1: Database Schema
 
 - Edit `src/db/schema.ts` — define enums, tables, Zod schemas, and types (see examples in file comments)
-- Every table MUST include `createdAt` and `updatedAt` timestamp columns
+- Every table MUST include `createdAt` and `updatedAt` — spread `...timestamps` (exported from `schema.ts`) into each table so they always exist; then `order by createdAt desc` is safe everywhere (never order by a column a table might not have)
 - Derive Zod schemas with `createInsertSchema()` / `createUpdateSchema()` — NEVER hand-write validation
 - Derive types with `$inferSelect` / `$inferInsert` — NEVER hand-write type interfaces
 - Runtime bootstrap is mandatory for implemented modules: each service must
@@ -717,6 +725,8 @@ Pure configuration — no UI, no route handlers.
 - `bootstrapModule(...)` runs in two phases inside one transaction: first all
   `prepare` / `createTable` / `createIndexes` statements for the module, then
   all `seed` callbacks. Do not hand-roll create/seed ordering in services.
+- These runtime bootstrap and seed invariants are build-enforced. If a generated
+  service violates them, fix the service before reporting the app complete.
 
 ### Step 3: Services + Server Routes
 
@@ -970,7 +980,7 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 - **Locked gates vs template-state tests.** Contract tests come in two kinds:
   - *Template-state test — adapt it*: `src/lib/template-state.test.mjs` asserts the blank-template condition (empty navigation, no Overview). Building a real app makes those assertions wrong by design — rewrite them to describe your app, or empty the describe block. This is the ONLY contract file you may edit.
   - *Locked invariant gates — never edit*: every other test file in `src/lib/`, plus `scripts/ui-advisories.mjs`, `scripts/route-smoke.mjs`, `scripts/post-build-verify.mjs`, `scripts/gate-integrity.mjs`, and `scripts/gate-integrity.json`. The postbuild `Gate integrity` stage hash-pins these files and fails the build on any edit or deletion. If a locked gate blocks a legitimate case: use its documented opt-out marker (`EXTERNAL_CALLER`, `READ_ONLY_SURFACE`), restructure the code to satisfy the rule, or stop and surface the conflict to the user. Editing the gate is never the fix.
-- Run `npm run build` — fix errors and retry, max 3 attempts. In this scaffold `npm run build` is not build-only: `postbuild` automatically runs the required local verification flow (`typecheck`, `lint`, contract tests, and runtime-safety checks), then prints non-blocking `[advisory]` UI suggestions. Advisories never fail the build: treat them as improvement hints and apply them when they fit the current slice, not as errors to retry.
+- Run `npm run build` — fix errors and retry, max 3 attempts. In this scaffold `npm run build` is not build-only: `postbuild` automatically runs the required local verification flow (`typecheck`, `lint`, contract tests, runtime-safety checks, and the first-load runtime audit), then prints non-blocking `[advisory]` UI suggestions. Advisories never fail the build: treat them as improvement hints and apply them when they fit the current slice, not as errors to retry.
 - Do not bypass the required gate by running `vite build` directly unless you are debugging the bundler itself. Normal completion must go through `npm run build`.
 - When `postbuild` fails, fix the reported verification stage before declaring success.
 
@@ -999,6 +1009,7 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 - **`db` imports ONLY in `src/services/**` and `src/db/seed.ts`** — never in routes, never in lib, never in client components
 - Server routes are thin HTTP shells: `requireAuth → parse → service call → Response.json`. If you find yourself calling `db.*` from a route handler, move that code into a service first
 - Client data fetching must be keyed by stable values, not render-created function identities. Prefer `useRequest(requestKey, loader)` from `@/lib/hooks` for reusable client loads. Page calls must pass stable keys for list/detail/filter state so successful `setState` does not immediately trigger another identical request. Reusable polling must stay single-flight; do not let slow responses accumulate across interval ticks.
+- Render a `useRequest` result through `<AsyncView result={...}>` (from `@/components/data`) rather than `if (!data) return null` — it shows loading / error-with-Reload / empty for you, so a failed fetch surfaces an error instead of an endless "loading". This is build-enforced; a generated app must not report completion while a request failure can masquerade as loading.
 - TanStack Router `Route.useParams()` and `Route.useSearch()` are **synchronous** — never `await`
 - Define `validateSearch` (Zod) on routes that read query strings — gives type safety + validation
 - `createServerFn().handler(...)` is the equivalent of a Next server action; like server routes, the handler should delegate to a service for any non-trivial work
@@ -1103,6 +1114,6 @@ export const Route = createFileRoute("/api/work-orders/$id")({
   broken fragments.
 - UI: every page is mounted under the correct authenticated layout group (`_app`, `station`, `review`, `monitor`, or a custom layout when justified), and `/` lands in the correct primary experience. Every authenticated layout shell has a visible logout action. A single app does not mix Shell-sidebar pages with no-sidebar pages; sidebar modules, role default routes, and in-app navigation targets preserve the chosen app chrome. System configuration/settings pages are second-level sidebar items, not first-level modules, unless the entire app is only configuration. Tier0 SDK auth/connection configuration pages are not generated. All fetch via `apiUrl()` for local app APIs, reusable request hooks use stable request keys instead of inline loader function dependencies, recharts wrapped in `<ClientOnly>` AND `<ResponsiveContainer>`, toast on mutations, empty states with actions. Interactive pages are responsive at 375px+; monitor pages fit their intended fixed viewport. Workspace apps keep Shell navigation current; station/review/monitor/custom task apps remain no-sidebar consistently for the whole app. Product UI copy uses one explicit locale: normalize shell/dialog/loading/error copy to it, and do not ship mixed Chinese/English UI unless the user explicitly asks for bilingual output.
 - Hydration: no date/browser-API at first render, motion from `@/lib/motion`, valid HTML nesting, `Route.useParams()` / `Route.useSearch()` (never awaited), no server-only imports in client components, recharts/dnd-kit subtrees wrapped in `<ClientOnly>`
-- Branding: app-specific naming is applied consistently before declaring done. Check and update `src/routes/__root.tsx` `<title>` and `description`, `src/routes/login.tsx` login page brand copy, `src/components/Shell.tsx`, and any used layout shell in `src/components/layouts/`. Remove or replace scaffold/default copy such as "Application", "Home", "Ready", "MES", "MES App", "MES Console", "Industrial App", "Station Console", "Review Workspace", "Workspace Home", or "Industrial application scaffold" unless those names are intentionally part of the finished product.
+- Branding: the app name AND locale live in ONE place — `APP_NAME` and `APP_LOCALE` in `src/lib/app-chrome.ts`. `APP_LOCALE` drives `<html lang>` (native date inputs localize: zh-CN renders 年/月/日) and the shared dialogs' default labels — set both together. The app name lives in `APP_NAME`, consumed by the sidebar brand mark and the browser tab `<title>`. Set it to the real business app name (short: it renders on at most two lines in the sidebar; one or two words plus an optional qualifier, e.g. "研发仓 WMS", "Supplier Portal"). Leaving the `"Manufacturing App"` default raises a build advisory. Also update `src/routes/login.tsx` login page brand copy and any used layout shell in `src/components/layouts/`. Remove or replace scaffold/default copy such as "Application", "Home", "Ready", "MES", "MES App", "MES Console", "Industrial App", "Station Console", "Review Workspace", "Workspace Home", or "Industrial application scaffold" unless those names are intentionally part of the finished product.
 - Product copy: when the user asks for i18n, localization, translation, or copy cleanup, apply the platform copy/i18n Skill if it is available. Default to a single explicit locale per app surface and keep visible shell, dialog, button, loading, error, tooltip, and accessibility labels in that locale. Only introduce a message catalog when the requirements explicitly need runtime multi-language support. Do not render design-system commentary or implementation notes in visible UI. Text like "FX green only for key states", "Tier0 signal green", color-token explanations, layout guidance, or component usage notes belongs in docs/comments only.
 - Build: `npm run build` passes end to end, including the automatic `postbuild` verifier. That means `dist/{client,server}` exists, TypeScript passes, ESLint reports **0 warnings, 0 errors**, contract tests pass, and runtime-safety checks pass. When a preview URL is available, `npm run smoke:routes -- <url>` confirms the entry page does not render route-level runtime failure text.

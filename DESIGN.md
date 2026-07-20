@@ -17,7 +17,7 @@ colors:
   ink-secondary: "var(--tier0-text-secondary)"
   ink-tertiary: "var(--tier0-text-tertiary)"
   ink-placeholder: "var(--tier0-text-placeholder)"
-  canvas: "var(--tier0-bg-color)"
+  canvas: "var(--tier0-canvas)"  # page background (pure white by user decision; depth via card border+shadow)
   canvas-raised: "var(--card)"
   canvas-offwhite: "var(--tier0-bg-secondary)"
   surface-1: "var(--tier0-bg-tertiary)"
@@ -25,6 +25,8 @@ colors:
   surface-3: "var(--tier0-surface-muted)"
   hairline: "var(--tier0-border)"
   hairline-subtle: "var(--tier0-border-secondary)"
+  input-fill: "var(--tier0-input-bg)"
+  input-border: "var(--tier0-input-border)"
   semantic-success: "var(--tier0-success-color)"
   semantic-success-soft: "var(--tier0-success-tertiary)"
   semantic-error: "var(--tier0-error-color)"
@@ -110,6 +112,14 @@ spacing:
   xxl: "var(--tier0-space-xxl)"
   section: "var(--tier0-space-section)"
 
+# The recipes below are implemented as scaffold primitives in
+# src/components/ui/ (Button variants, StatusBadge≈tag-status, Card≈panel,
+# PageHeader, StatusFilterChips, RiskBanner, EmptyState, StatCard) — compose
+# those instead of re-deriving styles from this file. Usage rules:
+# - identifiers (doc/lot/location codes) render in font-mono
+# - highlight lime is a fill color only; text accents use highlight-deep
+# - status = StatusBadge + optional card accent bar; never tint whole cards
+# - available where useful: .text-link (inline links), StatCard tone + trend props
 components:
   button-highlight:
     backgroundColor: "{colors.highlight-bg-primary}"
@@ -149,10 +159,13 @@ components:
     minHeight: "var(--tier0-control-height-md)"
     padding: "0 var(--tier0-space-sm)"
   input:
-    backgroundColor: "{colors.surface-1}"
+    backgroundColor: "{colors.input-fill}"
     textColor: "{colors.ink}"
-    borderColor: "{colors.hairline}"
+    borderColor: "{colors.input-border}"
     focusColor: "{colors.highlight}"
+    # Form controls use a subtle fill + deeper border (not the hairline color)
+    # so a field reads as an editable box on white surfaces even unfocused.
+    # On focus the fill brightens to the surface color alongside the ring.
     typography: "{typography.body}"
     rounded: "{rounded.md}"
     minHeight: "var(--tier0-control-height-md)"
@@ -166,6 +179,7 @@ components:
     backgroundColor: "{colors.canvas-raised}"
     textColor: "{colors.ink}"
     borderColor: "{colors.hairline}"
+    boxShadow: "{shadow.sm}"  # raised surfaces carry subtle elevation on the canvas
     rounded: "{rounded.md}"
     padding: "{spacing.md}"
   table:
@@ -186,6 +200,10 @@ components:
     textColor: "{colors.highlight-foreground}"
     borderColor: "{colors.highlight-bg-primary}"
     rounded: "{rounded.sm}"
+
+layout:
+  workspace-container: "1440px centered"  # Shell caps content width; wide boards scroll internally
+  table-actions-column: "table-col-fit"   # trailing action/badge columns shrink to content
 
 motion:
   fast: "var(--tier0-motion-fast)"
