@@ -6,14 +6,16 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Factory,
   Lock,
   Menu,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AppUser } from "@/lib/users";
-import { APP_NAME, filterSidebarModules } from "@/lib/app-chrome";
+import { APP_ICON, APP_NAME, filterSidebarModules } from "@/lib/app-chrome";
+
+// JSX requires a capitalized component name to render APP_ICON.
+const BrandIcon = APP_ICON;
 import { getRoleMetadata } from "@/lib/role-metadata";
 import {
   defaultModules,
@@ -212,7 +214,7 @@ export function Shell({
           {showBrandIdentity && (
             <div className="flex shrink-0 items-center">
               <div className="flex size-8 shrink-0 items-center justify-center rounded-md border border-highlight-bg-primary bg-highlight-bg-accent text-accent-foreground">
-                <Factory className="size-4" />
+                <BrandIcon className="size-4" />
               </div>
             </div>
           )}
