@@ -1,6 +1,6 @@
 import { getCookie, getRequestHeaders } from "@tanstack/react-start/server";
 import type { AppUser } from "./users";
-import { parseGatewayUser, type GatewayUser } from "./gateway";
+import { parseGatewayUser, getTrustedGatewayRole, type GatewayUser } from "./gateway";
 import { decodeSession } from "./session";
 import { HttpError } from "./route-handlers";
 import { ADMIN_ROLE, PERMISSION_MATRIX } from "./permissions";
@@ -63,8 +63,17 @@ function readSessionUser(): AppUser | null {
  * or request middleware — never from client components.
  */
 export async function getCurrentUser(): Promise<AppUser | null> {
-  const gatewayUser = parseGatewayUser(new Headers(getRequestHeaders()));
-  if (gatewayUser?.id && isValidRole(gatewayUser.role)) {
+  const headers = new Headers(getRequestHeaders());
+  const gatewayUser = parseGatewayUser(headers);
+  // A gateway-injected Tier0 runtime role (deployed/preview) is authoritative
+  // even without a PERMISSION_MATRIX entry — mirror the middleware so SSR does
+  // not fall through to the admin fallback for a legitimately bound role.
+  if (
+    gatewayUser?.id &&
+    gatewayUser.role &&
+    (getTrustedGatewayRole(headers) === gatewayUser.role ||
+      isValidRole(gatewayUser.role))
+  ) {
     return toAppUser(gatewayUser, gatewayUser.role);
   }
 
