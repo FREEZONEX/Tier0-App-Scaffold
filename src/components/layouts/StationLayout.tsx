@@ -1,8 +1,12 @@
 "use client";
 
 import { type ReactNode } from "react";
-import { Activity, Factory } from "lucide-react";
+import { Activity } from "lucide-react";
 import type { AppUser } from "@/lib/users";
+import { APP_ICON } from "@/lib/app-chrome";
+
+// JSX requires a capitalized component name to render APP_ICON.
+const BrandIcon = APP_ICON;
 
 export function StationLayout({
   user,
@@ -16,7 +20,7 @@ export function StationLayout({
       <header className="flex shrink-0 flex-col gap-3 border-b border-border bg-card px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-5">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex size-10 shrink-0 items-center justify-center rounded-md border border-highlight-bg-primary bg-highlight-bg-accent text-highlight-text">
-            <Factory className="size-5" />
+            <BrandIcon className="size-5" />
           </div>
           <div className="min-w-0">
             <p className="truncate text-base font-semibold leading-6">Station Work</p>
