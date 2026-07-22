@@ -1,10 +1,14 @@
 import assert from "node:assert/strict";
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, it } from "node:test";
 
 const ROOTS = ["src/components", "src/routes", "src/lib"];
 const INTERVAL_ALLOWLIST = new Set(["src/lib/hooks.ts"]);
+
+function toPosixPath(filePath) {
+  return filePath.replaceAll("\\", "/");
+}
 
 function walkFiles(root) {
   const entries = readdirSync(root, { withFileTypes: true });
@@ -39,7 +43,7 @@ describe("runtime safety contracts", () => {
       }
 
       for (const file of walkFiles(root)) {
-        const rel = relative(process.cwd(), file);
+        const rel = toPosixPath(relative(process.cwd(), file));
         if (INTERVAL_ALLOWLIST.has(rel)) {
           continue;
         }
@@ -67,7 +71,7 @@ describe("runtime safety contracts", () => {
       }
 
       for (const file of walkFiles(root)) {
-        const rel = relative(process.cwd(), file);
+        const rel = toPosixPath(relative(process.cwd(), file));
         const source = readFileSync(file, "utf8");
         if (!/addEventListener\s*\(/.test(source)) {
           continue;
@@ -95,7 +99,7 @@ describe("runtime safety contracts", () => {
       }
 
       for (const file of walkFiles(root)) {
-        const rel = relative(process.cwd(), file);
+        const rel = toPosixPath(relative(process.cwd(), file));
         if (rel === "src/lib/hooks.ts") {
           continue;
         }
@@ -120,5 +124,13 @@ describe("runtime safety contracts", () => {
         ...offenders,
       ].join("\n"),
     );
+  });
+
+  it("does not keep a client TTL cache for the _app session user", () => {
+    const appRoute = readFileSync(join(process.cwd(), "src/routes/_app.tsx"), "utf8");
+    const cacheFile = join(process.cwd(), "src/lib/session-user-cache.ts");
+
+    assert.doesNotMatch(appRoute, /session-user-cache/);
+    assert.equal(existsSync(cacheFile), false, "Delete src/lib/session-user-cache.ts");
   });
 });

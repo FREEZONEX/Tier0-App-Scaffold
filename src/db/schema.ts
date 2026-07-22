@@ -7,6 +7,20 @@ import { jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-zod";
 import type { Mimic } from "@/hmi/schema/schema";
 
+/**
+ * Standard audit columns. Spread `...timestamps` into every table so
+ * `created_at` / `updated_at` always exist — then sorting or filtering by them
+ * is safe in any service (`order by created_at desc` is the sensible default
+ * for "newest first"). Do not order by a column a table might not have.
+ */
+export const timestamps = {
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .notNull()
+    .$onUpdateFn(() => new Date()),
+};
+
 // ─── Agent: define your enums and tables below ───
 //
 // Example enum:
@@ -20,8 +34,7 @@ import type { Mimic } from "@/hmi/schema/schema";
 //     targetQty:   integer("target_qty").notNull(),
 //     status:      orderStatus("status").default("DRAFT"),
 //     notes:       text("notes"),
-//     createdAt:   timestamp("created_at").defaultNow().notNull(),
-//     updatedAt:   timestamp("updated_at").defaultNow().notNull().$onUpdateFn(() => new Date()),
+//     ...timestamps,   // every table gets created_at / updated_at
 //   });
 //
 // Zod schemas (derive from table — do NOT hand-write):

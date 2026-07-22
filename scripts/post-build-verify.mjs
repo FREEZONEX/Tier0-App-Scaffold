@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs";
 import { spawnSync } from "node:child_process";
+import { dirname, join } from "node:path";
 
 const steps = [
   {
@@ -13,6 +14,10 @@ const steps = [
     },
   },
   {
+    label: "Gate integrity",
+    command: ["node", "scripts/gate-integrity.mjs"],
+  },
+  {
     label: "TypeScript",
     command: ["npm", "run", "typecheck"],
   },
@@ -24,15 +29,45 @@ const steps = [
     label: "Contract tests",
     command: [
       "node",
+      "--import",
+      "tsx",
       "--test",
+      "src/lib/gateway.test.ts",
       "src/lib/permissions.test.mjs",
       "src/lib/app-chrome.test.mjs",
+      "src/lib/navigation-contracts.test.mjs",
+      "src/lib/content-contracts.test.mjs",
       "src/lib/button-contracts.test.mjs",
+      "src/lib/form-contracts.test.mjs",
+      "src/lib/overlay-contracts.test.mjs",
+      "src/lib/interaction-contracts.test.mjs",
+      "src/lib/table-contracts.test.mjs",
+      "src/lib/copy-contracts.test.mjs",
+      "src/lib/db-contracts.test.mjs",
+      "src/lib/route-smoke-contracts.test.mjs",
       "src/lib/hooks-contracts.test.mjs",
       "src/lib/runtime-safety.test.mjs",
+      "src/lib/write-path-contracts.test.mjs",
+      "src/lib/ui-primitives-contracts.test.mjs",
+      "src/lib/template-state.test.mjs",
     ],
   },
+  {
+    label: "UI advisories (non-blocking)",
+    command: ["node", "scripts/ui-advisories.mjs"],
+  },
 ];
+
+function resolveCommand(command) {
+  if (process.platform === "win32" && command === "npm") {
+    const npmCli = join(dirname(process.execPath), "node_modules/npm/bin/npm-cli.js");
+    if (existsSync(npmCli)) {
+      return { command: process.execPath, argsPrefix: [npmCli] };
+    }
+  }
+
+  return { command, argsPrefix: [] };
+}
 
 for (const step of steps) {
   console.log(`\n[postbuild] ${step.label}`);
@@ -44,10 +79,14 @@ for (const step of steps) {
   }
 
   const [command, ...args] = step.command;
-  const result = spawnSync(command, args, {
+  const resolved = resolveCommand(command);
+  const result = spawnSync(resolved.command, [...resolved.argsPrefix, ...args], {
     stdio: "inherit",
-    shell: process.platform === "win32",
   });
+
+  if (result.error) {
+    console.error(`[postbuild] failed to start ${command}: ${result.error.message}`);
+  }
 
   if (result.status !== 0) {
     process.exit(result.status ?? 1);

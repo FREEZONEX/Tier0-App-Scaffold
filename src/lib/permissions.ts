@@ -14,7 +14,14 @@
 import { ROLE_METADATA, getRoleMetadata } from "./role-metadata";
 
 export const ADMIN_ROLE = "admin";
-/** No permissions at all — used when the gateway has no real role to inject (e.g. an unassigned viewer). */
+/**
+ * No permissions at all — used when the gateway has no real role to inject
+ * (e.g. an unassigned viewer). Deliberately NOT a PERMISSION_MATRIX key: it
+ * is app-internal, like ADMIN_ROLE, and must never be a platform-assignable
+ * business role (see docs/role-registration.md). `can()` already resolves
+ * any unrecognized role to zero permissions, so leaving it out of the matrix
+ * is sufficient — the fallback session still mints with this role string.
+ */
 export const GUEST_ROLE = "guest";
 
 export const ACTIONS = [
@@ -35,7 +42,6 @@ export type Action = (typeof ACTIONS)[number];
 
 export const PERMISSION_MATRIX: Record<string, Action[]> = {
   [ADMIN_ROLE]: [...ACTIONS],
-  [GUEST_ROLE]: [],
   sales: ["view_dashboard", "manage_sales_orders"],
   planner: ["view_dashboard", "manage_work_orders", "manage_scheduling"],
   production_supervisor: [

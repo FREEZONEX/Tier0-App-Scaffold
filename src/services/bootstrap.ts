@@ -1,5 +1,6 @@
 import { sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
+import { rowsOf } from "@/services/db-results";
 
 type BootstrapTx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
@@ -108,17 +109,4 @@ function quoteIdentifier(identifier: string) {
     throw new Error(`Unsafe PostgreSQL identifier: ${identifier}`);
   }
   return `"${identifier.replaceAll('"', '""')}"`;
-}
-
-function rowsOf(result: unknown): unknown[] {
-  if (Array.isArray(result)) return result;
-  if (
-    result &&
-    typeof result === "object" &&
-    "rows" in result &&
-    Array.isArray((result as { rows: unknown }).rows)
-  ) {
-    return (result as { rows: unknown[] }).rows;
-  }
-  return [];
 }

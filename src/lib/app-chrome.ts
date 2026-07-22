@@ -1,3 +1,5 @@
+import { Activity, type LucideIcon } from "lucide-react";
+
 export type AppChrome =
   | "workspace"
   | "station"
@@ -12,6 +14,57 @@ type ChromeRouteRule = {
 
 export const APP_PRIMARY_CHROME: AppChrome = "workspace";
 export const APP_HOME_ROUTE = "/";
+
+/**
+ * Product name shown in the sidebar brand mark and the browser tab title.
+ * This is the ONE place the app name is defined — change it here and it
+ * updates everywhere. Generated apps MUST replace this default with the real
+ * business app name (see AGENTS.md). Keep it short: it renders on at most two
+ * lines in the sidebar, so aim for one or two words plus an optional
+ * qualifier (e.g. "研发仓 WMS", "Supplier Portal").
+ */
+export const APP_NAME = "HMI SCADA";
+
+/**
+ * Brand icon shown in the sidebar / station brand mark. This is the ONE place
+ * the brand icon is defined. Pick ONE fitting lucide-react icon for the app's
+ * business domain — never generate icon artwork — and set it together with
+ * APP_NAME. Keep the platform app icon in sync with the same icon via the
+ * `update_app_info` tool (see AGENTS.md "Branding").
+ */
+export const APP_ICON: LucideIcon = Activity;
+
+/**
+ * Product locale. Set it together with APP_NAME — it drives `<html lang>`
+ * (native date inputs localize from it: zh-CN renders 年/月/日) and the
+ * default labels of shared dialogs. Generated apps set this to the app's
+ * product language.
+ */
+export const APP_LOCALE: "en" | "zh-CN" = "zh-CN";
+
+const UI_COPY = {
+  en: {
+    save: "Save",
+    cancel: "Cancel",
+    confirm: "Confirm",
+    loadError: "Couldn't load data",
+    retry: "Reload",
+    empty: "No data yet",
+  },
+  "zh-CN": {
+    save: "保存",
+    cancel: "取消",
+    confirm: "确认",
+    loadError: "数据加载失败",
+    retry: "重新加载",
+    empty: "暂无数据",
+  },
+} as const;
+
+/** Locale-aware default labels for shared UI primitives. */
+export function uiText(key: keyof (typeof UI_COPY)["en"]): string {
+  return UI_COPY[APP_LOCALE][key];
+}
 
 // Register every non-workspace route family here so navigation, default entry
 // routes, and sidebar modules all follow the same app chrome policy.

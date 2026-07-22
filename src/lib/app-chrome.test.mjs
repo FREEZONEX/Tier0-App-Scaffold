@@ -3,6 +3,10 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, it } from "node:test";
 
+function toPosixPath(filePath) {
+  return filePath.replaceAll("\\", "/");
+}
+
 describe("app chrome policy", () => {
   function walkRouteFiles(root) {
     const files = [];
@@ -31,6 +35,17 @@ describe("app chrome policy", () => {
     assert.match(policy, /prefix: "\/monitor"/);
   });
 
+  it("keeps the workspace content container (layout incident guard)", () => {
+    const shell = readFileSync(
+      join(process.cwd(), "src/components/Shell.tsx"),
+      "utf8",
+    );
+
+    // Wide-monitor guard: without the centered container, tables and cards
+    // stretch edge-to-edge with hollow gaps between sparse columns.
+    assert.match(shell, /max-w-\[1440px\]/);
+  });
+
   it("uses the centralized sidebar filter in Shell", () => {
     const shell = readFileSync(
       join(process.cwd(), "src/components/Shell.tsx"),
@@ -45,7 +60,7 @@ describe("app chrome policy", () => {
     const routeFiles = walkRouteFiles(join(process.cwd(), "src/routes"));
     const markerFiles = routeFiles
       .filter((file) => readFileSync(file, "utf8").includes("TEMPLATE_BLANK_ROUTE"))
-      .map((file) => relative(process.cwd(), file));
+      .map((file) => toPosixPath(relative(process.cwd(), file)));
 
     assert.ok(
       markerFiles.length <= 1,

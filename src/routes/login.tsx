@@ -11,8 +11,10 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeaders, setCookie } from "@tanstack/react-start/server";
+import { useEffect } from "react";
 import { z } from "zod";
 import { parseGatewayUser } from "@/lib/gateway";
+import { sendPreviewError } from "@/lib/preview-bridge";
 import { GUEST_ROLE } from "@/lib/permissions";
 import { encodeSession } from "@/lib/session";
 
@@ -64,14 +66,19 @@ export const Route = createFileRoute("/login")({
     from: z.string().optional(),
   }),
   beforeLoad: async ({ search }) => {
-    await createGuestSession();
-    throw redirect({
-      to: normalizeRedirectPath(search.from) as never,
-    });
+    const ok = await createGuestSession();
+    if (ok) {
+      throw redirect({
+        to: normalizeRedirectPath(search.from) as never,
+      });
+    }
   },
   component: LoginBridge,
 });
 
 function LoginBridge() {
+  useEffect(() => {
+    sendPreviewError('Platform authentication required', 'auth');
+  }, []);
   return null;
 }

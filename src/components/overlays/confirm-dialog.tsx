@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertTriangle } from "lucide-react";
+import { uiText } from "@/lib/app-chrome";
 import { Dialog } from "@/components/overlays/dialog";
 import { OverlayActionButton } from "@/components/overlays/overlay-frame";
 
@@ -21,8 +22,8 @@ export function ConfirmDialog({
   onOpenChange,
   title,
   description,
-  confirmLabel = "Confirm",
-  cancelLabel = "Cancel",
+  confirmLabel = uiText("confirm"),
+  cancelLabel = uiText("cancel"),
   destructive = false,
   pending = false,
   onConfirm,

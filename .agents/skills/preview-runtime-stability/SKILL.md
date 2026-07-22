@@ -1,6 +1,16 @@
 ---
 name: preview-runtime-stability
-description: Diagnose and fix managed preview startup failures for TanStack Start or Vite apps in UNS-SWE executor sandboxes. Use when the user reports "Failed to load preview", "Preview loading timed out", "dev server exited: exit status 1", `{"status":500,"unhandled":true,"message":"HTTPError"}`, Tier0 SDK SSR/noExternal issues, preview_start, preview/status, live preview, Vite dev server, port 5173, /api/health, stale npm/node processes, sandbox preview process cleanup problems, missing node_modules or uninstalled dependencies, npm install/npm ci dependency restore (e.g. uploaded projects shipped without node_modules), or frequent full page reloads / broken HMR / React Fast Refresh / Vite optimizeDeps re-optimization during development.
+description: >-
+  Diagnose and fix managed preview startup failures for TanStack Start or Vite
+  apps in UNS-SWE executor sandboxes. Use when the user reports "Failed to load
+  preview", "Preview loading timed out", "dev server exited: exit status 1",
+  `{"status":500,"unhandled":true,"message":"HTTPError"}`, Tier0 SDK
+  SSR/noExternal issues, preview_start, preview/status, live preview, Vite dev
+  server, port 5173, /api/health, stale npm/node processes, sandbox preview
+  process cleanup problems, missing node_modules or uninstalled dependencies,
+  npm install/npm ci dependency restore (e.g. uploaded projects shipped without
+  node_modules), or frequent full page reloads / broken HMR / React Fast
+  Refresh / Vite optimizeDeps re-optimization during development.
 ---
 
 # Preview Runtime Stability

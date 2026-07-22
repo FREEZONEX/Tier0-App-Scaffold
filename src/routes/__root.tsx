@@ -6,6 +6,13 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { Toaster } from "@/components/toaster";
+import { APP_LOCALE, APP_NAME } from "@/lib/app-chrome";
+import "@fontsource/ibm-plex-sans/400.css";
+import "@fontsource/ibm-plex-sans/500.css";
+import "@fontsource/ibm-plex-sans/600.css";
+import "@fontsource/ibm-plex-sans/700.css";
+import "@fontsource/inter/600.css";
+import "@fontsource/inter/700.css";
 import "@fontsource/ibm-plex-mono/400.css";
 import "@fontsource/ibm-plex-mono/500.css";
 import "@fontsource/ibm-plex-mono/600.css";
@@ -16,7 +23,7 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "HMI SCADA" },
+      { title: APP_NAME },
       { name: "description", content: "Factory HMI process monitoring and control." },
     ],
     links: [
@@ -30,11 +37,11 @@ export const Route = createRootRoute({
 
 function RootDocument() {
   return (
-    <html lang="zh-CN" className="h-full antialiased font-sans">
+    <html lang={APP_LOCALE} className="h-full antialiased font-sans">
       <head>
         <HeadContent />
       </head>
-      <body className="min-h-full font-mono">
+      <body className="min-h-full font-sans">
         <Outlet />
         <Toaster />
         <Scripts />
@@ -45,13 +52,13 @@ function RootDocument() {
 
 function NotFound() {
   return (
-    <div className="flex h-full items-center justify-center p-12">
+    <div className="flex h-full items-center justify-center p-6 sm:p-12">
       <div className="text-center">
-        <p className="text-4xl font-semibold">404</p>
-        <p className="mt-2 text-xs text-muted-foreground">页面不存在</p>
+        <p className="text-4xl font-semibold sm:text-5xl">404</p>
+        <p className="mt-2 text-sm text-muted-foreground sm:text-base">页面不存在</p>
         <Link
           to="/"
-          className="mt-4 inline-flex h-8 items-center justify-center rounded-sm border border-border bg-card px-3 text-xs font-medium text-foreground shadow-sm transition-[background-color,border-color,box-shadow] duration-150 hover:border-border-strong hover:bg-background hover:shadow-md focus:border-highlight focus:outline-none"
+          className="mt-4 inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-3 text-sm font-medium text-foreground shadow-sm transition-[background-color,border-color,box-shadow] duration-150 hover:border-border-strong hover:bg-background hover:shadow-md focus:border-highlight focus:outline-none"
         >
           返回首页
         </Link>

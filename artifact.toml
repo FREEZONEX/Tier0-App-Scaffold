@@ -50,17 +50,9 @@ install = ["npm", "install"]
 args = ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]
 port = 5173
 
-[services.preview.health]
-path = "/api/health"
-timeout = 180
-
 [services.preview.env]
 NODE_ENV = "development"
 HOST = "0.0.0.0"
 BROWSER = "none"
 VITE_ALLOWED_HOSTS = "all"
 SESSION_SECRET = "preview-session-secret-0123456789abcdef"
-PREVIEW_USER_ID = "preview-admin"
-PREVIEW_USER_NAME = "Preview Admin"
-PREVIEW_USER_EMAIL = "preview.admin@example.com"
-PREVIEW_USER_ROLE = "admin"

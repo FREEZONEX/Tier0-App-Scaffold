@@ -12,6 +12,11 @@ export const ROLE_METADATA = {
     description: "Configure the system, manage permissions, and handle cross-module administration.",
     defaultRoute: APP_HOME_ROUTE,
   },
+  guest: {
+    label: "Guest",
+    description: "View-only access with no edit permissions. Assigned when the platform has not bound a role yet.",
+    defaultRoute: APP_HOME_ROUTE,
+  },
   sales: {
     label: "Sales",
     description: "Review customer demand, order progress, and delivery-related information.",

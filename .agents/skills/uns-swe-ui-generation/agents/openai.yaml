@@ -1,4 +1,0 @@
-interface:
-  display_name: "UNS-SWE UI Generation"
-  short_description: "Generate scaffold-native app UI"
-  default_prompt: "Use $uns-swe-ui-generation to build scaffold-native frontend UI for this app workflow."

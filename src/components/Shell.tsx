@@ -6,14 +6,16 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Factory,
   Lock,
   Menu,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AppUser } from "@/lib/users";
-import { filterSidebarModules } from "@/lib/app-chrome";
+import { APP_ICON, APP_NAME, filterSidebarModules } from "@/lib/app-chrome";
+
+// JSX requires a capitalized component name to render APP_ICON.
+const BrandIcon = APP_ICON;
 import { getRoleMetadata } from "@/lib/role-metadata";
 import {
   defaultModules,
@@ -27,17 +29,84 @@ const COLLAPSED_STORAGE_EVENT = "tier0-shell-collapsed-change";
 const sidebarItemBase =
   "group flex items-center rounded-sm border text-sm font-medium transition-[background-color,border-color,color,box-shadow] duration-150 focus:outline-none focus:ring-2 focus:ring-highlight/30";
 const sidebarItemActive =
-  "border-highlight-bg-primary bg-highlight-bg-accent text-accent-foreground shadow-sm";
+  "border-border bg-highlight-bg-accent text-accent-foreground shadow-sm";
 const sidebarItemInactive =
   "border-transparent text-secondary-foreground hover:border-border-secondary hover:bg-sidebar-accent/70 hover:text-foreground";
 
-function isModuleActive(module: NavModule, pathname: string): boolean {
-  if (module.href === pathname) {
-    return true;
+function normalizeMenuPath(value: string): string {
+  if (!value) {
+    return "/";
+  }
+
+  const withLeadingSlash = value.startsWith("/") ? value : `/${value}`;
+  return withLeadingSlash === "/"
+    ? "/"
+    : withLeadingSlash.replace(/\/+$/, "");
+}
+
+function isMenuHrefActive(href: string, pathname: string): boolean {
+  const normalizedHref = normalizeMenuPath(href);
+  const normalizedPathname = normalizeMenuPath(pathname);
+
+  if (normalizedHref === "/") {
+    return normalizedPathname === "/";
   }
 
   return (
-    module.children?.some((child) => isModuleActive(child, pathname)) ?? false
+    normalizedPathname === normalizedHref ||
+    normalizedPathname.startsWith(`${normalizedHref}/`)
+  );
+}
+
+function collectActiveCandidates(
+  modules: NavModule[],
+  pathname: string,
+  candidates: Array<{ key: string; href: string; order: number }> = [],
+): Array<{ key: string; href: string; order: number }> {
+  for (const module of modules) {
+    if (module.href && isMenuHrefActive(module.href, pathname)) {
+      candidates.push({
+        key: module.key,
+        href: normalizeMenuPath(module.href),
+        order: candidates.length,
+      });
+    }
+
+    if (module.children?.length) {
+      collectActiveCandidates(module.children, pathname, candidates);
+    }
+  }
+
+  return candidates;
+}
+
+function getActiveModuleKey(
+  modules: NavModule[],
+  pathname: string,
+): string | undefined {
+  return collectActiveCandidates(modules, pathname).sort((a, b) => {
+    if (a.href.length !== b.href.length) {
+      return b.href.length - a.href.length;
+    }
+
+    return a.order - b.order;
+  })[0]?.key;
+}
+
+function isModuleInActiveBranch(
+  module: NavModule,
+  activeModuleKey: string | undefined,
+): boolean {
+  if (!activeModuleKey) {
+    return false;
+  }
+
+  return (
+    module.key === activeModuleKey ||
+    (module.children?.some((child) =>
+      isModuleInActiveBranch(child, activeModuleKey),
+    ) ??
+      false)
   );
 }
 
@@ -82,6 +151,7 @@ export function Shell({
     filterSidebarModules(modules),
     user?.role,
   );
+  const activeModuleKey = getActiveModuleKey(sidebarModules, pathname);
   const roleLabel = user?.role ? getRoleMetadata(user.role).label : "Loading";
   const collapsed = useSyncExternalStore(
     subscribeCollapsed,
@@ -144,14 +214,17 @@ export function Shell({
           {showBrandIdentity && (
             <div className="flex shrink-0 items-center">
               <div className="flex size-8 shrink-0 items-center justify-center rounded-md border border-highlight-bg-primary bg-highlight-bg-accent text-accent-foreground">
-                <Factory className="size-4" />
+                <BrandIcon className="size-4" />
               </div>
             </div>
           )}
           {!isCollapsed && showBrandIdentity && (
             <div className="min-w-0 overflow-hidden transition-[max-width,opacity,transform] duration-200 ease-out">
-              <p className="truncate text-sm font-semibold leading-5">
-                Manufacturing App
+              <p
+                className="line-clamp-2 break-words text-sm font-semibold leading-5"
+                title={APP_NAME}
+              >
+                {APP_NAME}
               </p>
             </div>
           )}
@@ -196,9 +269,11 @@ export function Shell({
           {sidebarModules.map((mod) => {
             const Icon = mod.icon;
             const hasChildren = Boolean(mod.children?.length);
-            const isDirectActive = mod.href === pathname;
+            const isDirectActive = mod.key === activeModuleKey;
             const hasActiveDescendant =
-              mod.children?.some((child) => isModuleActive(child, pathname)) ??
+              mod.children?.some((child) =>
+                isModuleInActiveBranch(child, activeModuleKey),
+              ) ??
               false;
             const isExpanded =
               !isCollapsed &&
@@ -213,6 +288,7 @@ export function Shell({
                     type="button"
                     aria-expanded={isExpanded}
                     aria-disabled={mod.locked || undefined}
+                    aria-current={isDirectActive ? "page" : undefined}
                     title={isCollapsed ? groupTitle : mod.disabledReason}
                     aria-label={isCollapsed ? mod.label : undefined}
                     onClick={() => {
@@ -271,14 +347,16 @@ export function Shell({
                       {mod.children?.map((child) => {
                         const ChildIcon = child.icon;
                         const childTitle = child.disabledReason ?? child.label;
+                        const isChildActive = child.key === activeModuleKey;
 
                         return (
                           <Link
                             key={child.key}
                             to={child.href as never}
-                            activeOptions={{ exact: child.href === "/" }}
+                            activeOptions={{ exact: true }}
                             title={childTitle}
                             aria-disabled={child.locked || undefined}
+                            aria-current={isChildActive ? "page" : undefined}
                             onClick={(event) => {
                               if (child.locked) {
                                 event.preventDefault();
@@ -289,14 +367,11 @@ export function Shell({
                             className={cn(
                               sidebarItemBase,
                               "min-h-9 gap-2 px-3",
+                              isChildActive
+                                ? sidebarItemActive
+                                : sidebarItemInactive,
                               child.locked ? "opacity-70" : "",
                             )}
-                            activeProps={{
-                              className: sidebarItemActive,
-                            }}
-                            inactiveProps={{
-                              className: sidebarItemInactive,
-                            }}
                           >
                             {ChildIcon && (
                               <ChildIcon className="size-3.5 shrink-0 transition-transform duration-200 group-hover:scale-105" />
@@ -334,7 +409,7 @@ export function Shell({
                 // an agent will introduce. Type-safety is preserved everywhere
                 // else Link is used directly.
                 to={mod.href as never}
-                activeOptions={{ exact: mod.href === "/" }}
+                activeOptions={{ exact: true }}
                 title={
                   isCollapsed
                     ? (mod.disabledReason ?? mod.label)
@@ -342,6 +417,7 @@ export function Shell({
                 }
                 aria-label={isCollapsed ? mod.label : undefined}
                 aria-disabled={mod.locked || undefined}
+                aria-current={isDirectActive ? "page" : undefined}
                 onClick={(event) => {
                   if (mod.locked) {
                     event.preventDefault();
@@ -352,15 +428,10 @@ export function Shell({
                 className={cn(
                   sidebarItemBase,
                   "mb-1 min-h-10",
+                  isDirectActive ? sidebarItemActive : sidebarItemInactive,
                   mod.locked ? "opacity-70" : "",
                   isCollapsed ? "justify-center px-2" : "gap-2.5 px-3",
                 )}
-                activeProps={{
-                  className: sidebarItemActive,
-                }}
-                inactiveProps={{
-                  className: sidebarItemInactive,
-                }}
               >
                 {Icon && (
                   <Icon className="size-4 shrink-0 transition-transform duration-200 group-hover:scale-105" />
@@ -446,7 +517,11 @@ export function Shell({
             <Menu className="size-4" />
           </button>
         </div>
-        {children}
+        {/* Workspace content container: caps line lengths on wide monitors so
+            tables/cards don't stretch edge-to-edge with hollow gaps. Wide
+            boards scroll internally (TableViewport/wide-operational-scroll);
+            monitor/station chromes are separate layouts and stay full-bleed. */}
+        <div className="mx-auto w-full max-w-[1440px]">{children}</div>
       </main>
     </div>
   );

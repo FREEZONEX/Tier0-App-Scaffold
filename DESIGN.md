@@ -1,7 +1,7 @@
 ---
 version: alpha
 name: Tier0-design-system
-description: "A readable enterprise product design system for Tier0: calm operational surfaces, neutral gray primary actions, softened signal green for active/selected/progress states, and layout density chosen by workflow context. Interfaces should feel technical, usable under real factory conditions, and product-focused, with hierarchy from typography, spacing, borders, and stable layout rhythm rather than harsh contrast or decoration."
+description: "A readable enterprise product design system for Tier0: calm operational surfaces, neutral gray primary actions, softened signal green for active/selected/progress states, and layout density chosen by workflow context. Management workspaces should feel modern, clear, and product-focused; production execution, monitor, and safety-critical surfaces may feel more industrial when the environment calls for it."
 
 colors:
   primary: "var(--tier0-primary)"
@@ -17,7 +17,7 @@ colors:
   ink-secondary: "var(--tier0-text-secondary)"
   ink-tertiary: "var(--tier0-text-tertiary)"
   ink-placeholder: "var(--tier0-text-placeholder)"
-  canvas: "var(--tier0-bg-color)"
+  canvas: "var(--tier0-canvas)"  # page background (pure white by user decision; depth via card border+shadow)
   canvas-raised: "var(--card)"
   canvas-offwhite: "var(--tier0-bg-secondary)"
   surface-1: "var(--tier0-bg-tertiary)"
@@ -25,6 +25,8 @@ colors:
   surface-3: "var(--tier0-surface-muted)"
   hairline: "var(--tier0-border)"
   hairline-subtle: "var(--tier0-border-secondary)"
+  input-fill: "var(--tier0-input-bg)"
+  input-border: "var(--tier0-input-border)"
   semantic-success: "var(--tier0-success-color)"
   semantic-success-soft: "var(--tier0-success-tertiary)"
   semantic-error: "var(--tier0-error-color)"
@@ -110,6 +112,14 @@ spacing:
   xxl: "var(--tier0-space-xxl)"
   section: "var(--tier0-space-section)"
 
+# The recipes below are implemented as scaffold primitives in
+# src/components/ui/ (Button variants, StatusBadge≈tag-status, Card≈panel,
+# PageHeader, StatusFilterChips, RiskBanner, EmptyState, StatCard) — compose
+# those instead of re-deriving styles from this file. Usage rules:
+# - identifiers (doc/lot/location codes) render in font-mono
+# - highlight lime is a fill color only; text accents use highlight-deep
+# - status = StatusBadge + optional card accent bar; never tint whole cards
+# - available where useful: .text-link (inline links), StatCard tone + trend props
 components:
   button-highlight:
     backgroundColor: "{colors.highlight-bg-primary}"
@@ -149,10 +159,13 @@ components:
     minHeight: "var(--tier0-control-height-md)"
     padding: "0 var(--tier0-space-sm)"
   input:
-    backgroundColor: "{colors.surface-1}"
+    backgroundColor: "{colors.input-fill}"
     textColor: "{colors.ink}"
-    borderColor: "{colors.hairline}"
+    borderColor: "{colors.input-border}"
     focusColor: "{colors.highlight}"
+    # Form controls use a subtle fill + deeper border (not the hairline color)
+    # so a field reads as an editable box on white surfaces even unfocused.
+    # On focus the fill brightens to the surface color alongside the ring.
     typography: "{typography.body}"
     rounded: "{rounded.md}"
     minHeight: "var(--tier0-control-height-md)"
@@ -166,6 +179,7 @@ components:
     backgroundColor: "{colors.canvas-raised}"
     textColor: "{colors.ink}"
     borderColor: "{colors.hairline}"
+    boxShadow: "{shadow.sm}"  # raised surfaces carry subtle elevation on the canvas
     rounded: "{rounded.md}"
     padding: "{spacing.md}"
   table:
@@ -187,6 +201,10 @@ components:
     borderColor: "{colors.highlight-bg-primary}"
     rounded: "{rounded.sm}"
 
+layout:
+  workspace-container: "1440px centered"  # Shell caps content width; wide boards scroll internally
+  table-actions-column: "table-col-fit"   # trailing action/badge columns shrink to content
+
 motion:
   fast: "var(--tier0-motion-fast)"
   normal: "var(--tier0-motion-base)"
@@ -196,12 +214,15 @@ motion:
 # Tier0 Frontend Design Guidelines
 
 `DESIGN.md` is the visual source for Tier0. It defines the look, token intent,
-and product feel. Generation behavior lives in the UI skills:
+and product feel. Platform-managed Builder Skills own generation behavior when
+they are injected by the App Builder orchestrator:
 
-- Layout and route chrome: `$app-layout-patterns`
-- General frontend UI generation: `$uns-swe-ui-generation`
-- MES visual patterns, KPI cards, Gantt, and dashboards: `$mes-ui-patterns`
-- Product copy and locale consistency: `$app-i18n-copy`
+- App build orchestration, implementation workflow, UI generation, layout
+  behavior, forms, visual tone, industrial patterns, locale/copy consistency,
+  requirements, preview runtime stability, responsive audits, and Tier0 SDK
+  integration are platform-managed concerns when the App Builder injects them.
+- This scaffold must stay Skill-name agnostic. Do not hardcode platform Skill
+  names, versions, packaging assumptions, or trigger rules here.
 
 Color, spacing, radius, typography, motion, and Tailwind mappings are executable
 tokens in `src/styles/globals.css`. The YAML block above mirrors those tokens for
@@ -218,6 +239,13 @@ Tier0's own.
 - Near-black primary actions for core product decisions.
 - Tier0 signal green for emphasis, selected states, progress, active states, and optimistic product moments.
 - Density chosen by workflow: compact for workspace, larger for station execution, evidence-first for review.
+- EMS, WMS, QMS, CRM, inventory, approval, analytics, R&D, office, and
+  management workspaces should default to modern enterprise software:
+  clear navigation, readable tables, focused workbenches, controlled rounding,
+  and practical status color.
+- Production execution, station, andon, monitor, equipment terminal, and
+  safety-critical surfaces may use heavier industrial contrast when the use
+  environment justifies it.
 - Hierarchy from typography, borders, background layering, and stable layout rhythm.
 
 Do not use IBM Blue as the default primary color. Do not turn the product into a Carbon clone.
@@ -228,10 +256,9 @@ Do not use IBM Blue as the default primary color. Do not turn the product into a
 - Runtime class helpers: `src/lib/utils.ts`
 - Overlay primitives: `src/components/overlays`
 - App-specific generated components: `src/components/<domain>/`
-- Layout shell decisions: `$app-layout-patterns`
-- Component behavior and recipes: `$uns-swe-ui-generation`
-- MES visual snippets: `$mes-ui-patterns`
-- Locale/copy consistency: `$app-i18n-copy`
+- Platform-injected Builder guidance owns generation workflow, layout/component
+  behavior, UI recipes, industrial visual patterns, locale/copy consistency,
+  preview/runtime guidance, and platform integration behavior.
 
 Use semantic variables such as `--tier0-bg-color`, `--tier0-text-color`,
 `--tier0-highlight`, and Tailwind aliases such as `bg-bg`, `text-text`,
@@ -288,9 +315,11 @@ Inputs, selects, textareas, and combobox-like controls should use white enabled
 backgrounds (`bg-background` or `bg-card`) with `border-input`; disabled or
 read-only controls may use `bg-surface-inset`.
 
-Use the compact radius scale from `globals.css`. Prefer `rounded-sm` for
-buttons, inputs, badges, panels, and table rows; use `rounded-md` only for
-larger shells or existing local rhythm.
+Use the compact radius scale from `globals.css`. Prefer controlled token-based
+rounding over arbitrary large radius values. Buttons, inputs, badges, panels,
+and table rows may use `rounded-sm` or `rounded-md`; larger management
+workspace cards and shells may use `rounded-lg` when it improves modern product
+feel without creating a decorative card-heavy layout.
 
 Keep elevation restrained. Normal panels should be flat. Dialogs, dropdowns,
 popovers, and tooltips may use shadows to separate overlays.
@@ -306,8 +335,8 @@ Prefer compact page composition. The always-visible page body should expose
 entry points, current operational state, primary actions, and necessary
 visualizations. Detailed forms, secondary attributes, audit trails,
 configuration, and rarely used actions should open from an explicit control or
-live behind focused tabs. For concrete layout selection and route groups, use
-`$app-layout-patterns`.
+live behind focused tabs. For concrete layout selection and route groups, apply
+platform-injected UI guidance when it is available.
 
 Page title rows are structural headers, not content containers. Put only the
 page title, short description/breadcrumb/status text, and compact primary
@@ -317,7 +346,9 @@ panels inside the title row; those belong in separate sections below it.
 
 Big-number KPI cards are denser than general panels: keep label and value close,
 avoid tall empty cards, and prefer compact summary strips when showing many
-counts. For reusable MES snippets, use `$mes-ui-patterns`.
+counts. For industrial visual snippets, KPI cards, Gantt, timelines, and
+operational dashboards, apply platform-injected UI guidance when it is
+available.
 
 ## Component Principles
 
@@ -327,12 +358,24 @@ the route or domain that owns them until repetition justifies sharing under
 feature folder.
 
 Buttons, forms, dialogs, drawers, empty states, tables, charts, and responsive
-behavior are specified in `$uns-swe-ui-generation`. Keep only these visual
-defaults here:
+behavior may be specified by platform-injected UI guidance. Keep only these
+stable visual defaults here:
 
 - Use one primary or highlighted action per local decision area.
 - Use lucide-react icons at normal Tailwind icon sizes such as `size-4` or `size-5`.
 - Use `FormDialog` or `Drawer` for workspace CRUD create/edit forms by default.
+- Compose form bodies from `FieldGroup` inside `FormGrid` (1-2 columns), with
+  `LineItemSection` for multi-row line-item editors, all from
+  `@/components/forms`. Use `RecordSelect` for business-object pickers so
+  status, quantity, location, and date context is visible while choosing.
+- Route recommended, automatic, rule-based, and bulk actions through
+  `RecommendationAction` / `ImpactPreviewDialog` from `@/components/actions` so
+  the basis, affected records, and reason are visible before execution.
+- Wrap dense business tables in `TableViewport` from `@/components/data` or an
+  equivalent internal scroll viewport. Keep status/action cells nowrap, and
+  wrap, clamp, or truncate long names and identifiers intentionally inside
+  their own cells.
+- Use `FieldLabel` / `RequiredMark` from `@/components/forms` for required fields. The required asterisk is always the semantic error color from `--destructive`; do not hand-type bare `*` markers or override them with local text-color utilities.
 - Keep row actions quiet: icon buttons, dropdown menus, or compact text actions.
 - Pair color with icon or text for industrial status readability.
 - Preserve truncation with `min-w-0`, `truncate`, and tooltip fallbacks.
@@ -342,7 +385,8 @@ defaults here:
 Visible app copy should describe the user's work, data, action, state, or
 consequence. Do not render design-system commentary as product UI. For locale
 selection, mixed-language cleanup, dialog button text, accessibility labels, and
-runtime i18n decisions, use `$app-i18n-copy`.
+runtime i18n decisions, apply platform-injected UI/copy guidance when it is
+available.
 
 ## Motion
 
@@ -366,6 +410,8 @@ status, as in `thinking-title-active`.
 - Mixed-language product UI text in one finished app surface.
 - Inline full create/edit forms for workspace CRUD pages.
 - Broad decorative gradients, purple-blue themes, beige/brown palettes, or cold/warm gray-heavy palettes.
+- Dark terminal or heavy industrial styling as the default for EMS, WMS, QMS,
+  CRM, approval, analytics, inventory, or other management workspaces.
 
 ## Quick Visual Checklist
 
@@ -376,4 +422,5 @@ status, as in `thinking-title-active`.
 - Keeps page title rows free of cards, filters, charts, Gantt boards, and other content blocks.
 - Handles truncation and long content without overlap.
 - Keeps design-system commentary and token explanations out of visible UI.
-- Uses the appropriate UI skill for layout, component behavior, MES patterns, and copy.
+- Uses platform-injected UI guidance for layout, component behavior, visual
+  tone, industrial patterns, and copy behavior when available.

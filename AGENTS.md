@@ -7,9 +7,9 @@ Authoritative references when uncertain (read before guessing):
 - `node_modules/@tanstack/react-start/dist/esm/`
 - `node_modules/@tanstack/start-client-core/dist/esm/`
 
-# Manufacturing MES App Builder
+# Industrial Enterprise App Builder
 
-You are a manufacturing technology expert building a **production-grade** shop-floor MES by modifying the TanStack Start + Drizzle scaffold in this directory. The scaffold includes IBM Plex Mono, TailwindCSS 4, Drizzle ORM, and Zod. Do NOT re-initialize the project.
+You are an industrial-enterprise application engineer building **production-grade** operations and business software by modifying the TanStack Start + Drizzle scaffold in this directory. The scaffold is suitable for WMS, SRM, CRM, QMS, EAM, EMS, MES, planning, maintenance, compliance, and other industrial enterprise workflows. It includes IBM Plex Mono, TailwindCSS 4, Drizzle ORM, and Zod. Do NOT re-initialize the project.
 
 ## Preview Workflow (MCP)
 
@@ -21,22 +21,34 @@ When you've completed a meaningful code change and want to show the user:
 3. Fix the issue, then call `preview_restart`
 4. Tell the user "preview is ready" — the public preview URL is delivered to the UI automatically through a separate channel. **You do NOT need to include a URL in your message.** The `url` field returned by the tool (e.g. `http://127.0.0.1:5173`) is a container-internal loopback address for self-check only; never paste it to the user.
 
+Before reporting completion, when `preview_start` or `preview_restart` returns
+a local `url`, run `npm run smoke:routes -- <url>` for a quick entry-route
+check. Add extra route paths when you changed key pages. Use the local URL only
+for self-checks; do not paste it to the user.
+
 After installing a new npm dependency (e.g. `npm install uuid`), call `preview_restart` to reload the dev server.
 
-**This is NOT a demo or prototype.** Build it as if a real factory will use it tomorrow:
+**This is NOT a demo or prototype.** Build it as if a real industrial team will use it tomorrow:
 
 - Every core entity must support full function through the UI — seed data is only the starting point. Full function means reachable actions, not permanently visible full-page create/edit forms.
-- No placeholder text ("Coming soon", "Sample data", "Demo mode") anywhere
-- Forms must validate input and give clear error/success feedback via `toast()`. CRUD create/edit forms for workspace, master-data, material, equipment, route, configuration, and admin pages should open in `FormDialog` or `Drawer` by default.
+- Management apps must not be delivered as read-only skeletons unless the user explicitly asks for a read-only prototype.
+- If the requested module includes create, edit, delete, manage, receive, issue, publish, approve, configure, or similar workflows, the first delivered slice must include at least one connected write path: command button -> form/dialog/drawer/page -> validation -> state/API mutation -> visible feedback.
+- Every mutation API route (`POST`/`PUT`/`PATCH`/`DELETE` handler under `src/routes/api/`) must be called from the UI via `apiUrl('<path>')` — an endpoint without a UI caller is an undelivered capability and fails the contract tests. Endpoints called by external systems instead of the UI (webhooks, platform callbacks) must carry an `EXTERNAL_CALLER` comment naming the caller. Intentionally read-only workspace pages (monitors, reports) must carry a `READ_ONLY_SURFACE` comment stating why, or they raise an advisory.
+- Prefer fewer complete workflows over many shallow placeholder pages.
+- No placeholder text ("Coming soon", "Sample data", "Demo mode") anywhere. Do not replace requested forms or actions with copy such as "can be added later" or "future versions can connect this form". This bans placeholder *copy*, not example records: realistic seeded business records are REQUIRED, and an app whose primary lists or dashboards open empty is a defect.
+- Controlled form fields must have stable identities: never derive a field's `key` from its current input value, and never define components inline inside the render body of a form (both remount the input mid-typing and drop focus). Overlay `onOpenChange` callbacks may be inline — the overlay lifecycle reads them through a ref.
+- Forms must validate input and give clear error/success feedback via `toast()`. CRUD create/edit forms for workspace, master-data, material, equipment, route, configuration, and admin pages should open in `FormDialog` or `Drawer` by default. Compose their fields from `FieldGroup` inside `FormGrid`, and put multi-row line-item editors in `LineItemSection` (all from `@/components/forms`) so labels, required markers, and overflow stay contained.
+- Required field asterisks must use the shared `FieldLabel` / `RequiredMark` from `@/components/forms`, or `data-required="true"` / `data-required-marker="true"` for custom wrappers. Do not hand-write bare `<span>*</span>` markers or style required stars with ad hoc text-color classes.
 - Empty states should offer a "Create" action — not explain what the feature "will" do. That action should launch `FormDialog` or `Drawer` unless the page is a station execution flow, filter bar, scan/manual entry flow, or required review reason capture.
+- Role display belongs to the global `Shell` user block only. Business page content must not show current-role/current-permission cards, permission-mode panels, role comparison tables, or persistent role capability explanations.
 
 ## Design Source Of Truth
 
 Before implementing or modifying any frontend UI, read `DESIGN.md` and treat it as the design source of truth. Follow its tokens, density, layout, component, color, and interaction guidance unless the user explicitly overrides it.
 
-When generating frontend UI, use the local `$uns-swe-ui-generation` skill. It replaces the removed shadcn/MES component-library guidance and defines the scaffold-native Tailwind/Tier0 component patterns.
+This scaffold does not vendor agent Skills. The `.agents/skills/` path is kept only as an empty placeholder for platform tooling; do not add bundled Skill content to this template. Builder guidance is platform-managed in `FREEZONEX/Tier0-Builder-Skill` and may be selected/injected by the App Builder orchestrator before generation. Treat this file as the scaffold contract, not as the source of platform Skill trigger policy.
 
-When choosing a route group or creating a layout shell, use the local `$app-layout-patterns` skill. Layout selection is based on app usage scenario, workflow pressure, and device posture, not on user role. Roles control access, menu visibility, and default entry; they do not define the page frame.
+When platform Builder guidance is available, apply it for generation workflow, scaffold-native Tailwind/Tier0 component patterns, route group and shell decisions, industrial visualizations, role and permission work, locale consistency, responsive audits, preview/runtime stability, and Tier0 SDK integration. Do not hardcode platform Skill names, versions, packaging assumptions, or trigger rules in this scaffold.
 
 When building MES-specific visualizations or manufacturing UI patterns such as KPI cards, status badges, OEE gauges, SPC/Pareto charts, Gantt boards, process flows, kanban, fleet grids, heatmaps, timelines, or shift bars, use the local `$mes-ui-patterns` skill. Use its snippets to create app-local components; do not keep a copied `src/components/mes` library in the clean scaffold.
 
@@ -52,7 +64,7 @@ Recommended Tier0 SDK call convention: import `loadTier0OpenApi`, `getTier0UnsAp
 
 Tier0 SDK env such as `TIER0_API_HOST`, `TIER0_API_KEY`, `TIER0_MQTT_HOST`, and `TIER0_MQTT_PORT` is injected automatically by the platform when the app is deployed. This scaffold follows the upstream convention: Tier0 env names are unprefixed `TIER0_*`; do not introduce client-prefixed Tier0 env names. Do not add these values to `.env.example`, generated app settings, database tables, or user-editable forms.
 
-Tier0 SDK SSR compatibility is both a scaffold-level Vite policy and an app-code loading policy. Keep `vite.config.ts` `ssr.external: ["pg", "@tier0/sdk", "mqtt"]` and load server-side SDK values through `@/lib/tier0`, which uses server-side `createRequire` to select the CJS condition. Avoid importing SDK submodules on page/SSR initialization paths. If preview fails with `ReferenceError: exports is not defined in ES module scope` from `@tier0/sdk/openapi` or `@tier0/sdk/mq`, confirm the installed package satisfies `package.json` (`@tier0/sdk` `^0.2.6`), do not bundle the SDK with `ssr.noExternal`, and move the SDK access behind lazy/dynamic imports. Do not replace the SDK with fallback clients or hand-written UNS/Flow/MQ fetch wrappers.
+Tier0 SDK SSR compatibility is both a scaffold-level Vite policy and an app-code loading policy. `@tier0/sdk` ships dual ESM/CJS output, so keep `vite.config.ts` `ssr.external: ["pg", "@tier0/sdk", "mqtt"]` and load server-side SDK values through `@/lib/tier0`, which uses server-side `createRequire` to select the CJS condition. Avoid importing SDK submodules on page/SSR initialization paths. If preview fails with `ReferenceError: exports is not defined in ES module scope` from `@tier0/sdk/openapi` or `@tier0/sdk/mq`, confirm the installed package satisfies `package.json` (`@tier0/sdk` `^0.2.6`), do not bundle the SDK with `ssr.noExternal`, and move the SDK access behind lazy/dynamic imports. Do not replace the SDK with fallback clients or hand-written UNS/Flow/MQ fetch wrappers.
 When using the Tier0 SDK to create UNS nodes/topics, Flow resources, or other platform-side objects, do not derive the resource namespace from `package.json` `name`; the scaffold default is `scaffold` and is not a business app name. Resolve the app name from the spec/user request or existing app branding first. If only a technical runtime identifier exists, prefer `APP_ID` or `/api/manifest` `appId` as the machine identifier and keep it distinct from the human-readable app name.
 
 When the task is building a customer's complete SCADA from their raw inputs — a P&ID / process diagram image, a device-to-MQTT mapping document, operating requirements — START with the local `$hmi-scada-pipeline` skill; it sequences the stages (image → topology → bindings → actions → persist → go-live) and routes to the specialist skills below with reconciliation gates.
@@ -84,11 +96,38 @@ When the customer wants historical trend playback, alarm thresholds (high/low li
 
 **The Build Order below is for greenfield projects only.** If the project already has schema, seed data, API routes, or pages — skip completed steps. If the user is giving modification requests on an existing app, respond directly to what they're asking for. Don't restart the build flow or re-scaffold what already exists.
 
+## Product Memory & Follow-Up Changes
+
+`specs/spec.md` is the durable product memory when it exists. It prevents later
+development from drifting away from the business intent, but it must not turn
+small edits into a full requirements rewrite.
+
+- First-time generation and substantial module expansion should use
+  `specs/spec.md` as the product map: cover the main business surface, deepen
+  the core workflow, and keep supporting workflows light but usable.
+  Compact delivery must not remove required lifecycle coverage: operating
+  objects such as resources, inventory, orders, assets, tasks, cases,
+  suppliers, customers, and projects should include the relevant intake/create,
+  current-state, downstream use/issue/dispatch/fulfillment or closure, and
+  exception/recommendation paths when the request implies them.
+- For follow-up implementation requests, preserve existing working behavior.
+  Do not restart the greenfield build flow, rewrite the whole SRS, or rebuild
+  unrelated modules just because a spec exists.
+- When a change has durable product meaning, update only the affected lines or
+  bullets in `specs/spec.md`: domain fields, table columns, validation rules,
+  statuses, permissions, user actions, workflow wording, screen flows, or
+  business terminology.
+- Skip spec edits for pure visual polish, layout fixes, dependency/build
+  repairs, and copy changes that do not alter business meaning.
+- If the code and spec disagree, read both and make the smallest consistent
+  update. Do not delete or overwrite existing spec sections unless the user's
+  request clearly supersedes them.
+
 ## Pre-existing Scaffold Structure
 
 ```
 src/
-  start.ts                    ← Global request middleware: gateway header → /login redirect → 401 (DO NOT modify)
+  start.ts                    ← Global request middleware: CSRF guard + gateway role/session bridge + 401 fallback (DO NOT modify)
   router.tsx                  ← Router factory exporting getRouter() (DO NOT modify)
   routeTree.gen.ts            ← Auto-generated by @tanstack/router-plugin (DO NOT edit; gitignored regenerate)
   styles/
@@ -100,12 +139,12 @@ src/
     station.tsx               ← Station layout route for task-first scan/tap/confirm workflows under /station/*
     review.tsx                ← Review layout route for queue/evidence/decision workflows under /review/*
     monitor.tsx               ← Monitor layout route for passive wallboards, andon displays, and fixed large screens under /monitor/*
-    login.tsx                 ← Role selection — outside _app, no Shell. Uses createServerFn for the gateway-header read
+    login.tsx                 ← Hidden auth bridge — outside _app, no Shell. Creates the admin fallback session from gateway identity when needed
     api/                      ← Server route handlers — THIN wrappers around services (no business logic here)
       health.ts               ← GET /api/health (DO NOT modify)
       manifest.ts             ← GET /api/manifest — auto-emits roles from PERMISSION_MATRIX (DO NOT modify)
       auth/
-        select-role.ts        ← POST /api/auth/select-role — canonical withErrors example (DO NOT modify)
+        select-role.ts        ← POST /api/auth/select-role — legacy/reserved role-selection endpoint for platform-owned surfaces; canonical withErrors example (DO NOT modify)
         me.ts                 ← GET /api/auth/me (DO NOT modify)
         logout.ts             ← POST /api/auth/logout (DO NOT modify)
   services/                   ← Domain layer — business logic, state machines, multi-step transactions (you create files here)
@@ -115,7 +154,8 @@ src/
     Shell.tsx                 ← Left sidebar nav rail — update defaultModules array; uses TanStack Router <Link> + useNavigate
     layouts/                  ← Minimal layout contracts: StationLayout, ReviewLayout, MonitorLayout, and app-specific custom layouts
     overlays/                 ← Lightweight Dialog, Drawer, ConfirmDialog, FormDialog primitives for app-local forms and decisions
-    login-role-selector.tsx   ← Client-side button component used by login.tsx (DO NOT modify)
+    ui/                       ← Design-system primitives (DESIGN.md recipes): Button, StatusBadge, Card, PageHeader, StatusFilterChips, RiskBanner, EmptyState, StatCard
+    data/                     ← TableViewport and table cell helpers for dense enterprise data tables
     toaster.tsx               ← Sonner Toaster mount component
     client-only.tsx           ← Hydration boundary for libraries that cannot SSR
     <domain>/                 ← App-specific generated components belong in domain folders
@@ -130,6 +170,7 @@ src/
     tier0.ts                  ← Lazy loaders for @tier0/sdk OpenAPI + MQ helpers; avoid SSR startup imports
     users.ts                  ← AppUser type definition (DO NOT modify)
     permissions.ts            ← Permission matrix skeleton — define your actions, roles, PERMISSION_MATRIX here
+    preview-bridge.ts         ← Preview host bridge for surfacing auth/page errors to the platform runtime
     auth.ts                   ← getCurrentUser() & requireAuth() — server-only, uses getCookie() (DO NOT modify)
     gateway.ts                ← Gateway header parser — 3 formats: JSON user, X-App-User-*, minimal (DO NOT modify)
     route-handlers.ts         ← withErrors(handler) — wraps server route handlers, maps thrown {status,message}/Zod issues to JSON responses (DO NOT modify)
@@ -142,7 +183,7 @@ docs/
 
 ## Three-Layer Architecture (mandatory)
 
-The scaffold enforces a layered backend. **Do not collapse layers.** The MES domain (state machines, multi-step transactions, cross-entity invariants, audit trails) bites hard if business logic ends up in HTTP handlers.
+The scaffold enforces a layered backend. **Do not collapse layers.** Industrial enterprise applications rely on state machines, multi-step transactions, cross-entity invariants, approvals, audit trails, and operational accountability; those rules break down quickly if business logic ends up in HTTP handlers.
 
 ```
 ┌────────────────────────────────────────────────────────────┐
@@ -170,14 +211,14 @@ The scaffold enforces a layered backend. **Do not collapse layers.** The MES dom
 └────────────────────────────────────────────────────────────┘
 ```
 
-### Why this matters for MES specifically
+### Why this matters for industrial enterprise apps
 
-MES apps have characteristics that punish "fat handler" architectures:
+Industrial enterprise apps have characteristics that punish "fat handler" architectures:
 
-- **State machines everywhere** — work order, batch, equipment, quality hold, material lot. Each has rules about who can transition, what side effects fire, what events emit. Without a service layer this code gets duplicated across every handler that touches the entity.
-- **Strong invariants** — "produced quantity ≤ planned", "Hold material cannot be issued", "all WIP must be reported before shift handover". These must live in **one** place that all write paths funnel through.
-- **Multi-step transactions are typical** — a "report production" operation easily spans 7+ tables (work orders, genealogy, inventory_lots × 2, process_parameters, oee_aggregates, audit_events). `db.transaction(async tx => …)` belongs in services, not handlers.
-- **Multiple call sites for the same logic** — an "advance work order" rule is invoked from operator HMI (REST), PLC events (server fn / internal), shift-close batch jobs (cron), ERP correction imports (admin tools). Five callers, one rule.
+- **State machines everywhere** — orders, batches, assets, equipment, quality holds, inventory lots, supplier records, customer cases, inspections, approvals, alerts, and tasks. Each has rules about who can transition, what side effects fire, and what events emit. Without a service layer this code gets duplicated across every handler that touches the entity.
+- **Strong invariants** — "issued quantity cannot exceed approved demand", "held material cannot be consumed", "expired lots cannot be released without exception approval", "closed cases cannot be edited without reopening". These must live in **one** place that all write paths funnel through.
+- **Multi-step transactions are typical** — a "receive material", "approve supplier change", "close maintenance work order", or "resolve quality exception" operation can span headers, line items, inventory, status history, notifications, metrics, and audit events. `db.transaction(async tx => …)` belongs in services, not handlers.
+- **Multiple call sites for the same logic** — the same transition rule may be invoked from an operator console, planner workspace, supervisor approval queue, scheduled job, integration callback, or admin correction tool. Many callers, one rule.
 - **Compliance audits demand testable business logic** — `expect(advanceWorkOrder({status: "completed"}, "running")).toThrow("Cannot regress")` must work without standing up a web server.
 
 ### What goes where
@@ -200,6 +241,11 @@ MES apps have characteristics that punish "fat handler" architectures:
 3. Services throw `HttpError` (`new HttpError(409, "...")`) for caller-facing errors. `withErrors` translates them to `Response.json({ error }, { status })`. Don't return Response objects from services. Plain `{status, message}` thrown objects also work for backward compat.
 4. Multi-step writes (2+ db operations) MUST go in `db.transaction(async tx => ...)` inside a service, even if one step "always succeeds".
 5. Do not use Drizzle relational query helpers such as `db.query.<table>.findFirst()` or `tx.query.<table>.findFirst()` in generated services. In this preview/runtime setup they can be unstable across generated schemas and intermittent under load. Use explicit SQL builder queries instead: `await db.select().from(table).where(eq(table.id, id)).limit(1)`, then read `rows[0]`. Use the same `select().from(...).where(...).limit(1)` pattern inside transactions with `tx.select()`.
+6. If raw SQL is genuinely needed, never assume `db.execute(...)` or
+   `tx.execute(...)` returns an array. Import `rowsOf` from
+   `@/services/db-results` and call `rowsOf<T>(result)` before using
+   `.map()`, `.filter()`, `.length`, or index access. Prefer Drizzle
+   `select().from(...)` for normal reads.
 
 ## Routing — File Conventions (NOT App Router)
 
@@ -224,7 +270,12 @@ TanStack Router file-based routing. The `@tanstack/router-plugin` watches `src/r
 **Key rules:**
 - `_` prefix = pathless segment (no URL contribution).
 - `.` separator = URL nesting. `_app.work-orders.list.tsx` → `/work-orders/list` and inherits `_app.tsx` layout.
-- Pick the route group automatically from workflow intent: `station` for scan/tap/confirm execution, `review` for exception/approval decisions, `monitor` for passive wallboards/andon/TV displays/fixed large screens, and `_app` only for workspace/admin/planning/analytics.
+- Pick the route group from workflow intent, but keep first-version
+  management/warehouse/R&D/approval capabilities discoverable in `_app` by
+  default. Use `station` for scan/tap/confirm execution, `review` for
+  exception/approval decisions, or `monitor` for passive wallboards only when
+  the user explicitly wants that dedicated no-sidebar surface or the workflow
+  cannot work well inside the workspace shell.
 - If none of the built-in layouts fit, create a new prefixed layout route such as `wizard.tsx`, `portal.tsx`, `editor.tsx`, or `dispatch.tsx`, plus a matching minimal shell in `src/components/layouts/`. Do not add an empty pathless layout without child pages; TanStack will treat it as `/` and conflict with the home route.
 - `$` prefix = dynamic param. `$id.tsx` → `:id`.
 - `index.tsx` makes a folder-style index, equivalent to `routes/_app.tsx` + `routes/_app.index.tsx`.
@@ -288,7 +339,7 @@ Never `await` params or search — they are not Promises.
 
 ## Server / Client Boundary — Different from Next
 
-TanStack Start defaults to **client components**. SSR happens via the route's `loader`, not server components. The `"use client"` / `"use server"` directives that Next requires are not needed here (they are harmless if present — existing scaffold MES components keep them as a no-op). Treat:
+TanStack Start defaults to **client components**. SSR happens via the route's `loader`, not server components. The `"use client"` / `"use server"` directives that Next requires are not needed here (they are harmless if present — existing scaffold components keep them as a no-op). Treat:
 
 - **Client by default**: every file under `routes/` (page components), `components/`, `lib/hooks.ts`, `lib/motion.ts`.
 - **Server-only files**: `src/start.ts`, `src/lib/auth.ts`, `src/lib/gateway.ts` (when used server-side), every file under `src/routes/api/**`, every `createServerFn()` body.
@@ -314,7 +365,7 @@ The scaffold's `routes/login.tsx` is the canonical example: it reads gateway-inj
 
 ## Authentication Model
 
-Authentication is handled by the platform gateway. The app does NOT manage passwords or user accounts. Identity AND role both come from the gateway header — the app trusts whatever the platform asserts.
+Authentication is handled by the platform gateway. The app does NOT manage passwords or user accounts. Identity comes from gateway headers; active role is resolved from Tier0 role headers, the legacy `X-App-User-Role` header, or JSON `user.role`, and the signed `mes-session` cookie is only a fallback cache when the gateway sends no role.
 
 **Header formats** — all three are accepted; gateway picks one.
 
@@ -328,31 +379,53 @@ X-App-User-Name:  alice
 X-App-User-Email: a@x.com
 X-App-User-Role:  operator
 
-# Format 3 — minimal (no role; falls back to /login)
+# Format 3 — minimal identity only
 X-App-User-ID: u123
 ```
 
-`role` is OPTIONAL in the gateway header. When the gateway provides it, the app skips the role-selection page (Mode A: gateway-driven). When absent, the app falls back to a role-picker UI.
+`role` is OPTIONAL in the gateway payload. When present, the middleware resolves
+the active role in this order:
+
+1. `X-Tier0-Runtime: preview` + `X-Tier0-Preview-Role`
+2. `X-Tier0-Active-Role`
+3. `X-Tier0-Preview-Role`
+4. `X-App-User-Role`
+5. `user.role`
+
+Role header values may arrive as plain ASCII, percent-encoded UTF-8, or raw
+UTF-8 bytes read back as latin-1; the parser normalizes them before matching
+`PERMISSION_MATRIX`.
 
 **Flow:**
 1. Gateway authenticates the platform user → injects identity (and optionally role) into request headers.
 2. `src/start.ts` global middleware sees the request:
-   - Has `mes-session` cookie? → pass through.
-   - No cookie + gateway role is valid in `PERMISSION_MATRIX`? → mint the signed session cookie ourselves and 302 to the same URL. **No `/login` round-trip.**
-   - No cookie + gateway present but no usable role? → 302 to `/login`.
-   - No cookie + no gateway header? → 401.
-3. `/login` (only reached when gateway didn't supply a role) lists `PERMISSION_MATRIX` roles → user picks → `POST /api/auth/select-role` writes the cookie.
-4. Subsequent requests carry the `mes-session` cookie. `requireAuth("admin")` reads it via `getCurrentUser()` and throws `HttpError` on mismatch.
+   - Mutating requests must be same-origin.
+   - Public paths (`/login`, `/api/auth/*`, `/api/health`, `/api/manifest`, TanStack runtime/build assets) bypass auth.
+   - Gateway role authoritative — in `PERMISSION_MATRIX`, OR a gateway-injected Tier0 runtime role (`X-Tier0-Active-Role`/`X-Tier0-Preview-Role`)? → refresh the signed `mes-session` cookie if missing or stale, then continue. A gateway-injected role with no matrix entry enters with zero permissions (via `can()`).
+   - Role present but unknown AND not gateway-injected (a forgeable legacy/login value)? → 403 fail closed.
+   - No gateway role + valid `mes-session` cookie? → pass through.
+   - Gateway user present but no role and no session? → if `ADMIN_ROLE` exists, issue that fallback session and continue; otherwise 302 `/login?from=...`.
+   - No gateway user and no session? → 401.
+3. `/login` is a hidden auth bridge. It tries to mint the default admin session from gateway identity and redirect back to `from`; if no gateway identity exists, it emits a preview auth error instead of rendering a role picker.
+4. `/api/auth/select-role` still exists for legacy/platform-owned role-selection surfaces, but it is not the primary in-app UX.
+5. Subsequent requests enforce role access via `requireAuth("admin")`, `requireAuth("operator")`, and the signed `mes-session` cookie.
 
 **Implications for Agent design:**
 - The `role` shipped by the gateway MUST exactly match a key in `PERMISSION_MATRIX`. Coordinate naming with the platform — "operator" vs "Operator" matters.
-- An unknown gateway role does NOT auto-elevate; it falls back to the picker (where the user can only choose roles that DO exist). Fail-closed by default.
+- A gateway-injected Tier0 role with no `PERMISSION_MATRIX` entry enters with zero permissions (it does NOT auto-elevate); an unknown role that is NOT gateway-injected fails closed with 403. Never fall back to a picker. Full rules: `docs/role-registration.md`.
+- When the gateway sends a role, `mes-session` is a cache of the resolved identity/role, not the source of truth.
 - The `Switch Role` button has been removed from `Shell` — under Mode A, the gateway is authoritative. Users who need a different role get it from the platform.
+- Role differences should appear as real permission effects: menu visibility, button availability, action guards, and data scope. Do not add page-body copy explaining what Admin, Operator, Member, or any other role can do.
 
-**What you (the Agent) need to do:**
-- Define roles and permissions in `permissions.ts` (`PERMISSION_MATRIX`)
-- Use `requireAuth("admin")` / `requireAuth("operator")` in server routes to enforce access
-- Use `can(role, action)` for fine-grained permission checks in UI or routes
+**What you (the Agent) need to do — complete ALL of these in one pass** (full conventions, format, and trust model: `docs/role-registration.md`):
+1. `src/lib/permissions.ts` — add every permissioned operation to `ACTIONS`, map each role in `PERMISSION_MATRIX`. Keep `[ADMIN_ROLE]: [...ACTIONS]` exactly as-is (contract-tested).
+2. `src/lib/role-metadata.ts` — add a `ROLE_METADATA` entry (label, description, defaultRoute) for every matrix role.
+3. `roles.json` — mirror every business role. `role_key` must equal the matrix key exactly (ASCII snake_case for new roles); admin is the app-internal fallback and stays out of this file. This file is what the platform reads to assign/switch roles.
+4. The template ships with no business roles: `roles.json` starts empty and only the internal admin fallback exists. Add every business role to all three files; never invent demo/test roles to fill the gap.
+5. Enforce with `requireAuth("<role>")` in server routes and `can(role, action)` in the UI.
+6. Verify each delivered workflow as every defined role: admin must reach everything; each business role must reach the workflows the requirements assign to it.
+
+A contract test enforces that the three role surfaces stay in sync; partial registration fails the build.
 
 **What you must NOT do:**
 - Do NOT create login/register API routes — authentication is gateway-managed
@@ -371,22 +444,155 @@ X-App-User-ID: u123
 - `recharts` — BarChart, LineChart, AreaChart, PieChart, RadarChart, ScatterChart, ComposedChart
 - `@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities` — Drag-and-drop
 - `@tanstack/react-table` — Headless data table with sorting, filtering, pagination
-- `@tier0/sdk` — Tier0 platform SDK. Use lazy loaders from `@/lib/tier0`; load `$tier0-sdk` before generating Tier0 OpenAPI or MQ integrations. Keep the SDK SSR bundling policy in `vite.config.ts`, and do not top-level import SDK submodules from SSR startup paths.
+- `@tier0/sdk` — Tier0 platform SDK. Use lazy loaders from `@/lib/tier0` for Tier0 OpenAPI or MQ integrations. Keep the SDK SSR bundling policy in `vite.config.ts`, and do not top-level import SDK submodules from SSR startup paths.
 - `sonner` — Toast notifications via `toast()` / `toast.error()` / `toast.success()`
 - `date-fns` — Date manipulation and formatting
 - `motion` — Import from `@/lib/motion` (NOT `motion/react`). Exports: `motion`, `AnimatePresence`, `useSpring`, `useTransform`, `useMotionValue`, `MotionConfig`
 
 ## Minimal UI Scaffold
 
-This template intentionally does **not** ship a component library. Generate UI that fits the app being built, using Tailwind utilities, the tokens in `src/styles/globals.css`, and small app-specific components under `src/components/<domain>/` or next to the route that owns them.
+This template ships design-system primitives, not a business component library. `@/components/ui` implements the DESIGN.md recipes (buttons, badges, cards, page anatomy); domain primitives live in `forms/`, `overlays/`, `data/`, `actions/`. Business components are generated per app, using Tailwind utilities, the tokens in `src/styles/globals.css`, and small app-specific components under `src/components/<domain>/` or next to the route that owns them.
 
-- Do not import from `@/components/ui` or `@/components/mes`; those directories are not part of the scaffold.
-- Do not copy the support Gantt `components/ui` directory wholesale. Its Button/Input/Panel/Badge styling is represented here by the Tier0 tokens and recipes in `DESIGN.md` and `$uns-swe-ui-generation`.
+- Use `@/components/ui` for page anatomy and control styling: `PageHeader` opens every workspace page (eyebrow/title/description + right-side primary action slot); `Button` replaces hand-styled `<button>` (variants highlight/primary/secondary/outline/ghost — `highlight` is for THE one key action on a screen); `StatusBadge` is the one status shape — pass it the status value (`<StatusBadge status={x} />`) and it maps to a tone automatically (running/idle/paused/error/info); pass `tone` only to override; list pages get `StatusFilterChips` with live counts and a `RiskBanner` when the data contains risk states; empty lists render `EmptyState` with a working create action; dashboards use `StatCard` fed by real data; `Card` is the standard raised surface, with the `accent` left bar as the sanctioned per-card risk marker.
+- Layout rhythm: workspace content renders inside the Shell's centered 1440px container — do not fight it with your own page-level max-widths or full-viewport stretches; wide data boards scroll internally (`TableViewport` / `wide-operational-scroll`). In tables, give the trailing actions column (and checkbox/badge-only columns) `table-col-fit` so data columns absorb the width; tables with only 3-4 sparse columns should gain informative columns (dates, owners, locations) rather than stretching thin ones. Dashboards compose a stat row plus a work region (main queue : side risk panel ≈ 2:1) so the page does not end mid-screen.
+- Identifiers (document numbers, lot/batch numbers, location codes, SKUs) render in `font-mono` — tabular, scannable, visually distinct from prose.
+- Brand lime (`--tier0-highlight`) is a FILL color (selected states, focus ring, progress, chips); never use it as text color below 18px — text-level accents use `text-accent-strong`.
+- Status signals live in `StatusBadge` plus the Card `accent` left bar when a card carries risk. Do not tint whole card borders/backgrounds with status colors; page-level severity belongs in `RiskBanner`.
+- Do not import from `@/components/mes`; that directory is not part of the scaffold. Do not copy external Button/Input/Panel/Badge libraries wholesale — the `ui/` primitives already carry the Tier0 identity.
 - Use `@/components/overlays` for common app-local overlays: `Dialog`, `FormDialog`, `ConfirmDialog`, and `Drawer`. Do not recreate a shadcn-style overlay library.
+- Use `@/components/forms` for shared form primitives:
+  - `FieldLabel` / `RequiredMark` keep required asterisks consistent across generated apps.
+  - `FieldGroup` wraps one label + control + helper/error text as a stable field group; use it for every dialog, drawer, and page form field instead of hand-rolled label/control stacks.
+  - `FormGrid` lays fields out in 1 or 2 responsive columns without squeezing; do not hand-roll three-column dialog grids.
+  - `LineItemSection` contains multi-row line-item editors (order lines, BOM components, allocations, route steps) inside dialogs and pages without horizontal overflow.
+  - `RecordSelect` is the default picker for business objects (orders, customers, equipment, assets, materials, batches, tasks). Pass `status` / `quantity` / `location` / `date` option metadata so users can identify the correct record, and pass `metaLabels` when the app locale is not English.
+- Use `@/components/actions` for action transparency: recommended, automatic, rule-based, optimized, and bulk operations must go through `RecommendationAction` (trigger button + preview dialog) or `ImpactPreviewDialog` (dialog only) so users see the recommendation basis, affected records, before/after changes, and reason before execution. Pass `labels` for non-English apps. Do not ship opaque one-click mutations for these actions.
+- Use `@/components/data` for dense business tables: render entity lists with
+  `DataTable` (card frame + scroll viewport + full-width table; column padding,
+  header treatment, row dividers and hover come from the global table styles —
+  never hand-write a bare unpadded `<table>`), wrap other wide tables in
+  `TableViewport`, use `TableStatusCell` for nowrap status/action cells, and
+  use `TableCellText` or equivalent intentional wrapping/truncation for long
+  object names, identifiers, quantities, locations, and dates. Do not rely on
+  page, dialog, or drawer overflow as the table scroll surface.
 - Keep reusable app-specific components small and explicit. Prefer local composition over generic primitives unless repetition becomes real.
 - Use `@/components/toaster` only through the root mount; call `toast()`, `toast.success()`, and `toast.error()` from `sonner` in mutations.
 - Use `@/components/client-only` for Recharts, dnd-kit, motion layout features, or any subtree that touches browser APIs during render.
 - Continue to use low-level libraries directly when useful: TanStack React Table for data grids, Recharts for charts, dnd-kit for drag-and-drop, lucide-react for icons.
+
+### Form & Action Primitives — Canonical Usage
+
+Copy these compositions instead of hand-rolling label/control stacks, dialog grids, or one-click rule actions. Product copy in the snippets is Chinese to show the locale pattern: primitive chrome copy is overridden via `metaLabels` / `labels` so the finished app stays single-locale.
+
+**Workspace CRUD dialog** — `FormDialog` + `FormGrid` + `FieldGroup` + `RecordSelect`, with `LineItemSection` for line-item editors:
+
+```tsx
+import { FormDialog } from "@/components/overlays";
+import {
+  FieldGroup,
+  FormGrid,
+  LineItemSection,
+  RecordSelect,
+} from "@/components/forms";
+
+<FormDialog
+  open={open}
+  onOpenChange={setOpen}
+  title="新建领料单"
+  submitLabel="提交"
+  cancelLabel="取消"
+  pending={saving}
+  onSubmit={handleSubmit}
+>
+  <FormGrid>
+    <FieldGroup label="领料单号" htmlFor="code" required>
+      <input
+        id="code"
+        className="h-10 w-full min-w-0 rounded-sm border border-input bg-card px-3 text-sm"
+        value={code}
+        onChange={(e) => setCode(e.target.value)}
+      />
+    </FieldGroup>
+    <FieldGroup label="来源工单" htmlFor="workOrder" required>
+      <RecordSelect
+        id="workOrder"
+        value={workOrderId}
+        onChange={(e) => setWorkOrderId(e.target.value)}
+        placeholder="选择工单"
+        metaLabels={{ status: "状态", quantity: "数量", location: "库位", date: "日期" }}
+        options={workOrders.map((wo) => ({
+          value: wo.id,
+          label: wo.code,
+          status: wo.status,
+          quantity: wo.targetQty,
+          date: wo.dueDate,
+        }))}
+      />
+    </FieldGroup>
+  </FormGrid>
+  <LineItemSection
+    title="领料明细"
+    description="按批次 FIFO 顺序扣减"
+    actions={
+      <button type="button" onClick={addLine} className="text-sm text-highlight-text">
+        添加行
+      </button>
+    }
+  >
+    {lines.map((line) => (
+      <FormGrid key={line.id}>{/* 批次 RecordSelect、数量、库位字段 */}</FormGrid>
+    ))}
+  </LineItemSection>
+</FormDialog>
+```
+
+**Recommended / automatic / rule-based / bulk action** — `RecommendationAction` renders the trigger button and the impact preview; never ship these as opaque one-click mutations. `children` is the adjustment path: put manual-override or exception-reason fields there so the user can intervene instead of only confirm/cancel:
+
+```tsx
+import { RecommendationAction } from "@/components/actions";
+import { FieldGroup } from "@/components/forms";
+
+<RecommendationAction
+  label="FIFO 自动分配"
+  title="确认分配方案"
+  description="执行前请核对受影响批次"
+  basis="按入库时间 FIFO 排序，优先扣减最早批次"
+  reason="满足工单 WO-2026-001 需求数量 500"
+  impacts={plan.map((p) => ({
+    id: p.batchId,
+    label: p.batchCode,
+    status: p.status,
+    before: `可用 ${p.available}`,
+    after: `可用 ${p.available - p.allocate}`,
+    meta: [
+      { label: "库位", value: p.location },
+      { label: "分配数量", value: p.allocate },
+    ],
+  }))}
+  labels={{
+    basisTitle: "推荐依据",
+    impactTitle: "影响预览",
+    impactDescription: "执行前请核对受影响记录。",
+    reasonTitle: "原因",
+    beforeLabel: "变更前",
+    afterLabel: "变更后",
+  }}
+  confirmLabel="确认执行"
+  cancelLabel="取消"
+  pending={executing}
+  onConfirm={executeAllocation}
+>
+  <FieldGroup label="例外说明" helperText="偏离推荐方案时必填">
+    <textarea
+      className="min-h-20 w-full min-w-0 rounded-sm border border-input bg-card px-3 py-2 text-sm"
+      value={note}
+      onChange={(e) => setNote(e.target.value)}
+    />
+  </FieldGroup>
+</RecommendationAction>
+```
+
+When the preview must open from existing UI (a table row menu, a wizard step), use `ImpactPreviewDialog` directly with your own `open` state instead of `RecommendationAction`.
 
 ### Common Mistakes
 
@@ -411,7 +617,7 @@ const navigate = useNavigate(); navigate({ to: "/x" });
 |----------|-------|
 | **Navigation** | `LayoutDashboard`, `Home`, `Settings`, `Menu`, `ChevronDown`, `ChevronRight`, `ChevronLeft`, `ArrowLeft`, `ArrowRight`, `ExternalLink` |
 | **CRUD** | `Plus`, `Pencil`, `Trash2`, `Save`, `X`, `Check`, `Copy`, `MoreHorizontal`, `MoreVertical`, `Search`, `Filter`, `SlidersHorizontal` |
-| **MES / Factory** | `Factory`, `Wrench`, `Cog`, `Gauge`, `Activity`, `Zap`, `Thermometer`, `Timer`, `Clock`, `CalendarDays`, `CalendarClock` |
+| **Industrial operations** | `Factory`, `Wrench`, `Cog`, `Gauge`, `Activity`, `Zap`, `Thermometer`, `Timer`, `Clock`, `CalendarDays`, `CalendarClock` |
 | **Status** | `CircleCheck`, `CircleX`, `CircleAlert`, `CirclePause`, `CircleDot`, `AlertTriangle`, `ShieldCheck`, `ShieldAlert`, `Ban` |
 | **Data** | `BarChart3`, `LineChart`, `PieChart`, `TrendingUp`, `TrendingDown`, `FileText`, `FileSpreadsheet`, `Download`, `Upload`, `Clipboard`, `ClipboardList` |
 | **Entities** | `Package`, `Box`, `Boxes`, `Layers`, `ListOrdered`, `ListChecks`, `Tags`, `Tag`, `Hash` |
@@ -518,7 +724,7 @@ const userId = getRequestHeaders().get("X-App-User-ID");
 ### Step 1: Database Schema
 
 - Edit `src/db/schema.ts` — define enums, tables, Zod schemas, and types (see examples in file comments)
-- Every table MUST include `createdAt` and `updatedAt` timestamp columns
+- Every table MUST include `createdAt` and `updatedAt` — spread `...timestamps` (exported from `schema.ts`) into each table so they always exist; then `order by createdAt desc` is safe everywhere (never order by a column a table might not have)
 - Derive Zod schemas with `createInsertSchema()` / `createUpdateSchema()` — NEVER hand-write validation
 - Derive types with `$inferSelect` / `$inferInsert` — NEVER hand-write type interfaces
 - Runtime bootstrap is mandatory for implemented modules: each service must
@@ -534,7 +740,7 @@ Pure configuration — no UI, no route handlers.
   `src/db/seed.ts` only for explicit bulk imports or local reset fixtures.
 - seed.ts is excluded from tsconfig — use **relative imports only** (e.g., `import * as schema from "./schema"`), NOT `@/` aliases
 - Use `db.insert(schema.table).values([...]).onConflictDoUpdate()` for idempotency
-- Seed data must tell a coherent story: cross-references, realistic status distributions, timestamps spanning past 2 weeks
+- Seed data must tell a coherent story: cross-references, realistic status distributions, timestamps spanning past 2 weeks. Cover every lifecycle state the schema's status enums define (e.g. draft, pending, in-progress, exception/blocked, completed — adapted to the domain) so lists, filters, status panels, and dashboards show real variety on first open
 - Seed foreign keys must be explicit strings from declared parent records.
   Never rely on array positions without checking bounds, never pass
   `undefined`, and never omit a required FK property in a Drizzle `.values([...])`
@@ -547,6 +753,8 @@ Pure configuration — no UI, no route handlers.
 - `bootstrapModule(...)` runs in two phases inside one transaction: first all
   `prepare` / `createTable` / `createIndexes` statements for the module, then
   all `seed` callbacks. Do not hand-roll create/seed ordering in services.
+- These runtime bootstrap and seed invariants are build-enforced. If a generated
+  service violates them, fix the service before reporting the app complete.
 
 ### Step 3: Services + Server Routes
 
@@ -768,15 +976,23 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 
 ### Step 4: Frontend (all UI in one step)
 
-- First classify each UI workflow and choose a route group automatically: `station` for task-first scan/tap/confirm execution, `review` for queue/evidence/decision work, `monitor` for passive wallboards/andon/TV displays/fixed large screens, `_app` for workspace/admin/planning/analytics, or a custom layout when the workflow needs another distinct interaction model.
-- For `_app` workspace pages only: update `src/components/Shell.tsx`, add modules to `defaultModules`, and implement collapsible sidebar + mobile overlay when the app needs persistent module navigation.
-- System configuration, admin configuration, role/permission setup, tenant settings, audit settings, and similar setup-only pages must be nested under a sidebar parent as second-level menu items. Do not put "System Configuration" or "Settings" as a first-level sidebar module unless the whole app is only a configuration console. Do not generate Tier0 SDK authentication, OpenAPI endpoint, MQTT endpoint, API key, token, or credential configuration pages; SDK auth is prebuilt and app users should not manage those values in generated MES UIs.
+- First classify each UI workflow and choose a route group. For first-version
+  management, planning, warehouse, R&D, approval, and operations apps, keep
+  committed capabilities discoverable in `_app` workspace pages by default.
+  Use `station`, `review`, or `monitor` only when the user explicitly wants a
+  dedicated no-sidebar task surface or the workflow truly requires it.
+- For `_app` workspace pages only: update `src/components/Shell.tsx`, add modules to `defaultModules`, and implement collapsible sidebar + mobile overlay when the app needs persistent module navigation. `defaultModules` starts empty; do not create an `Overview` menu item unless the requested product explicitly needs an overview/home/dashboard page.
+- Every committed first-version capability must have a visible primary entry:
+  sidebar module, first-screen action, dashboard queue, or in-page module link.
+  Route smoke passing for `/station/*` or `/review/*` is not enough if users
+  cannot discover that route from the main app surface.
+- System configuration, admin configuration, role/permission setup, tenant settings, audit settings, and similar setup-only pages must be nested under a sidebar parent as second-level menu items. Do not put "System Configuration" or "Settings" as a first-level sidebar module unless the whole app is only a configuration console. Do not generate Tier0 SDK authentication, OpenAPI endpoint, MQTT endpoint, API key, token, or credential configuration pages; SDK auth is prebuilt and app users should not manage those values in generated business UIs.
 - Use Shell `NavModule` metadata (`badge`, `locked`, `disabledReason`) for sidebar-only product state such as beta, upgrade required, unavailable, or read-only. Do not create one-off sidebar badge/disabled-link implementations in page code.
 - Same-app layout chrome must be consistent. Do not mix Shell-sidebar pages and no-sidebar pages in one app. Sidebar modules, role default routes, and in-app navigation targets must preserve the chosen app chrome.
 - Sidebar modules must preserve the sidebar. Do not add `station`, `review`, `monitor`, or other no-sidebar task-flow routes to `defaultModules`; convert those workflows into workspace pages or split them into a separate app/entry surface.
 - Every authenticated layout shell must include a visible logout action. Put it in the shared layout (`Shell`, `StationLayout`, `ReviewLayout`, `MonitorLayout`, or the custom shell), not individual pages.
 - The scaffold keeps exactly one intentionally blank route: `src/routes/_app.index.tsx` with `TEMPLATE_BLANK_ROUTE`. Do not add any other blank route placeholders. Do not ship that blank placeholder in a finished app.
-- Build dashboard at `src/routes/_app.index.tsx` only when the app has a management/analytics home; task-first station, review, monitor, kiosk, or other custom apps must replace `_app.index.tsx` with a redirect or matching root entry so `/` does not show a sidebar workspace starter.
+- Build an overview, home, or dashboard at `src/routes/_app.index.tsx` only when the app requirements call for one; task-first station, review, monitor, kiosk, single-workflow, or other custom apps must replace `_app.index.tsx` with a redirect or matching root entry so `/` lands in the primary experience.
 - If the app has only one primary page or one primary workflow surface, make that surface own `/` directly. Do not leave `/` blank and put the only real screen under a secondary route.
 - Build each page under its selected layout group (`src/routes/_app.<module>.tsx`, `station.<task>.tsx`, `review.<queue>.tsx`, `monitor.<view>.tsx`, or a custom `intent.<page>.tsx`) and vary UI patterns across modules.
 - Pages use the selected route group's path in `createFileRoute(...)` and inherit that authenticated layout automatically: `"/_app/..."` for workspace, `"/station/..."`, `"/review/..."`, `"/monitor/..."`, or the matching custom route prefix.
@@ -789,7 +1005,10 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 
 ### Step 5: Final Build & Lint
 
-- Run `npm run build` — fix errors and retry, max 3 attempts. In this scaffold `npm run build` is not build-only: `postbuild` automatically runs the required local verification flow (`typecheck`, `lint`, contract tests, and runtime-safety checks).
+- **Locked gates vs template-state tests.** Contract tests come in two kinds:
+  - *Template-state test — adapt it*: `src/lib/template-state.test.mjs` asserts the blank-template condition (empty navigation, no Overview). Building a real app makes those assertions wrong by design — rewrite them to describe your app, or empty the describe block. This is the ONLY contract file you may edit.
+  - *Locked invariant gates — never edit*: every other test file in `src/lib/`, plus `scripts/ui-advisories.mjs`, `scripts/route-smoke.mjs`, `scripts/post-build-verify.mjs`, `scripts/gate-integrity.mjs`, and `scripts/gate-integrity.json`. The postbuild `Gate integrity` stage hash-pins these files and fails the build on any edit or deletion. If a locked gate blocks a legitimate case: use its documented opt-out marker (`EXTERNAL_CALLER`, `READ_ONLY_SURFACE`), restructure the code to satisfy the rule, or stop and surface the conflict to the user. Editing the gate is never the fix.
+- Run `npm run build` — fix errors and retry, max 3 attempts. In this scaffold `npm run build` is not build-only: `postbuild` automatically runs the required local verification flow (`typecheck`, `lint`, contract tests, runtime-safety checks, and the first-load runtime audit), then prints non-blocking `[advisory]` UI suggestions. Advisories never fail the build: treat them as improvement hints and apply them when they fit the current slice, not as errors to retry.
 - Do not bypass the required gate by running `vite build` directly unless you are debugging the bundler itself. Normal completion must go through `npm run build`.
 - When `postbuild` fails, fix the reported verification stage before declaring success.
 
@@ -818,6 +1037,7 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 - **`db` imports ONLY in `src/services/**` and `src/db/seed.ts`** — never in routes, never in lib, never in client components
 - Server routes are thin HTTP shells: `requireAuth → parse → service call → Response.json`. If you find yourself calling `db.*` from a route handler, move that code into a service first
 - Client data fetching must be keyed by stable values, not render-created function identities. Prefer `useRequest(requestKey, loader)` from `@/lib/hooks` for reusable client loads. Page calls must pass stable keys for list/detail/filter state so successful `setState` does not immediately trigger another identical request. Reusable polling must stay single-flight; do not let slow responses accumulate across interval ticks.
+- Render a `useRequest` result through `<AsyncView result={...}>` (from `@/components/data`) rather than `if (!data) return null` — it shows loading / error-with-Reload / empty for you, so a failed fetch surfaces an error instead of an endless "loading". This is build-enforced; a generated app must not report completion while a request failure can masquerade as loading.
 - TanStack Router `Route.useParams()` and `Route.useSearch()` are **synchronous** — never `await`
 - Define `validateSearch` (Zod) on routes that read query strings — gives type safety + validation
 - `createServerFn().handler(...)` is the equivalent of a Next server action; like server routes, the handler should delegate to a service for any non-trivial work
@@ -826,7 +1046,7 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 - **Component `.tsx` files export components only.** Put constants, plain helpers, hooks, and data into a sibling `.ts` module and import them. React Fast Refresh hot-replaces a module only when every export is a component; a single non-component export forces a full page reload on every edit — worst on widely-imported files like the app shell or shared layout/overlay modules
 - `export type` / `export interface` are fine (type-only, erased at build). Route files that export `Route` via `createFileRoute` are handled by the router plugin and are exempt
 - **`optimizeDeps.include` (in `vite.config.ts`) must list client deps reached only through code-split route/component boundaries**, using the exact imported subpath (e.g. `"motion/react"`, not `"motion"`). Otherwise Vite discovers them after its initial scan, re-optimizes, and forces a full reload
-- Frequent full-page reloads during dev are an HMR defect, not a preview/startup failure — see `$preview-runtime-stability` for the diagnosis playbook
+- Frequent full-page reloads during dev are an HMR defect, not a preview/startup failure. Use the platform preview/runtime stability Skill for the diagnosis playbook when it is available.
 
 ### Recharts
 - **ALWAYS** wrap in `<ResponsiveContainer width="100%" height={300}>` inside a container with explicit height
@@ -867,8 +1087,12 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 - Build app-specific controls locally from Tailwind utilities and Tier0 tokens; keep reusable pieces under `src/components/<domain>/`.
 - Buttons: `default` is signal-green highlight, `primary` is neutral gray, `outline` is bordered, `secondary` is neutral filled, `ghost` is low-emphasis.
 - Default controls are about 40px high; station, kiosk, PDA, scan, tap, and confirm flows should use 44-48px touch targets.
-- Keep tables compact, with explicit truncation (`min-w-0`, `truncate`, `line-clamp-*`) and quiet row actions.
+- Keep tables compact, with `TableViewport` or explicit internal horizontal
+  scroll for wide data, explicit truncation (`min-w-0`, `truncate`,
+  `line-clamp-*`), nowrap status/action cells, and quiet row actions.
 - Master data, workstation configuration, material, equipment, route, and process-parameter create/edit forms should normally open from a button in `FormDialog` or `Drawer` instead of staying permanently expanded on the page.
+- Compose form bodies from `FieldGroup` + `FormGrid`; use `LineItemSection` for line-item editors and `RecordSelect` for business-object pickers instead of bare `<select>` lists of IDs.
+- Required fields use `FieldLabel required` or `RequiredMark`; the star color comes from the global required-marker rule, not local color classes.
 - Tags use grey by default; use signal green only for Tier0 highlight states.
 
 **Motion**
@@ -906,10 +1130,17 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 - Schema: 5-10 tables with `createdAt`/`updatedAt`, Zod schemas via `createInsertSchema`/`createUpdateSchema`, types via `$inferSelect`
 - Seed: 5-10 records/table, idempotent (`onConflictDoUpdate`), interlinked, coherent business story
 - Auth: `PERMISSION_MATRIX` defined, `requireAuth()` on all write routes
-- Services: one file per domain entity in `src/services/`, all multi-step writes wrapped in `db.transaction`, state machines defined as transition tables, throw `{ status, message }` for caller-facing errors. **No `db` imports outside `src/services/` and `src/db/seed.ts`.** Single-row lookups use explicit `select().from(...).where(...).limit(1)`, not `db.query.*.findFirst()` / `tx.query.*.findFirst()`.
+- Services: one file per domain entity in `src/services/`, all multi-step writes wrapped in `db.transaction`, state machines defined as transition tables, throw `{ status, message }` for caller-facing errors. **No `db` imports outside `src/services/` and `src/db/seed.ts`.** Single-row lookups use explicit `select().from(...).where(...).limit(1)`, not `db.query.*.findFirst()` / `tx.query.*.findFirst()`. Raw SQL `execute()` results are normalized with `rowsOf()` before array operations.
 - API: full CRUD per entity via `createFileRoute(...).server.handlers`, every handler wrapped in `withErrors`, body ≤ 10 lines (auth → parse → service call → Response.json). No business logic in handlers.
-- UI: every page is mounted under the correct authenticated layout group (`_app`, `station`, `review`, `monitor`, or a custom layout when justified), and `/` lands in the correct primary experience. Every authenticated layout shell has a visible logout action. A single app does not mix Shell-sidebar pages with no-sidebar pages; sidebar modules, role default routes, and in-app navigation targets preserve the chosen app chrome. System configuration/settings pages are second-level sidebar items, not first-level modules, unless the entire app is only configuration. Tier0 SDK auth/connection configuration pages are not generated. All fetch via `apiUrl()` for local app APIs, reusable request hooks use stable request keys instead of inline loader function dependencies, recharts wrapped in `<ClientOnly>` AND `<ResponsiveContainer>`, toast on mutations, empty states with actions. Interactive pages are responsive at 375px+; monitor pages fit their intended fixed viewport. Workspace apps keep Shell navigation current; station/review/monitor/custom task apps remain no-sidebar consistently for the whole app. Product UI copy follows `$app-i18n-copy`: choose one explicit locale, normalize shell/dialog/loading/error copy to it, and do not ship mixed Chinese/English UI unless the user explicitly asks for bilingual output.
+- Product memory: if `specs/spec.md` exists and the change has durable product meaning, the affected roles, user stories, commitments, fields, workflows, UI flows, validation rules, or terminology are updated without rewriting unrelated spec sections. Pure visual/build fixes do not need spec churn.
+- Exposure: every capability named in navigation, tabs, page titles, dashboard cards, primary actions, or row actions has an executable user path — no display-only module stubs, no UI copy promising unimplemented features. Seeded data covers the lifecycle states defined by the schema's status enums; primary lists and dashboards open populated. Resource, inventory, order, task, asset, case, supplier, customer, and project apps do not stop at intake/listing when downstream use, issue, dispatch, fulfillment, closure, or exception handling is part of the requested business meaning.
+- Form & action primitives: dialog/drawer forms are composed from `FieldGroup` / `FormGrid` (with `LineItemSection` for line items), business-object pickers use `RecordSelect` or an equivalent metadata-rich selector, and recommended/automatic/rule-based/bulk actions expose basis, affected records, and before/after changes via `RecommendationAction` / `ImpactPreviewDialog` (or an equivalent visible preview + confirmation) before mutating. Non-English apps pass `metaLabels` / `labels` so primitive copy matches the app locale.
+- Data table primitives: dense tables use `TableViewport` from
+  `@/components/data` or an equivalent internal scroll viewport; status badges,
+  row actions, dates, and quantities remain readable and do not wrap into
+  broken fragments.
+- UI: every page is mounted under the correct authenticated layout group (`_app`, `station`, `review`, `monitor`, or a custom layout when justified), and `/` lands in the correct primary experience. Every authenticated layout shell has a visible logout action. A single app does not mix Shell-sidebar pages with no-sidebar pages; sidebar modules, role default routes, and in-app navigation targets preserve the chosen app chrome. System configuration/settings pages are second-level sidebar items, not first-level modules, unless the entire app is only configuration. Tier0 SDK auth/connection configuration pages are not generated. All fetch via `apiUrl()` for local app APIs, reusable request hooks use stable request keys instead of inline loader function dependencies, recharts wrapped in `<ClientOnly>` AND `<ResponsiveContainer>`, toast on mutations, empty states with actions. Interactive pages are responsive at 375px+; monitor pages fit their intended fixed viewport. Workspace apps keep Shell navigation current; station/review/monitor/custom task apps remain no-sidebar consistently for the whole app. Product UI copy uses one explicit locale: normalize shell/dialog/loading/error copy to it, and do not ship mixed Chinese/English UI unless the user explicitly asks for bilingual output.
 - Hydration: no date/browser-API at first render, motion from `@/lib/motion`, valid HTML nesting, `Route.useParams()` / `Route.useSearch()` (never awaited), no server-only imports in client components, recharts/dnd-kit subtrees wrapped in `<ClientOnly>`
-- Branding: app-specific naming is applied consistently before declaring done. Check and update `src/routes/__root.tsx` `<title>` and `description`, `src/routes/login.tsx` login page brand copy, `src/components/Shell.tsx`, and any used layout shell in `src/components/layouts/`. Remove or replace scaffold/default copy such as "Application", "Home", "Ready", "MES", "MES App", "MES Console", "Industrial App", "Station Console", "Review Workspace", "Workspace Home", or "Industrial application scaffold" unless those names are intentionally part of the finished product.
-- Product copy: use `$app-i18n-copy` when the user asks for i18n, localization, translation, or copy cleanup. Default to a single explicit locale per app surface and keep visible shell, dialog, button, loading, error, tooltip, and accessibility labels in that locale. Only introduce a message catalog when the requirements explicitly need runtime multi-language support. Do not render design-system commentary or implementation notes in visible UI. Text like "FX green only for key states", "Tier0 signal green", color-token explanations, layout guidance, or component usage notes belongs in docs/comments only.
-- Build: `npm run build` passes end to end, including the automatic `postbuild` verifier. That means `dist/{client,server}` exists, TypeScript passes, ESLint reports **0 warnings, 0 errors**, contract tests pass, and runtime-safety checks pass.
+- Branding: the app name AND locale live in ONE place — `APP_NAME` and `APP_LOCALE` in `src/lib/app-chrome.ts`. `APP_LOCALE` drives `<html lang>` (native date inputs localize: zh-CN renders 年/月/日) and the shared dialogs' default labels — set both together. The app name lives in `APP_NAME`, consumed by the sidebar brand mark and the browser tab `<title>`. Set it to the real business app name (short: it renders on at most two lines in the sidebar; one or two words plus an optional qualifier, e.g. "研发仓 WMS", "Supplier Portal"). Leaving the `"Manufacturing App"` default raises a build advisory. Also update `src/routes/login.tsx` login page brand copy and any used layout shell in `src/components/layouts/`. Remove or replace scaffold/default copy such as "Application", "Home", "Ready", "MES", "MES App", "MES Console", "Industrial App", "Station Console", "Review Workspace", "Workspace Home", or "Industrial application scaffold" unless those names are intentionally part of the finished product. The brand icon lives in `APP_ICON` (same file, consumed by the Shell and station brand marks): pick ONE fitting lucide-react icon for the app's business domain — never generate icon artwork. Then sync the SAME icon to the platform (it shows in the platform's app list and app detail header; platform accepts PNG/JPEG ≤2MB only): write a temporary 512×512 HTML page (body margin 0; a rounded-square `#111` background filling the viewport with border-radius 96px; the icon's 24×24 lucide SVG markup centered at ~60% size with `fill="none" stroke="#fff" stroke-width="2"`), rasterize it with `/usr/local/bin/chrome-headless-shell --headless --screenshot=public/app-icon.png --window-size=512,512 file://$PWD/<tmp>.html`, delete the temporary HTML, then call the `update_app_info` tool with `icon_path: "public/app-icon.png"` (include `name` when the app name changed). Re-sync the platform icon whenever the app is renamed or rebranded.
+- Product copy: when the user asks for i18n, localization, translation, or copy cleanup, apply the platform copy/i18n Skill if it is available. Default to a single explicit locale per app surface and keep visible shell, dialog, button, loading, error, tooltip, and accessibility labels in that locale. Only introduce a message catalog when the requirements explicitly need runtime multi-language support. Do not render design-system commentary or implementation notes in visible UI. Text like "FX green only for key states", "Tier0 signal green", color-token explanations, layout guidance, or component usage notes belongs in docs/comments only.
+- Build: `npm run build` passes end to end, including the automatic `postbuild` verifier. That means `dist/{client,server}` exists, TypeScript passes, ESLint reports **0 warnings, 0 errors**, contract tests pass, and runtime-safety checks pass. When a preview URL is available, `npm run smoke:routes -- <url>` confirms the entry page does not render route-level runtime failure text.
