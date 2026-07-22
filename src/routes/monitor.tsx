@@ -15,6 +15,7 @@ import {
 } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { MonitorLayout } from "@/components/layouts/MonitorLayout";
+import { RouteError } from "@/components/ui";
 import { getCurrentUser } from "@/lib/auth";
 import type { AppUser } from "@/lib/users";
 
@@ -64,18 +65,11 @@ function MonitorPending() {
 
 function MonitorError({ error, reset }: ErrorComponentProps) {
   return (
-    <div className="flex h-screen items-center justify-center overflow-hidden bg-background p-10">
-      <div className="text-center">
-        <p className="text-sm font-medium text-destructive">Monitor page failed to load</p>
-        <p className="mt-1 text-xs text-muted-foreground">{error.message}</p>
-        <button
-          type="button"
-          className="mt-4 inline-flex h-8 items-center justify-center rounded-sm border border-border bg-card px-3 text-xs font-medium text-foreground shadow-sm transition-[background-color,border-color,box-shadow] duration-150 hover:border-border-strong hover:bg-background hover:shadow-md focus:border-highlight focus:outline-none"
-          onClick={reset}
-        >
-          Retry
-        </button>
-      </div>
-    </div>
+    <RouteError
+      title="Monitor page failed to load"
+      error={error}
+      reset={reset}
+      className="h-screen overflow-hidden bg-background"
+    />
   );
 }
