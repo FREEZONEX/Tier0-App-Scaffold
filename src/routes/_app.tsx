@@ -19,6 +19,7 @@ import {
 } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useEffect } from "react";
+import { RouteError } from "@/components/ui";
 import { Shell } from "@/components/Shell";
 import { getCurrentUser } from "@/lib/auth";
 import { sendPreviewError, sendPreviewReady } from "@/lib/preview-bridge";
@@ -83,19 +84,5 @@ function AppError({ error, reset }: ErrorComponentProps) {
     sendPreviewError(error.message || 'Page failed to load', 'app');
   }, [error]);
 
-  return (
-    <div className="flex h-full items-center justify-center p-12">
-      <div className="text-center">
-        <p className="text-sm font-medium text-destructive">Page failed to load</p>
-        <p className="mt-1 text-xs text-muted-foreground">{error.message}</p>
-        <button
-          type="button"
-          className="mt-4 inline-flex h-8 items-center justify-center rounded-sm border border-border bg-card px-3 text-xs font-medium text-foreground shadow-sm transition-[background-color,border-color,box-shadow] duration-150 hover:border-border-strong hover:bg-background hover:shadow-md focus:border-highlight focus:outline-none"
-          onClick={reset}
-        >
-          Retry
-        </button>
-      </div>
-    </div>
-  );
+  return <RouteError error={error} reset={reset} />;
 }

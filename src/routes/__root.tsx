@@ -52,13 +52,13 @@ function RootDocument() {
 
 function NotFound() {
   return (
-    <div className="flex h-full items-center justify-center p-12">
+    <div className="flex h-full items-center justify-center p-6 sm:p-12">
       <div className="text-center">
-        <p className="text-4xl font-semibold">404</p>
-        <p className="mt-2 text-xs text-muted-foreground">Page not found</p>
+        <p className="text-4xl font-semibold sm:text-5xl">404</p>
+        <p className="mt-2 text-sm text-muted-foreground sm:text-base">Page not found</p>
         <Link
           to="/"
-          className="mt-4 inline-flex h-8 items-center justify-center rounded-sm border border-border bg-card px-3 text-xs font-medium text-foreground shadow-sm transition-[background-color,border-color,box-shadow] duration-150 hover:border-border-strong hover:bg-background hover:shadow-md focus:border-highlight focus:outline-none"
+          className="mt-4 inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-3 text-sm font-medium text-foreground shadow-sm transition-[background-color,border-color,box-shadow] duration-150 hover:border-border-strong hover:bg-background hover:shadow-md focus:border-highlight focus:outline-none"
         >
           Back Home
         </Link>
