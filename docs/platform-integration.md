@@ -90,7 +90,8 @@ Browser -> Gateway (validates platform login) -> injects user + role headers -> 
 
       no cookie + gateway role missing or invalid
         -> 302 /login?from=...
-        -> POST /api/auth/select-role writes cookie
+        -> hidden bridge mints a permission-less guest session (view-only)
+        -> 302 back to the requested path
 
       no cookie + no gateway header
         -> 401

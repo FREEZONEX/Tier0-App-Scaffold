@@ -15,8 +15,8 @@
  *
  * `role` is OPTIONAL. When the gateway supplies it, `src/start.ts` middleware
  * auto-issues a session cookie (Mode A: gateway-driven role assignment) and
- * the user skips the hidden auth bridge. When absent, the bridge currently
- * creates an admin session until the platform iframe owns role selection.
+ * the user skips the hidden auth bridge. When absent, the bridge mints a
+ * permission-less guest session (view-only) instead of granting real access.
  */
 
 export interface GatewayUser {

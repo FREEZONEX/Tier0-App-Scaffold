@@ -14,6 +14,8 @@
 import { ROLE_METADATA, getRoleMetadata } from "./role-metadata";
 
 export const ADMIN_ROLE = "admin";
+/** No permissions at all — used when the gateway has no real role to inject (e.g. an unassigned viewer). */
+export const GUEST_ROLE = "guest";
 
 export const ACTIONS = [
   "view_dashboard",
@@ -33,6 +35,7 @@ export type Action = (typeof ACTIONS)[number];
 
 export const PERMISSION_MATRIX: Record<string, Action[]> = {
   [ADMIN_ROLE]: [...ACTIONS],
+  [GUEST_ROLE]: [],
   sales: ["view_dashboard", "manage_sales_orders"],
   planner: ["view_dashboard", "manage_work_orders", "manage_scheduling"],
   production_supervisor: [
