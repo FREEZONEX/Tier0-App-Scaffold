@@ -5,6 +5,8 @@ import { mimicSchema, type Mimic } from "@/hmi/schema/schema";
 import { bootstrapModule } from "./bootstrap";
 import defaultMimic from "@/hmi/data/default-mimic.json";
 
+const DEFAULT_MIMIC_SEED_ID = "00000000-0000-0000-0000-000000000001";
+
 /** 列表元信息：不含大 json data，只够选择器/列表渲染。 */
 export interface MimicMeta {
   id: string;
@@ -38,9 +40,13 @@ export function bootstrapMimics(): Promise<void> {
       seed: async (tx) => {
         const source = defaultMimic;
         const data = mimicSchema.parse(source);
-        await tx.execute(sql`
-          insert into mimics (id, name, data)
-          values (${crypto.randomUUID()}, ${"default"}, ${JSON.stringify(data)}::jsonb)`);
+        // Fixed id (not crypto.randomUUID()) so a concurrent cold-start race
+        // hits the same primary key and no-ops instead of inserting a
+        // duplicate "default" row.
+        await tx
+          .insert(mimics)
+          .values({ id: DEFAULT_MIMIC_SEED_ID, name: "default", data })
+          .onConflictDoNothing({ target: mimics.id });
       },
     },
   ]);
