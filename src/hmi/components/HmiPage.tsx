@@ -106,13 +106,12 @@ function HmiPageInner({ initialMimic, canEdit, forceDemo }: { initialMimic: Mimi
   // 「演示」切换是否可用：**实时**跟随真实图（history.present）是否为空——编辑态画出首个节点（落库）后
   // 立即隐藏，无需刷新。demoEdit（本地开关）下 history 装 DEMO_MIMIC（非空），按首屏 demoScene 显示。
   const demoAvailable = demoEdit ? demoScene : history.present.nodes.length === 0;
-  // 模式：编辑 / 预览 / 演示三态。**演示 = 钉死的只读参考样板**（「演示」切换仅 DB 空时出现，见 demoAvailable）：
-  // 渲染内置示例图 DEMO_MIMIC（只读、不入历史/不落库、走 mock 源 + 🔵演示徽标）——AI 可参考它的画法，但绝不在其上二次修改。
-  // 编辑/预览 = DB 真实图（AI 平台把客户图**全新生成**写进 DB）。DB 为空默认首屏进「演示」给好观感；DB 有真实图则**隐藏演示**、默认进编辑/预览。
-  // forceDemo（角色连 view_dashboard 都没有，如没绑定角色的访客）：不管 DB 有没有真实图，钉死演示——
-  // 既不暴露真实业务数据，也进不去编辑/预览（canSwitchMode=canEdit 本来就为假，切换器本身不渲染）。
+  // 模式：编辑 / 预览 / 演示三态，**只看角色，和 DB 是否有真实数据无关**：
+  // admin(canEdit) = 编辑 + 预览；operator 等有 view_dashboard 但没编辑权的角色 = 预览（哪怕 DB 是空的，
+  // 也是看一个空的真实图，不回落演示样板）；guest/未绑定角色（forceDemo）= 钉死演示，绝不碰真实数据。
+  // 「演示」标签页本身（demoAvailable）仍然只在 DB 为空时对 admin 可见，纯 UI 便利，不影响这里的初始模式。
   const [mode, setMode] = useState<"edit" | "preview" | "demo">(
-    forceDemo || demoScene ? "demo" : canEdit ? "edit" : "preview",
+    forceDemo ? "demo" : canEdit ? "edit" : "preview",
   );
   // isDemo：处于演示态（演示标签 / demo-edit 可编辑演示 / 角色连 view_dashboard 都没有——forceDemo
   // 钉死只读演示，不管 DB 有没有真实图，真实数据绝不进 schema）。

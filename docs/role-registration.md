@@ -36,9 +36,14 @@ them is a half-finished role.
 3. **`roles.json`** (repo root) — mirror the role so the platform registers it.
    This is the registration plane's input.
 
-`admin` and `guest` are app-internal fallback roles (used when the gateway has
-no role to inject yet). Both stay in `permissions.ts` / `role-metadata.ts` but
-**must not** be listed in `roles.json` — neither is a platform business role.
+`admin` and `guest` are app-internal fallback roles (`admin` when a gateway
+identity has no bound role yet and the app defines one; `guest` — not a
+`PERMISSION_MATRIX` key, resolves to zero permissions — otherwise). This
+SCADA/HMI product has exactly three roles total: `admin`, `operator`,
+`guest`, matching its three HMI view tiers (Edit+Preview / Preview-only /
+Demo-only — see `src/routes/_app.index.tsx`). All three are listed in
+`roles.json` so a tester can assign any of them from the platform's role
+picker to verify each view live, not just as an automatic fallback.
 
 ## `roles.json` format
 

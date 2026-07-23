@@ -1,10 +1,7 @@
 {
   "roles": [
-    { "role_key": "sales", "name": "Sales", "description": "Review customer demand, order progress, and delivery-related information." },
-    { "role_key": "planner", "name": "Planner", "description": "Maintain production plans, scheduling cadence, and work-order priorities." },
-    { "role_key": "production_supervisor", "name": "Production Supervisor", "description": "Track line execution, resolve exceptions, and coordinate shop-floor resources." },
-    { "role_key": "operator", "name": "Operator", "description": "Perform station tasks, report production, scan, and submit shop-floor feedback." },
-    { "role_key": "quality", "name": "Quality", "description": "Handle inspections, quality decisions, exception reviews, and release activities." },
-    { "role_key": "warehouse", "name": "Warehouse", "description": "Handle receiving, issuing, stock movement, staging, and warehouse execution tasks." }
+    { "role_key": "admin", "name": "Admin", "description": "Full access — Edit and Preview the HMI mimic, configure the system." },
+    { "role_key": "operator", "name": "Operator", "description": "Preview the real HMI mimic read-only — no edit access." },
+    { "role_key": "guest", "name": "Guest", "description": "Read-only built-in demo mimic only." }
   ]
 }

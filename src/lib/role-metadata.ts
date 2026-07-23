@@ -9,42 +9,17 @@ export interface RoleMetadata {
 export const ROLE_METADATA = {
   admin: {
     label: "Admin",
-    description: "Configure the system, manage permissions, and handle cross-module administration.",
-    defaultRoute: APP_HOME_ROUTE,
-  },
-  guest: {
-    label: "Guest",
-    description: "View-only access with no edit permissions. Assigned when the platform has not bound a role yet.",
-    defaultRoute: APP_HOME_ROUTE,
-  },
-  sales: {
-    label: "Sales",
-    description: "Review customer demand, order progress, and delivery-related information.",
-    defaultRoute: APP_HOME_ROUTE,
-  },
-  planner: {
-    label: "Planner",
-    description: "Maintain production plans, scheduling cadence, and work-order priorities.",
-    defaultRoute: APP_HOME_ROUTE,
-  },
-  production_supervisor: {
-    label: "Production Supervisor",
-    description: "Track line execution, resolve exceptions, and coordinate shop-floor resources.",
+    description: "Full access — Edit and Preview the HMI mimic, configure the system.",
     defaultRoute: APP_HOME_ROUTE,
   },
   operator: {
     label: "Operator",
-    description: "Perform station tasks, report production, scan, and submit shop-floor feedback.",
+    description: "Preview the real HMI mimic read-only — no edit access.",
     defaultRoute: APP_HOME_ROUTE,
   },
-  quality: {
-    label: "Quality",
-    description: "Handle inspections, quality decisions, exception reviews, and release activities.",
-    defaultRoute: APP_HOME_ROUTE,
-  },
-  warehouse: {
-    label: "Warehouse",
-    description: "Handle receiving, issuing, stock movement, staging, and warehouse execution tasks.",
+  guest: {
+    label: "Guest",
+    description: "Read-only built-in demo mimic only. Assigned when the platform has not bound a role yet.",
     defaultRoute: APP_HOME_ROUTE,
   },
 } as const satisfies Record<string, RoleMetadata>;
