@@ -52,7 +52,7 @@ When platform Builder guidance is available, apply it for generation workflow, s
 
 When requirements mention Tier0 platform OpenAPI, UNS reads/writes/history/search/browse, Flow management, MQTT/MQ/WebSocket real-time data, or device command publish/subscribe, use the installed `@tier0/sdk` package. The template already includes `@tier0/sdk`; prefer the lazy loaders in `@/lib/tier0` over hand-written REST/MQ clients. The SDK owns Tier0 platform authentication and connection details through the platform/runtime environment; generated applications must not create user-facing API key, OpenAPI host, MQTT host, token, credential, or integration settings pages for Tier0 SDK configuration unless the user explicitly asks for an operator-managed credential console.
 
-Recommended Tier0 SDK call convention: import `loadTier0OpenApi`, `getTier0UnsApi`, `getTier0FlowApi`, `getTier0SystemApi`, or `loadTier0Mq` from `@/lib/tier0`, then `await` the loader inside the concrete action that actually needs platform I/O. It is safe to top-level import these lazy helper functions; do not invoke them at module top level. Do not top-level import `@tier0/sdk/openapi` or `@tier0/sdk/mq` from services, route loaders, pages, or modules that are loaded during SSR startup. Dynamic SDK loading is the expected pattern for optional operations such as UNS dispatch, Flow publish, or MQTT command send.
+Recommended Tier0 SDK call convention: import `loadTier0OpenApi`, `loadTier0Files`, `getTier0UnsApi`, `getTier0FlowApi`, `getTier0SystemApi`, or `loadTier0Mq` from `@/lib/tier0`, then `await` the loader inside the concrete action that actually needs platform I/O. It is safe to top-level import these lazy helper functions; do not invoke them at module top level. Do not top-level import `@tier0/sdk/openapi`, `@tier0/sdk/files`, or `@tier0/sdk/mq` from services, route loaders, pages, or modules that are loaded during SSR startup. Dynamic SDK loading is the expected pattern for optional operations such as file transfer, UNS dispatch, Flow publish, or MQTT command send.
 
 Tier0 SDK env such as `TIER0_API_HOST`, `TIER0_API_KEY`, `TIER0_MQTT_HOST`, and `TIER0_MQTT_PORT` is injected automatically by the platform when the app is deployed. Do not add these values to `.env.example`, generated app settings, database tables, or user-editable forms. If browser-side `VITE_TIER0_*` values are needed, the platform/runtime must inject them too.
 
@@ -139,7 +139,7 @@ src/
     utils.ts                  ← cn() for classNames, apiUrl() for base-path-aware fetch URLs
     hooks.ts                  ← shared client request hooks: `useRequest(requestKey, loader)` and single-flight `usePolling<T>(url, interval)` for stable data loading
     motion.ts                 ← Re-exports motion/react with "use client" — always import from here
-    tier0.ts                  ← Lazy loaders for @tier0/sdk OpenAPI + MQ helpers; avoid SSR startup imports
+    tier0.ts                  ← Lazy loaders for @tier0/sdk OpenAPI + files + MQ helpers; avoid SSR startup imports
     users.ts                  ← AppUser type definition (DO NOT modify)
     permissions.ts            ← Permission matrix skeleton — define your actions, roles, PERMISSION_MATRIX here
     preview-bridge.ts         ← Preview host bridge for surfacing auth/page errors to the platform runtime

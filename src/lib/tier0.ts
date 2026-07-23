@@ -20,6 +20,7 @@ export type {
 } from "@tier0/sdk/mq";
 
 export type Tier0OpenApiModule = typeof import("@tier0/sdk/openapi");
+export type Tier0FilesModule = typeof import("@tier0/sdk/files");
 export type Tier0MqModule = typeof import("@tier0/sdk/mq");
 
 const require = createRequire(import.meta.url);
@@ -33,6 +34,11 @@ function assertServerOnly(moduleName: string) {
 export async function loadTier0OpenApi(): Promise<Tier0OpenApiModule> {
   assertServerOnly("Tier0 OpenAPI SDK");
   return require("@tier0/sdk/openapi") as Tier0OpenApiModule;
+}
+
+export async function loadTier0Files(): Promise<Tier0FilesModule> {
+  assertServerOnly("Tier0 Files SDK");
+  return require("@tier0/sdk/files") as Tier0FilesModule;
 }
 
 export async function loadTier0Mq(): Promise<Tier0MqModule> {
