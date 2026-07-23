@@ -21,7 +21,7 @@ const detectLangFn = createServerFn().handler(
   (): Lang => pickLang(getRequest().headers.get("accept-language")),
 );
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_app/")({
   beforeLoad: async ({ location }) => {
     const user = await fetchHmiUser();
     if (!user) {
