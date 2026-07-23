@@ -47,15 +47,18 @@ import type { ConnectionStatus, DataSource } from "@/hmi/data/data-source";
 export function HmiPage({
   initialMimic,
   canEdit = true,
+  forceDemo = false,
   initialLang = "zh",
 }: {
   initialMimic: MimicRecord;
   canEdit?: boolean;
+  /** 角色连 view_dashboard 都没有（如 guest 兜底）：钉死只读演示，不管 DB 有没有真实图。 */
+  forceDemo?: boolean;
   initialLang?: Lang;
 }) {
   return (
     <I18nProvider initialLang={initialLang}>
-      <HmiPageInner initialMimic={initialMimic} canEdit={canEdit} />
+      <HmiPageInner initialMimic={initialMimic} canEdit={canEdit} forceDemo={forceDemo} />
     </I18nProvider>
   );
 }
@@ -63,7 +66,7 @@ export function HmiPage({
 // 空图回落用的演示图（内置示例，只读展示、绝不落库）。模块级解析一次。
 const DEMO_MIMIC: Mimic = mimicSchema.parse(demoMimicJson);
 
-function HmiPageInner({ initialMimic, canEdit }: { initialMimic: MimicRecord; canEdit: boolean }) {
+function HmiPageInner({ initialMimic, canEdit, forceDemo }: { initialMimic: MimicRecord; canEdit: boolean; forceDemo: boolean }) {
   const { lang, t } = useI18n();
   // 语言变化时同步画布渲染所用语言（画布在 React 外渲染）。
   useEffect(() => {
@@ -106,13 +109,16 @@ function HmiPageInner({ initialMimic, canEdit }: { initialMimic: MimicRecord; ca
   // 模式：编辑 / 预览 / 演示三态。**演示 = 钉死的只读参考样板**（「演示」切换仅 DB 空时出现，见 demoAvailable）：
   // 渲染内置示例图 DEMO_MIMIC（只读、不入历史/不落库、走 mock 源 + 🔵演示徽标）——AI 可参考它的画法，但绝不在其上二次修改。
   // 编辑/预览 = DB 真实图（AI 平台把客户图**全新生成**写进 DB）。DB 为空默认首屏进「演示」给好观感；DB 有真实图则**隐藏演示**、默认进编辑/预览。
+  // forceDemo（角色连 view_dashboard 都没有，如没绑定角色的访客）：不管 DB 有没有真实图，钉死演示——
+  // 既不暴露真实业务数据，也进不去编辑/预览（canSwitchMode=canEdit 本来就为假，切换器本身不渲染）。
   const [mode, setMode] = useState<"edit" | "preview" | "demo">(
-    demoScene ? "demo" : canEdit ? "edit" : "preview",
+    forceDemo || demoScene ? "demo" : canEdit ? "edit" : "preview",
   );
-  // isDemo：处于演示态（演示标签 或 demo-edit 可编辑演示——都走 mock 源 + 演示徽标）。
+  // isDemo：处于演示态（演示标签 / demo-edit 可编辑演示 / 角色连 view_dashboard 都没有——forceDemo
+  // 钉死只读演示，不管 DB 有没有真实图，真实数据绝不进 schema）。
   // 演示 = 只读样板：切到「演示」显 DEMO_MIMIC；「演示」切换仅真实图空时可用（demoAvailable 实时跟随 history.present），编辑出真实图就隐藏。
   // AI 在平台生成的真实图进 DB（编辑/预览读它），不在演示样板上二次修改。
-  const isDemo = demoEdit || mode === "demo";
+  const isDemo = forceDemo || demoEdit || mode === "demo";
   // schema：演示用静态 DEMO_MIMIC（mock 源）；编辑/预览用 history.present（DB 真实图，可改、落库）。
   const schema = useMemo(() => (isDemo && !demoEdit ? DEMO_MIMIC : history.present), [isDemo, demoEdit, history.present]);
 

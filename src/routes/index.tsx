@@ -46,6 +46,7 @@ function HmiRoute() {
       <HmiPage
         initialMimic={parseDto(current)}
         canEdit={can(user.role, "edit_mimic")}
+        forceDemo={!can(user.role, "view_dashboard")}
         initialLang={lang}
       />
     </HmiLayout>
