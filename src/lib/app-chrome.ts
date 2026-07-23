@@ -1,5 +1,3 @@
-import { Factory, type LucideIcon } from "lucide-react";
-
 export type AppChrome =
   | "workspace"
   | "station"
@@ -26,14 +24,15 @@ export const APP_HOME_ROUTE = "/";
 export const APP_NAME = "Manufacturing App";
 
 /**
- * Brand icon shown in the sidebar / station brand mark. This is the ONE place
- * the brand icon is defined. Pick ONE fitting lucide-react icon for the app's
- * business domain — never generate icon artwork — and set it together with
- * APP_NAME. Keep the platform app icon in sync by calling the `update_app_info`
- * tool with `icon_name` = this icon's lucide kebab-case name (e.g. Factory →
- * "factory", ShieldCheck → "shield-check"); see AGENTS.md "Branding".
+ * Brand icon shown in the sidebar / station brand mark — a public image asset
+ * path (rendered as a square `<img>`). This is the ONE place the in-app icon is
+ * defined. It MUST be the SAME image the platform shows in its app list / detail
+ * header: generated apps design a square icon, save it under `public/`, point
+ * APP_ICON here, AND upload the same file to the platform via the
+ * `update_app_info` tool (`icon_path`). Do both together — see AGENTS.md
+ * "Branding". The default below is a neutral placeholder.
  */
-export const APP_ICON: LucideIcon = Factory;
+export const APP_ICON = "/app-icon.svg";
 
 /**
  * Product locale. Set it together with APP_NAME — it drives `<html lang>`
