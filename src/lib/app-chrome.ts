@@ -29,8 +29,9 @@ export const APP_NAME = "Manufacturing App";
  * Brand icon shown in the sidebar / station brand mark. This is the ONE place
  * the brand icon is defined. Pick ONE fitting lucide-react icon for the app's
  * business domain — never generate icon artwork — and set it together with
- * APP_NAME. Keep the platform app icon in sync with the same icon via the
- * `update_app_info` tool (see AGENTS.md "Branding").
+ * APP_NAME. Keep the platform app icon in sync by calling the `update_app_info`
+ * tool with `icon_name` = this icon's lucide kebab-case name (e.g. Factory →
+ * "factory", ShieldCheck → "shield-check"); see AGENTS.md "Branding".
  */
 export const APP_ICON: LucideIcon = Factory;
 
