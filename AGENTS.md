@@ -713,6 +713,11 @@ Pure configuration — no UI, no route handlers.
 - seed.ts is excluded from tsconfig — use **relative imports only** (e.g., `import * as schema from "./schema"`), NOT `@/` aliases
 - Use `db.insert(schema.table).values([...]).onConflictDoUpdate()` for idempotency
 - Seed data must tell a coherent story: cross-references, realistic status distributions, timestamps spanning past 2 weeks. Cover every lifecycle state the schema's status enums define (e.g. draft, pending, in-progress, exception/blocked, completed — adapted to the domain) so lists, filters, status panels, and dashboards show real variety on first open
+- For runtime baseline dates, import `seedDate()` / `seedTimestamp()` from
+  `@/services/seed-utils`: use `seedDate(offsetDays)` for Drizzle `date()`
+  columns and `seedTimestamp(offsetDays, utcHour?)` for `timestamp()` columns.
+  Do not hand-mutate Date objects or write seed rows through raw SQL; typed
+  Drizzle writes apply the schema's database encoders.
 - Seed foreign keys must be explicit strings from declared parent records.
   Never rely on array positions without checking bounds, never pass
   `undefined`, and never omit a required FK property in a Drizzle `.values([...])`
@@ -873,6 +878,9 @@ export async function advanceWorkOrder(
   them first, then construct child rows from named parent IDs. Before inserting
   child rows, verify every required FK is present. A generated insert must never
   contain `default` for a non-null FK column.
+- Runtime seed data writes use typed `tx.insert()` / `tx.update()` /
+  `tx.delete()` builders. `tx.execute(sql\`...\`)` remains for schema/bootstrap
+  setup and read-only PostgreSQL helpers, not seed inserts or updates.
 - Functions take typed inputs (`NewWorkOrder`) and an actor id, return typed outputs (`WorkOrder`)
 - Throw `new HttpError(status, message)` for caller-facing errors (404 not found, 409 conflict, 422 invariant violated). `withErrors` translates them.
 - Multi-step writes use `db.transaction(async tx => ...)` — pass `tx` to inner queries, not `db`

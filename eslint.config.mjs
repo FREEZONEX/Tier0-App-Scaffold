@@ -26,6 +26,20 @@ function isNullReturn(statement) {
   );
 }
 
+function returnsJsx(statement) {
+  if (statement?.type === "ReturnStatement") {
+    return (
+      statement.argument?.type === "JSXElement" ||
+      statement.argument?.type === "JSXFragment"
+    );
+  }
+  return (
+    statement?.type === "BlockStatement" &&
+    statement.body.length === 1 &&
+    returnsJsx(statement.body[0])
+  );
+}
+
 const runtimeFirstLoadRule = {
   meta: {
     type: "problem",
@@ -65,6 +79,25 @@ const runtimeFirstLoadRule = {
           node.test.argument.name !== "data" ||
           !isNullReturn(node.consequent)
         ) {
+          const loadingName =
+            node.test.type === "Identifier"
+              ? node.test.name
+              : node.test.type === "MemberExpression" &&
+                  !node.test.computed &&
+                  node.test.property.type === "Identifier"
+                ? node.test.property.name
+                : null;
+          if (
+            isDataUiFile &&
+            /^(?:is)?loading$/i.test(loadingName ?? "") &&
+            returnsJsx(node.consequent)
+          ) {
+            context.report({
+              node,
+              message:
+                "Do not hand-render a full-page loading-only return. Use useRequest with <AsyncView> so a failed first request becomes a visible error with retry instead of an infinite loading screen.",
+            });
+          }
           return;
         }
 
@@ -104,6 +137,27 @@ const runtimeFirstLoadRule = {
             node,
             message:
               "Runtime seed callbacks must write through the transactional tx, not the shared db client.",
+          });
+        }
+        if (
+          /\btx\s*\.\s*execute\s*\(\s*sql\s*`[\s\r\n]*(?:insert|update|delete)\b/i.test(
+            seedBody,
+          ) ||
+          /\btx\s*\.\s*execute\s*\(\s*sql\s*\.\s*raw\s*\(\s*["'`][\s\r\n]*(?:insert|update|delete)\b/i.test(
+            seedBody,
+          )
+        ) {
+          context.report({
+            node,
+            message:
+              "Runtime seed writes must use typed tx.insert()/update()/delete() builders, not raw SQL. Typed builders apply the schema's date/timestamp encoders before values reach PostgreSQL.",
+          });
+        }
+        if (/\.\s*set(?:UTC)?Date\s*\(|\.\s*setTime\s*\(/.test(seedBody)) {
+          context.report({
+            node,
+            message:
+              "Do not construct runtime seed values with mutating Date setters, which return numbers. Use seedDate() for date columns and seedTimestamp() for timestamp columns.",
           });
         }
       },

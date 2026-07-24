@@ -77,6 +77,14 @@ for (const root of DATA_UI_ROOTS) {
     if (/\buseRequest\s*\(/.test(source) && !/<AsyncView\b/.test(source)) {
       findings.push(`${rel}: useRequest result is not rendered through <AsyncView>`);
     }
+    if (
+      /\bif\s*\(\s*(?:[A-Za-z_$][\w$]*\.)?(?:is)?loading\s*\)\s*(?:\{\s*)?return\s*(?:\(|<)/i.test(
+        source,
+      ) &&
+      !/<AsyncView\b/.test(source)
+    ) {
+      findings.push(`${rel}: full-page loading return has no AsyncView error/retry state`);
+    }
   }
 }
 
@@ -97,6 +105,23 @@ for (const file of walkFiles(SERVICE_ROOT)) {
     }
     if (/\bdb\s*\.\s*(?:insert|update|delete)\s*\(/.test(seedBlock)) {
       findings.push(`${rel}: seed callback ${index + 1} writes through db instead of tx`);
+    }
+    if (
+      /\btx\s*\.\s*execute\s*\(\s*sql\s*`[\s\r\n]*(?:insert|update|delete)\b/i.test(
+        seedBlock,
+      ) ||
+      /\btx\s*\.\s*execute\s*\(\s*sql\s*\.\s*raw\s*\(\s*["'`][\s\r\n]*(?:insert|update|delete)\b/i.test(
+        seedBlock,
+      )
+    ) {
+      findings.push(
+        `${rel}: seed callback ${index + 1} uses raw SQL for a data write`,
+      );
+    }
+    if (/\.\s*set(?:UTC)?Date\s*\(|\.\s*setTime\s*\(/.test(seedBlock)) {
+      findings.push(
+        `${rel}: seed callback ${index + 1} uses a numeric Date setter result`,
+      );
     }
   });
 }
