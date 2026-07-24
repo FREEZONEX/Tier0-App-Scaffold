@@ -29,7 +29,7 @@
     "@fontsource/inter": "^5.2.8",
     "@tanstack/react-router": "^1.168.0",
     "@tanstack/react-start": "^1.167.0",
-    "@tier0/sdk": "^0.2.7",
+    "@tier0/sdk": "^0.2.10",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.0",
     "drizzle-zod": "^0.8.0",
