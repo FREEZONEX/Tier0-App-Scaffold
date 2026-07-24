@@ -337,7 +337,7 @@ The scaffold's `routes/login.tsx` is the canonical example: it reads gateway-inj
 
 ## Authentication Model
 
-Authentication is handled by the platform gateway. The app does NOT manage passwords or user accounts. Identity comes from gateway headers; active role is resolved from Tier0 role headers, the legacy `X-App-User-Role` header, or JSON `user.role`, and the signed `mes-session` cookie is only a fallback cache when the gateway sends no role.
+Authentication is handled by the platform gateway. The app does NOT manage passwords or user accounts. Identity comes from gateway headers. In deployed mode, the complete assigned-role set comes from `X-Tier0-Business-Roles` and effective permissions are the union across those roles; `X-Tier0-Active-Role` is only the primary role for display/backwards compatibility. Preview remains a single-role `X-Tier0-Preview-Role` view-as context. The signed `mes-session` cookie is only a fallback cache.
 
 **Header formats** — all three are accepted; gateway picks one.
 
@@ -355,14 +355,13 @@ X-App-User-Role:  operator
 X-App-User-ID: u123
 ```
 
-`role` is OPTIONAL in the gateway payload. When present, the middleware resolves
-the active role in this order:
+`role` is OPTIONAL in the legacy gateway payload. Runtime role resolution is:
 
-1. `X-Tier0-Runtime: preview` + `X-Tier0-Preview-Role`
-2. `X-Tier0-Active-Role`
-3. `X-Tier0-Preview-Role`
-4. `X-App-User-Role`
-5. `user.role`
+1. Preview: `X-Tier0-Preview-Role` only.
+2. Deployed: all comma-separated `X-Tier0-Business-Roles`, with
+   `X-Tier0-Active-Role` first as the primary role.
+3. Legacy fallback: `X-Tier0-Active-Role`, `X-Tier0-Preview-Role`,
+   `X-App-User-Role`, then `user.role`.
 
 Role header values may arrive as plain ASCII, percent-encoded UTF-8, or raw
 UTF-8 bytes read back as latin-1; the parser normalizes them before matching
@@ -373,17 +372,18 @@ UTF-8 bytes read back as latin-1; the parser normalizes them before matching
 2. `src/start.ts` global middleware sees the request:
    - Mutating requests must be same-origin.
    - Public paths (`/login`, `/api/auth/*`, `/api/health`, `/api/manifest`, TanStack runtime/build assets) bypass auth.
-   - Gateway role authoritative — in `PERMISSION_MATRIX`, OR a gateway-injected Tier0 runtime role (`X-Tier0-Active-Role`/`X-Tier0-Preview-Role`)? → refresh the signed `mes-session` cookie if missing or stale, then continue. A gateway-injected role with no matrix entry enters with zero permissions (via `can()`).
+   - Tier0 runtime roles authoritative? → refresh the signed `mes-session` with the complete role set, then continue. Each unknown role contributes zero permissions; known roles contribute their actions to the union.
    - Role present but unknown AND not gateway-injected (a forgeable legacy/login value)? → 403 fail closed.
    - No gateway role + valid `mes-session` cookie? → pass through.
    - Gateway user present but no role and no session? → if `ADMIN_ROLE` exists, issue that fallback session and continue; otherwise 302 `/login?from=...`.
    - No gateway user and no session? → 401.
 3. `/login` is a hidden auth bridge. It tries to mint the default admin session from gateway identity and redirect back to `from`; if no gateway identity exists, it emits a preview auth error instead of rendering a role picker.
 4. `/api/auth/select-role` still exists for legacy/platform-owned role-selection surfaces, but it is not the primary in-app UX.
-5. Subsequent requests enforce role access via `requireAuth("admin")`, `requireAuth("operator")`, and the signed `mes-session` cookie.
+5. Subsequent requests enforce role access via `requireAuth("admin")`, `requireAuth("operator")`, and action access via `can(user.roles, action)`. With multiple assigned roles, any matching role/action grants access.
 
 **Implications for Agent design:**
-- The `role` shipped by the gateway MUST exactly match a key in `PERMISSION_MATRIX`. Coordinate naming with the platform — "operator" vs "Operator" matters.
+- Every business role shipped by the gateway SHOULD exactly match a key in `PERMISSION_MATRIX`. Coordinate naming with the platform — "operator" vs "Operator" matters.
+- Never select one "highest" role. Use `user.roles`: effective permissions are the union of every assigned role. `user.primaryRole` is display metadata only and must never authorize anything.
 - A gateway-injected Tier0 role with no `PERMISSION_MATRIX` entry enters with zero permissions (it does NOT auto-elevate); an unknown role that is NOT gateway-injected fails closed with 403. Never fall back to a picker. Full rules: `docs/role-registration.md`.
 - When the gateway sends a role, `mes-session` is a cache of the resolved identity/role, not the source of truth.
 - The `Switch Role` button has been removed from `Shell` — under Mode A, the gateway is authoritative. Users who need a different role get it from the platform.
@@ -394,7 +394,7 @@ UTF-8 bytes read back as latin-1; the parser normalizes them before matching
 2. `src/lib/role-metadata.ts` — add a `ROLE_METADATA` entry (label, description, defaultRoute) for every matrix role.
 3. `roles.json` — mirror every business role. `role_key` must equal the matrix key exactly (ASCII snake_case for new roles); admin is the app-internal fallback and stays out of this file. This file is what the platform reads to assign/switch roles.
 4. The template ships with no business roles: `roles.json` starts empty and only the internal admin fallback exists. Add every business role to all three files; never invent demo/test roles to fill the gap.
-5. Enforce with `requireAuth("<role>")` in server routes and `can(role, action)` in the UI.
+5. Enforce with `requireAuth("<role>")` in server routes and `can(user.roles, action)` in the UI. Both APIs already use multi-role union semantics.
 6. Verify each delivered workflow as every defined role: admin must reach everything; each business role must reach the workflows the requirements assign to it.
 
 A contract test enforces that the three role surfaces stay in sync; partial registration fails the build.

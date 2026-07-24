@@ -1,5 +1,5 @@
 import type { ElementType } from "react";
-import { can, type Action } from "@/lib/permissions";
+import { can, type Action, type RoleInput } from "@/lib/permissions";
 
 export interface NavModule {
   key: string;
@@ -38,30 +38,30 @@ export function getModuleActions(module: NavModule): Action[] {
 }
 
 export function canViewModule(
-  role: string | undefined,
+  roles: RoleInput,
   module: NavModule,
 ): boolean {
   const actions = getModuleActions(module);
   if (actions.length === 0) {
     return true;
   }
-  if (!role) {
+  if (!roles || (Array.isArray(roles) && roles.length === 0)) {
     return false;
   }
-  return actions.every((action) => can(role, action));
+  return actions.every((action) => can(roles, action));
 }
 
 export function filterVisibleModules(
   modules: NavModule[],
-  role: string | undefined,
+  roles: RoleInput,
 ): NavModule[] {
   return modules.flatMap((module) => {
     const children = module.children
-      ? filterVisibleModules(module.children, role)
+      ? filterVisibleModules(module.children, roles)
       : undefined;
     const canViewParent =
       module.href || getModuleActions(module).length > 0
-        ? canViewModule(role, module)
+        ? canViewModule(roles, module)
         : true;
 
     if (!canViewParent && !children?.length) {

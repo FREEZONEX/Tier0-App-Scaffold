@@ -13,10 +13,11 @@
  *
  * At minimum, a user ID must be present.
  *
- * Active role precedence:
- *   1. Tier0 runtime headers (`X-Tier0-Preview-Role` / `X-Tier0-Active-Role`)
- *   2. Legacy gateway role headers (`X-App-User-Role`)
- *   3. JSON `user.role`
+ * Role context:
+ *   1. Deployed Tier0 runtime: all `X-Tier0-Business-Roles`
+ *      (`X-Tier0-Active-Role` is primary display metadata)
+ *   2. Preview Tier0 runtime: one `X-Tier0-Preview-Role`
+ *   3. Legacy gateway role header (`X-App-User-Role`) or JSON `user.role`
  *
  * This lets the platform remain the authority for role switching while the app
  * keeps backward compatibility with legacy gateway integrations.
@@ -26,7 +27,7 @@ export interface GatewayUser {
   id: string;
   name: string;
   email: string;
-  /** Gateway-supplied role. Validated against PERMISSION_MATRIX before use. */
+  /** Primary gateway-supplied role. Full deployed assignments come from getGatewayRoles(). */
   role?: string;
 }
 
@@ -79,13 +80,29 @@ function normalizeRole(value: string | null | undefined): string | undefined {
   return trimmed ? decodeHeaderText(trimmed) : undefined;
 }
 
+function uniqueRoles(roles: Array<string | undefined>): string[] {
+  return [...new Set(roles.filter((role): role is string => Boolean(role)))];
+}
+
+function parseBusinessRoles(headers: Headers): string[] {
+  const value = readHeader(headers, "X-Tier0-Business-Roles");
+  if (!value) {
+    return [];
+  }
+
+  return uniqueRoles(value.split(",").map((role) => normalizeRole(role)));
+}
+
 export function getGatewayRole(headers: Headers): string | undefined {
   const runtime = readHeader(headers, "X-Tier0-Runtime")?.toLowerCase();
   const previewRole = normalizeRole(readHeader(headers, "X-Tier0-Preview-Role"));
   const activeRole = normalizeRole(readHeader(headers, "X-Tier0-Active-Role"));
 
-  if (runtime === "preview" && previewRole) {
+  if (runtime === "preview") {
     return previewRole;
+  }
+  if (runtime === "deployed") {
+    return activeRole ?? parseBusinessRoles(headers)[0];
   }
   if (activeRole) {
     return activeRole;
@@ -98,7 +115,54 @@ export function getGatewayRole(headers: Headers): string | undefined {
 }
 
 /**
- * Resolve the role ONLY when it is injected by the gateway's Tier0 runtime
+ * Resolve all authoritative roles injected by the Tier0 gateway.
+ *
+ * Deployed requests receive the user's complete app role assignment in
+ * `X-Tier0-Business-Roles`; the active role is kept first for display and
+ * backwards compatibility. Preview remains an intentional single-role
+ * developer "view as" surface.
+ *
+ * `undefined` means no authoritative role context is present. An empty array
+ * in deployed mode is meaningful: the authenticated user has no app role and
+ * must receive zero permissions rather than the preview admin fallback.
+ */
+export function getTrustedGatewayRoles(
+  headers: Headers,
+): string[] | undefined {
+  const runtime = readHeader(headers, "X-Tier0-Runtime")?.toLowerCase();
+  if (runtime === "preview") {
+    const previewRole = normalizeRole(
+      readHeader(headers, "X-Tier0-Preview-Role"),
+    );
+    return previewRole ? [previewRole] : undefined;
+  }
+  if (runtime === "deployed") {
+    const activeRole = normalizeRole(
+      readHeader(headers, "X-Tier0-Active-Role"),
+    );
+    return uniqueRoles([activeRole, ...parseBusinessRoles(headers)]);
+  }
+  return undefined;
+}
+
+/**
+ * Resolve the complete role set for permission checks.
+ *
+ * Tier0 runtime headers are authoritative. Legacy integrations remain
+ * single-role and are validated against PERMISSION_MATRIX by the auth layer.
+ */
+export function getGatewayRoles(headers: Headers): string[] {
+  const trustedRoles = getTrustedGatewayRoles(headers);
+  if (trustedRoles !== undefined) {
+    return trustedRoles;
+  }
+
+  const role = getGatewayRole(headers);
+  return role ? [role] : [];
+}
+
+/**
+ * Resolve the primary role ONLY when it is injected by the gateway's Tier0 runtime
  * headers (`X-Tier0-Preview-Role` / `X-Tier0-Active-Role` under an explicit
  * `X-Tier0-Runtime`). The gateway strips and re-injects `X-Tier0-*` on every
  * request (B4) after validating the user against previewRoleStore / the
@@ -108,17 +172,11 @@ export function getGatewayRole(headers: Headers): string | undefined {
  * Returns undefined for the legacy `X-App-User-Role` / JSON `user.role` paths,
  * which are NOT stripped by the gateway and therefore must stay gated by
  * PERMISSION_MATRIX. Reuses the same decode as getGatewayRole so non-ASCII
- * role keys (e.g. `老板`) match.
+ * role keys (e.g. `老板`) match. Authorization must use
+ * getTrustedGatewayRoles(), not this display/backwards-compatible helper.
  */
 export function getTrustedGatewayRole(headers: Headers): string | undefined {
-  const runtime = readHeader(headers, "X-Tier0-Runtime")?.toLowerCase();
-  if (runtime === "preview") {
-    return normalizeRole(readHeader(headers, "X-Tier0-Preview-Role"));
-  }
-  if (runtime === "deployed") {
-    return normalizeRole(readHeader(headers, "X-Tier0-Active-Role"));
-  }
-  return undefined;
+  return getTrustedGatewayRoles(headers)?.[0];
 }
 
 /**

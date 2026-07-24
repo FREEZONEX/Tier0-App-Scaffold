@@ -77,27 +77,24 @@ Role header values may be plain ASCII, percent-encoded UTF-8, or raw UTF-8
 bytes read as latin-1. The gateway parser normalizes all three before matching
 `PERMISSION_MATRIX`, so non-ASCII role keys remain stable across proxies.
 
-### Active Role Header Precedence
+### Runtime Role Resolution
 
-When the platform is the authority for role switching, the app reads the active
-role in this order:
+When the platform is authoritative, the app resolves roles as follows:
 
-1. `X-Tier0-Runtime: preview` + `X-Tier0-Preview-Role`
-2. `X-Tier0-Active-Role`
-3. `X-Tier0-Preview-Role`
-4. `X-App-User-Role`
-5. `user.role`
+1. Preview: use `X-Tier0-Preview-Role` as the single view-as role.
+2. Deployed: use every comma-separated `X-Tier0-Business-Roles` value;
+   `X-Tier0-Active-Role` remains first as the primary display role.
+3. Legacy fallback: `X-Tier0-Active-Role`, `X-Tier0-Preview-Role`,
+   `X-App-User-Role`, then `user.role`.
 
-This allows the platform to switch roles by updating its own active-role state,
-reloading the iframe, and re-injecting the next request with the desired role.
+Effective deployed permissions are the union across all assigned roles. The
+active role does not limit or replace that union.
 
-### Authentication Flow (platform role is authoritative)
+### Authentication Flow (platform roles are authoritative)
 
 ```text
-Browser -> Platform UI switches active role
-        -> Platform session / gateway context stores active role
-        -> iframe reloads
-        -> Gateway injects user + active role headers -> App
+Browser -> Platform resolves the user's app role assignments
+        -> Gateway injects user + all business roles -> App
         -> src/start.ts middleware:
 
             mutating request with cross-origin Origin
@@ -106,32 +103,31 @@ Browser -> Platform UI switches active role
             public path (/login, /api/auth/*, /api/health, /api/manifest, runtime/build assets)
               -> allow request
 
-            gateway role authoritative (in PERMISSION_MATRIX, OR a
-            gateway-injected Tier0 runtime role — see role-registration.md)
-              -> refresh mes-session if missing or stale
+            Tier0 runtime role set is authoritative
+              -> refresh mes-session with all roles if missing or stale
               -> continue the same request
-              -> allow request (a gateway-injected role with no matrix entry
-                 enters with zero permissions via can())
+              -> known roles contribute their permission union
+              -> unknown trusted roles contribute zero permissions
 
             role present but unknown AND not gateway-injected
             (a forgeable legacy/login value)
               -> 403 fail closed
 
-            no gateway role + valid mes-session cookie
+            no authoritative runtime role context + valid mes-session cookie
               -> allow request
 
-            gateway user present but no role + no session
-              -> role not registered/bound yet: stay open with an
-                 admin fallback session and allow the request
+            preview gateway user present but no selected role + no session
+              -> stay open with an admin fallback session
               -> if the app defines no admin role, 302 /login?from=...
 
             no gateway user and no session
               -> 401
 ```
 
-The key behavior is that the gateway role now overrides a stale app session.
+The key behavior is that the gateway role set overrides a stale app session.
 A previously signed `mes-session` cookie is treated as a cache, not the source
-of truth, whenever the platform sends a role header.
+of truth, whenever the platform sends Tier0 runtime role headers. An explicit
+empty deployed role set stays empty and never falls back to admin.
 
 `/login` is now only a hidden fallback auth bridge. It tries to create the
 default admin session from gateway identity and redirects back to `from`; it
@@ -144,19 +140,19 @@ Role definitions belong to the app. Role assignment belongs to the platform.
 1. The agent defines `PERMISSION_MATRIX` in `permissions.ts`
 2. The platform calls `GET /api/manifest` to discover valid roles
 3. The platform assigns one or more roles to each user in its admin UI
-4. The platform stores the user's current active role in its own session/context
-5. The gateway injects that active role into forwarded requests
-6. The app validates the role against `PERMISSION_MATRIX` and refreshes session state
+4. The gateway injects all assigned app roles in `X-Tier0-Business-Roles`
+5. The gateway may also inject one `X-Tier0-Active-Role` as the primary label
+6. The app unions permissions across every role and refreshes session state
 
-The injected role string should match a `PERMISSION_MATRIX` key exactly
-(`"Operator"` ≠ `"operator"`) so it also carries permissions. A gateway-injected
-Tier0 role with no matrix entry still enters (zero permissions); only unknown
+Each injected role key should match a `PERMISSION_MATRIX` key exactly
+(`"Operator"` ≠ `"operator"`) so it carries permissions. A gateway-injected
+Tier0 role with no matrix entry still contributes zero permissions; only unknown
 roles that are NOT gateway-injected fail closed. Full rules and the three-file
 sync convention are in [`role-registration.md`](./role-registration.md).
 
 The Shell should not be treated as the authority for role switching. In the
-platform-authoritative model, the platform owns the active role and the iframe
-app only consumes the forwarded identity and role.
+platform-authoritative model, the platform owns role assignment and the iframe
+app only consumes the forwarded identity and role set.
 
 ---
 
@@ -208,10 +204,10 @@ TIER0_MQTT_PORT="8084"
 For matched requests, the gateway must inject user headers in either JSON or
 separate-header format and then proxy the request to the app.
 
-For platform-authoritative role switching, the gateway should additionally
-inject the currently active app role using either Tier0 role headers or the
-legacy `X-App-User-Role` header. After the platform changes the active role,
-it should reload the iframe so the next request carries the updated role.
+For deployed apps, the gateway must inject `X-Tier0-Runtime: deployed`,
+`X-Tier0-Business-Roles` with every assigned app role, and optionally
+`X-Tier0-Active-Role` as the primary display role. Preview uses
+`X-Tier0-Runtime: preview` plus one `X-Tier0-Preview-Role`.
 
 ### App Container Startup
 

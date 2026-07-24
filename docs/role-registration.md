@@ -69,28 +69,39 @@ platform business role.
   a hand-edited `roles.json` inside an exported package as durable; it is an
   output of the registration plane, not the source.
 
-## Runtime: how an injected role reaches the app
+## Runtime: how assigned roles reach the app
 
 All traffic arrives through the platform App Gateway. The gateway authenticates
-the user, then injects the active business role as a header **it strips and
-re-injects on every request** (so the client cannot forge it):
+the user, then injects role headers that it **strips and re-injects on every
+request** (so the client cannot forge them):
 
-| Runtime | Header carrying the role | Validated upstream by |
-|---|---|---|
-| Deployed | `X-Tier0-Active-Role` (under `X-Tier0-Runtime: deployed`) | runtime-roles API (user's assigned roles ∩ app bindings) |
-| Preview | `X-Tier0-Preview-Role` (under `X-Tier0-Runtime: preview`) | preview role store (developer "view-as" selection) |
+| Runtime | Headers carrying roles | Effective model | Validated upstream by |
+|---|---|---|---|
+| Deployed | `X-Tier0-Business-Roles` plus `X-Tier0-Active-Role` | Union of all assigned app roles; active role is primary display only | runtime-roles API (user's assigned roles ∩ app bindings) |
+| Preview | `X-Tier0-Preview-Role` | One developer-selected "view-as" role | preview role store |
 
-`src/lib/gateway.ts` resolves the active role with this precedence:
-`X-Tier0-*` runtime headers → legacy `X-App-User-Role` → JSON `user.role`.
+`X-Tier0-Business-Roles` is comma-separated. `src/lib/gateway.ts` normalizes
+and deduplicates it, keeps the active role first, and stores the complete set in
+the signed session. Legacy `X-App-User-Role` / JSON `user.role` integrations
+remain single-role.
+
+### Multiple roles use permission union
+
+Do not invent role priority or choose one "highest" role. For a user assigned
+roles A and B, the effective action set is `permissions(A) ∪ permissions(B)`.
+This applies consistently to `can(user.roles, action)`, navigation filtering,
+`requireAuth(...)`, pages, and APIs. Unknown trusted Tier0 roles contribute no
+actions; they never erase permissions granted by another known assigned role.
+`user.primaryRole` exists only for display metadata; never authorize with it.
 
 ### Trust model (why an unregistered-in-matrix role can still enter)
 
 `src/start.ts` treats a role as **authoritative** when it is either:
 
 - present in `PERMISSION_MATRIX`, **or**
-- a **gateway-injected Tier0 runtime role** (`getTrustedGatewayRole()` in
-  `gateway.ts` — only `X-Tier0-Active-Role` / `X-Tier0-Preview-Role` under an
-  explicit `X-Tier0-Runtime`).
+- a **gateway-injected Tier0 runtime role set** (`getTrustedGatewayRoles()` in
+  `gateway.ts` — deployed `X-Tier0-Business-Roles` / active role, or preview
+  `X-Tier0-Preview-Role`, under an explicit `X-Tier0-Runtime`).
 
 A gateway-injected role is trusted **even if it is not yet in
 `PERMISSION_MATRIX`**: the gateway already validated it, and it simply resolves
@@ -123,7 +134,7 @@ When you add/finish a business role (worked example: guest `youke` / 游客):
       allowed `ACTIONS` (for a read-only guest, the read actions only).
 - [ ] `role-metadata.ts`: `ROLE_METADATA.youke = { label: "游客", description, defaultRoute }`.
 - [ ] `roles.json`: `{ "role_key": "youke", "name": "游客" }` — key identical to the matrix key.
-- [ ] Server routes enforce it via `requireAuth("youke")` where appropriate; UI gates via `can("youke", action)`.
+- [ ] Server routes enforce it via `requireAuth("youke")` where appropriate; UI gates via `can(user.roles, action)`.
 - [ ] Decide and document what a guest may actually see/do — this is a product
       decision the tooling cannot infer.
 - [ ] Verify: `npm run typecheck`, `npm run lint`, `npm run runtime:audit`.
@@ -145,7 +156,7 @@ When you add/finish a business role (worked example: guest `youke` / 游客):
 
 - `src/lib/permissions.ts` — `PERMISSION_MATRIX`, `ACTIONS`, `can()`, `ADMIN_ROLE`
 - `src/lib/role-metadata.ts` — `ROLE_METADATA`, `getRoleMetadata()`
-- `src/lib/gateway.ts` — `getGatewayRole()`, `getTrustedGatewayRole()`
+- `src/lib/gateway.ts` — `getGatewayRole()`, `getGatewayRoles()`, `getTrustedGatewayRoles()`
 - `src/start.ts` — request middleware / role authority decision
 - `src/lib/auth.ts` — `getCurrentUser()`, `isValidRole()`, `requireAuth()`
 - `roles.json` — platform registration input

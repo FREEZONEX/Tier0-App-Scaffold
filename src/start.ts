@@ -1,37 +1,23 @@
 /**
  * TanStack Start global request middleware — gateway auth + CSRF bridge.
  *
- * All traffic arrives through the UNS-SWE App Gateway, which injects a user
- * identity header for authenticated platform users. The gateway MAY also
- * inject an active role header.
+ * Deployed Tier0 requests carry the user's complete app role assignment in
+ * `X-Tier0-Business-Roles`. The signed session caches that complete set and
+ * downstream permission checks compute the union across all roles.
  *
- * Flow:
- *   1. Mutating requests (POST/PUT/PATCH/DELETE) must be same-origin —
- *      defense-in-depth against CSRF on top of `sameSite: "lax"` cookie.
- *   2. Public paths (login page, auth endpoints, health/manifest, build assets)
- *      pass through with no auth check.
- *   3. If the gateway supplies an authoritative app role, it wins:
- *      the middleware refreshes `mes-session` when missing or stale and
- *      continues the same request so iframe reloads do not need a second manual refresh.
- *      A role is authoritative when it is either defined in PERMISSION_MATRIX
- *      OR injected by the gateway's Tier0 runtime headers (deployed/preview) —
- *      the latter is validated upstream by the gateway and is trusted even when
- *      the app's PERMISSION_MATRIX has no matching entry yet (it simply resolves
- *      to zero permissions via `can()` until the app defines them).
- *   4. If the gateway supplies an unknown role that is NOT gateway-injected
- *      (i.e. a forgeable legacy/login role), fail closed with 403.
- *   5. If no gateway role is present, fall back to the existing session cookie.
- *   6. If there is a gateway user but no role and no session (role not
- *      registered/bound on the platform yet), stay open: issue an admin
- *      fallback session so the preview is not blocked. If the app defines no
- *      admin role, redirect to /login instead.
- *   7. If there is neither gateway identity nor session, return 401.
+ * Preview remains a single-role developer "view as" context. Legacy role
+ * headers remain single-role and must match PERMISSION_MATRIX because the
+ * Tier0 gateway does not strip/re-inject those headers.
  */
 
 import { createMiddleware, createStart } from "@tanstack/react-start";
 import { getCookie, setCookie } from "@tanstack/react-start/server";
-import { parseGatewayUser, getTrustedGatewayRole, type GatewayUser } from "@/lib/gateway";
-import { ADMIN_ROLE, PERMISSION_MATRIX } from "@/lib/permissions";
+import {
+  getTrustedGatewayRoles,
+  parseGatewayUser,
+  type GatewayUser,
+} from "@/lib/gateway";
+import { ADMIN_ROLE, PERMISSION_MATRIX, toRoleList } from "@/lib/permissions";
 import { decodeSession, encodeSession } from "@/lib/session";
 
 const SESSION_COOKIE = "mes-session";
@@ -39,43 +25,46 @@ const SESSION_COOKIE = "mes-session";
 interface SessionPayload {
   userId?: unknown;
   role?: unknown;
+  roles?: unknown;
   username?: unknown;
   displayName?: unknown;
   email?: unknown;
 }
 
-// `pathname === p` (exact) OR `pathname.startsWith(p + "/")` (proper segment).
-// Using a slash boundary prevents `/login` from accidentally matching
-// `/login-attempts` or other agent-added routes that share a prefix.
+interface DesiredSession {
+  userId: string;
+  role: string;
+  roles: string[];
+  username: string;
+  displayName: string;
+  email: string;
+}
+
+// Exact path or proper child segment. This avoids `/login-attempts` matching
+// the public `/login` prefix.
 const PUBLIC_PATHS = [
-  "/login", // role selection page
-  "/api/auth", // /api/auth/{me,logout,select-role}
-  "/api/health", // health check
-  "/api/manifest", // app manifest
-  "/favicon.ico", // browser auto-fetch
-  "/_build", // vite build assets
-  "/__tsr", // tanstack runtime
-  "/_server", // tanstack runtime/server internals
-  "/_serverFn", // tanstack start server functions
+  "/login",
+  "/api/auth",
+  "/api/health",
+  "/api/manifest",
+  "/favicon.ico",
+  "/_build",
+  "/__tsr",
+  "/_server",
+  "/_serverFn",
 ];
 
 function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.some(
-    (p) => pathname === p || pathname.startsWith(p + "/"),
+    (path) => pathname === path || pathname.startsWith(path + "/"),
   );
 }
 
 const MUTATING = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
-/**
- * Same-origin check for CSRF protection.
- * Browsers send `Origin` for all CORS-enabled methods (and modern fetch always).
- * Server-to-server calls (no Origin header) are allowed; same-site cookies
- * (sameSite: "lax") catch the rest.
- */
 function isSameOrigin(request: Request): boolean {
   const origin = request.headers.get("origin");
-  if (!origin) return true; // not a cross-site browser request
+  if (!origin) return true;
   try {
     return new URL(origin).host === new URL(request.url).host;
   } catch {
@@ -83,11 +72,25 @@ function isSameOrigin(request: Request): boolean {
   }
 }
 
-const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
+const SESSION_MAX_AGE = 60 * 60 * 24 * 7;
+
+function readSessionRoles(session: SessionPayload): string[] {
+  const roles = Array.isArray(session.roles)
+    ? session.roles.filter((role): role is string => typeof role === "string")
+    : [];
+  const legacyRole =
+    typeof session.role === "string" && session.role ? session.role : null;
+  return toRoleList([...(legacyRole ? [legacyRole] : []), ...roles]);
+}
+
+function sameRoles(left: readonly string[], right: readonly string[]): boolean {
+  return left.length === right.length &&
+    left.every((role, index) => role === right[index]);
+}
 
 function matchesDesiredSession(
   rawCookie: string | undefined,
-  desired: Required<Pick<SessionPayload, "userId" | "role" | "username" | "displayName" | "email">>,
+  desired: DesiredSession,
 ): boolean {
   const current = decodeSession<SessionPayload>(rawCookie);
   if (!current) {
@@ -96,6 +99,7 @@ function matchesDesiredSession(
 
   return current.userId === desired.userId &&
     current.role === desired.role &&
+    sameRoles(readSessionRoles(current), desired.roles) &&
     current.username === desired.username &&
     current.displayName === desired.displayName &&
     current.email === desired.email;
@@ -111,11 +115,13 @@ function jsonError(status: number, error: string): Response {
 function refreshSessionIfStale(
   rawCookie: string | undefined,
   gatewayUser: GatewayUser,
-  role: string,
+  roles: readonly string[],
 ): void {
-  const desiredSession = {
+  const normalizedRoles = toRoleList(roles);
+  const desiredSession: DesiredSession = {
     userId: gatewayUser.id,
-    role,
+    role: normalizedRoles[0] ?? "",
+    roles: normalizedRoles,
     username: gatewayUser.name,
     displayName: gatewayUser.name,
     email: gatewayUser.email,
@@ -147,25 +153,29 @@ const authBridge = createMiddleware().server(
     const rawSessionCookie = getCookie(SESSION_COOKIE);
     const validRoles = Object.keys(PERMISSION_MATRIX);
     const gatewayUser = parseGatewayUser(request.headers);
+    const trustedRoles = getTrustedGatewayRoles(request.headers);
+
+    if (gatewayUser && trustedRoles !== undefined) {
+      // The Tier0 gateway strips and re-injects these headers after validating
+      // project membership and app role bindings. Unknown roles are therefore
+      // trusted identities but contribute zero permissions until configured.
+      // A deployed empty list is also authoritative and must stay zero-access.
+      refreshSessionIfStale(rawSessionCookie, gatewayUser, trustedRoles);
+      return next();
+    }
 
     if (gatewayUser?.role) {
-      // A gateway-injected Tier0 runtime role (deployed/preview) is validated
-      // upstream and cannot be forged, so it is authoritative even when the
-      // app's PERMISSION_MATRIX has no entry for it yet. Matrix roles remain
-      // authoritative too. Any other unknown role is a forgeable legacy/login
-      // value → fail closed.
-      const roleIsAuthoritative =
-        getTrustedGatewayRole(request.headers) === gatewayUser.role ||
-        validRoles.includes(gatewayUser.role);
-
-      if (!roleIsAuthoritative) {
+      if (!validRoles.includes(gatewayUser.role)) {
         if (validRoles.length === 0) {
           return jsonError(503, "No roles configured for this app");
         }
-        return jsonError(403, `Platform role is not recognized by this app: ${gatewayUser.role}`);
+        return jsonError(
+          403,
+          `Platform role is not recognized by this app: ${gatewayUser.role}`,
+        );
       }
 
-      refreshSessionIfStale(rawSessionCookie, gatewayUser, gatewayUser.role);
+      refreshSessionIfStale(rawSessionCookie, gatewayUser, [gatewayUser.role]);
       return next();
     }
 
@@ -174,11 +184,10 @@ const authBridge = createMiddleware().server(
     }
 
     if (gatewayUser) {
-      // Gateway identity without a role: the platform has not registered/bound
-      // a role yet. Stay open with an admin fallback session instead of
-      // blocking the preview behind the role picker.
+      // Preview before role registration stays usable. Deployed empty role
+      // lists were already handled above and never reach this fallback.
       if (validRoles.includes(ADMIN_ROLE)) {
-        refreshSessionIfStale(rawSessionCookie, gatewayUser, ADMIN_ROLE);
+        refreshSessionIfStale(rawSessionCookie, gatewayUser, [ADMIN_ROLE]);
         return next();
       }
 

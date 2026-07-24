@@ -62,6 +62,7 @@ export const Route = createFileRoute("/api/auth/select-role")({
           encodeSession({
             userId: gatewayUser.id,
             role,
+            roles: [role],
             displayName: gatewayUser.name,
             username: gatewayUser.name,
             email: gatewayUser.email,
@@ -78,6 +79,7 @@ export const Route = createFileRoute("/api/auth/select-role")({
         return Response.json({
           userId: gatewayUser.id,
           role,
+          roles: [role],
           displayName: gatewayUser.name,
         });
       }),

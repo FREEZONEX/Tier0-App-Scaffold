@@ -32,6 +32,7 @@ const createDefaultAdminSession = createServerFn().handler(
       encodeSession({
         userId: gatewayUser.id,
         role: ADMIN_ROLE,
+        roles: [ADMIN_ROLE],
         username: gatewayUser.name,
         displayName: gatewayUser.name,
         email: gatewayUser.email,

@@ -18,7 +18,8 @@ export const Route = createFileRoute("/api/auth/me")({
           id: user.id,
           username: user.username,
           displayName: user.displayName,
-          role: user.role,
+          primaryRole: user.primaryRole,
+          roles: user.roles,
           email: user.email,
         });
       },
