@@ -11,19 +11,15 @@
 [deployment]
 deploymentTarget = "autoscale"
 
-# args semantics (temporary, until the platform lands the unified argv contract —
-# see uns-swe docs/topics/artifact-args-contract.md):
-#   - production build args: Build-Deploy JOINS all tokens with spaces into ONE shell
-#     line. Keep the shell-token form below. NEVER rewrite it as
-#     ["sh", "-c", "npm ci && npm run build"] — under space-join that executes a bare
-#     `npm`, ships a source-only zip marked "build success", and the deployed app
-#     crash-loops (prod incident 2026-07-17).
-#   - postBuild args: Cleanup runs ONE LINE PER ELEMENT, so the whole command must be
-#     a single element. Token-split form (["npm", "prune", "--omit=dev"]) executes
-#     `prune` / `--omit=dev` as separate commands and the errors are silently
-#     swallowed — prune never actually runs.
+# args contract (true argv, POSIX execve semantics — see uns-swe
+# docs/topics/artifact-args-contract.md):
+#   Every element is passed literally to the executable; no shell word-splitting or
+#   expansion. Shell semantics must be explicit: ["sh", "-c", "<script>"].
+#   The platform rejects legacy join-era forms at deploy time with a clear error:
+#   bare shell-operator tokens (e.g. "&&" as its own element) and whole commands
+#   crammed into a single element (e.g. ["npm prune --omit=dev"]).
 [deployment.postBuild]
-args = ["npm prune --omit=dev"]
+args = ["npm", "prune", "--omit=dev"]
 
 [[services]]
 name = "web"
@@ -34,10 +30,7 @@ localPort = 5173
 serve = "dynamic"
 
 [services.production.build]
-args = [
-  "npm", "ci", "&&",
-  "npm", "run", "build",
-]
+args = ["sh", "-c", "npm ci && npm run build"]
 outputDir = "."
 
 [services.production.run]
