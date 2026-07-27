@@ -14,6 +14,7 @@ import { readFile, stat } from "node:fs/promises";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, extname, join, normalize } from "node:path";
 import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CLIENT_DIR = join(__dirname, "dist", "client");
@@ -51,7 +52,7 @@ if (!handler || typeof handler.fetch !== "function") {
   );
 }
 
-function nodeRequestToWebRequest(req, baseUrl) {
+function nodeRequestToWebRequest(req, baseUrl, signal) {
   const url = new URL(req.url, baseUrl);
   const headers = new Headers();
   for (const [k, v] of Object.entries(req.headers)) {
@@ -61,6 +62,7 @@ function nodeRequestToWebRequest(req, baseUrl) {
   const init = {
     method: req.method,
     headers,
+    signal,
   };
   if (req.method !== "GET" && req.method !== "HEAD") {
     init.body = Readable.toWeb(req);
@@ -104,15 +106,27 @@ async function tryServeStatic(req, res) {
 }
 
 const server = createServer(async (req, res) => {
+  // Propagate client disconnects to the fetch handler: abort the Web Request
+  // signal and cancel the Web response stream so SSE-style handlers can clean
+  // up upstream resources (e.g. MQTT subscriptions) instead of leaking them.
+  const abortController = new AbortController();
+  res.on("close", () => abortController.abort());
   try {
     if (await tryServeStatic(req, res)) return;
     const baseUrl = `https://${req.headers.host || `${HOST}:${PORT}`}`;
-    const webReq = nodeRequestToWebRequest(req, baseUrl);
+    const webReq = nodeRequestToWebRequest(req, baseUrl, abortController.signal);
     const webRes = await handler.fetch(webReq);
     res.statusCode = webRes.status;
     webRes.headers.forEach((value, key) => res.setHeader(key, value));
     if (webRes.body) {
-      Readable.fromWeb(webRes.body).pipe(res);
+      // pipeline destroys the Node Readable when `res` closes, which in turn
+      // cancels the underlying Web ReadableStream. A disconnecting client is
+      // an expected outcome (SSE), so swallow the resulting pipeline error.
+      try {
+        await pipeline(Readable.fromWeb(webRes.body), res);
+      } catch {
+        // Client went away mid-stream or the stream was cancelled.
+      }
     } else {
       res.end();
     }
