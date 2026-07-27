@@ -986,6 +986,23 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 
 ## Key Rules
 
+### artifact.toml deployment args — do NOT "fix" the array format
+
+`artifact.toml` args are executed with **different semantics per section** until the
+platform lands the unified argv contract (uns-swe `docs/topics/artifact-args-contract.md`):
+
+- `[services.production.build].args`: Build-Deploy **joins all tokens with spaces into
+  one shell line**. Keep the existing shell-token form
+  (`["npm", "ci", "&&", "npm", "run", "build"]`). **NEVER rewrite it as
+  `["sh", "-c", "npm ci && npm run build"]`** — under space-join that executes a bare
+  `npm`, the build ships a source-only zip marked successful, and the deployed app
+  crash-loops (this exact prod incident happened on 2026-07-17).
+- `[deployment.postBuild].args`: Cleanup runs **one line per element** — the whole
+  command must stay a **single element** (`["npm prune --omit=dev"]`).
+- `[services.preview]` install/args: true argv (exec'd directly) — plain tokens only.
+
+Unless the user explicitly asks to change build/deploy behavior, leave these args alone.
+
 ### Database
 - Start with ~5 tables, max 10. Prefer JSON columns over many thin tables
 - **NEVER use `drizzle-kit migrate`** — only `drizzle-kit push`
