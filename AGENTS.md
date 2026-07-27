@@ -986,20 +986,19 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 
 ## Key Rules
 
-### artifact.toml deployment args — do NOT "fix" the array format
+### artifact.toml deployment args — true argv contract
 
-`artifact.toml` args are executed with **different semantics per section** until the
-platform lands the unified argv contract (uns-swe `docs/topics/artifact-args-contract.md`):
+Every `args` array in `artifact.toml` is **literal argv** (POSIX execve semantics) in
+all sections alike — build, postBuild, validation, run, preview (uns-swe
+`docs/topics/artifact-args-contract.md`): `args[0]` is the executable, every other
+element is passed as-is, nothing goes through shell word-splitting or expansion.
 
-- `[services.production.build].args`: Build-Deploy **joins all tokens with spaces into
-  one shell line**. Keep the existing shell-token form
-  (`["npm", "ci", "&&", "npm", "run", "build"]`). **NEVER rewrite it as
-  `["sh", "-c", "npm ci && npm run build"]`** — under space-join that executes a bare
-  `npm`, the build ships a source-only zip marked successful, and the deployed app
-  crash-loops (this exact prod incident happened on 2026-07-17).
-- `[deployment.postBuild].args`: Cleanup runs **one line per element** — the whole
-  command must stay a **single element** (`["npm prune --omit=dev"]`).
-- `[services.preview]` install/args: true argv (exec'd directly) — plain tokens only.
+- Shell semantics must be explicit: `["sh", "-c", "npm ci && npm run build"]`.
+- Plain commands stay plain token argv: `["npm", "prune", "--omit=dev"]`,
+  `["node", "server.mjs"]`.
+- Two legacy forms are **rejected at deploy time** with a field-specific error:
+  shell operators as their own tokens (`["npm", "ci", "&&", ...]`) and whole commands
+  crammed into one element (`["npm prune --omit=dev"]`).
 
 Unless the user explicitly asks to change build/deploy behavior, leave these args alone.
 
