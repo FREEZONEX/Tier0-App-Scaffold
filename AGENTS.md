@@ -994,6 +994,25 @@ export const Route = createFileRoute("/api/work-orders/$id")({
 
 ## Key Rules
 
+### artifact.toml deployment args — true argv contract
+
+Every `args` array in `artifact.toml` is **literal argv** (POSIX execve semantics) in
+all sections alike — build, postBuild, validation, run, preview (uns-swe
+`docs/topics/artifact-args-contract.md`): `args[0]` is the executable, every other
+element is passed as-is, nothing goes through shell word-splitting or expansion.
+
+- Shell semantics must be explicit: `["sh", "-c", "npm ci && npm run build"]`.
+- Plain commands stay plain token argv: `["npm", "prune", "--omit=dev"]`,
+  `["node", "server.mjs"]`.
+- Two legacy join-era forms — shell operators as their own tokens
+  (`["npm", "ci", "&&", ...]`) and a whole command crammed into one element
+  (`["npm prune --omit=dev"]`) — are **normalized to `sh -c` at deploy time**
+  (permanent compat aliases, logged with a warning). They still work, but always
+  write the canonical forms above. Only unrecognizable forms (multi-element args
+  whose `args[0]` contains whitespace) are rejected with a field-specific error.
+
+Unless the user explicitly asks to change build/deploy behavior, leave these args alone.
+
 ### Database
 - Start with ~5 tables, max 10. Prefer JSON columns over many thin tables
 - **NEVER use `drizzle-kit migrate`** — only `drizzle-kit push`

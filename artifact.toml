@@ -11,6 +11,14 @@
 [deployment]
 deploymentTarget = "autoscale"
 
+# args contract (true argv, POSIX execve semantics — see uns-swe
+# docs/topics/artifact-args-contract.md):
+#   Every element is passed literally to the executable; no shell word-splitting or
+#   expansion. Shell semantics must be explicit: ["sh", "-c", "<script>"].
+#   The platform normalizes two legacy join-era forms to ["sh", "-c", "..."]
+#   with a warning: bare shell-operator tokens (e.g. "&&" as their own elements)
+#   and whole commands crammed into one element (e.g. ["npm prune --omit=dev"]).
+#   New files must still use the canonical argv forms shown below.
 [deployment.postBuild]
 args = ["npm", "prune", "--omit=dev"]
 
@@ -23,10 +31,7 @@ localPort = 5173
 serve = "dynamic"
 
 [services.production.build]
-args = [
-  "npm", "ci", "&&",
-  "npm", "run", "build",
-]
+args = ["sh", "-c", "npm ci && npm run build"]
 outputDir = "."
 
 [services.production.run]
