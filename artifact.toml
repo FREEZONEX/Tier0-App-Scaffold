@@ -8,7 +8,7 @@
 #   DATABASE_URL  - injected into build_env / run_env by the backend per project schema
 #   PORT          - injected by RuntimeManager from localPort
 # User identity and roles are injected as trusted request headers by the Tier0
-# App Gateway. The App does not own a second SESSION_SECRET/session cookie.
+# App Gateway.
 
 [deployment]
 deploymentTarget = "autoscale"

@@ -42,9 +42,8 @@ variables are injected by the platform during deployment. Do not place them in
 ## Authentication Model
 
 Authentication is handled by the platform gateway. The app does not manage
-passwords, user accounts, or a second session Cookie. The platform's
-`_t0_gw_session` remains owned and verified by the Gateway; its
-`GATEWAY_SESSION_SECRET` is never exposed to the App. The App resolves identity
+passwords or user accounts. The platform's `_t0_gw_session` remains owned and
+verified by the Gateway. The App resolves identity
 and roles from trusted headers on every request.
 
 ### Supported Identity Header Formats
@@ -126,8 +125,7 @@ Browser -> Platform resolves the user's app role assignments
 ```
 
 An explicit empty deployed role set stays empty and never falls back to admin.
-The App does not read, write, or clear platform login Cookies and does not
-maintain a `mes-session` fallback.
+The App does not read, write, or clear platform login Cookies.
 
 `/login` is only a hidden platform-auth error bridge. It does not mint a Cookie
 or render a role picker.
