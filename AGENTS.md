@@ -338,7 +338,7 @@ gateway-injected headers inside a server boundary and uses
 ## Authentication Model
 
 Authentication is handled by the platform Gateway. The App does NOT manage
-passwords, user accounts, `SESSION_SECRET`, or a second session Cookie. Identity
+passwords or user accounts. Identity
 and roles are resolved from Gateway headers on every request. In deployed mode,
 the complete assigned-role set comes from `X-Tier0-Business-Roles` and effective
 permissions are the union across those roles; `X-Tier0-Active-Role` is only the
