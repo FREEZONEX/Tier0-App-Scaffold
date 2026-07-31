@@ -135,4 +135,23 @@ describe("role definition sync", () => {
       `PERMISSION_MATRIX roles missing from roles.json (platform cannot assign them): ${unreachableRoles.join(", ")}`,
     );
   });
+
+  it("role_key values satisfy the platform key format", () => {
+    // Platform-side SyncAppRoles validates ^[a-z]+(_[a-z]+)*$ (lowercase
+    // letters + single underscores; digits/hyphens/uppercase rejected).
+    // A non-conforming key deploys fine locally but the platform refuses to
+    // register it — and refuses the whole roles.json on import. Catch it here.
+    const PLATFORM_ROLE_KEY = /^[a-z]+(?:_[a-z]+)*$/u;
+    const rolesJson = JSON.parse(
+      readFileSync(join(process.cwd(), "roles.json"), "utf8"),
+    );
+    const badKeys = rolesJson.roles
+      .map((role) => role.role_key ?? role.key ?? "")
+      .filter((key) => !PLATFORM_ROLE_KEY.test(key));
+    assert.deepEqual(
+      badKeys,
+      [],
+      `role_key must match ^[a-z]+(_[a-z]+)*$ (platform rejects them otherwise): ${badKeys.join(", ")}`,
+    );
+  });
 });
