@@ -7,6 +7,8 @@
 # Environment injection (automatic):
 #   DATABASE_URL  - injected into build_env / run_env by the backend per project schema
 #   PORT          - injected by RuntimeManager from localPort
+# User identity and roles are injected as trusted request headers by the Tier0
+# App Gateway. The App does not own a second SESSION_SECRET/session cookie.
 
 [deployment]
 deploymentTarget = "autoscale"
@@ -41,7 +43,6 @@ image = "node:22-alpine"
 [services.production.run.env]
 NODE_ENV = "production"
 HOST = "0.0.0.0"
-SESSION_SECRET = "fff03854d9eee4fca8fb13b8ef49c765494bbf984d7590d884393238ba4c59be"
 
 [services.production.health.startup]
 path = "/api/health"
@@ -58,4 +59,3 @@ NODE_ENV = "development"
 HOST = "0.0.0.0"
 BROWSER = "none"
 VITE_ALLOWED_HOSTS = "all"
-SESSION_SECRET = "preview-session-secret-0123456789abcdef"

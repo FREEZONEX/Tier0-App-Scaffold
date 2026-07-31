@@ -11,7 +11,6 @@ capability is enabled.
 | Variable | Description |
 |---|---|
 | `DATABASE_URL` | PostgreSQL connection string. The database name should match the project id. |
-| `SESSION_SECRET` | HMAC signing key for the session cookie (32+ chars). **Required in production**. If omitted locally, the process generates a random value at startup and all sessions are invalidated on restart. Example: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
 
 ### Optional
 
@@ -43,7 +42,10 @@ variables are injected by the platform during deployment. Do not place them in
 ## Authentication Model
 
 Authentication is handled by the platform gateway. The app does not manage
-passwords or user accounts.
+passwords, user accounts, or a second session Cookie. The platform's
+`_t0_gw_session` remains owned and verified by the Gateway; its
+`GATEWAY_SESSION_SECRET` is never exposed to the App. The App resolves identity
+and roles from trusted headers on every request.
 
 ### Supported Identity Header Formats
 
@@ -100,11 +102,10 @@ Browser -> Platform resolves the user's app role assignments
             mutating request with cross-origin Origin
               -> 403 blocked
 
-            public path (/login, /api/auth/*, /api/health, /api/manifest, runtime/build assets)
+            public path (/login, /api/health, /api/manifest, runtime/build assets)
               -> allow request
 
             Tier0 runtime role set is authoritative
-              -> refresh mes-session with all roles if missing or stale
               -> continue the same request
               -> known roles contribute their permission union
               -> unknown trusted roles contribute zero permissions
@@ -113,25 +114,23 @@ Browser -> Platform resolves the user's app role assignments
             (a forgeable legacy/login value)
               -> 403 fail closed
 
-            no authoritative runtime role context + valid mes-session cookie
-              -> allow request
+            preview gateway user present but no selected role
+              -> use the built-in admin role for this request only
+              -> if the app defines no admin role, 503
 
-            preview gateway user present but no selected role + no session
-              -> stay open with an admin fallback session
-              -> if the app defines no admin role, 302 /login?from=...
+            gateway user present but no applicable role context
+              -> 403
 
-            no gateway user and no session
+            no gateway user
               -> 401
 ```
 
-The key behavior is that the gateway role set overrides a stale app session.
-A previously signed `mes-session` cookie is treated as a cache, not the source
-of truth, whenever the platform sends Tier0 runtime role headers. An explicit
-empty deployed role set stays empty and never falls back to admin.
+An explicit empty deployed role set stays empty and never falls back to admin.
+The App does not read, write, or clear platform login Cookies and does not
+maintain a `mes-session` fallback.
 
-`/login` is now only a hidden fallback auth bridge. It tries to create the
-default admin session from gateway identity and redirects back to `from`; it
-does not render the old role-picker UI.
+`/login` is only a hidden platform-auth error bridge. It does not mint a Cookie
+or render a role picker.
 
 ### Role Management
 
@@ -142,7 +141,7 @@ Role definitions belong to the app. Role assignment belongs to the platform.
 3. The platform assigns one or more roles to each user in its admin UI
 4. The gateway injects all assigned app roles in `X-Tier0-Business-Roles`
 5. The gateway may also inject one `X-Tier0-Active-Role` as the primary label
-6. The app unions permissions across every role and refreshes session state
+6. The app unions permissions across every role for the current request
 
 Each injected role key should match a `PERMISSION_MATRIX` key exactly
 (`"Operator"` ≠ `"operator"`) so it carries permissions. A gateway-injected
@@ -187,7 +186,6 @@ CREATE SCHEMA IF NOT EXISTS "session-xyz789";
 
 ```env
 DATABASE_URL="postgresql://appbuilder:appbuilder@db-host:5432/proj-abc123"
-SESSION_SECRET="<32+ chars random hex; per-app or per-session, never reuse across tenants>"
 DB_SCHEMA="session-xyz789"
 APP_ID="session-xyz789"
 VITE_BASE_PATH="/session-xyz789"
@@ -229,7 +227,6 @@ node server.mjs         # equivalent to npm start, listens on PORT (default 3000
 | Variable | Read from |
 |---|---|
 | `DATABASE_URL` | `db/index.ts`, `drizzle.config.ts`, `db/seed.ts` |
-| `SESSION_SECRET` | `lib/session.ts` (validated at startup; generated locally when absent outside production) |
 | `DIRECT_DATABASE_URL` | `drizzle.config.ts`, `db/seed.ts` |
 | `DB_SCHEMA` | `db/index.ts` (`search_path`), `drizzle.config.ts` (`schemaFilter`), `db/seed.ts` |
 | `APP_ID` | `routes/api/manifest.ts` |
@@ -244,11 +241,11 @@ node server.mjs         # equivalent to npm start, listens on PORT (default 3000
 
 ## Scenario Matrix
 
-| Scenario | `DATABASE_URL` | `SESSION_SECRET` | `DB_SCHEMA` | `APP_ID` | Base path |
-|---|---|---|---|---|---|
-| Local development | ✅ | optional, auto-randomized | optional | optional | optional |
-| Platform preview session | ✅ | ✅ | ✅ | ✅ | depends on runtime |
-| Production behind gateway | ✅ | ✅ | ✅ | ✅ | depends on gateway |
+| Scenario | `DATABASE_URL` | `DB_SCHEMA` | `APP_ID` | Base path |
+|---|---|---|---|---|
+| Local development | ✅ | optional | optional | optional |
+| Platform preview session | ✅ | ✅ | ✅ | depends on runtime |
+| Production behind gateway | ✅ | ✅ | ✅ | depends on gateway |
 
 `optional` means the scaffold can fall back to defaults when the platform does
 not provide a value.

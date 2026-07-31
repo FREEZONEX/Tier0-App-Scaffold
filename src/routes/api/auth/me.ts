@@ -1,5 +1,5 @@
 /**
- * Current user endpoint — returns session user info.
+ * Current user endpoint — returns the Gateway-resolved user.
  * Used by Shell and frontend components to display user identity and role.
  */
 

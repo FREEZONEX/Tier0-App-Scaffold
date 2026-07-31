@@ -31,6 +31,8 @@ export interface GatewayUser {
   role?: string;
 }
 
+export type GatewayRuntime = "preview" | "deployed";
+
 function readHeader(headers: Headers, key: string): string | null {
   return headers.get(key) ?? headers.get(key.toLowerCase());
 }
@@ -93,8 +95,17 @@ function parseBusinessRoles(headers: Headers): string[] {
   return uniqueRoles(value.split(",").map((role) => normalizeRole(role)));
 }
 
-export function getGatewayRole(headers: Headers): string | undefined {
+export function getGatewayRuntime(
+  headers: Headers,
+): GatewayRuntime | undefined {
   const runtime = readHeader(headers, "X-Tier0-Runtime")?.toLowerCase();
+  return runtime === "preview" || runtime === "deployed"
+    ? runtime
+    : undefined;
+}
+
+export function getGatewayRole(headers: Headers): string | undefined {
+  const runtime = getGatewayRuntime(headers);
   const previewRole = normalizeRole(readHeader(headers, "X-Tier0-Preview-Role"));
   const activeRole = normalizeRole(readHeader(headers, "X-Tier0-Active-Role"));
 
@@ -129,7 +140,7 @@ export function getGatewayRole(headers: Headers): string | undefined {
 export function getTrustedGatewayRoles(
   headers: Headers,
 ): string[] | undefined {
-  const runtime = readHeader(headers, "X-Tier0-Runtime")?.toLowerCase();
+  const runtime = getGatewayRuntime(headers);
   if (runtime === "preview") {
     const previewRole = normalizeRole(
       readHeader(headers, "X-Tier0-Preview-Role"),

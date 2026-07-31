@@ -1,11 +1,11 @@
 /**
  * AppUser type definition.
  *
- * Identity fields come from the gateway (user header).
- * Roles come from the gateway, the external role selector, or the admin default.
+ * Identity and roles come from the Tier0 Gateway headers.
+ * Preview may use the scaffold admin default before a view-as role is selected.
  *
- * Strict — no index signature. Anything in the cookie payload that isn't
- * declared here will not flow into the typed user object.
+ * Strict — no index signature. Unknown gateway fields do not flow into the
+ * typed user object.
  */
 
 export interface AppUser {

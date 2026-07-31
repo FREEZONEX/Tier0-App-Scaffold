@@ -50,7 +50,7 @@ describe("route smoke contracts", () => {
     );
   });
 
-  it("carries the auth session cookie across gateway redirects", async () => {
+  it("keeps authoritative preview headers across redirects without an App session", async () => {
     const { smokePath } = await import("../../scripts/route-smoke.mjs");
     const calls = [];
 
@@ -66,7 +66,6 @@ describe("route smoke contracts", () => {
           status: 302,
           headers: new Headers({
             location: "http://preview.local/",
-            "set-cookie": "mes-session=signed-session; Path=/; HttpOnly",
           }),
           text: async () => "",
         };
@@ -86,6 +85,8 @@ describe("route smoke contracts", () => {
     assert.equal(result.ok, true);
     assert.equal(calls.length, 2);
     assert.equal(calls[0].redirect, "manual");
-    assert.match(calls[1].headers.cookie, /mes-session=signed-session/);
+    assert.equal(calls[1].headers["x-tier0-runtime"], "preview");
+    assert.equal(calls[1].headers["x-tier0-preview-role"], "admin");
+    assert.equal(calls[1].headers.cookie, undefined);
   });
 });

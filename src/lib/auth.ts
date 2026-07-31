@@ -1,12 +1,12 @@
-import { getCookie, getRequestHeaders } from "@tanstack/react-start/server";
+import { getRequestHeaders } from "@tanstack/react-start/server";
 import type { AppUser } from "./users";
 import {
   getGatewayRoles,
+  getGatewayRuntime,
   getTrustedGatewayRoles,
   parseGatewayUser,
   type GatewayUser,
 } from "./gateway";
-import { decodeSession } from "./session";
 import { HttpError } from "./route-handlers";
 import {
   ADMIN_ROLE,
@@ -14,17 +14,6 @@ import {
   PERMISSION_MATRIX,
   toRoleList,
 } from "./permissions";
-
-const SESSION_COOKIE = "mes-session";
-
-interface SessionPayload {
-  userId?: unknown;
-  role?: unknown;
-  roles?: unknown;
-  username?: unknown;
-  displayName?: unknown;
-  email?: unknown;
-}
 
 function isValidRole(role: string | undefined): role is string {
   return typeof role === "string" &&
@@ -44,53 +33,21 @@ function toAppUser(gatewayUser: GatewayUser, roles: readonly string[]): AppUser 
   };
 }
 
-function readSessionUser(): AppUser | null {
-  const raw = getCookie(SESSION_COOKIE);
-  const session = decodeSession<SessionPayload>(raw);
-  if (!session) return null;
-
-  const userId = typeof session.userId === "string" ? session.userId : null;
-  if (!userId) return null;
-
-  const sessionRoles = Array.isArray(session.roles)
-    ? session.roles.filter((role): role is string => typeof role === "string")
-    : [];
-  const legacyRole =
-    typeof session.role === "string" && session.role ? session.role : null;
-  const roles = toRoleList([
-    ...(legacyRole ? [legacyRole] : []),
-    ...sessionRoles,
-  ]);
-
-  const username =
-    typeof session.username === "string" ? session.username : userId;
-  const displayName =
-    typeof session.displayName === "string" ? session.displayName : username;
-  const email = typeof session.email === "string" ? session.email : undefined;
-
-  return {
-    id: userId,
-    username,
-    displayName,
-    primaryRole: roles[0] ?? "",
-    roles,
-    email,
-  };
-}
-
 /**
- * Read the current user from authoritative Tier0 headers first, then the
- * signed session cookie. In deployed mode, `X-Tier0-Business-Roles` is the
- * complete assigned-role set and effective permissions are its union.
+ * Read the current user only from Tier0 Gateway headers. In deployed mode,
+ * `X-Tier0-Business-Roles` is the complete assigned-role set and effective
+ * permissions are its union.
  *
  * Preview intentionally remains single-role "view as". A preview identity
  * without a selected role may use the built-in admin fallback so a fresh app
- * stays open before role registration. An explicit deployed empty role list
- * never receives that fallback: it enters with zero permissions.
+ * stays open before role registration, without creating an App-owned session.
+ * An explicit deployed empty role list never receives that fallback: it enters
+ * with zero permissions.
  */
 export async function getCurrentUser(): Promise<AppUser | null> {
   const headers = new Headers(getRequestHeaders());
   const gatewayUser = parseGatewayUser(headers);
+  const runtime = getGatewayRuntime(headers);
 
   const trustedRoles = getTrustedGatewayRoles(headers);
   if (gatewayUser?.id && trustedRoles !== undefined) {
@@ -106,10 +63,11 @@ export async function getCurrentUser(): Promise<AppUser | null> {
     return toAppUser(gatewayUser, getGatewayRoles(headers));
   }
 
-  const sessionUser = readSessionUser();
-  if (sessionUser) return sessionUser;
-
-  if (gatewayUser?.id && isValidRole(ADMIN_ROLE)) {
+  if (
+    gatewayUser?.id &&
+    runtime === "preview" &&
+    isValidRole(ADMIN_ROLE)
+  ) {
     return toAppUser(gatewayUser, [ADMIN_ROLE]);
   }
 

@@ -81,9 +81,9 @@ request** (so the client cannot forge them):
 | Preview | `X-Tier0-Preview-Role` | One developer-selected "view-as" role | preview role store |
 
 `X-Tier0-Business-Roles` is comma-separated. `src/lib/gateway.ts` normalizes
-and deduplicates it, keeps the active role first, and stores the complete set in
-the signed session. Legacy `X-App-User-Role` / JSON `user.role` integrations
-remain single-role.
+and deduplicates it, keeps the active role first, and exposes the complete set
+on `AppUser.roles` for the current request. Legacy `X-App-User-Role` /
+JSON `user.role` integrations remain single-role.
 
 ### Multiple roles use permission union
 

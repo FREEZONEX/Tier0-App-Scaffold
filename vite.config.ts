@@ -1,4 +1,3 @@
-import { createHmac } from "node:crypto";
 import { defineConfig, type Plugin } from "vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
@@ -7,33 +6,11 @@ import tailwindcss from "@tailwindcss/vite";
 const allowAllHosts = process.env.VITE_ALLOWED_HOSTS === "all";
 const strictPort = process.env.VITE_STRICT_PORT !== "false";
 
-function encodePreviewSession(payload: unknown, secret: string): string {
-  const payloadB64 = Buffer.from(JSON.stringify(payload)).toString("base64url");
-  const signature = createHmac("sha256", secret)
-    .update(payloadB64)
-    .digest("base64url");
-  return `${payloadB64}.${signature}`;
-}
-
 function previewGatewayHeaders(): Plugin {
   const previewUserId = process.env.PREVIEW_USER_ID;
   const previewUserName = process.env.PREVIEW_USER_NAME || previewUserId;
   const previewUserEmail = process.env.PREVIEW_USER_EMAIL || "";
   const previewUserRole = process.env.PREVIEW_USER_ROLE || "";
-  const sessionSecret = process.env.SESSION_SECRET;
-  const previewSession =
-    previewUserId && previewUserRole && sessionSecret
-      ? encodePreviewSession(
-          {
-            userId: previewUserId,
-            role: previewUserRole,
-            username: previewUserName,
-            displayName: previewUserName,
-            email: previewUserEmail || undefined,
-          },
-          sessionSecret,
-        )
-      : null;
 
   return {
     name: "preview-gateway-headers",
@@ -48,14 +25,9 @@ function previewGatewayHeaders(): Plugin {
         if (previewUserEmail) {
           req.headers["x-app-user-email"] ??= previewUserEmail;
         }
+        req.headers["x-tier0-runtime"] ??= "preview";
         if (previewUserRole) {
-          req.headers["x-app-user-role"] ??= previewUserRole;
-        }
-        if (previewSession && !req.headers.cookie?.includes("mes-session=")) {
-          const existingCookies = req.headers.cookie?.trim();
-          req.headers.cookie = existingCookies
-            ? `${existingCookies}; mes-session=${previewSession}`
-            : `mes-session=${previewSession}`;
+          req.headers["x-tier0-preview-role"] ??= previewUserRole;
         }
         next();
       });

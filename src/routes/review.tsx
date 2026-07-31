@@ -19,13 +19,13 @@ import { RouteError } from "@/components/ui";
 import { getCurrentUser } from "@/lib/auth";
 import type { AppUser } from "@/lib/users";
 
-const fetchReviewSessionUser = createServerFn().handler(
+const fetchReviewGatewayUser = createServerFn().handler(
   async (): Promise<AppUser | null> => getCurrentUser(),
 );
 
 export const Route = createFileRoute("/review")({
   beforeLoad: async ({ location }) => {
-    const user = await fetchReviewSessionUser();
+    const user = await fetchReviewGatewayUser();
     if (!user) {
       throw redirect({
         to: "/login",

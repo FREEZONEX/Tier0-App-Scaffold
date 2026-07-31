@@ -2,7 +2,7 @@
  * Pathless workspace layout route — wraps management/planning/admin pages with
  * the Shell sidebar.
  *
- * `beforeLoad` runs server-side, reads the signed session cookie, and
+ * `beforeLoad` runs server-side, reads the Gateway identity headers, and
  * places the resolved `AppUser` into the route context. Every nested
  * route can then read it via `Route.useRouteContext()` without an extra
  * client-side `/api/auth/me` round-trip after navigation.
@@ -25,7 +25,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { sendPreviewError, sendPreviewReady } from "@/lib/preview-bridge";
 import type { AppUser } from "@/lib/users";
 
-const loadSessionUser = createServerFn().handler(
+const loadGatewayUser = createServerFn().handler(
   async (): Promise<AppUser | null> => getCurrentUser(),
 );
 
@@ -41,7 +41,7 @@ function requireWorkspaceUser(user: AppUser | null, pathname: string) {
 
 export const Route = createFileRoute("/_app")({
   beforeLoad: ({ location }) => {
-    return loadSessionUser().then((user) => {
+    return loadGatewayUser().then((user) => {
       return requireWorkspaceUser(user, location.pathname);
     });
   },
