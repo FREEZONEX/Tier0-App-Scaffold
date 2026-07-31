@@ -50,9 +50,12 @@ platform business role.
 }
 ```
 
-- `role_key` — **required**. Lowercase snake_case (`^[a-z0-9_]+$`). Must match
-  the `PERMISSION_MATRIX` key **exactly** (`operator` ≠ `Operator`). The legacy
-  alias `key` is also accepted but prefer `role_key`.
+- `role_key` — **required**. Lowercase snake_case letters only:
+  `^[a-z]+(_[a-z]+)*$` — the platform rejects digits, hyphens, uppercase, and
+  leading/trailing/double underscores (`hello_world` OK; `role2`, `AItest_x`
+  rejected). Must match the `PERMISSION_MATRIX` key **exactly**
+  (`operator` ≠ `Operator`). The legacy alias `key` is also accepted but
+  prefer `role_key`.
 - `name` — **required**. Display name; any language is fine (`游客`, `Guest`).
 - `description` — optional.
 - The template ships with `roles.json` as `{ "roles": [] }`. Keep it empty until
