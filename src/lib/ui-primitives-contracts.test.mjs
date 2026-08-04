@@ -60,6 +60,11 @@ describe("ui primitive contracts", () => {
     assert.match(source, /typo-h3|typo-h2/, "PageHeader title uses the typo scale");
     assert.doesNotMatch(
       source,
+      /\bdescription\??\s*:/,
+      "PageHeader must stay compact; put operational guidance in contextual components, not a default page subtitle",
+    );
+    assert.doesNotMatch(
+      source,
       /text-highlight(?!-)/,
       "Eyebrow/kicker text must not use raw highlight lime; use text-accent-strong",
     );

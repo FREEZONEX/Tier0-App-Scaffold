@@ -114,7 +114,8 @@ spacing:
 
 # The recipes below are implemented as scaffold primitives in
 # src/components/ui/ (Button variants, StatusBadge≈tag-status, Card≈panel,
-# PageHeader, StatusFilterChips, RiskBanner, EmptyState, StatCard) — compose
+# PageHeader, StatusFilterChips, RiskBanner, EmptyState, StatCard) and
+# src/components/forms/FileUpload — compose
 # those instead of re-deriving styles from this file. Usage rules:
 # - identifiers (doc/lot/location codes) render in font-mono
 # - highlight lime is a fill color only; text accents use highlight-deep
@@ -170,6 +171,14 @@ components:
     rounded: "{rounded.md}"
     minHeight: "var(--tier0-control-height-md)"
     padding: "0 var(--tier0-space-sm)"
+  file-upload:
+    backgroundColor: "{colors.surface-1}"
+    textColor: "{colors.ink}"
+    borderColor: "{colors.input-border}"
+    borderStyle: dashed
+    rounded: "{rounded.md}"
+    minHeight: "7rem"
+    padding: "{spacing.lg}"
   dialog:
     backgroundColor: "{colors.canvas-raised}"
     textColor: "{colors.ink}"
@@ -339,8 +348,9 @@ live behind focused tabs. For concrete layout selection and route groups, apply
 platform-injected UI guidance when it is available.
 
 Page title rows are structural headers, not content containers. Put only the
-page title, short description/breadcrumb/status text, and compact primary
-actions or toolbar buttons in the title row. Do not place KPI cards, metric
+page title, an optional breadcrumb or compact status, and primary actions or
+toolbar buttons in the title row. Do not add a standing subtitle that explains
+what the page is for. Do not place KPI cards, metric
 strips, filters, forms, data cards, charts, Gantt boards, tables, or detail
 panels inside the title row; those belong in separate sections below it.
 
@@ -368,6 +378,9 @@ stable visual defaults here:
   `LineItemSection` for multi-row line-item editors, all from
   `@/components/forms`. Use `RecordSelect` for business-object pickers so
   status, quantity, location, and date context is visible while choosing.
+- Use `FileUpload` from `@/components/forms` for attachments and imports; the
+  native file input fallback is styled, but the primitive adds drag/drop,
+  validation feedback, and selected-file removal.
 - Route recommended, automatic, rule-based, and bulk actions through
   `RecommendationAction` / `ImpactPreviewDialog` from `@/components/actions` so
   the basis, affected records, and reason are visible before execution.
@@ -383,10 +396,12 @@ stable visual defaults here:
 ## Product Copy
 
 Visible app copy should describe the user's work, data, action, state, or
-consequence. Do not render design-system commentary as product UI. For locale
-selection, mixed-language cleanup, dialog button text, accessibility labels, and
-runtime i18n decisions, apply platform-injected UI/copy guidance when it is
-available.
+consequence. Do not render design-system commentary as product UI. Do not add
+persistent page-introduction copy that merely explains navigation, route
+boundaries, or what the user can already infer from the title and controls. For
+locale selection, mixed-language cleanup, dialog button text, accessibility
+labels, and runtime i18n decisions, apply platform-injected UI/copy guidance
+when it is available.
 
 ## Motion
 

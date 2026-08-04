@@ -178,4 +178,13 @@ describe("app chrome policy", () => {
       ),
     );
   });
+
+  it("keeps business icon creation on image generation instead of coded artwork", () => {
+    const agents = readFileSync(join(process.cwd(), "AGENTS.md"), "utf8");
+
+    assert.match(agents, /image-generation capability/);
+    assert.match(agents, /do not draw or synthesize the icon with Node/i);
+    assert.doesNotMatch(agents, /chrome-headless-shell/);
+    assert.doesNotMatch(agents, /temporary 512×512 HTML page/);
+  });
 });

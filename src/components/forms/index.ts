@@ -19,3 +19,8 @@ export {
   type RecordSelectOption,
   type RecordSelectProps,
 } from "./record-select";
+export {
+  FileUpload,
+  type FileUploadLabels,
+  type FileUploadProps,
+} from "./file-upload";

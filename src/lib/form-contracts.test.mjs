@@ -107,6 +107,31 @@ describe("form contracts", () => {
     assert.match(index, /RecordSelect/);
   });
 
+  it("provides a styled file upload and a safe native-input fallback", () => {
+    const fileUpload = readFileSync(
+      join(process.cwd(), "src/components/forms/file-upload.tsx"),
+      "utf8",
+    );
+    const index = readFileSync(
+      join(process.cwd(), "src/components/forms/index.ts"),
+      "utf8",
+    );
+    const globals = readFileSync(
+      join(process.cwd(), "src/styles/globals.css"),
+      "utf8",
+    );
+
+    assert.match(fileUpload, /export function FileUpload/);
+    assert.match(fileUpload, /data-file-upload="true"/);
+    assert.match(fileUpload, /type="file"/);
+    assert.match(fileUpload, /onDrop=/);
+    assert.match(fileUpload, /selectedFiles\.map/);
+    assert.match(fileUpload, /role="alert"/);
+    assert.match(index, /FileUpload/);
+    assert.match(globals, /input\[type="file"\]/);
+    assert.match(globals, /::file-selector-button/);
+  });
+
   it("flags select options that render only a record id", () => {
     const idOnly = `<option value={batch.id}>{batch.id}</option>`;
     assert.equal(findIdOnlyOptions(idOnly).length, 1);

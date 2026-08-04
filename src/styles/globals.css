@@ -414,6 +414,35 @@ body {
     line-height: var(--tier0-text-body-line);
   }
 
+  /* Fail-safe file input: FileUpload provides the complete drag/drop pattern,
+     but a bare generated input must still inherit a usable 40px control box. */
+  input[type="file"] {
+    width: 100%;
+    min-height: var(--tier0-control-height-md);
+    padding: 4px;
+    border-width: 1px;
+    border-radius: var(--tier0-radius);
+    font-size: var(--tier0-text-body-size);
+    line-height: 30px;
+  }
+
+  input[type="file"]::file-selector-button {
+    min-height: 30px;
+    margin-right: 12px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: var(--tier0-radius-sm);
+    background: var(--tier0-bg-accent);
+    color: var(--foreground);
+    font: inherit;
+    font-weight: var(--tier0-text-label-weight);
+    cursor: pointer;
+  }
+
+  input[type="file"]:disabled::file-selector-button {
+    cursor: not-allowed;
+  }
+
   textarea {
     width: 100%;
     min-height: calc(var(--tier0-control-height-md) * 2);
