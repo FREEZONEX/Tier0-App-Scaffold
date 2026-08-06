@@ -24,6 +24,7 @@
 .DS_Store
 *.pem
 *.zip
+.tier0/
 
 # debug
 npm-debug.log*

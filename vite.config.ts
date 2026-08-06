@@ -39,6 +39,11 @@ export default defineConfig({
 
   base: process.env.VITE_BASE_PATH || process.env.NEXT_PUBLIC_BASE_PATH || "/",
   server: {
+    watch: {
+      // Sandbox session data is not application source. Ignoring it prevents
+      // wire.jsonl appends from being amplified into full-page reloads.
+      ignored: ["**/.tier0/**"],
+    },
     port: 5173,
     strictPort,
     host: "0.0.0.0",
