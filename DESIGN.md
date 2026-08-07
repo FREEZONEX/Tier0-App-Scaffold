@@ -220,222 +220,68 @@ motion:
   slow: "var(--tier0-motion-slow)"
 ---
 
-# Tier0 Frontend Design Guidelines
+# Tier0 Frontend Design Contract
 
-`DESIGN.md` is the visual source for Tier0. It defines the look, token intent,
-and product feel. Platform-managed Builder Skills own generation behavior when
-they are injected by the App Builder orchestrator:
+`src/styles/globals.css` is the executable source for color, type, spacing,
+radius, motion, Tailwind aliases, and safe base styling. The YAML above is its
+compact map. Existing primitives under `src/components/**` expose the same
+system at point of use; platform-injected Builder guidance may choose concrete
+page compositions. Keep this scaffold Skill-name agnostic.
 
-- App build orchestration, implementation workflow, UI generation, layout
-  behavior, forms, visual tone, industrial patterns, locale/copy consistency,
-  requirements, preview runtime stability, responsive audits, and Tier0 SDK
-  integration are platform-managed concerns when the App Builder injects them.
-- This scaffold must stay Skill-name agnostic. Do not hardcode platform Skill
-  names, versions, packaging assumptions, or trigger rules here.
+## Visual Character
 
-Color, spacing, radius, typography, motion, and Tailwind mappings are executable
-tokens in `src/styles/globals.css`. The YAML block above mirrors those tokens for
-quick reading; do not fork values locally in routes or components.
+Tier0 is precise, calm, technical enterprise software: readable through long
+shifts and on shared terminals without becoming a dark control-room theme.
 
-## Design Direction
+- Workspace: neutral canvas, raised white surfaces, compact information rhythm.
+- Primary decisions: near-black; active/selected/progress emphasis: Tier0 signal
+  green; urgency: semantic status colors.
+- Station: larger touch targets. Review: evidence-first. Monitor: fixed,
+  distance-readable composition.
+- Hierarchy comes from typography, borders, restrained surface changes, and
+  stable spacing rather than decoration.
 
-Tier0 should feel precise, technical, and product-focused while staying readable
-for long shifts, tablets, shared terminals, and shop-floor lighting. It can
-borrow disciplined enterprise structure, but the visual language must remain
-Tier0's own.
+Use semantic tokens and Tailwind aliases instead of local color systems.
+Enabled controls remain visibly editable on white surfaces. Normal panels are
+flat; overlay surfaces may use restrained elevation. IDs, lot/document/location
+codes, and tabular technical values suit `font-mono` / `tabular-nums`.
 
-- Neutral workspace surfaces: soft canvas, raised white panels, light grey insets.
-- Near-black primary actions for core product decisions.
-- Tier0 signal green for emphasis, selected states, progress, active states, and optimistic product moments.
-- Density chosen by workflow: compact for workspace, larger for station execution, evidence-first for review.
-- EMS, WMS, QMS, CRM, inventory, approval, analytics, R&D, office, and
-  management workspaces should default to modern enterprise software:
-  clear navigation, readable tables, focused workbenches, controlled rounding,
-  and practical status color.
-- Production execution, station, andon, monitor, equipment terminal, and
-  safety-critical surfaces may use heavier industrial contrast when the use
-  environment justifies it.
-- Hierarchy from typography, borders, background layering, and stable layout rhythm.
+## Composition
 
-Do not use IBM Blue as the default primary color. Do not turn the product into a Carbon clone.
+Choose layout and density from the workflow. Keep the persistent page body
+focused on current state, primary work, and useful decisions; secondary detail
+can live behind an explicit control or focused tab.
 
-## Source Of Truth
+Page title rows contain the title, optional breadcrumb/status, and actions—not
+an explanation of the page or embedded cards, filters, charts, forms, or data
+boards. Wide content owns its scroll region, long values wrap or truncate
+intentionally, and interactive pages remain usable at 375px.
 
-- Theme entry, color tokens, typography tokens, and Tailwind mappings: `src/styles/globals.css`
-- Runtime class helpers: `src/lib/utils.ts`
-- Overlay primitives: `src/components/overlays`
-- App-specific generated components: `src/components/<domain>/`
-- Platform-injected Builder guidance owns generation workflow, layout/component
-  behavior, UI recipes, industrial visual patterns, locale/copy consistency,
-  preview/runtime guidance, and platform integration behavior.
+The shipped component families are a discoverable toolkit, not a mandatory
+screen recipe:
 
-Use semantic variables such as `--tier0-bg-color`, `--tier0-text-color`,
-`--tier0-highlight`, and Tailwind aliases such as `bg-bg`, `text-text`,
-`border-border`, `bg-highlight-bg-accent`, `text-highlight-text`,
-`bg-button-primary`, and `bg-button-highlight`.
+- `ui/`: buttons, status, cards, headers, filters, risk, empty and KPI states.
+- `forms/`: field/grid composition, record selection, uploads, line items.
+- `overlays/`: dialogs, forms, confirmation, drawers.
+- `data/`: asynchronous state and dense-table layout helpers.
+- `actions/`: visible basis/impact for recommended, automatic, or bulk changes.
 
-## Color Rules
+Keep app-specific components local until repetition justifies
+`src/components/<domain>/`. Do not create a parallel design system.
 
-Use the YAML color roles and `globals.css` tokens instead of arbitrary hex
-values. Tier0 signal green should call attention to active product state,
-build/progress, selection, or success-adjacent emphasis. It should not flood
-cards, sections, icons, or page backgrounds.
+## Copy and Motion
 
-Avoid pure black on pure white as the dominant reading surface. Use raised white
-cards on soft canvas, neutral gray text for hierarchy, and borders for
-separation. High urgency belongs in semantic status tokens, not in the global
-palette.
+Visible copy names work, data, state, action, risk, or consequence. Keep route
+explanations, token commentary, and implementation notes out of product UI.
+Use one locale per surface unless bilingual output is requested.
 
-Use semantic status tokens for status UI:
+Motion clarifies state. Avoid animated ornaments, broad decorative gradients,
+background blobs, glass effects, and heavy shadows. Import shared motion through
+`@/lib/motion`.
 
-- Success: `--tier0-success-color`, `--tier0-success-tertiary`
-- Error: `--tier0-error-color`, `--tier0-error-tertiary`
-- Warning: `--tier0-warning-color`, `--tier0-warning-tertiary`
-- Info/updating: `--tier0-blue-color`, `--tier0-blue-tertiary`
+## Review
 
-## Typography
-
-The default product UI font is `--font-app-sans`, chosen for platform-native
-readability and reliable rendering. Use `--font-display-sans` for larger
-headings, and `--font-geist-mono` for code, IDs, compact technical metadata,
-and token previews.
-
-Use existing utilities from `src/styles/globals.css`:
-
-- Page display: `typo-h1`
-- Section heading: `typo-h2`
-- Subsection heading: `typo-h3`
-- Panel heading: `typo-h4`
-- Body: `text-sm` or `text-base`
-- Caption: `.caption` or `text-xs`
-- Mono/code: `font-mono`
-
-Keep letter spacing neutral. Do not scale type directly with viewport width
-outside the monitor utilities.
-
-## Surfaces, Borders, Radius, Elevation
-
-Borders and subtle surface changes are the primary separation tools. Use
-`border-border`, `border-border-secondary`, `var(--tier0-border)`, or
-`var(--tier0-border-secondary)`.
-
-Default surfaces are white or near-white raised panels on a soft canvas.
-Inputs, selects, textareas, and combobox-like controls should use white enabled
-backgrounds (`bg-background` or `bg-card`) with `border-input`; disabled or
-read-only controls may use `bg-surface-inset`.
-
-Use the compact radius scale from `globals.css`. Prefer controlled token-based
-rounding over arbitrary large radius values. Buttons, inputs, badges, panels,
-and table rows may use `rounded-sm` or `rounded-md`; larger management
-workspace cards and shells may use `rounded-lg` when it improves modern product
-feel without creating a decorative card-heavy layout.
-
-Keep elevation restrained. Normal panels should be flat. Dialogs, dropdowns,
-popovers, and tooltips may use shadows to separate overlays.
-
-## Density And Composition
-
-Use the Tier0 spacing scale from `globals.css`. Workspace surfaces should be
-compact and scannable; station surfaces should be touch-friendly; review
-surfaces should favor readable evidence; monitor surfaces should use the
-`monitor-*` utilities and fit a fixed board.
-
-Prefer compact page composition. The always-visible page body should expose
-entry points, current operational state, primary actions, and necessary
-visualizations. Detailed forms, secondary attributes, audit trails,
-configuration, and rarely used actions should open from an explicit control or
-live behind focused tabs. For concrete layout selection and route groups, apply
-platform-injected UI guidance when it is available.
-
-Page title rows are structural headers, not content containers. Put only the
-page title, an optional breadcrumb or compact status, and primary actions or
-toolbar buttons in the title row. Do not add a standing subtitle that explains
-what the page is for. Do not place KPI cards, metric
-strips, filters, forms, data cards, charts, Gantt boards, tables, or detail
-panels inside the title row; those belong in separate sections below it.
-
-Big-number KPI cards are denser than general panels: keep label and value close,
-avoid tall empty cards, and prefer compact summary strips when showing many
-counts. For industrial visual snippets, KPI cards, Gantt, timelines, and
-operational dashboards, apply platform-injected UI guidance when it is
-available.
-
-## Component Principles
-
-Build component-local primitives for the app being generated. Keep them close to
-the route or domain that owns them until repetition justifies sharing under
-`src/components/<domain>/`. Do not create a second design system inside a
-feature folder.
-
-Buttons, forms, dialogs, drawers, empty states, tables, charts, and responsive
-behavior may be specified by platform-injected UI guidance. Keep only these
-stable visual defaults here:
-
-- Use one primary or highlighted action per local decision area.
-- Use lucide-react icons at normal Tailwind icon sizes such as `size-4` or `size-5`.
-- Use `FormDialog` or `Drawer` for workspace CRUD create/edit forms by default.
-- Compose form bodies from `FieldGroup` inside `FormGrid` (1-2 columns), with
-  `LineItemSection` for multi-row line-item editors, all from
-  `@/components/forms`. Use `RecordSelect` for business-object pickers so
-  status, quantity, location, and date context is visible while choosing.
-- Use `FileUpload` from `@/components/forms` for attachments and imports; the
-  native file input fallback is styled, but the primitive adds drag/drop,
-  validation feedback, and selected-file removal.
-- Route recommended, automatic, rule-based, and bulk actions through
-  `RecommendationAction` / `ImpactPreviewDialog` from `@/components/actions` so
-  the basis, affected records, and reason are visible before execution.
-- Wrap dense business tables in `TableViewport` from `@/components/data` or an
-  equivalent internal scroll viewport. Keep status/action cells nowrap, and
-  wrap, clamp, or truncate long names and identifiers intentionally inside
-  their own cells.
-- Use `FieldLabel` / `RequiredMark` from `@/components/forms` for required fields. The required asterisk is always the semantic error color from `--destructive`; do not hand-type bare `*` markers or override them with local text-color utilities.
-- Keep row actions quiet: icon buttons, dropdown menus, or compact text actions.
-- Pair color with icon or text for industrial status readability.
-- Preserve truncation with `min-w-0`, `truncate`, and tooltip fallbacks.
-
-## Product Copy
-
-Visible app copy should describe the user's work, data, action, state, or
-consequence. Do not render design-system commentary as product UI. Do not add
-persistent page-introduction copy that merely explains navigation, route
-boundaries, or what the user can already infer from the title and controls. For
-locale selection, mixed-language cleanup, dialog button text, accessibility
-labels, and runtime i18n decisions, apply platform-injected UI/copy guidance
-when it is available.
-
-## Motion
-
-Use motion for state clarity, not decoration. Standard transitions should cover
-color, opacity, background, border, and shadow. Use the Tier0 motion tokens from
-`globals.css`.
-
-Avoid decorative background blobs, excessive gradients, and animated ornaments
-unrelated to product state. Gradients may be used sparingly for AI/thinking
-status, as in `thinking-title-active`.
-
-## Avoid
-
-- Hardcoded hex values or local token forks.
-- Arbitrary pixel-based Tailwind values for layout, such as hardcoded timeline
-  widths, fixed resource columns, or tiny one-off text sizes.
-- IBM Blue as the Tier0 primary color.
-- Heavy shadows for normal panels.
-- Tier0 signal green as a general page background.
-- Duplicate button, dialog, table, tag, input, pagination, or select behavior.
-- Mixed-language product UI text in one finished app surface.
-- Inline full create/edit forms for workspace CRUD pages.
-- Broad decorative gradients, purple-blue themes, beige/brown palettes, or cold/warm gray-heavy palettes.
-- Dark terminal or heavy industrial styling as the default for EMS, WMS, QMS,
-  CRM, approval, analytics, inventory, or other management workspaces.
-
-## Quick Visual Checklist
-
-- Uses `--tier0-*` tokens or Tailwind aliases instead of arbitrary colors.
-- Uses white enabled input backgrounds and visible focus/disabled states.
-- Fits the compact enterprise layout rhythm.
-- Keeps KPI cards dense and avoids tall empty metric panels.
-- Keeps page title rows free of cards, filters, charts, Gantt boards, and other content blocks.
-- Handles truncation and long content without overlap.
-- Keeps design-system commentary and token explanations out of visible UI.
-- Uses platform-injected UI guidance for layout, component behavior, visual
-  tone, industrial patterns, and copy behavior when available.
+Check semantic-token use, control affordance, status readability, density,
+responsive overflow, text fitting, page-header discipline, and consistency with
+the chosen app chrome. Prefer improving primitives or base fallbacks over adding
+new global prescriptions for individual layouts.
