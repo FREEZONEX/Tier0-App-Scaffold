@@ -274,7 +274,9 @@ Set `APP_NAME` and `APP_LOCALE` once in `src/lib/app-chrome.ts`; update used
 layout shells and platform App Info in the same closeout. Product UI uses one
 explicit locale unless bilingual output is requested.
 
-The app icon is one shared 512×512 PNG for both in-app chrome and the platform:
+On first generation and every rebrand, complete all three steps below before
+reporting App Identity finished. The app icon is one shared 512×512 PNG for
+both in-app chrome and the platform:
 
 1. Use the available image-generation capability to create a simple,
    high-contrast domain mark at `public/app-icon.png` (≤2 MB). Do not draw or synthesize the icon with Node, Canvas, SVG/HTML templates, or browser screenshots.

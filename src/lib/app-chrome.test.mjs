@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, it } from "node:test";
@@ -8,6 +9,40 @@ const MAX_APP_ICON_BYTES = 2 * 1024 * 1024;
 const PNG_SIGNATURE = Buffer.from([
   0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
 ]);
+const TEMPLATE_ROUTE_FILES = [
+  "src/routes/__root.tsx",
+  "src/routes/_app.index.tsx",
+  "src/routes/_app.tsx",
+  "src/routes/api/auth/me.ts",
+  "src/routes/api/health.ts",
+  "src/routes/api/manifest.ts",
+  "src/routes/login.tsx",
+  "src/routes/monitor.tsx",
+  "src/routes/review.tsx",
+  "src/routes/station.tsx",
+];
+const TEMPLATE_SERVICE_FILES = [
+  "src/services/bootstrap.ts",
+  "src/services/db-results.ts",
+  "src/services/seed-utils.ts",
+];
+const TEMPLATE_STATE_FINGERPRINTS = {
+  "roles.json": "b2d07f68818cfc353b2f98543a018fa6ef6157026f910ad359eb7370a4b25172",
+  "src/components/Shell.tsx":
+    "00c4969a99f371c28bad552921653a6dd9548cc2381c09b937352c88f347fbcf",
+  "src/components/shell-modules.ts":
+    "04a99b075d5d58ff658b0259672942ede30a62bd1c1f228ee863733af0f1d21a",
+  "src/db/schema.ts":
+    "aad07c8f7b99d748e3f6bd1133fe7e601b3b8b734d4e5a676a2c663e83a317f0",
+  "src/lib/app-chrome.ts":
+    "e772ac721e016dcd98a848ea0159ed924c56df75677f3b0016d52210a4008ff8",
+  "src/lib/permissions.ts":
+    "6aca9ae08be3e6191d9a58b7b3049797db01cff0ce4e5711d9ccd180cb89e70a",
+  "src/lib/role-metadata.ts":
+    "29b7cdb8bd91aae41d7d49126f3324336257868f033a08d7ceb6a0569bb90e18",
+  "src/routes/_app.index.tsx":
+    "9b6c23fac6a4cba1d4c1723744cadacb35d68210146acf7432715a5aff2db131",
+};
 
 function toPosixPath(filePath) {
   return filePath.replaceAll("\\", "/");
@@ -33,6 +68,49 @@ describe("app chrome policy", () => {
     return walkRouteFiles(join(process.cwd(), "src/routes"))
       .filter((file) => readFileSync(file, "utf8").includes("TEMPLATE_BLANK_ROUTE"))
       .map((file) => toPosixPath(relative(process.cwd(), file)));
+  }
+
+  function projectFiles(root) {
+    return walkRouteFiles(join(process.cwd(), root))
+      .map((file) => toPosixPath(relative(process.cwd(), file)))
+      .sort();
+  }
+
+  function sourceFingerprint(relativePath) {
+    const filePath = join(process.cwd(), relativePath);
+    if (!existsSync(filePath)) return null;
+    const source = readFileSync(filePath, "utf8").replaceAll("\r\n", "\n");
+    return createHash("sha256").update(source).digest("hex");
+  }
+
+  function currentTemplateState() {
+    return {
+      markerFiles: templateBlankMarkerFiles(),
+      routeFiles: projectFiles("src/routes"),
+      serviceFiles: projectFiles("src/services"),
+      fingerprints: Object.fromEntries(
+        Object.keys(TEMPLATE_STATE_FINGERPRINTS).map((file) => [
+          file,
+          sourceFingerprint(file),
+        ]),
+      ),
+    };
+  }
+
+  function isPristineTemplateState(state) {
+    const sameFiles = (actual, expected) =>
+      actual.length === expected.length &&
+      actual.every((file, index) => file === expected[index]);
+
+    return (
+      state.markerFiles.length === 1 &&
+      state.markerFiles[0] === "src/routes/_app.index.tsx" &&
+      sameFiles([...state.routeFiles].sort(), TEMPLATE_ROUTE_FILES) &&
+      sameFiles([...state.serviceFiles].sort(), TEMPLATE_SERVICE_FILES) &&
+      Object.entries(TEMPLATE_STATE_FINGERPRINTS).every(
+        ([file, fingerprint]) => state.fingerprints[file] === fingerprint,
+      )
+    );
   }
 
   function appIconPath(appChromeSource) {
@@ -129,15 +207,42 @@ describe("app chrome policy", () => {
     }
   });
 
+  it("limits the default-icon exemption to the untouched scaffold", () => {
+    const pristine = {
+      markerFiles: ["src/routes/_app.index.tsx"],
+      routeFiles: [...TEMPLATE_ROUTE_FILES],
+      serviceFiles: [...TEMPLATE_SERVICE_FILES],
+      fingerprints: { ...TEMPLATE_STATE_FINGERPRINTS },
+    };
+
+    assert.equal(isPristineTemplateState(pristine), true);
+    assert.equal(
+      isPristineTemplateState({
+        ...pristine,
+        routeFiles: [...pristine.routeFiles, "src/routes/_app.inventory.tsx"],
+      }),
+      false,
+      "A stale TEMPLATE_BLANK_ROUTE marker must not exempt a generated business route.",
+    );
+    assert.equal(
+      isPristineTemplateState({
+        ...pristine,
+        fingerprints: {
+          ...pristine.fingerprints,
+          "src/lib/app-chrome.ts": "generated-app-chrome",
+        },
+      }),
+      false,
+      "Changing app identity must require a generated icon.",
+    );
+  });
+
   it("requires a generated app to replace the template icon with a platform-ready PNG", () => {
     const appChromeSource = readFileSync(
       join(process.cwd(), "src/lib/app-chrome.ts"),
       "utf8",
     );
-    const isBlankTemplate =
-      templateBlankMarkerFiles().length === 1 &&
-      /APP_NAME\s*=\s*["'`]Manufacturing App["'`]/.test(appChromeSource);
-    if (isBlankTemplate) {
+    if (isPristineTemplateState(currentTemplateState())) {
       return;
     }
 
