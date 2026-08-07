@@ -21,8 +21,6 @@ deploymentTarget = "autoscale"
 #   with a warning: bare shell-operator tokens (e.g. "&&" as their own elements)
 #   and whole commands crammed into one element (e.g. ["npm prune --omit=dev"]).
 #   New files must still use the canonical argv forms shown below.
-[deployment.postBuild]
-args = ["npm", "prune", "--omit=dev"]
 
 [[services]]
 name = "web"
@@ -33,7 +31,9 @@ localPort = 5173
 serve = "dynamic"
 
 [services.production.build]
-args = ["sh", "-c", "npm ci && npm run build"]
+# Keep production pruning in the build chain so a prune failure blocks artifact
+# publication instead of being swallowed by non-blocking cleanup semantics.
+args = ["sh", "-c", "npm ci && npm run build && npm prune --omit=dev"]
 outputDir = "."
 
 [services.production.run]
