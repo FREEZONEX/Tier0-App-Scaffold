@@ -30,7 +30,7 @@ is incomplete.
 
 - Management applications are not read-only unless the user asks for a monitor,
   report, or prototype. Intentional read-only workspace pages carry a
-  `READ_ONLY_SURFACE` comment explaining why.
+  `READ_ONLY_SURFACE: <reason>` comment explaining why.
 - Every mutation handler under `src/routes/api/**` has a UI caller using
   `apiUrl()`. External-only handlers carry an `EXTERNAL_CALLER` comment naming
   the caller.
@@ -200,6 +200,10 @@ passwords, users, cookies, local sessions, login/register APIs, or logout.
   roles remain zero-access. Forgeable unknown legacy roles fail closed.
 
 Register roles in one pass:
+
+Default the first version to no more than three effective roles total: the
+built-in `admin` plus at most two business roles chosen for materially different
+permission scopes. Do not create one role per page, action, or job title.
 
 1. Define actions and `PERMISSION_MATRIX` in `src/lib/permissions.ts`; keep
    `[ADMIN_ROLE]: [...ACTIONS]`.

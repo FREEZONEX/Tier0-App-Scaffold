@@ -1,10 +1,10 @@
 {
   "locked": {
     "src/lib/gateway.test.ts": "61c93fd14170a4481b6ccc577ffa1ddf2c3af096a1c93cb0cf839e15346aa6af",
-    "src/lib/permissions.test.mjs": "2c846ea421b1566c59cdb50994135c8a83288d9169d1b1a7cc1d58f7e6e8f814",
+    "src/lib/permissions.test.mjs": "894dc637070d8a7dbdf4fe8a6073dd2547dfa6f2fde413d8786bfd12a5129bfb",
     "src/lib/app-chrome.test.mjs": "f90484780f729e00940204935a613e023ffb4d684ef81d9aae060d932e27aa17",
     "src/lib/navigation-contracts.test.mjs": "8b17bb2b12b23c5d70c6b400fb7a73c0826b2e909d13c470f29af478cca5cfd7",
-    "src/lib/content-contracts.test.mjs": "889879644611f9ca7198facb9d786dcffe2a4ab6603b8cb961f04b6175481699",
+    "src/lib/content-contracts.test.mjs": "1bf12c14667828208a97792fa52331d45819500d6218b2ee1540a9264235ce77",
     "src/lib/button-contracts.test.mjs": "b791163536f37c5090d0b5e57e8a5574a41d250ec50d0aae66ef59c65abbe0d8",
     "src/lib/form-contracts.test.mjs": "4699e5c5924c4b6ccd5f3c6183c95166a3aca16ce40fb1640d5b2fb12bf0270d",
     "src/lib/overlay-contracts.test.mjs": "8793c80d10b89be330797b67cb760ad1d1f9bbb2362360bfacaba6178ab5744d",
@@ -17,7 +17,7 @@
     "src/lib/runtime-safety.test.mjs": "28bf080a1d3472dbc598ee3d27335a908c41041b10b277b393bd1dd239b96725",
     "src/lib/write-path-contracts.test.mjs": "b5d37d243fbbe3e92622e3d867d30797c7fd6a753f8eb680d599be68ee3ac2a8",
     "src/lib/ui-primitives-contracts.test.mjs": "2506d644435601702fb748d5a575313bdac4a5cec745a808e199fa7e9e8750be",
-    "scripts/ui-advisories.mjs": "8ffe547642e714e90d1eab10091eb63d97d4a97d16142521b690c4755d8409de",
+    "scripts/ui-advisories.mjs": "7e84376f335486d27329eda6227628a4c4c1b265800567e577eaa72763eba3cc",
     "scripts/route-smoke.mjs": "fabf6c5b4df6fa12dd373d0f7cdcaf2eae4faab33c3c31bfee6e95878feaf934",
     "scripts/post-build-verify.mjs": "090444e99f245213ecba410507045903ec777bafdb543d34e93323ea6ac9b681",
     "scripts/gate-integrity.mjs": "7a58775112e32de09f80b9773a1192c42e6da7b5e17c5a08eb59dccc3a886080"

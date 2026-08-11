@@ -64,6 +64,9 @@ function roleMetadataKeys(source) {
   return keys;
 }
 
+const MAX_EFFECTIVE_APP_ROLES = 3;
+const MAX_BUSINESS_ROLES = MAX_EFFECTIVE_APP_ROLES - 1;
+
 describe("role definition sync", () => {
   it("parses matrix and metadata keys (self-check)", () => {
     assert.deepEqual(
@@ -133,6 +136,36 @@ describe("role definition sync", () => {
       unreachableRoles,
       [],
       `PERMISSION_MATRIX roles missing from roles.json (platform cannot assign them): ${unreachableRoles.join(", ")}`,
+    );
+  });
+
+  it("keeps the first-version role model to admin plus at most two business roles", () => {
+    const matrixKeys = permissionMatrixKeys(
+      readFileSync(join(process.cwd(), "src/lib/permissions.ts"), "utf8"),
+    );
+    const metadataKeys = roleMetadataKeys(
+      readFileSync(join(process.cwd(), "src/lib/role-metadata.ts"), "utf8"),
+    );
+    const rolesJson = JSON.parse(
+      readFileSync(join(process.cwd(), "roles.json"), "utf8"),
+    );
+    const businessMatrixKeys = matrixKeys.filter((key) => key !== "admin");
+    const registeredEffectiveRoles = rolesJson.roles
+      .map((role) => role.role_key)
+      .filter((key) => businessMatrixKeys.includes(key));
+
+    assert.equal(matrixKeys.includes("admin"), true, "admin is required");
+    assert.ok(
+      matrixKeys.length <= MAX_EFFECTIVE_APP_ROLES,
+      `Keep at most ${MAX_EFFECTIVE_APP_ROLES} effective roles total: built-in admin plus at most ${MAX_BUSINESS_ROLES} business roles. Current matrix: ${matrixKeys.join(", ")}`,
+    );
+    assert.ok(
+      metadataKeys.length <= MAX_EFFECTIVE_APP_ROLES,
+      `ROLE_METADATA exceeds the ${MAX_EFFECTIVE_APP_ROLES}-role first-version limit: ${metadataKeys.join(", ")}`,
+    );
+    assert.ok(
+      registeredEffectiveRoles.length <= MAX_BUSINESS_ROLES,
+      `Register at most ${MAX_BUSINESS_ROLES} effective business roles in roles.json: ${registeredEffectiveRoles.join(", ")}`,
     );
   });
 

@@ -40,6 +40,11 @@ them is a half-finished role.
 `role-metadata.ts` but **must not** be listed in `roles.json` — it is not a
 platform business role.
 
+For the first generated version, keep the effective model to at most three
+roles total: this built-in `admin` plus no more than two business roles. Split
+roles only when their permission scopes materially differ; do not mirror every
+page, action, or organizational job title as a separate role.
+
 ## `roles.json` format
 
 ```json

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, it } from "node:test";
@@ -20,6 +21,13 @@ const PAGE_EXPLANATION_COPY = [
   /(?:本页|此页|当前页|当前页面|首页)[^\n<>{}]{0,40}(?:只?用于|用来|负责|展示|提供)/,
   /\b(?:this|the) page (?:is only for|is used (?:for|to)|lets you|allows you to|shows|provides)\b/i,
 ];
+
+const DATA_AFFORDANCE = /apiUrl\(|useRequest\(|usePolling\(|fetch\(/;
+const ACTION_AFFORDANCE =
+  /<FormDialog|<ConfirmDialog|<RecommendationAction|<ImpactPreviewDialog|method:\s*["'`](?:POST|PUT|PATCH|DELETE)/;
+const READ_ONLY_DECLARATION = /READ_ONLY_SURFACE:\s*[^\n]{8,}/;
+const TEMPLATE_BLANK_ROUTE_HASH =
+  "9b6c23fac6a4cba1d4c1723744cadacb35d68210146acf7432715a5aff2db131";
 
 function toPosixPath(filePath) {
   return filePath.replaceAll("\\", "/");
@@ -64,6 +72,32 @@ function findPageExplanationCopy(source) {
     const match = stripped.match(pattern);
     return match ? [match[0]] : [];
   });
+}
+
+function workspaceSurfaceIssue(rel, source) {
+  if (!/^src\/routes\/_app(?:\.|\/).+\.tsx$/.test(rel)) return null;
+
+  const normalizedHash = createHash("sha256")
+    .update(source.replaceAll("\r\n", "\n"))
+    .digest("hex");
+  if (
+    rel === "src/routes/_app.index.tsx" &&
+    normalizedHash === TEMPLATE_BLANK_ROUTE_HASH
+  ) {
+    return null;
+  }
+
+  const stripped = stripComments(source);
+  const loadsData = DATA_AFFORDANCE.test(stripped);
+  const hasAction = ACTION_AFFORDANCE.test(stripped);
+  if (!loadsData && !hasAction) {
+    return "workspace page has no data loading or user action";
+  }
+  if (!hasAction && !READ_ONLY_DECLARATION.test(source)) {
+    return "page loads data but exposes no lifecycle action";
+  }
+
+  return null;
 }
 
 describe("content contracts", () => {
@@ -148,6 +182,53 @@ describe("content contracts", () => {
     );
   });
 
+  it("recognizes operable, read-only, and incomplete workspace surfaces", () => {
+    assert.equal(
+      workspaceSurfaceIssue(
+        "src/routes/_app.inventory.tsx",
+        'const rows = useRequest("inventory"); <FormDialog onSubmit={save} />',
+      ),
+      null,
+    );
+    assert.equal(
+      workspaceSurfaceIssue(
+        "src/routes/_app.audit.tsx",
+        '// READ_ONLY_SURFACE: immutable audit history\nconst rows = useRequest("audit");',
+      ),
+      null,
+    );
+    assert.equal(
+      workspaceSurfaceIssue(
+        "src/routes/_app.materials.tsx",
+        'const rows = useRequest("materials");',
+      ),
+      "page loads data but exposes no lifecycle action",
+    );
+    assert.equal(
+      workspaceSurfaceIssue(
+        "src/routes/_app.report.tsx",
+        '// READ_ONLY_SURFACE\nconst rows = useRequest("report");',
+      ),
+      "page loads data but exposes no lifecycle action",
+    );
+  });
+
+  it("requires every committed workspace page to expose a lifecycle action", () => {
+    const offenders = [];
+
+    for (const file of walkFiles("src/routes")) {
+      const rel = toPosixPath(relative(process.cwd(), file));
+      const issue = workspaceSurfaceIssue(rel, readFileSync(file, "utf8"));
+      if (issue) offenders.push(`${rel}: ${issue}`);
+    }
+
+    assert.deepEqual(
+      offenders,
+      [],
+      `Management pages must implement a primary lifecycle action (create/edit/submit/confirm/adjust) instead of shipping a read-only list. Only intentional report, monitor, audit, or derived-result pages may use a READ_ONLY_SURFACE comment with a reason:\n${offenders.join("\n")}`,
+    );
+  });
+
   it("documents the no role-summary-page-content rule for generators", () => {
     const agents = readFileSync(join(process.cwd(), "AGENTS.md"), "utf8");
 
@@ -155,5 +236,7 @@ describe("content contracts", () => {
     assert.match(agents, /Do not add page-body copy explaining what Admin/);
     assert.match(agents, /Do not add a page-introduction subtitle/);
     assert.match(agents, /defaultModules` starts empty/);
+    assert.match(agents, /Management applications are not read-only/);
+    assert.match(agents, /READ_ONLY_SURFACE/);
   });
 });
