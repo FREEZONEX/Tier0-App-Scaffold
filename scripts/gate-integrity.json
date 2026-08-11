@@ -2,7 +2,7 @@
   "locked": {
     "src/lib/gateway.test.ts": "61c93fd14170a4481b6ccc577ffa1ddf2c3af096a1c93cb0cf839e15346aa6af",
     "src/lib/permissions.test.mjs": "2c846ea421b1566c59cdb50994135c8a83288d9169d1b1a7cc1d58f7e6e8f814",
-    "src/lib/app-chrome.test.mjs": "d81d1cc64a29f2c71c24a52e8076b2d336bf1af887f81e776c642cd563acfaaf",
+    "src/lib/app-chrome.test.mjs": "2cefc39ba104e589160ecdfff5c8665d3c85cb1e124e96c84e1bbf358e083e36",
     "src/lib/navigation-contracts.test.mjs": "f8dd18b8ad26fd04a35b7aefeb7ed1ef1cd6954b68fbed833420d9f21fe950fa",
     "src/lib/content-contracts.test.mjs": "889879644611f9ca7198facb9d786dcffe2a4ab6603b8cb961f04b6175481699",
     "src/lib/button-contracts.test.mjs": "b791163536f37c5090d0b5e57e8a5574a41d250ec50d0aae66ef59c65abbe0d8",

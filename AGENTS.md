@@ -278,10 +278,12 @@ On first generation and every rebrand, complete all three steps below before
 reporting App Identity finished. The app icon is one shared 512×512 PNG for
 both in-app chrome and the platform:
 
-1. Use the available image-generation capability to create a simple,
-   high-contrast domain mark at `public/app-icon.png` (≤2 MB). Do not draw or synthesize the icon with Node, Canvas, SVG/HTML templates, or browser screenshots.
-   If image generation is unavailable, report App Identity as
-   incomplete rather than substituting coded artwork.
+1. Create a simple, high-contrast domain mark and export the final asset as
+   `public/app-icon.png` (512×512, ≤2 MB). Coded artwork is allowed: SVG,
+   Canvas, Node, HTML/browser rendering, or another deterministic drawing path
+   may be used to produce the PNG. Prefer one bold centered symbol, generous
+   padding, one or two solid colors, and no text or fine detail so it remains
+   legible around 32px. Do not leave the scaffold placeholder unchanged.
 2. Set `APP_ICON = "/app-icon.png"` in `src/lib/app-chrome.ts`.
 3. Sync the same file with `update_app_info({ icon_path:
    "public/app-icon.png" })`, including name/description when changed.

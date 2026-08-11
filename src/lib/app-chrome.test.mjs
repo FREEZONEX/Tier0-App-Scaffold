@@ -284,12 +284,16 @@ describe("app chrome policy", () => {
     );
   });
 
-  it("keeps business icon creation on image generation instead of coded artwork", () => {
+  it("allows deterministic coded artwork for the required app icon", () => {
     const agents = readFileSync(join(process.cwd(), "AGENTS.md"), "utf8");
 
-    assert.match(agents, /image-generation capability/);
-    assert.match(agents, /do not draw or synthesize the icon with Node/i);
-    assert.doesNotMatch(agents, /chrome-headless-shell/);
-    assert.doesNotMatch(agents, /temporary 512×512 HTML page/);
+    assert.match(agents, /Coded artwork is allowed/);
+    assert.match(agents, /SVG,\s*Canvas,\s*Node,\s*HTML\/browser rendering/);
+    assert.match(agents, /public\/app-icon\.png.*512×512/s);
+    assert.doesNotMatch(agents, /image-generation capability/);
+    assert.doesNotMatch(
+      agents,
+      /incomplete rather than substituting coded artwork/,
+    );
   });
 });
