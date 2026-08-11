@@ -18,6 +18,7 @@ import {
   defaultModules,
   filterVisibleModules,
   type NavModule,
+  validateNavigationModules,
 } from "./shell-modules";
 
 const COLLAPSED_STORAGE_KEY = "tier0-shell-collapsed";
@@ -144,6 +145,7 @@ export function Shell({
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   });
+  validateNavigationModules(modules);
   const sidebarModules = filterVisibleModules(
     filterSidebarModules(modules),
     user?.roles,

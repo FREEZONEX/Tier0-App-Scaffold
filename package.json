@@ -17,7 +17,7 @@
     "build:check": "npm run build",
     "runtime:audit": "node scripts/runtime-audit.mjs",
     "auth:union:test": "node --import tsx --test src/lib/multi-role.test.ts",
-    "smoke:routes": "node scripts/route-smoke.mjs",
+    "smoke:routes": "node --import tsx scripts/route-smoke.mjs",
     "start": "node server.mjs",
     "lint": "eslint .",
     "db:push": "drizzle-kit push",

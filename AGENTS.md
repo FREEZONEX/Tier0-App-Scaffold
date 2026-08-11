@@ -50,7 +50,8 @@ preview environment.
 1. Use `preview_start` after a meaningful implementation slice.
 2. On failure, inspect `preview_logs`, fix the cause, then use `preview_restart`.
 3. When a local preview URL is returned, run
-   `npm run smoke:routes -- <local-url>` and include changed key routes.
+   `npm run smoke:routes -- <local-url>`; it automatically checks every sidebar
+   target. Add changed key routes that are intentionally outside the sidebar.
 4. Tell the user the preview is ready; never paste the container-local URL.
 
 After adding a dependency, restart the managed preview. If the same error
@@ -240,9 +241,9 @@ an error and retry instead of indefinite loading.
 
 Do not add a page-introduction subtitle that explains navigation or repeats the title.
 Put actionable rules and risk beside the affected record/control. Role
-summaries stay out of page content. Shell `defaultModules` starts empty; add
-only real routes, and do not create an Overview module unless the product needs
-one.
+summaries stay out of page content. Shell `defaultModules` starts empty; declare
+real workspace routes through `defineNavigationModules`, using one unique href
+per clickable leaf. Do not create an Overview module unless the product needs one.
 
 Wide tables own their horizontal scroll region. Interactive pages remain usable
 at 375px without page-level overflow; station controls are touch-friendly and

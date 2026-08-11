@@ -28,7 +28,10 @@ describe("template state (adapt when building the real app)", () => {
       "utf8",
     );
 
-    assert.match(shellModules, /export const defaultModules: NavModule\[\] = \[\]/);
+    assert.match(
+      shellModules,
+      /export const defaultModules = defineNavigationModules\(\[\]\)/,
+    );
     assert.doesNotMatch(shellModules, /\bOverview\b/);
     assert.doesNotMatch(shellModules, /\bview_dashboard\b/);
     assert.doesNotMatch(permissions, /\bview_dashboard\b/);

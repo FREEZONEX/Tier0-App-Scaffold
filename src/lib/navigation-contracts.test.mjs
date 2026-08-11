@@ -2,6 +2,11 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, it } from "node:test";
+import {
+  defaultModules,
+  validateNavigationModules,
+} from "../components/shell-modules.ts";
+import { isAppChromeCompatibleHref } from "./app-chrome.ts";
 
 function normalizeMenuPath(value) {
   if (!value) {
@@ -56,6 +61,41 @@ function getActiveModuleKey(modules, pathname) {
   })[0]?.key;
 }
 
+function generatedPageRoutePatterns() {
+  const routeTree = readFileSync(
+    join(process.cwd(), "src/routeTree.gen.ts"),
+    "utf8",
+  );
+
+  return [
+    ...new Set(
+      [...routeTree.matchAll(/\bfullPath:\s*'([^']+)'/g)]
+        .map((match) => normalizeMenuPath(match[1]))
+        .filter((path) => path !== "/api" && !path.startsWith("/api/")),
+    ),
+  ];
+}
+
+function routePatternMatches(pattern, href) {
+  if (pattern === href) return true;
+
+  const patternSegments = pattern.split("/").filter(Boolean);
+  const hrefSegments = href.split("/").filter(Boolean);
+  if (patternSegments.length !== hrefSegments.length) return false;
+
+  return patternSegments.every(
+    (segment, index) =>
+      segment.startsWith("$") || segment === hrefSegments[index],
+  );
+}
+
+function findMissingRouteTargets(leaves, routePatterns) {
+  return leaves.filter(
+    ({ href }) =>
+      !routePatterns.some((pattern) => routePatternMatches(pattern, href)),
+  );
+}
+
 describe("navigation contracts", () => {
   it("keeps sidebar active matching segment-aware and unique", () => {
     const modules = [
@@ -99,6 +139,82 @@ describe("navigation contracts", () => {
     assert.doesNotMatch(shell, /border-highlight-bg-primary.*sidebarItemActive/);
     assert.doesNotMatch(shell, /\bactiveProps\s*=/);
     assert.doesNotMatch(shell, /\binactiveProps\s*=/);
+  });
+
+  it("rejects ambiguous sidebar module declarations", () => {
+    assert.throws(
+      () =>
+        validateNavigationModules([
+          { key: "home", label: "Home", href: "/" },
+          { key: "receipts", label: "Receipts", href: "/" },
+        ]),
+      /href "\/" is already used by Home/,
+    );
+
+    assert.throws(
+      () =>
+        validateNavigationModules([
+          { key: "inventory", label: "Inventory" },
+        ]),
+      /clickable leaf requires href/,
+    );
+
+    assert.deepEqual(
+      validateNavigationModules([
+        { key: "home", label: "Home", href: "/" },
+        {
+          key: "inventory",
+          label: "Inventory",
+          children: [
+            { key: "lots", label: "Lots", href: "/inventory/lots" },
+            { key: "holds", label: "Holds", href: "/inventory/holds/" },
+          ],
+        },
+      ]).map(({ href }) => href),
+      ["/", "/inventory/lots", "/inventory/holds"],
+    );
+
+    assert.deepEqual(
+      findMissingRouteTargets(
+        [{ key: "missing", label: "Missing", href: "/missing" }],
+        ["/", "/inventory", "/work-orders/$id"],
+      ).map(({ href }) => href),
+      ["/missing"],
+    );
+    assert.deepEqual(
+      findMissingRouteTargets(
+        [{ key: "detail", label: "Detail", href: "/work-orders/42" }],
+        ["/work-orders/$id"],
+      ),
+      [],
+    );
+  });
+
+  it("requires every generated sidebar target to be a real workspace page", () => {
+    const leaves = validateNavigationModules(defaultModules);
+    const routePatterns = generatedPageRoutePatterns();
+    const incompatible = leaves.filter(
+      ({ href }) =>
+        href === "/api" ||
+        href.startsWith("/api/") ||
+        !isAppChromeCompatibleHref(href),
+    );
+    const missing = findMissingRouteTargets(leaves, routePatterns);
+
+    assert.deepEqual(
+      incompatible,
+      [],
+      `Sidebar targets must use workspace app chrome:\n${incompatible
+        .map(({ key, href }) => `${key}: ${href}`)
+        .join("\n")}`,
+    );
+    assert.deepEqual(
+      missing,
+      [],
+      `Sidebar targets without a generated page route:\n${missing
+        .map(({ key, href }) => `${key}: ${href}`)
+        .join("\n")}\nAvailable routes: ${routePatterns.join(", ")}`,
+    );
   });
 
 });

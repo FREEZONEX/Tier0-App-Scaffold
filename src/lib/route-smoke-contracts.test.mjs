@@ -18,11 +18,28 @@ describe("route smoke contracts", () => {
 
     const script = readFileSync(scriptPath, "utf8");
     assert.match(script, /export function evaluateSmokeResponse/);
+    assert.match(script, /export function buildSmokePaths/);
     assert.match(script, /Page failed to load/);
     assert.match(script, /process\.exitCode = 1/);
     assert.equal(
       packageJson.scripts["smoke:routes"],
-      "node scripts/route-smoke.mjs",
+      "node --import tsx scripts/route-smoke.mjs",
+    );
+  });
+
+  it("automatically includes every generated sidebar route", async () => {
+    const { buildSmokePaths } = await import("../../scripts/route-smoke.mjs");
+
+    assert.deepEqual(
+      buildSmokePaths(
+        ["/api/health"],
+        [
+          { key: "home", label: "Home", href: "/" },
+          { key: "receipts", label: "Receipts", href: "/receipts" },
+          { key: "inventory", label: "Inventory", href: "/inventory" },
+        ],
+      ),
+      ["/", "/receipts", "/inventory", "/api/health"],
     );
   });
 

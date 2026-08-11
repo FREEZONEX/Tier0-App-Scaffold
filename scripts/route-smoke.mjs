@@ -1,4 +1,8 @@
 import { pathToFileURL } from "node:url";
+import {
+  defaultModules,
+  validateNavigationModules,
+} from "../src/components/shell-modules.ts";
 
 const DEFAULT_PATHS = ["/"];
 const FAILURE_TEXT = [
@@ -41,6 +45,18 @@ function normalizeBaseUrl(value) {
 function normalizePath(value) {
   if (!value) return "/";
   return value.startsWith("/") ? value : `/${value}`;
+}
+
+export function buildSmokePaths(pathArgs = [], modules = defaultModules) {
+  const navigationPaths = validateNavigationModules(modules).map(
+    ({ href }) => href,
+  );
+
+  return [
+    ...new Set(
+      [...DEFAULT_PATHS, ...navigationPaths, ...pathArgs].map(normalizePath),
+    ),
+  ];
 }
 
 function parseJsonEnv(name) {
@@ -107,9 +123,7 @@ async function main() {
     return;
   }
 
-  const paths = (pathArgs.length > 0 ? pathArgs : DEFAULT_PATHS).map(
-    normalizePath,
-  );
+  const paths = buildSmokePaths(pathArgs);
   const normalizedBaseUrl = normalizeBaseUrl(baseUrl);
   const headers = parseJsonEnv("SMOKE_HEADERS");
   const failures = [];
