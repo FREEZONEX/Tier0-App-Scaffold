@@ -289,7 +289,9 @@ both in-app chrome and the platform:
    may be used to produce the PNG. Prefer one bold centered symbol, generous
    padding, one or two solid colors, and no text or fine detail so it remains
    legible around 32px. Do not leave the scaffold placeholder unchanged.
-2. Set `APP_ICON = "/app-icon.png"` in `src/lib/app-chrome.ts`.
+2. Replace the `APP_ICON` value in `src/lib/app-chrome.ts` with
+   `"/app-icon.png"` while keeping its declared union type. Lucide `Factory`
+   is only the untouched-scaffold placeholder and is not a finished app icon.
 3. Sync the same file with `update_app_info({ icon_path:
    "public/app-icon.png" })`, including name/description when changed.
 

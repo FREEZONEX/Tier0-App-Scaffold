@@ -28,14 +28,18 @@ const TEMPLATE_SERVICE_FILES = [
 ];
 const TEMPLATE_STATE_FINGERPRINTS = {
   "roles.json": "b2d07f68818cfc353b2f98543a018fa6ef6157026f910ad359eb7370a4b25172",
+  "src/components/AppBrandIcon.tsx":
+    "3c324c1e71f6cd77e6005c91d56bdff67605e53f573b1ddb0d391e5c1fc4ee49",
   "src/components/Shell.tsx":
-    "8b755415ee11abe575fff41606d88c21fd302d80a64111286013393985a8a9c3",
+    "8f2f6ff995fa6e55875b56258f11f0a186fead527776f17d414d2ac01f1bcff1",
+  "src/components/layouts/StationLayout.tsx":
+    "f325512fdbb466b2104ea424948ca61eec90ceb0f1438ae377d33cb731822291",
   "src/components/shell-modules.ts":
     "f4723dafb7d19601437521226a7f58ccce27ac31245d07165d28bbfa6ff9a850",
   "src/db/schema.ts":
     "aad07c8f7b99d748e3f6bd1133fe7e601b3b8b734d4e5a676a2c663e83a317f0",
   "src/lib/app-chrome.ts":
-    "e772ac721e016dcd98a848ea0159ed924c56df75677f3b0016d52210a4008ff8",
+    "12cc4ffb6cd5c4326fdf0ef79e32020fe62babc018b0a814639001090cdc207a",
   "src/lib/permissions.ts":
     "6aca9ae08be3e6191d9a58b7b3049797db01cff0ce4e5711d9ccd180cb89e70a",
   "src/lib/role-metadata.ts":
@@ -115,7 +119,7 @@ describe("app chrome policy", () => {
 
   function appIconPath(appChromeSource) {
     return appChromeSource.match(
-      /export const APP_ICON\s*=\s*["'`]([^"'`]+)["'`]/,
+      /export const APP_ICON(?:\s*:[^=]+)?\s*=\s*["'`]([^"'`]+)["'`]/,
     )?.[1];
   }
 
@@ -172,6 +176,38 @@ describe("app chrome policy", () => {
     assert.match(policy, /prefix: "\/station"/);
     assert.match(policy, /prefix: "\/review"/);
     assert.match(policy, /prefix: "\/monitor"/);
+  });
+
+  it("uses one Factory placeholder renderer across template chromes", () => {
+    const policy = readFileSync(
+      join(process.cwd(), "src/lib/app-chrome.ts"),
+      "utf8",
+    );
+    const brandIcon = readFileSync(
+      join(process.cwd(), "src/components/AppBrandIcon.tsx"),
+      "utf8",
+    );
+    const shell = readFileSync(
+      join(process.cwd(), "src/components/Shell.tsx"),
+      "utf8",
+    );
+    const station = readFileSync(
+      join(process.cwd(), "src/components/layouts/StationLayout.tsx"),
+      "utf8",
+    );
+
+    assert.match(policy, /import \{ Factory \} from "lucide-react"/);
+    assert.match(policy, /export const APP_ICON[^=]*= Factory/);
+    assert.match(brandIcon, /typeof APP_ICON === "string"/);
+    assert.match(brandIcon, /<img/);
+    assert.match(brandIcon, /const Icon = APP_ICON/);
+    assert.match(shell, /<AppBrandIcon \/>/);
+    assert.match(station, /<AppBrandIcon \/>/);
+    assert.equal(
+      existsSync(join(process.cwd(), "public/app-icon.svg")),
+      false,
+      "The retired black-grid SVG placeholder must not ship in the scaffold.",
+    );
   });
 
   it("keeps the workspace content container (layout incident guard)", () => {
@@ -259,6 +295,15 @@ describe("app chrome policy", () => {
     assert.throws(
       () =>
         assertGeneratedAppIcon(
+          "export const APP_ICON: typeof Factory | `/${string}` = Factory;",
+          () => validHeader,
+        ),
+      /must set APP_ICON to \/app-icon\.png/,
+    );
+
+    assert.throws(
+      () =>
+        assertGeneratedAppIcon(
           'export const APP_ICON = "/app-icon.svg";',
           () => validHeader,
         ),
@@ -278,7 +323,7 @@ describe("app chrome policy", () => {
     );
     assert.doesNotThrow(() =>
       assertGeneratedAppIcon(
-        'export const APP_ICON = "/app-icon.png";',
+        'export const APP_ICON: typeof Factory | `/${string}` = "/app-icon.png";',
         () => validHeader,
       ),
     );

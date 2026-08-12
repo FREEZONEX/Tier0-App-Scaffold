@@ -1,3 +1,5 @@
+import { Factory } from "lucide-react";
+
 export type AppChrome =
   | "workspace"
   | "station"
@@ -24,15 +26,15 @@ export const APP_HOME_ROUTE = "/";
 export const APP_NAME = "Manufacturing App";
 
 /**
- * Brand icon shown in the sidebar / station brand mark — a public image asset
- * path (rendered as a square `<img>`). This is the ONE place the in-app icon is
- * defined. It MUST be the SAME image the platform shows in its app list / detail
- * header: generated apps design a square icon, save it under `public/`, point
- * APP_ICON here, AND upload the same file to the platform via the
- * `update_app_info` tool (`icon_path`). Do both together — see AGENTS.md
- * "Branding". The default below is a neutral placeholder.
+ * Brand icon shown in the sidebar / station brand mark. This is the ONE place
+ * the in-app icon is defined. The untouched scaffold uses Lucide Factory as a
+ * neutral placeholder; generated apps MUST replace it with "/app-icon.png".
+ * That PNG must be the SAME image the platform shows in its app list / detail
+ * header: save it under `public/`, point APP_ICON here, AND upload the same file
+ * via `update_app_info({ icon_path: "public/app-icon.png" })`. Do both together
+ * — see AGENTS.md "Branding".
  */
-export const APP_ICON = "/app-icon.svg";
+export const APP_ICON: typeof Factory | `/${string}` = Factory;
 
 /**
  * Product locale. Set it together with APP_NAME — it drives `<html lang>`
