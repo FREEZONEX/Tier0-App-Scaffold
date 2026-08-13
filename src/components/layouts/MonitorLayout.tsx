@@ -15,7 +15,7 @@ export function MonitorLayout({
   children: ReactNode;
 }) {
   return (
-    <div className="monitor-frame flex h-screen flex-col overflow-hidden bg-background text-foreground">
+    <div className="monitor-frame flex h-dvh min-w-0 flex-col overflow-hidden bg-background text-foreground">
       <header className="monitor-header flex shrink-0 items-center justify-between border-b border-border bg-card">
         <div className="flex min-w-0 items-center gap-3">
           <div className="monitor-header-icon flex shrink-0 items-center justify-center rounded-md border border-highlight-bg-primary bg-highlight-bg-accent text-highlight-text">

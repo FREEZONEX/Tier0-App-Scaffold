@@ -115,7 +115,7 @@ spacing:
 # The recipes below are implemented as scaffold primitives in
 # src/components/ui/ (Button variants, StatusBadge≈tag-status, Card≈panel,
 # PageHeader, StatusFilterChips, RiskBanner, EmptyState, StatCard,
-# WorkbenchLayout, OperationalList) and
+# WorkbenchLayout, OperationalList, ResponsivePage, PageToolbar) and
 # src/components/forms/FileUpload — compose
 # those instead of re-deriving styles from this file. Usage rules:
 # - identifiers (doc/lot/location codes) render in font-mono
@@ -262,13 +262,15 @@ and next action stay together without a mostly empty card.
 Page title rows contain the title, optional breadcrumb/status, and actions—not
 an explanation of the page or embedded cards, filters, charts, forms, or data
 boards. Wide content owns its scroll region, long values wrap or truncate
-intentionally, and interactive pages remain usable at 375px.
+intentionally, and interactive pages reflow at 375px and 200% browser zoom.
+Use `ResponsivePage` for page spacing and `PageToolbar` for filters/actions;
+do not simulate responsiveness with CSS zoom or scaled page roots.
 
 The shipped component families are a discoverable toolkit, not a mandatory
 screen recipe:
 
 - `ui/`: buttons, status, cards, headers, filters, risk, empty, KPI, workbench,
-  and operational-list states.
+  operational-list, responsive-page, and toolbar states.
 - `forms/`: field/grid composition, record selection, uploads, line items.
 - `overlays/`: dialogs, forms, confirmation, drawers.
 - `data/`: asynchronous state and dense-table layout helpers.

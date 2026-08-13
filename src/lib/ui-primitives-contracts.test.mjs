@@ -20,6 +20,7 @@ const REQUIRED_PRIMITIVES = [
   "stat-card.tsx",
   "workbench-layout.tsx",
   "operational-list.tsx",
+  "responsive-page.tsx",
   "index.ts",
 ];
 
@@ -85,6 +86,8 @@ describe("ui primitive contracts", () => {
       "StatCard",
       "WorkbenchLayout",
       "OperationalList",
+      "ResponsivePage",
+      "PageToolbar",
     ]) {
       assert.match(source, new RegExp(`\\b${name}\\b`), `index.ts must export ${name}`);
     }
@@ -94,7 +97,7 @@ describe("ui primitive contracts", () => {
     const source = readUiFile("workbench-layout.tsx");
     assert.match(
       source,
-      /grid-cols-2 gap-3 lg:grid-cols-4/,
+      /grid-cols-1 gap-3 min-\[360px\]:grid-cols-2 lg:grid-cols-4/,
       "WorkbenchLayout must keep metrics in a compact responsive strip",
     );
     assert.match(
@@ -102,6 +105,16 @@ describe("ui primitive contracts", () => {
       /xl:grid-cols-\[minmax\(0,2fr\)_minmax\(18rem,1fr\)\]/,
       "WorkbenchLayout must keep a restrained 2:1 primary/secondary work region",
     );
+  });
+
+  it("keeps ordinary pages and toolbars responsive under zoom", () => {
+    const source = readUiFile("responsive-page.tsx");
+    assert.match(source, /data-responsive-page="true"/);
+    assert.match(source, /px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8/);
+    assert.match(source, /\[&>\*\]:min-w-0/);
+    assert.match(source, /data-page-toolbar="true"/);
+    assert.match(source, /flex-col gap-3 sm:flex-row sm:flex-wrap/);
+    assert.match(source, /w-full[^\n]*sm:w-auto/);
   });
 
   it("keeps operational records compact, semantic, and actionable", () => {

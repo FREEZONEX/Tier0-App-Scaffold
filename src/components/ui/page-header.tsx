@@ -38,7 +38,9 @@ export function PageHeader({
         <h1 className="typo-h3 text-foreground">{title}</h1>
       </div>
       {actions && (
-        <div className="flex shrink-0 items-center gap-2">{actions}</div>
+        <div className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-auto sm:shrink-0 sm:justify-end [&>*]:max-w-full">
+          {actions}
+        </div>
       )}
     </div>
   );

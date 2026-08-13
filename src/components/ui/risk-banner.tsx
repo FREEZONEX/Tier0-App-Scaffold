@@ -32,14 +32,18 @@ export function RiskBanner({
     <div
       role="status"
       className={cn(
-        "flex items-center gap-3 rounded-md border px-3 py-2.5",
+        "flex flex-wrap items-start gap-3 rounded-md border px-3 py-2.5 sm:items-center",
         tone,
         className,
       )}
     >
       <Icon className="size-4 shrink-0" aria-hidden="true" />
       <div className="typo-body min-w-0 flex-1">{children}</div>
-      {action && <div className="shrink-0">{action}</div>}
+      {action && (
+        <div className="w-full pl-7 sm:ml-auto sm:w-auto sm:shrink-0 sm:pl-0">
+          {action}
+        </div>
+      )}
     </div>
   );
 }

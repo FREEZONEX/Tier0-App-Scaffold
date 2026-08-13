@@ -19,4 +19,10 @@ export {
   type OperationalListProps,
   type OperationalListItem,
 } from "./operational-list";
+export {
+  ResponsivePage,
+  PageToolbar,
+  type ResponsivePageProps,
+  type PageToolbarProps,
+} from "./responsive-page";
 export { RouteError, type RouteErrorProps } from "./route-error";

@@ -8,7 +8,10 @@ import { cn } from "@/lib/utils";
 
 /**
  * DataTable — the default way to render an entity list: a white Card-style
- * surface with a horizontal-scroll viewport and a full-width table. Column
+ * surface with a horizontal-scroll viewport and a full-width table. The
+ * default 640px table floor preserves readable columns at high browser zoom;
+ * override it with a `min-w-*` class only for a deliberately simpler table.
+ * Column
  * padding, header treatment, row dividers and hover come from the global
  * base table styles, so rows never cram together. Compose normal
  * thead/tbody/tr/th/td inside.
@@ -32,7 +35,7 @@ export function DataTable({ bare = false, className, children, ...props }: DataT
         !bare && "rounded-lg border border-border bg-card shadow-sm",
       )}
     >
-      <table className={cn("w-full", className)} {...props}>
+      <table className={cn("w-full min-w-[640px]", className)} {...props}>
         {children}
       </table>
     </div>

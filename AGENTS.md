@@ -227,7 +227,7 @@ as a mandatory page recipe.
 
 - `ui`: `Button`, `StatusBadge`, `Card`, `PageHeader`,
   `StatusFilterChips`, `RiskBanner`, `EmptyState`, `StatCard`,
-  `WorkbenchLayout`, `OperationalList`.
+  `WorkbenchLayout`, `OperationalList`, `ResponsivePage`, `PageToolbar`.
 - `forms`: `FieldGroup`, `FormGrid`, `RecordSelect`, `FileUpload`,
   `LineItemSection`.
 - `overlays`: `Dialog`, `FormDialog`, `ConfirmDialog`, `Drawer`.
@@ -257,8 +257,11 @@ never stretch a few text lines into a tall empty panel. Signal green is a fill
 or selected-state color, not an inline-link color.
 
 Wide tables own their horizontal scroll region. Interactive pages remain usable
-at 375px without page-level overflow; station controls are touch-friendly and
-monitor boards fit their intended viewport. Use `ClientOnly` for Recharts,
+at 375px and at 200% browser zoom without page-level overflow; use
+`ResponsivePage` and `PageToolbar` instead of fixed page widths. Let responsive
+breakpoints reflow the UI—never use CSS `zoom` or `transform: scale()` to make
+an application fit. Station controls are touch-friendly and monitor boards fit
+their intended viewport. Use `ClientOnly` for Recharts,
 dnd-kit, motion layout, or browser-only render paths. Recharts also needs a
 non-zero container and `ResponsiveContainer`.
 
@@ -343,4 +346,6 @@ Important names are `DATABASE_URL`, `DIRECT_DATABASE_URL`, `DB_SCHEMA`,
 - Loading, error/retry, empty, and populated states are visible and usable.
 - App identity, locale, platform metadata, navigation, responsive behavior,
   and visible copy form one coherent product.
+- At 375px and 200% browser zoom, navigation, forms, dialogs, actions, and
+  ordinary pages reflow without page-level horizontal scrolling.
 - `npm run build` and route smoke pass before completion is reported.

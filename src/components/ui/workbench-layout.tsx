@@ -1,5 +1,6 @@
 import type { HTMLAttributes, ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { ResponsivePage } from "./responsive-page";
 
 /**
  * WorkbenchLayout — the safe page-root composition for management workspaces.
@@ -29,14 +30,14 @@ export function WorkbenchLayout({
   ...props
 }: WorkbenchLayoutProps) {
   return (
-    <div
-      className={cn("space-y-5 p-4 sm:p-6 lg:p-8", className)}
+    <ResponsivePage
+      className={cn(className)}
       {...props}
     >
       {header}
 
       {metrics && (
-        <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <section className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 lg:grid-cols-4">
           {metrics}
         </section>
       )}
@@ -53,6 +54,6 @@ export function WorkbenchLayout({
       </div>
 
       {below}
-    </div>
+    </ResponsivePage>
   );
 }

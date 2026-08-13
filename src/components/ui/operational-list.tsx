@@ -62,13 +62,15 @@ export function OperationalList({
       )}
       {...props}
     >
-      <div className="flex min-h-12 items-center justify-between gap-3 border-b border-border-secondary px-4 py-2.5">
+      <div className="flex min-h-12 flex-wrap items-center justify-between gap-3 border-b border-border-secondary px-4 py-2.5">
         <div className="flex min-w-0 items-baseline gap-2">
           <h2 className="typo-label truncate text-foreground">{title}</h2>
           {summary && <span className="caption shrink-0">{summary}</span>}
         </div>
         {headerAction && (
-          <div className="flex shrink-0 items-center gap-2">{headerAction}</div>
+          <div className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-auto sm:shrink-0 sm:justify-end">
+            {headerAction}
+          </div>
         )}
       </div>
 

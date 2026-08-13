@@ -54,7 +54,7 @@ function MonitorRouteLayout() {
 
 function MonitorPending() {
   return (
-    <div className="flex h-screen items-center justify-center bg-background p-10">
+    <div className="flex h-dvh items-center justify-center bg-background p-6 sm:p-10">
       <div className="text-center">
         <div className="mx-auto size-8 animate-spin rounded-full border-2 border-muted border-t-highlight" />
         <p className="mt-3 text-xs text-muted-foreground">Loading&hellip;</p>
@@ -69,7 +69,7 @@ function MonitorError({ error, reset }: ErrorComponentProps) {
       title="Monitor page failed to load"
       error={error}
       reset={reset}
-      className="h-screen overflow-hidden bg-background"
+      className="h-dvh overflow-hidden bg-background"
     />
   );
 }

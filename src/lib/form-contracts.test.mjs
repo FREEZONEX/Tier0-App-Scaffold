@@ -132,6 +132,19 @@ describe("form contracts", () => {
     assert.match(globals, /::file-selector-button/);
   });
 
+  it("keeps narrow-screen controls from triggering focus zoom", () => {
+    const globals = readFileSync(
+      join(process.cwd(), "src/styles/globals.css"),
+      "utf8",
+    );
+
+    assert.match(globals, /@media \(max-width: 639px\)/);
+    assert.match(
+      globals,
+      /@media \(max-width: 639px\)[\s\S]*?input,[\s\S]*?select,[\s\S]*?textarea,[\s\S]*?font-size: 16px/,
+    );
+  });
+
   it("flags select options that render only a record id", () => {
     const idOnly = `<option value={batch.id}>{batch.id}</option>`;
     assert.equal(findIdOnlyOptions(idOnly).length, 1);

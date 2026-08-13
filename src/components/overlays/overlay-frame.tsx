@@ -67,7 +67,7 @@ export function OverlayHeader({
   closeButtonRef: RefObject<HTMLButtonElement | null>;
 }) {
   return (
-    <div className="flex items-start justify-between gap-4 border-b border-border px-6 py-5 sm:px-8 sm:py-6">
+    <div className="flex items-start justify-between gap-3 border-b border-border px-4 py-4 sm:gap-4 sm:px-8 sm:py-6">
       <div className="min-w-0">
         <h2
           id={titleId}
@@ -88,7 +88,7 @@ export function OverlayHeader({
         ref={closeButtonRef}
         type="button"
         aria-label="Close"
-        className="inline-flex size-9 shrink-0 items-center justify-center rounded-sm border border-border bg-card text-muted-foreground shadow-sm transition-[background-color,border-color,color,box-shadow] duration-150 hover:border-border-strong hover:bg-background hover:text-foreground hover:shadow-md focus:border-highlight focus:outline-none"
+        className="inline-flex size-10 shrink-0 items-center justify-center rounded-sm border border-border bg-card text-muted-foreground shadow-sm transition-[background-color,border-color,color,box-shadow] duration-150 hover:border-border-strong hover:bg-background hover:text-foreground hover:shadow-md focus:border-highlight focus:outline-none sm:size-9"
         onClick={onClose}
       >
         <X className="size-4" />
@@ -99,7 +99,7 @@ export function OverlayHeader({
 
 export function OverlayFooter({ children }: { children: ReactNode }) {
   return (
-    <div className="flex flex-col-reverse gap-2 border-t border-border bg-surface-inset px-6 py-4 sm:flex-row sm:justify-end sm:px-8">
+    <div className="flex flex-col-reverse gap-2 border-t border-border bg-surface-inset px-4 py-4 sm:flex-row sm:justify-end sm:px-8">
       {children}
     </div>
   );
@@ -121,7 +121,7 @@ export function OverlayActionButton({
       disabled={action.disabled || action.loading}
       aria-busy={action.loading || undefined}
       className={cn(
-        "inline-flex h-9 items-center justify-center rounded-sm border px-3.5 text-sm font-medium shadow-sm transition-[background-color,border-color,color,box-shadow] duration-150 hover:shadow-md disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none",
+        "inline-flex min-h-10 max-w-full items-center justify-center whitespace-normal rounded-sm border px-3.5 py-2 text-center text-sm font-medium leading-5 shadow-sm transition-[background-color,border-color,color,box-shadow] duration-150 hover:shadow-md disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none sm:min-h-9 sm:py-1.5",
         variant === "primary" &&
           "border-primary bg-primary text-primary-foreground hover:bg-[var(--tier0-primary-hover)]",
         variant === "highlight" &&

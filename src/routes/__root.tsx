@@ -22,7 +22,11 @@ export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      {
+        name: "viewport",
+        content:
+          "width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content",
+      },
       { title: APP_NAME },
       { name: "description", content: "Business application for factory-floor operations." },
     ],
@@ -41,7 +45,7 @@ function RootDocument() {
       <head>
         <HeadContent />
       </head>
-      <body className="min-h-full font-sans">
+      <body className="min-h-full min-w-0 font-sans">
         <Outlet />
         <Toaster />
         <Scripts />

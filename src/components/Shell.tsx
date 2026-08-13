@@ -489,7 +489,7 @@ export function Shell({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background text-foreground">
+    <div className="flex h-dvh min-w-0 overflow-hidden bg-background text-foreground">
       <div className="hidden md:block">
         {renderSidebar({ isCollapsed: collapsed, showCollapseControl: true })}
       </div>
@@ -513,7 +513,7 @@ export function Shell({
       )}
 
       <main className="page-y-scroll min-h-0 min-w-0 flex-1">
-        <div className="flex h-14 items-center border-b border-border bg-card px-4 md:hidden">
+        <div className="sticky top-0 z-30 flex min-h-14 items-center gap-3 border-b border-border bg-card px-4 py-2 md:hidden">
           <button
             type="button"
             aria-label="Open navigation"
@@ -522,12 +522,20 @@ export function Shell({
           >
             <Menu className="size-4" />
           </button>
+          <div className="flex min-w-0 items-center gap-2.5">
+            <div className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-md border border-highlight-bg-primary bg-highlight-bg-accent text-accent-foreground">
+              <AppBrandIcon />
+            </div>
+            <p className="line-clamp-2 min-w-0 text-sm font-semibold leading-5">
+              {APP_NAME}
+            </p>
+          </div>
         </div>
         {/* Workspace content container: caps line lengths on wide monitors so
             tables/cards don't stretch edge-to-edge with hollow gaps. Wide
             boards scroll internally (TableViewport/wide-operational-scroll);
             monitor/station chromes are separate layouts and stay full-bleed. */}
-        <div className="mx-auto w-full max-w-[1440px]">{children}</div>
+        <div className="mx-auto min-w-0 w-full max-w-[1440px]">{children}</div>
       </main>
     </div>
   );

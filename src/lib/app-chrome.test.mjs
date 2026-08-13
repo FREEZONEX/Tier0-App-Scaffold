@@ -31,9 +31,9 @@ const TEMPLATE_STATE_FINGERPRINTS = {
   "src/components/AppBrandIcon.tsx":
     "3c324c1e71f6cd77e6005c91d56bdff67605e53f573b1ddb0d391e5c1fc4ee49",
   "src/components/Shell.tsx":
-    "8f2f6ff995fa6e55875b56258f11f0a186fead527776f17d414d2ac01f1bcff1",
+    "91dac7b46e2790ad55720dcb4685141bc159cd8c5c0cb3413b595bf61034917b",
   "src/components/layouts/StationLayout.tsx":
-    "f325512fdbb466b2104ea424948ca61eec90ceb0f1438ae377d33cb731822291",
+    "48b4c8f6a357b514fd9e4ad50fc41baf945b0e93f8e45e989c36e23016e309a6",
   "src/components/shell-modules.ts":
     "f4723dafb7d19601437521226a7f58ccce27ac31245d07165d28bbfa6ff9a850",
   "src/db/schema.ts":
@@ -219,6 +219,25 @@ describe("app chrome policy", () => {
     // Wide-monitor guard: without the centered container, tables and cards
     // stretch edge-to-edge with hollow gaps between sparse columns.
     assert.match(shell, /max-w-\[1440px\]/);
+  });
+
+  it("keeps the app viewport and shell reflow-safe", () => {
+    const root = readFileSync(
+      join(process.cwd(), "src/routes/__root.tsx"),
+      "utf8",
+    );
+    const shell = readFileSync(
+      join(process.cwd(), "src/components/Shell.tsx"),
+      "utf8",
+    );
+
+    assert.match(root, /width=device-width, initial-scale=1/);
+    assert.match(root, /viewport-fit=cover/);
+    assert.match(root, /interactive-widget=resizes-content/);
+    assert.doesNotMatch(root, /user-scalable=no|maximum-scale=1/);
+    assert.match(shell, /h-dvh/);
+    assert.match(shell, /sticky top-0/);
+    assert.match(shell, /md:hidden/);
   });
 
   it("uses the centralized sidebar filter in Shell", () => {

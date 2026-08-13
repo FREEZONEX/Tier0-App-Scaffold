@@ -11,7 +11,7 @@ export interface RouteErrorProps {
   title?: string;
   /**
    * Outer container overrides. Layouts differ in height/background
-   * (`h-full` inside the shell vs `h-screen bg-background` for monitors),
+   * (`h-full` inside the shell vs `h-dvh bg-background` for monitors),
    * so callers pass those here while the card itself stays shared.
    */
   className?: string;

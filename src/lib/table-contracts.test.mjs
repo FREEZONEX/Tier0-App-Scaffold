@@ -62,6 +62,11 @@ describe("table layout contracts", () => {
     assert.match(index, /TableStatusCell/);
     assert.match(tableLayout, /export function DataTable/);
     assert.match(index, /DataTable/);
+    assert.match(
+      tableLayout,
+      /w-full min-w-\[640px\]/,
+      "DataTable must keep readable columns and scroll internally under zoom",
+    );
 
     // Incident guard (2026-07-13): generated pages once rendered bare
     // <table> with zero padding because guidance redirected lists into

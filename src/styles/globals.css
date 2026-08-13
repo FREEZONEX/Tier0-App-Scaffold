@@ -359,14 +359,25 @@ body {
 
   html {
     @apply font-sans;
+    min-width: 0;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   body {
     @apply bg-background text-foreground;
+    min-width: 0;
     line-height: 1.55;
     text-rendering: optimizeLegibility;
+  }
+
+  img,
+  video,
+  canvas {
+    max-width: 100%;
+    height: auto;
   }
 
   button,
@@ -555,6 +566,19 @@ body {
   table td,
   table th {
     font-variant-numeric: tabular-nums;
+  }
+}
+
+/* iOS Safari zooms the page when a focused form control is below 16px. Keep
+   controls at 16px on narrow/reflowed viewports so input focus does not change
+   the user's zoom level; desktop retains the denser 14px enterprise rhythm. */
+@media (max-width: 639px) {
+  input,
+  select,
+  textarea,
+  [role="textbox"],
+  [role="combobox"] {
+    font-size: 16px;
   }
 }
 
