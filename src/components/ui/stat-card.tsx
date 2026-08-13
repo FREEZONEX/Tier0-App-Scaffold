@@ -47,11 +47,19 @@ const toneValueClass: Record<StatTone, string> = {
 };
 
 const toneChipClass: Record<StatTone, string> = {
-  default: "bg-surface-inset text-muted-foreground",
-  running: "bg-[color:var(--state-running-bg)] text-[color:var(--state-running-fg)]",
-  paused: "bg-[color:var(--state-paused-bg)] text-[color:var(--state-paused-fg)]",
-  error: "bg-[color:var(--state-error-bg)] text-[color:var(--state-error-fg)]",
-  info: "bg-[color:var(--state-info-bg)] text-[color:var(--state-info-fg)]",
+  default: "border-border-secondary bg-surface-inset text-muted-foreground",
+  running: "border-[color:var(--state-running-border)] bg-[color:var(--state-running-bg)] text-[color:var(--state-running-fg)]",
+  paused: "border-[color:var(--state-paused-border)] bg-[color:var(--state-paused-bg)] text-[color:var(--state-paused-fg)]",
+  error: "border-[color:var(--state-error-border)] bg-[color:var(--state-error-bg)] text-[color:var(--state-error-fg)]",
+  info: "border-[color:var(--state-info-border)] bg-[color:var(--state-info-bg)] text-[color:var(--state-info-fg)]",
+};
+
+const toneRailClass: Record<StatTone, string> = {
+  default: "border-t-border-strong",
+  running: "border-t-[color:var(--state-running-fg)]",
+  paused: "border-t-[color:var(--state-paused-fg)]",
+  error: "border-t-[color:var(--state-error-fg)]",
+  info: "border-t-[color:var(--state-info-fg)]",
 };
 
 const trendIntentClass = {
@@ -96,7 +104,8 @@ export function StatCard({
   return (
     <div
       className={cn(
-        "rounded-lg border border-border bg-card p-4 shadow-sm",
+        "min-w-0 overflow-hidden rounded-lg border border-t-2 border-border bg-card px-4 py-3.5 shadow-sm",
+        toneRailClass[tone],
         className,
       )}
     >
@@ -105,7 +114,7 @@ export function StatCard({
         {icon && (
           <span
             className={cn(
-              "grid size-8 shrink-0 place-items-center rounded-md [&>svg]:size-4",
+              "grid size-8 shrink-0 place-items-center rounded-md border [&>svg]:size-4",
               toneChipClass[tone],
             )}
           >

@@ -18,6 +18,8 @@ const REQUIRED_PRIMITIVES = [
   "risk-banner.tsx",
   "empty-state.tsx",
   "stat-card.tsx",
+  "workbench-layout.tsx",
+  "operational-list.tsx",
   "index.ts",
 ];
 
@@ -81,8 +83,35 @@ describe("ui primitive contracts", () => {
       "RiskBanner",
       "EmptyState",
       "StatCard",
+      "WorkbenchLayout",
+      "OperationalList",
     ]) {
       assert.match(source, new RegExp(`\\b${name}\\b`), `index.ts must export ${name}`);
     }
+  });
+
+  it("keeps the workbench composition dense and workflow-first", () => {
+    const source = readUiFile("workbench-layout.tsx");
+    assert.match(
+      source,
+      /grid-cols-2 gap-3 lg:grid-cols-4/,
+      "WorkbenchLayout must keep metrics in a compact responsive strip",
+    );
+    assert.match(
+      source,
+      /xl:grid-cols-\[minmax\(0,2fr\)_minmax\(18rem,1fr\)\]/,
+      "WorkbenchLayout must keep a restrained 2:1 primary/secondary work region",
+    );
+  });
+
+  it("keeps operational records compact, semantic, and actionable", () => {
+    const source = readUiFile("operational-list.tsx");
+    assert.match(source, /StatusBadge/, "OperationalList must render semantic status");
+    assert.match(
+      source,
+      /border-l-\[3px\]/,
+      "OperationalList must keep a compact semantic status rail",
+    );
+    assert.match(source, /item\.action/, "OperationalList must keep the next action visible");
   });
 });

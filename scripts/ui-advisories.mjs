@@ -71,6 +71,26 @@ if (existsSync(PAGE_ROOT) && statSync(PAGE_ROOT).isDirectory()) {
     }
   }
 
+  // Three or more KPIs without a queue, table, risk surface, or visualization
+  // usually means the dashboard has become a sparse metric gallery instead of
+  // an operational workspace. This remains advisory because some valid pages
+  // intentionally summarize only.
+  for (const file of walkFiles(PAGE_ROOT)) {
+    const name = relative(process.cwd(), file).replaceAll("\\", "/");
+    if (!/src\/routes\/(?:_app\.)?index\.tsx$/.test(name)) continue;
+    const source = readFileSync(file, "utf8");
+    const metricCount = source.match(/<StatCard\b/g)?.length ?? 0;
+    const hasWorkSurface =
+      /<(?:OperationalList|DataTable|TableViewport|RiskBanner|table)\b|ResponsiveContainer|\bChart\b/.test(
+        source,
+      );
+    if (metricCount >= 3 && !hasWorkSurface) {
+      advisories.push(
+        `${name}: ${metricCount} KPI cards but no queue, table, risk surface, or visualization - use WorkbenchLayout and follow the summary strip with the page's primary work.`,
+      );
+    }
+  }
+
   // Hand-styled primary buttons drift from the design system. The scaffold
   // ships a Button primitive implementing the DESIGN.md recipes.
   for (const file of walkFiles(PAGE_ROOT)) {

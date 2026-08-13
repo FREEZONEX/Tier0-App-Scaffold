@@ -114,7 +114,8 @@ spacing:
 
 # The recipes below are implemented as scaffold primitives in
 # src/components/ui/ (Button variants, StatusBadge≈tag-status, Card≈panel,
-# PageHeader, StatusFilterChips, RiskBanner, EmptyState, StatCard) and
+# PageHeader, StatusFilterChips, RiskBanner, EmptyState, StatCard,
+# WorkbenchLayout, OperationalList) and
 # src/components/forms/FileUpload — compose
 # those instead of re-deriving styles from this file. Usage rules:
 # - identifiers (doc/lot/location codes) render in font-mono
@@ -252,6 +253,12 @@ Choose layout and density from the workflow. Keep the persistent page body
 focused on current state, primary work, and useful decisions; secondary detail
 can live behind an explicit control or focused tab.
 
+For management workbenches, KPI cards are a compact summary rather than the
+page destination. Follow them with the primary queue/table and, when useful, a
+narrower risk or decision area; `WorkbenchLayout` provides the responsive 2:1
+default. Short actionable records use `OperationalList` so status, consequence,
+and next action stay together without a mostly empty card.
+
 Page title rows contain the title, optional breadcrumb/status, and actions—not
 an explanation of the page or embedded cards, filters, charts, forms, or data
 boards. Wide content owns its scroll region, long values wrap or truncate
@@ -260,7 +267,8 @@ intentionally, and interactive pages remain usable at 375px.
 The shipped component families are a discoverable toolkit, not a mandatory
 screen recipe:
 
-- `ui/`: buttons, status, cards, headers, filters, risk, empty and KPI states.
+- `ui/`: buttons, status, cards, headers, filters, risk, empty, KPI, workbench,
+  and operational-list states.
 - `forms/`: field/grid composition, record selection, uploads, line items.
 - `overlays/`: dialogs, forms, confirmation, drawers.
 - `data/`: asynchronous state and dense-table layout helpers.

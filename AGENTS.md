@@ -226,7 +226,8 @@ toolkit; choose compositions from the workflow rather than treating this list
 as a mandatory page recipe.
 
 - `ui`: `Button`, `StatusBadge`, `Card`, `PageHeader`,
-  `StatusFilterChips`, `RiskBanner`, `EmptyState`, `StatCard`.
+  `StatusFilterChips`, `RiskBanner`, `EmptyState`, `StatCard`,
+  `WorkbenchLayout`, `OperationalList`.
 - `forms`: `FieldGroup`, `FormGrid`, `RecordSelect`, `FileUpload`,
   `LineItemSection`.
 - `overlays`: `Dialog`, `FormDialog`, `ConfirmDialog`, `Drawer`.
@@ -248,6 +249,12 @@ Put actionable rules and risk beside the affected record/control. Role
 summaries stay out of page content. Shell `defaultModules` starts empty; declare
 real workspace routes through `defineNavigationModules`, using one unique href
 per clickable leaf. Do not create an Overview module unless the product needs one.
+
+Management workbenches are not KPI galleries. Prefer `WorkbenchLayout`: a
+compact StatCard strip followed by the primary queue/table and an optional
+risk or decision aside. Use `OperationalList` for short actionable queues;
+never stretch a few text lines into a tall empty panel. Signal green is a fill
+or selected-state color, not an inline-link color.
 
 Wide tables own their horizontal scroll region. Interactive pages remain usable
 at 375px without page-level overflow; station controls are touch-friendly and
