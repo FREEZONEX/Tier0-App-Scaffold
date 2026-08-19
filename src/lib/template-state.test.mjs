@@ -37,4 +37,27 @@ describe("template state (adapt when building the real app)", () => {
     assert.doesNotMatch(permissions, /\bview_dashboard\b/);
     assert.match(blankRoute, /Do not create an\s+ \* overview\/dashboard page unless/);
   });
+
+  it("shows a branded pre-generation state only while the blank route exists", () => {
+    const appLayout = readFileSync(
+      join(process.cwd(), "src/routes/_app.tsx"),
+      "utf8",
+    );
+    const placeholder = readFileSync(
+      join(process.cwd(), "src/components/TemplatePreviewPlaceholder.tsx"),
+      "utf8",
+    );
+    const styles = readFileSync(
+      join(process.cwd(), "src/styles/globals.css"),
+      "utf8",
+    );
+
+    assert.match(appLayout, /<TemplatePreviewPlaceholder \/>/);
+    assert.doesNotMatch(placeholder, /Preview ready/);
+    assert.match(placeholder, /Start building to see your Tier0 app here\./);
+    assert.match(
+      styles,
+      /\.template-preview-root:has\([\s\S]*\[aria-hidden="true"\][\s\S]*> \.template-preview-placeholder/,
+    );
+  });
 });

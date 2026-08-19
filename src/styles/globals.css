@@ -350,6 +350,17 @@ body {
   font-feature-settings: "ss01", "cv11";
 }
 
+/* The scaffold route stays structurally blank so generated apps can replace it
+ * without inheriting starter UI. While that exact route is mounted, surface a
+ * branded pre-generation state above the workspace chrome. Replacing the blank
+ * route removes the anchor and makes the placeholder exit automatically. */
+.template-preview-root:has(
+    main.page-y-scroll > div > .min-h-full.bg-background[aria-hidden="true"]
+  )
+  > .template-preview-placeholder {
+  display: flex;
+}
+
 /* No dark mode */
 
 @layer base {

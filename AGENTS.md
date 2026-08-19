@@ -82,7 +82,7 @@ src/
   routes/
     __root.tsx                 root document + Toaster
     _app.tsx                   sidebar workspace layout
-    _app.index.tsx             blank root placeholder; replace or redirect
+    _app.index.tsx             pre-generation Preview placeholder; replace or redirect
     station.tsx                scan/tap/confirm layout
     review.tsx                 evidence/decision layout
     monitor.tsx                passive fixed-board layout
