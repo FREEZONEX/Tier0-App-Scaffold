@@ -162,8 +162,11 @@ TanStack Router uses file names as route structure:
 | File | URL / purpose |
 |---|---|
 | `routes/_app.index.tsx` | `/`, sidebar workspace index |
-| `routes/_app.work-orders.tsx` | `/work-orders` in workspace |
-| `routes/_app.work-orders.$id.tsx` | `/work-orders/:id` |
+| `routes/_app.settings.tsx` | `/settings`, standalone page with no child routes |
+| `routes/_app.work-orders.tsx` | parent of the two rows below; renders `<Outlet />` only |
+| `routes/_app.work-orders.index.tsx` | `/work-orders`, the default list |
+| `routes/_app.work-orders.$id.tsx` | `/work-orders/:id`, nested detail |
+| `routes/_app.reports_.$id.tsx` | `/reports/:id`, detail that opts OUT of nesting |
 | `routes/station.receiving.tsx` | `/station/receiving` |
 | `routes/review.exceptions.tsx` | `/review/exceptions` |
 | `routes/monitor.line-status.tsx` | `/monitor/line-status` |
@@ -173,6 +176,22 @@ Choose one coherent app chrome. Use `_app` for management/planning/admin work;
 `station` for task-first execution; `review` for evidence/decisions; `monitor`
 for passive boards. A custom prefixed layout is acceptable when none fits.
 Do not add an empty pathless layout that conflicts with `/`.
+
+**A resource with a detail page must use one of exactly two shapes.** The `.`
+separator nests routes, so `_app.work-orders.$id.tsx` is a child of
+`_app.work-orders.tsx` and renders through the parent's `<Outlet />`. A parent
+that draws its own list markup without an outlet still type-checks, lints and
+builds — the detail page simply never renders, and nobody finds out until they
+click a row.
+
+- **Nested**: parent renders `<Outlet />` only, the list lives in a sibling
+  `.index.tsx`, the detail in `.$param.tsx`. A parent may also render its own
+  content *plus* `<Outlet />` when a master-detail layout is intended.
+- **Non-nested**: append `_` to the parent segment (`_app.reports_.$id.tsx`) so
+  the detail page renders standalone and the list route stays a plain page.
+
+`npm run build` fails on any other shape, naming the offending resource; the
+check lives in `src/lib/route-nesting-contracts.test.mjs` and is a locked gate.
 
 `Route.useParams()` and `Route.useSearch()` are synchronous. Define
 `validateSearch` when reading query strings.

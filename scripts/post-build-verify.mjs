@@ -45,6 +45,7 @@ const steps = [
       "src/lib/copy-contracts.test.mjs",
       "src/lib/db-contracts.test.mjs",
       "src/lib/route-smoke-contracts.test.mjs",
+      "src/lib/route-nesting-contracts.test.mjs",
       "src/lib/hooks-contracts.test.mjs",
       "src/lib/runtime-safety.test.mjs",
       "src/lib/write-path-contracts.test.mjs",
