@@ -17,9 +17,11 @@
     "src/lib/runtime-safety.test.mjs": "28bf080a1d3472dbc598ee3d27335a908c41041b10b277b393bd1dd239b96725",
     "src/lib/write-path-contracts.test.mjs": "b5d37d243fbbe3e92622e3d867d30797c7fd6a753f8eb680d599be68ee3ac2a8",
     "src/lib/ui-primitives-contracts.test.mjs": "2506d644435601702fb748d5a575313bdac4a5cec745a808e199fa7e9e8750be",
+    "src/lib/responsive-contracts.test.mjs": "3a6269fc854ac35de28d8c0fc7d976aa7735e11adc010485b38e4547413a48eb",
     "scripts/ui-advisories.mjs": "7e84376f335486d27329eda6227628a4c4c1b265800567e577eaa72763eba3cc",
     "scripts/route-smoke.mjs": "fabf6c5b4df6fa12dd373d0f7cdcaf2eae4faab33c3c31bfee6e95878feaf934",
-    "scripts/post-build-verify.mjs": "090444e99f245213ecba410507045903ec777bafdb543d34e93323ea6ac9b681",
-    "scripts/gate-integrity.mjs": "7a58775112e32de09f80b9773a1192c42e6da7b5e17c5a08eb59dccc3a886080"
+    "scripts/responsive-contract.mjs": "dcde5d6bf6da9e383dd388f9640a3a751e84ed5e95a2f49e4fa45c5c40cad584",
+    "scripts/post-build-verify.mjs": "6207b91d4d20a2e26319a5aac3befee17e32a90997dcbfe4b97fb77ec4ac4dfb",
+    "scripts/gate-integrity.mjs": "2c3371b4809d9ab135d14e86f06921f4b2436858e7a7b91d4332528efdc5febd"
   }
 }
