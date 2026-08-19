@@ -31,8 +31,10 @@ const LOCKED_FILES = [
   "src/lib/runtime-safety.test.mjs",
   "src/lib/write-path-contracts.test.mjs",
   "src/lib/ui-primitives-contracts.test.mjs",
+  "src/lib/responsive-contracts.test.mjs",
   "scripts/ui-advisories.mjs",
   "scripts/route-smoke.mjs",
+  "scripts/responsive-contract.mjs",
   "scripts/post-build-verify.mjs",
   "scripts/gate-integrity.mjs",
 ];

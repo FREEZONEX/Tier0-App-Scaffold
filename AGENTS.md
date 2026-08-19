@@ -251,7 +251,17 @@ per clickable leaf. Do not create an Overview module unless the product needs on
 
 Wide tables own their horizontal scroll region. Interactive pages remain usable
 at 375px without page-level overflow; station controls are touch-friendly and
-monitor boards fit their intended viewport. Use `ClientOnly` for Recharts,
+monitor boards fit their intended viewport. `npm run build` enforces the 375px
+rule through `src/lib/responsive-contracts.test.mjs`, which is a locked gate:
+
+- A search or filter control declares a **bounded** width. `flex-1` alone lets it
+  swallow the whole toolbar on a wide screen and squeeze its siblings on a narrow
+  one, so pair it with a ceiling — `w-full max-w-xs`, or `min-w-0 flex-1 max-w-sm`
+  when it must share a row. This applies to `input`, `select` and `textarea`;
+  `flex-1` on layout containers is unaffected.
+- A minimum width above 375px belongs **inside** a horizontal scroll region.
+  Copy `TableViewport`: `overflow-x-auto` on the outer element, `min-w-[720px]`
+  on the inner one, so the sideways scroll stays local instead of moving the page. Use `ClientOnly` for Recharts,
 dnd-kit, motion layout, or browser-only render paths. Recharts also needs a
 non-zero container and `ResponsiveContainer`.
 

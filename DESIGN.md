@@ -285,3 +285,9 @@ Check semantic-token use, control affordance, status readability, density,
 responsive overflow, text fitting, page-header discipline, and consistency with
 the chosen app chrome. Prefer improving primitives or base fallbacks over adding
 new global prescriptions for individual layouts.
+
+Toolbar controls read best at a deliberate width. A search field stretched to
+fill every pixel of a wide toolbar looks unresolved and drags its placeholder far
+from the results it filters; give it a ceiling — `max-w-xs` is a good default —
+and let the empty space carry the layout. The build enforces this; see the
+responsive rules in [AGENTS.md](AGENTS.md).
