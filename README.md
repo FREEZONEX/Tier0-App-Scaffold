@@ -148,10 +148,13 @@ TanStack Router is file-based:
 | `routes/station.tsx` | `/station` | Station layout for scan/tap/confirm execution |
 | `routes/review.tsx` | `/review` | Review layout for exceptions/quality/approvals |
 | `routes/_app.index.tsx` | `/` | Blank scaffold placeholder; finished apps must replace or redirect it |
-| `routes/_app.work-orders.tsx` | `/work-orders` | Under `_app` |
+| `routes/_app.settings.tsx` | `/settings` | Standalone page, no child routes |
 | `routes/station.receiving.tsx` | `/station/receiving` | Under `station` |
 | `routes/review.exceptions.tsx` | `/review/exceptions` | Under `review` |
-| `routes/_app.work-orders.$id.tsx` | `/work-orders/:id` | Dynamic param |
+| `routes/_app.work-orders.tsx` | — | Parent of the rows below; renders `<Outlet />` only |
+| `routes/_app.work-orders.index.tsx` | `/work-orders` | Default list page |
+| `routes/_app.work-orders.$id.tsx` | `/work-orders/:id` | Detail page, nested under the parent |
+| `routes/_app.reports_.$id.tsx` | `/reports/:id` | Detail page that opts OUT of nesting |
 | `routes/login.tsx` | `/login` | Outside `_app`, no Shell |
 | `routes/api/work-orders.ts` | `/api/work-orders` | Server route |
 | `routes/api/work-orders/$id.ts` | `/api/work-orders/:id` | Nested server route |
@@ -159,10 +162,52 @@ TanStack Router is file-based:
 - `_` prefix: pathless, contributes no URL segment
 - `.` separator: URL nesting
 - `$` prefix: dynamic param
+- `_` **suffix** on a segment (`reports_`): opts out of nesting, so the route
+  renders standalone instead of inside its would-be parent
 - Choose layout by workflow: `station` for execution/scan flows, `review`
   for review/approval flows, `_app` for management/analytics work
 - If built-in layouts do not fit, create a new prefixed layout such as
   `monitor.tsx`, `wizard.tsx`, `portal.tsx`, or `editor.tsx`
+
+### List and Detail Pages
+
+The `.` separator nests routes, so `_app.work-orders.$id.tsx` is a **child** of
+`_app.work-orders.tsx`. A parent renders its children through `<Outlet />`. If
+the parent draws its own list markup and forgets the outlet, `/work-orders/:id`
+still matches but nothing renders — TypeScript, ESLint and the build all pass,
+and the blank detail page only shows up when someone clicks a row.
+
+Pick one of the two shapes below. `npm run build` fails if a resource matches
+neither (see `src/lib/route-nesting-contracts.test.mjs`).
+
+**Nested** — the URL prefix is shared and the detail page lives under it:
+
+```
+routes/_app.work-orders.tsx        parent, renders <Outlet /> only
+routes/_app.work-orders.index.tsx  /work-orders      → the list
+routes/_app.work-orders.$id.tsx    /work-orders/:id  → the detail
+```
+
+```tsx
+// src/routes/_app.work-orders.tsx — the parent owns no markup of its own
+import { createFileRoute, Outlet } from "@tanstack/react-router";
+
+export const Route = createFileRoute("/_app/work-orders")({
+  component: () => <Outlet />,
+});
+```
+
+The list markup belongs in `_app.work-orders.index.tsx`, not in the parent.
+A parent that renders both its own content and `<Outlet />` is also valid when
+you actually want a master-detail layout where the list stays visible.
+
+**Non-nested** — the detail page is a full-screen replacement, so append `_` to
+the parent segment and let the list route stay a plain page:
+
+```
+routes/_app.reports.tsx        /reports      → the list, renders its own markup
+routes/_app.reports_.$id.tsx   /reports/:id  → standalone detail, no outlet needed
+```
 
 ### Reading Dynamic Params
 
@@ -196,17 +241,21 @@ primary page, make that page own `/` instead of leaving `/` blank and placing
 the only real screen at a secondary route.
 
 ```tsx
-// src/routes/_app.work-orders.tsx
+// src/routes/_app.settings.tsx — a page with no child routes renders directly
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/_app/work-orders")({
-  component: WorkOrdersPage,
+export const Route = createFileRoute("/_app/settings")({
+  component: SettingsPage,
 });
 
-function WorkOrdersPage() {
-  return <div className="p-6">Orders</div>;
+function SettingsPage() {
+  return <div className="p-6">Settings</div>;
 }
 ```
+
+This shape is correct only while the route has no children. The moment you add
+a nested detail route such as `_app.settings.$id.tsx`, this component must
+render `<Outlet />` — see [List and Detail Pages](#list-and-detail-pages).
 
 Task-first station pages belong under `station` and should not appear in the
 sidebar:
