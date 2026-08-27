@@ -11,7 +11,7 @@ import { useEffect, useRef } from "react";
  *
  * Tuned to stay quiet: the platform preview shows this page underneath a
  * blurred, 70–95% opaque wait mask whose own copy and tips sit in the centre.
- * Amplitude is therefore low, the highlight never reaches full green, and a
+ * Amplitude is moderate, the highlight never reaches full green, and a
  * radial falloff keeps the centre almost static so nothing competes with text
  * layered on top (ours or the mask's).
  */
@@ -23,10 +23,10 @@ const FLIP_INTERVAL_MS = 120;
 const FLIP_CHANCE = 0.15;
 
 // Brightness: alpha = ALPHA_BASE + t * ALPHA_RANGE, t in [0, 1].
-const ALPHA_BASE = 0.06;
-const ALPHA_RANGE = 0.22;
+const ALPHA_BASE = 0.08;
+const ALPHA_RANGE = 0.45;
 // Colour: grey -> highlight interpolation is capped so peaks are greenish grey.
-const COLOR_MIX_MAX = 0.6;
+const COLOR_MIX_MAX = 0.85;
 
 // Diagonal travelling wave in cell units. Wavelength ~40 cells.
 const WAVE_KX = 0.18;
@@ -37,7 +37,7 @@ const TWINKLE_PERIOD_S = 5;
 const TWINKLE_WEIGHT = 0.3;
 // Whole-screen envelope. Kept off the platform mask's 4.5s so they don't beat.
 const BREATH_PERIOD_S = 6;
-const BREATH_MIN = 0.65;
+const BREATH_MIN = 0.5;
 
 // Centre falloff radius in CSS px: covers the placeholder copy and the wait
 // mask's spinner/title/tips block.
