@@ -391,13 +391,13 @@ body {
   0%,
   100% {
     box-shadow:
-      0 24px 80px rgb(5 11 20 / 0.06),
-      0 0 0 1px rgb(5 11 20 / 0.1);
+      0 20px 60px rgb(5 11 20 / 0.04),
+      0 0 0 0.5px rgb(5 11 20 / 0.06);
   }
   50% {
     box-shadow:
-      0 32px 96px rgb(5 11 20 / 0.09),
-      0 0 0 1px rgb(5 11 20 / 0.14);
+      0 28px 80px rgb(5 11 20 / 0.06),
+      0 0 0 0.5px rgb(5 11 20 / 0.08);
   }
 }
 @keyframes template-preview-blink {
@@ -409,8 +409,8 @@ body {
   .template-preview-cover__window {
     animation: none;
     box-shadow:
-      0 24px 80px rgb(5 11 20 / 0.06),
-      0 0 0 1px rgb(5 11 20 / 0.1);
+      0 20px 60px rgb(5 11 20 / 0.04),
+      0 0 0 0.5px rgb(5 11 20 / 0.06);
   }
   .template-preview-cover__cursor {
     animation: none;

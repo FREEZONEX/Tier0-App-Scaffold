@@ -18,7 +18,7 @@ export function TemplatePreviewPlaceholder() {
       aria-label="Start building to see your Tier0 app here."
     >
       <div className="template-preview-cover__window flex h-[min(62vh,560px)] w-full max-w-[840px] flex-col overflow-hidden rounded-xl bg-background">
-        <div className="template-preview-cover__bar flex h-10 shrink-0 items-center gap-2 border-b border-foreground/8 px-4">
+        <div className="template-preview-cover__bar flex h-10 shrink-0 items-center gap-2 border-b border-foreground/5 px-4">
           <span className="size-3 rounded-full bg-[#ff5f57]" />
           <span className="size-3 rounded-full bg-[#febc2e]" />
           <span className="size-3 rounded-full bg-[#28c840]" />
@@ -35,7 +35,7 @@ export function TemplatePreviewPlaceholder() {
           </p>
         </div>
 
-        <div className="template-preview-cover__mono flex h-8 shrink-0 items-center justify-between gap-4 border-t border-foreground/8 px-4 text-[11px] uppercase tracking-[0.06em] text-muted-foreground">
+        <div className="template-preview-cover__mono flex h-8 shrink-0 items-center justify-between gap-4 border-t border-foreground/5 px-4 text-[11px] uppercase tracking-[0.06em] text-muted-foreground">
           <span className="truncate">Scaffold v0 · Gateway auth · SDK ready</span>
           <span className="flex shrink-0 items-center gap-2">
             <span className="template-preview-cover__dot size-1.5 rounded-full" />
