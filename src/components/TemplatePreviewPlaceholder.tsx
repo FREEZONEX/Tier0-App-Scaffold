@@ -1,15 +1,11 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { ClientOnly } from "@/components/client-only";
 import { TemplatePreviewWaveGrid } from "@/components/TemplatePreviewWaveGrid";
 import {
   COVER_VARIANTS,
-  getCoverVariant,
-  LOGO_T_PATH,
-  LOGO_TILE_SIZE,
-  LOGO_ZERO_PATH,
-  readCoverId,
-  writeCoverId,
+  DEFAULT_COVER_SETTINGS,
+  type CoverSettings,
 } from "@/components/template-preview-covers";
 
 export function TemplatePreviewPlaceholder() {
@@ -25,63 +21,158 @@ export function TemplatePreviewPlaceholder() {
   );
 }
 
-function CoverStage() {
-  const [coverId, setCoverId] = useState(readCoverId);
-  const variant = getCoverVariant(coverId);
+const STORAGE_KEY = "tier0.preview-cover-settings";
 
-  const select = (id: string) => {
-    setCoverId(id);
-    writeCoverId(id);
-  };
+function loadSettings(): CoverSettings {
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return { ...DEFAULT_COVER_SETTINGS };
+    return { ...DEFAULT_COVER_SETTINGS, ...(JSON.parse(raw) as Partial<CoverSettings>) };
+  } catch {
+    return { ...DEFAULT_COVER_SETTINGS };
+  }
+}
 
-  return (
-    <>
-      <TemplatePreviewWaveGrid variantId={variant.id} />
-      {variant.overlay === "outline-logo" && <OutlineLogo />}
-      <CoverSwitcher value={variant.id} onChange={select} />
-    </>
-  );
+function saveSettings(s: CoverSettings) {
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+  } catch {
+    /* storage unavailable */
+  }
 }
 
 /**
- * Light outline version of the builder logo: stroke only in the tertiary
- * text grey, no dark tile, so it blurs into nothing under the platform's
- * wait mask instead of bleeding through as a dark blob.
+ * Cover canvas plus a dat.gui tuning panel. Settings live in a mutable ref the
+ * renderer reads every frame; the panel writes straight into it and persists
+ * to localStorage so a tuned state survives reloads. The simulated mask
+ * mirrors the platform's wait mask (backdrop blur + white tint) so the cover
+ * can be judged the way it will actually be seen.
  */
-function OutlineLogo() {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox={`0 0 ${LOGO_TILE_SIZE} ${LOGO_TILE_SIZE}`}
-      className="pointer-events-none relative size-36 text-muted-foreground opacity-40 sm:size-44"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={0.9}
-      strokeLinejoin="round"
-    >
-      <rect x={0.6} y={0.6} width={LOGO_TILE_SIZE - 2} height={LOGO_TILE_SIZE - 2} rx={5} />
-      <path d={LOGO_T_PATH} />
-      <path d={LOGO_ZERO_PATH} />
-    </svg>
-  );
-}
+function CoverStage() {
+  const settingsRef = useRef<CoverSettings>(DEFAULT_COVER_SETTINGS);
+  const [mask, setMask] = useState({
+    on: DEFAULT_COVER_SETTINGS.simulateMask,
+    opacity: DEFAULT_COVER_SETTINGS.maskOpacity,
+    blur: DEFAULT_COVER_SETTINGS.maskBlur,
+  });
 
-/** Temporary cover picker for side-by-side evaluation; persists to localStorage. */
-function CoverSwitcher({ value, onChange }: { value: string; onChange: (id: string) => void }) {
+  useEffect(() => {
+    settingsRef.current = loadSettings();
+    const s = settingsRef.current;
+    setMask({ on: s.simulateMask, opacity: s.maskOpacity, blur: s.maskBlur });
+
+    let disposed = false;
+    let gui: import("dat.gui").GUI | undefined;
+
+    // dat.gui touches document on construction: client-only dynamic import.
+    void import("dat.gui").then((dat) => {
+      if (disposed) return;
+      gui = new dat.GUI({ width: 320 });
+      const host = gui.domElement.parentElement;
+      if (host) {
+        host.style.zIndex = "60";
+        host.style.pointerEvents = "auto";
+      }
+
+      const sync = () => {
+        saveSettings(s);
+        setMask({ on: s.simulateMask, opacity: s.maskOpacity, blur: s.maskBlur });
+      };
+
+      gui
+        .add(
+          s,
+          "variant",
+          Object.fromEntries(COVER_VARIANTS.map((v) => [v.label, v.id])),
+        )
+        .name("Variant")
+        .onChange(sync);
+
+      const grid = gui.addFolder("Grid");
+      grid.add(s, "cell", 8, 80, 1).name("Cell size (px)").onChange(sync);
+      grid.add(s, "fontSize", 6, 40, 1).name("Font size (px)").onChange(sync);
+      grid.add(s, "density", 0.05, 1, 0.01).name("Density").onChange(sync);
+      grid.add(s, "flipChance", 0, 1, 0.01).name("Flip chance").onChange(sync);
+      grid.add(s, "flipInterval", 30, 1000, 10).name("Flip interval (ms)").onChange(sync);
+      grid.open();
+
+      const look = gui.addFolder("Brightness");
+      look.add(s, "alphaBase", 0, 1, 0.01).name("Alpha base").onChange(sync);
+      look.add(s, "alphaRange", 0, 1, 0.01).name("Alpha range").onChange(sync);
+      look.add(s, "colorMix", 0, 1, 0.01).name("Green mix").onChange(sync);
+      look.add(s, "contrast", 0.5, 4, 0.05).name("Contrast").onChange(sync);
+      look.open();
+
+      const motion = gui.addFolder("Motion");
+      motion.add(s, "speed", 0, 4, 0.05).name("Speed").onChange(sync);
+      motion.add(s, "scale", 0.25, 4, 0.05).name("Patch scale").onChange(sync);
+      motion.add(s, "breathPeriod", 0, 20, 0.5).name("Breath period (s)").onChange(sync);
+      motion.add(s, "breathMin", 0, 1, 0.01).name("Breath min").onChange(sync);
+      motion.add(s, "twinkle", 0, 1, 0.01).name("Twinkle").onChange(sync);
+      motion.open();
+
+      const logo = gui.addFolder("Embossed logo");
+      logo.add(s, "logoSize", 0.1, 1, 0.01).name("Logo size").onChange(sync);
+      logo.add(s, "logoBase", 0, 1, 0.01).name("Field outside").onChange(sync);
+      logo.add(s, "logoStrength", 0, 1, 0.01).name("Logo strength").onChange(sync);
+      logo.add(s, "logoPulsePeriod", 0, 10, 0.5).name("Pulse period (s)").onChange(sync);
+      logo.add(s, "logoFeather", 0, 3, 0.1).name("Edge feather").onChange(sync);
+
+      const maskFolder = gui.addFolder("Simulate wait mask");
+      maskFolder.add(s, "simulateMask").name("Enable").onChange(sync);
+      maskFolder.add(s, "maskOpacity", 0, 1, 0.01).name("White opacity").onChange(sync);
+      maskFolder.add(s, "maskBlur", 0, 30, 1).name("Blur (px)").onChange(sync);
+      maskFolder.open();
+
+      gui
+        .add(
+          {
+            reset: () => {
+              Object.assign(s, DEFAULT_COVER_SETTINGS);
+              gui?.updateDisplay();
+              sync();
+            },
+          },
+          "reset",
+        )
+        .name("Reset to defaults");
+      gui
+        .add(
+          {
+            copy: () => {
+              void navigator.clipboard?.writeText(JSON.stringify(s, null, 2));
+            },
+          },
+          "copy",
+        )
+        .name("Copy settings JSON");
+    });
+
+    return () => {
+      disposed = true;
+      gui?.destroy();
+    };
+  }, []);
+
   return (
-    <label className="pointer-events-auto absolute right-4 top-4 flex items-center gap-2 rounded-md border border-border bg-background/90 px-2.5 py-1.5 text-xs text-muted-foreground shadow-sm backdrop-blur">
-      <span>Cover</span>
-      <select
-        className="bg-transparent text-foreground outline-none"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      >
-        {COVER_VARIANTS.map((v) => (
-          <option key={v.id} value={v.id}>
-            {v.label}
-          </option>
-        ))}
-      </select>
-    </label>
+    <>
+      <TemplatePreviewWaveGrid settingsRef={settingsRef} />
+      {mask.on && (
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+          <div
+            className="absolute inset-0"
+            style={{ backdropFilter: `blur(${mask.blur}px)`, WebkitBackdropFilter: `blur(${mask.blur}px)` }}
+          />
+          <div className="absolute inset-0 bg-background" style={{ opacity: mask.opacity }} />
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center">
+            <div className="size-6 animate-spin rounded-full border-2 border-muted border-t-highlight" />
+            <div className="text-sm font-medium text-foreground">Generating your app…</div>
+            <div className="text-sm text-muted-foreground">
+              Tips: Use the console to inspect runtime errors while the agent iterates.
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
