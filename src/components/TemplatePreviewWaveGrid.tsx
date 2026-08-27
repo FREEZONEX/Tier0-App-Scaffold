@@ -1,13 +1,21 @@
 import { useEffect, useRef } from "react";
 
+import {
+  getCoverVariant,
+  LOGO_T_PATH,
+  LOGO_TILE_SIZE,
+  LOGO_ZERO_PATH,
+  type FieldInput,
+} from "@/components/template-preview-covers";
+
 /**
- * Ambient background for the pre-generation placeholder.
+ * Glyph-grid canvas for the pre-generation placeholder.
  *
- * A grid of monospace "T"/"0" glyphs whose colour drifts between the tertiary
- * text grey and the Tier0 highlight green. Brightness is a pure function of
- * (column, row, time): a slow diagonal travelling wave plus a whole-screen
- * breathing envelope. No pointer tracking, no random light sources — the
- * animation is deterministic and stateless apart from the glyph flips.
+ * A full-screen grid of monospace "T"/"0" glyphs whose colour drifts between
+ * the tertiary text grey and the Tier0 highlight green. Per-cell brightness
+ * comes from the active cover variant's field function — a pure function of
+ * (cell, time), so the animation is deterministic and stateless apart from
+ * the random glyph flips. No pointer tracking.
  *
  * The platform preview shows this page underneath a blurred, 70–95% opaque
  * wait mask with its own copy in the centre. Small translucent glyphs blur
@@ -21,21 +29,13 @@ const FLIP_INTERVAL_MS = 120;
 const FLIP_CHANCE = 0.15;
 
 // Brightness: alpha = ALPHA_BASE + t * ALPHA_RANGE, t in [0, 1].
-const ALPHA_BASE = 0.08;
+const ALPHA_BASE = 0.05;
 const ALPHA_RANGE = 0.7;
 // Colour: grey -> highlight interpolation cap.
 const COLOR_MIX_MAX = 0.95;
 
-// Diagonal travelling wave in cell units. Wavelength ~40 cells.
-const WAVE_KX = 0.18;
-const WAVE_KY = 0.12;
-const WAVE_PERIOD_S = 7;
-// Per-cell slow twinkle with a stable phase from a hash of (c, r).
-const TWINKLE_PERIOD_S = 5;
-const TWINKLE_WEIGHT = 0.3;
-// Whole-screen envelope. Kept off the platform mask's 4.5s so they don't beat.
-const BREATH_PERIOD_S = 6;
-const BREATH_MIN = 0.4;
+// Logo silhouette size (CSS px) for the embossed variant.
+const LOGO_MASK_SIZE = (w: number, h: number) => Math.min(w, h) * 0.6;
 
 function hexToRgb(hex: string): [number, number, number] | null {
   const h = hex.trim().replace("#", "");
@@ -56,7 +56,48 @@ function cellHash(c: number, r: number) {
   return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
 }
 
-export function TemplatePreviewWaveGrid() {
+/** Per-cell 0..1 weight of the logo glyph paths, softened at the edges. */
+function buildLogoMask(width: number, height: number, cols: number, rows: number) {
+  const mask = new Float32Array(cols * rows);
+  const off = document.createElement("canvas");
+  off.width = Math.max(1, width);
+  off.height = Math.max(1, height);
+  const octx = off.getContext("2d", { willReadFrequently: true });
+  if (!octx) return mask;
+
+  const size = LOGO_MASK_SIZE(width, height);
+  const scale = size / LOGO_TILE_SIZE;
+  octx.setTransform(scale, 0, 0, scale, (width - size) / 2, (height - size) / 2);
+  octx.fillStyle = "#000";
+  octx.fill(new Path2D(LOGO_T_PATH));
+  octx.fill(new Path2D(LOGO_ZERO_PATH), "evenodd");
+  octx.setTransform(1, 0, 0, 1, 0, 0);
+
+  const data = octx.getImageData(0, 0, off.width, off.height).data;
+  const sample = (x: number, y: number) => {
+    const xi = Math.min(off.width - 1, Math.max(0, Math.floor(x)));
+    const yi = Math.min(off.height - 1, Math.max(0, Math.floor(y)));
+    return data[(yi * off.width + xi) * 4 + 3] / 255;
+  };
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const x = c * CELL + CELL / 2;
+      const y = r * CELL + CELL / 2;
+      // 5-tap sample so cells straddling an edge get a partial weight.
+      const q = CELL / 4;
+      mask[r * cols + c] =
+        (sample(x, y) +
+          sample(x - q, y - q) +
+          sample(x + q, y - q) +
+          sample(x - q, y + q) +
+          sample(x + q, y + q)) /
+        5;
+    }
+  }
+  return mask;
+}
+
+export function TemplatePreviewWaveGrid({ variantId }: { variantId: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -65,6 +106,7 @@ export function TemplatePreviewWaveGrid() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    const variant = getCoverVariant(variantId);
     const grey = readRgb("--tier0-text-tertiary", [135, 135, 135]);
     const green = readRgb("--tier0-highlight", [178, 237, 29]);
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -75,6 +117,7 @@ export function TemplatePreviewWaveGrid() {
     let rows = 0;
     let glyphs: Uint8Array = new Uint8Array(0);
     let phases: Float32Array = new Float32Array(0);
+    let logoMask: Float32Array = new Float32Array(0);
     let frame = 0;
     let lastFlip = 0;
     const start = performance.now();
@@ -97,31 +140,45 @@ export function TemplatePreviewWaveGrid() {
           phases[i] = cellHash(c, r) * Math.PI * 2;
         }
       }
+      logoMask = variant.usesLogoMask
+        ? buildLogoMask(width, height, cols, rows)
+        : new Float32Array(cols * rows);
+    };
+
+    const input: FieldInput = {
+      c: 0,
+      r: 0,
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0,
+      time: 0,
+      phase: 0,
+      logo: 0,
     };
 
     const draw = (now: number) => {
-      const time = (now - start) / 1000;
+      input.time = (now - start) / 1000;
+      input.width = width;
+      input.height = height;
       ctx.clearRect(0, 0, width, height);
       ctx.font = `${FONT_SIZE}px ui-monospace, SFMono-Regular, Menlo, monospace`;
       ctx.textBaseline = "middle";
       ctx.textAlign = "center";
 
-      const breath =
-        BREATH_MIN + (1 - BREATH_MIN) * (0.5 + 0.5 * Math.sin((time / BREATH_PERIOD_S) * Math.PI * 2));
-      const wavePhase = (time / WAVE_PERIOD_S) * Math.PI * 2;
-      const twinklePhase = (time / TWINKLE_PERIOD_S) * Math.PI * 2;
       for (let r = 0; r < rows; r++) {
         const y = r * CELL + CELL / 2;
         for (let c = 0; c < cols; c++) {
           const i = r * cols + c;
           const x = c * CELL + CELL / 2;
+          input.c = c;
+          input.r = r;
+          input.x = x;
+          input.y = y;
+          input.phase = phases[i];
+          input.logo = logoMask[i];
 
-          const wave = Math.sin(WAVE_KX * c + WAVE_KY * r - wavePhase);
-          const twinkle = Math.sin(twinklePhase + phases[i]) * TWINKLE_WEIGHT;
-          let t = 0.5 + 0.5 * (wave + twinkle) / (1 + TWINKLE_WEIGHT);
-          t = t * t; // sharpen crests so bands read clearly
-          t *= breath;
-
+          const t = Math.min(1, Math.max(0, variant.field(input)));
           const mix = t * COLOR_MIX_MAX;
           const R = Math.round(grey[0] + (green[0] - grey[0]) * mix);
           const G = Math.round(grey[1] + (green[1] - grey[1]) * mix);
@@ -166,7 +223,7 @@ export function TemplatePreviewWaveGrid() {
       observer.disconnect();
       stop();
     };
-  }, []);
+  }, [variantId]);
 
   return (
     <canvas
