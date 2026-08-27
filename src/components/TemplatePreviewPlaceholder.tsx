@@ -36,11 +36,11 @@ export function TemplatePreviewPlaceholder() {
 
       {/* wordmark on the crossing */}
       <div className="absolute inset-x-0 top-1/2 flex -translate-y-1/2 justify-center">
-        <img src="/tier0-logo.svg" alt="Tier0" className="h-10 w-auto sm:h-12" />
+        <img src="/tier0-logo.svg" alt="Tier0" className="h-7 w-auto sm:h-8" />
       </div>
 
       {/* caption */}
-      <p className="template-preview-cover__mono absolute inset-x-0 top-1/2 mt-11 flex justify-center px-6 text-center text-[11px] uppercase tracking-[0.06em] text-muted-foreground">
+      <p className="template-preview-cover__mono absolute inset-x-0 top-1/2 mt-9 flex justify-center px-6 text-center text-[11px] uppercase tracking-[0.06em] text-muted-foreground">
         Start building to see your Tier0 app here.
         <span className="template-preview-cover__cursor template-preview-cover__accent">_</span>
       </p>
