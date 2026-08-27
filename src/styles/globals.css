@@ -361,6 +361,55 @@ body {
   display: flex;
 }
 
+/* Pre-generation cover: crosshair + rotating tick ring + wordmark. Kept to
+ * thin lines and the deep highlight so it stays legible on white and blurs
+ * away cleanly under the platform's wait mask. */
+.template-preview-cover {
+  --cover-accent: var(--tier0-highlight-deep);
+}
+.template-preview-cover__accent {
+  color: var(--cover-accent);
+}
+.template-preview-cover__line {
+  background: color-mix(in srgb, var(--cover-accent) 35%, transparent);
+}
+.template-preview-cover__ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: template-preview-rotate 60s linear infinite;
+}
+.template-preview-cover__ring-outer {
+  stroke: color-mix(in srgb, var(--cover-accent) 50%, transparent);
+}
+.template-preview-cover__ring-inner {
+  stroke: color-mix(in srgb, var(--foreground) 15%, transparent);
+}
+.template-preview-cover__tick {
+  stroke: var(--cover-accent);
+}
+.template-preview-cover__mono {
+  font-family: var(--font-geist-mono);
+}
+.template-preview-cover__cursor {
+  animation: template-preview-blink 1.6s steps(1) infinite;
+}
+@keyframes template-preview-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes template-preview-blink {
+  50% {
+    opacity: 0.15;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .template-preview-cover__ring,
+  .template-preview-cover__cursor {
+    animation: none;
+  }
+}
+
 /* No dark mode */
 
 @layer base {

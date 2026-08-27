@@ -1,219 +1,85 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { ClientOnly } from "@/components/client-only";
-import { TemplatePreviewWaveGrid } from "@/components/TemplatePreviewWaveGrid";
-import {
-  COVER_VARIANTS,
-  DEFAULT_COVER_SETTINGS,
-  type CoverSettings,
-} from "@/components/template-preview-covers";
 
+/**
+ * Pre-generation cover: white ground, one crosshair, a slowly rotating tick
+ * ring, the Tier0 wordmark on the crossing and a mono caption beneath it.
+ *
+ * Everything is light and linear so the platform's blurred wait mask (white
+ * 70–95% + backdrop blur) reduces it to a faint wordmark and a hint of green
+ * crosshair rather than a dark blob or a muddy field.
+ */
 export function TemplatePreviewPlaceholder() {
   return (
     <section
-      className="template-preview-placeholder pointer-events-none fixed inset-0 z-50 hidden min-h-svh items-center justify-center overflow-hidden bg-background text-foreground"
+      className="template-preview-placeholder template-preview-cover pointer-events-none fixed inset-0 z-50 hidden min-h-svh overflow-hidden bg-background text-foreground"
       aria-label="Start building to see your Tier0 app here."
     >
-      <ClientOnly>
-        <CoverStage />
-      </ClientOnly>
+      {/* crosshair */}
+      <div className="template-preview-cover__line absolute inset-y-0 left-1/2 w-px" />
+      <div className="template-preview-cover__line absolute inset-x-0 top-1/2 h-px" />
+
+      {/* tick ring */}
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 520 520"
+        fill="none"
+        className="absolute left-1/2 top-1/2 size-[min(58vmin,520px)] -translate-x-1/2 -translate-y-1/2"
+      >
+        <g className="template-preview-cover__ring">
+          <circle cx="260" cy="260" r="240" className="template-preview-cover__ring-outer" strokeWidth="1" strokeDasharray="2 10" />
+          <circle cx="260" cy="260" r="180" className="template-preview-cover__ring-inner" strokeWidth="1" />
+          <path d="M260 20 L260 40 M500 260 L480 260 M260 500 L260 480 M20 260 L40 260" className="template-preview-cover__tick" strokeWidth="1.5" />
+        </g>
+      </svg>
+
+      {/* wordmark on the crossing */}
+      <div className="absolute inset-x-0 top-1/2 flex -translate-y-1/2 justify-center">
+        <img src="/tier0-logo.svg" alt="Tier0" className="h-10 w-auto sm:h-12" />
+      </div>
+
+      {/* caption */}
+      <p className="template-preview-cover__mono absolute inset-x-0 top-1/2 mt-11 flex justify-center px-6 text-center text-[11px] uppercase tracking-[0.06em] text-muted-foreground">
+        Start building to see your Tier0 app here.
+        <span className="template-preview-cover__cursor template-preview-cover__accent">_</span>
+      </p>
+
+      {/* corner labels */}
+      <div className="template-preview-cover__mono absolute left-6 top-6 flex flex-col gap-1.5 text-[11px] uppercase tracking-[0.08em] text-muted-foreground sm:left-12 sm:top-10">
+        <div>Tier0 / preview</div>
+        <div>
+          route <span className="text-foreground">/</span>
+        </div>
+      </div>
+      <div className="template-preview-cover__mono absolute right-6 top-6 flex flex-col gap-1.5 text-right text-[11px] uppercase tracking-[0.08em] text-muted-foreground sm:right-12 sm:top-10">
+        <div>Status</div>
+        <div className="template-preview-cover__accent">Awaiting generation</div>
+      </div>
+      <div className="template-preview-cover__mono absolute bottom-6 left-6 text-[11px] uppercase tracking-[0.08em] text-muted-foreground sm:bottom-10 sm:left-12">
+        Scaffold v0 · Gateway auth · SDK ready
+      </div>
+      <div className="template-preview-cover__mono absolute bottom-6 right-6 text-[11px] uppercase tracking-[0.08em] text-muted-foreground sm:bottom-10 sm:right-12">
+        <ClientOnly fallback={<span>00:00:00</span>}>
+          <Elapsed />
+        </ClientOnly>
+      </div>
     </section>
   );
 }
 
-const STORAGE_KEY = "tier0.preview-cover-settings";
-
-function loadSettings(): CoverSettings {
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { ...DEFAULT_COVER_SETTINGS };
-    return { ...DEFAULT_COVER_SETTINGS, ...(JSON.parse(raw) as Partial<CoverSettings>) };
-  } catch {
-    return { ...DEFAULT_COVER_SETTINGS };
-  }
-}
-
-function saveSettings(s: CoverSettings) {
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
-  } catch {
-    /* storage unavailable */
-  }
-}
-
-/**
- * Cover canvas plus a dat.gui tuning panel. Settings live in a mutable ref the
- * renderer reads every frame; the panel writes straight into it and persists
- * to localStorage so a tuned state survives reloads. The simulated mask
- * mirrors the platform's wait mask (backdrop blur + white tint) so the cover
- * can be judged the way it will actually be seen.
- */
-function CoverStage() {
-  const settingsRef = useRef<CoverSettings>(DEFAULT_COVER_SETTINGS);
-  // Snapshot of the DOM-rendered bits (mask + caption); the canvas reads the ref directly.
-  const [dom, setDom] = useState<CoverSettings>(DEFAULT_COVER_SETTINGS);
-
+/** Seconds since the cover mounted, as hh:mm:ss. */
+function Elapsed() {
+  const [seconds, setSeconds] = useState(0);
   useEffect(() => {
-    settingsRef.current = loadSettings();
-    const s = settingsRef.current;
-    setDom({ ...s });
-
-    let disposed = false;
-    let gui: import("dat.gui").GUI | undefined;
-
-    // dat.gui touches document on construction: client-only dynamic import.
-    void import("dat.gui").then((dat) => {
-      if (disposed) return;
-      gui = new dat.GUI({ width: 320 });
-      const host = gui.domElement.parentElement;
-      if (host) {
-        host.style.zIndex = "60";
-        host.style.pointerEvents = "auto";
-      }
-
-      const sync = () => {
-        saveSettings(s);
-        setDom({ ...s });
-      };
-
-      gui
-        .add(
-          s,
-          "variant",
-          Object.fromEntries(COVER_VARIANTS.map((v) => [v.label, v.id])),
-        )
-        .name("Variant")
-        .onChange(sync);
-
-      const grid = gui.addFolder("Grid");
-      grid.add(s, "cell", 8, 80, 1).name("Cell size (px)").onChange(sync);
-      grid.add(s, "fontSize", 6, 40, 1).name("Font size (px)").onChange(sync);
-      grid.add(s, "density", 0.05, 1, 0.01).name("Density").onChange(sync);
-      grid.add(s, "flipChance", 0, 1, 0.01).name("Flip chance").onChange(sync);
-      grid.add(s, "flipInterval", 30, 1000, 10).name("Flip interval (ms)").onChange(sync);
-      grid.open();
-
-      const look = gui.addFolder("Brightness");
-      look.add(s, "alphaBase", 0, 1, 0.01).name("Alpha base").onChange(sync);
-      look.add(s, "alphaRange", 0, 1, 0.01).name("Alpha range").onChange(sync);
-      look.add(s, "colorMix", 0, 1, 0.01).name("Green mix").onChange(sync);
-      look.add(s, "contrast", 0.5, 4, 0.05).name("Contrast").onChange(sync);
-      look.open();
-
-      const motion = gui.addFolder("Motion");
-      motion.add(s, "speed", 0, 4, 0.05).name("Speed").onChange(sync);
-      motion.add(s, "scale", 0.25, 4, 0.05).name("Patch scale").onChange(sync);
-      motion.add(s, "breathPeriod", 0, 20, 0.5).name("Breath period (s)").onChange(sync);
-      motion.add(s, "breathMin", 0, 1, 0.01).name("Breath min").onChange(sync);
-      motion.add(s, "twinkle", 0, 1, 0.01).name("Twinkle").onChange(sync);
-      motion.open();
-
-      const logo = gui.addFolder("Embossed logo");
-      logo.add(s, "logoSize", 0.1, 1, 0.01).name("Logo size").onChange(sync);
-      logo.add(s, "logoBase", 0, 1, 0.01).name("Field outside").onChange(sync);
-      logo.add(s, "logoStrength", 0, 1, 0.01).name("Logo strength").onChange(sync);
-      logo.add(s, "logoPulsePeriod", 0, 10, 0.5).name("Pulse period (s)").onChange(sync);
-      logo.add(s, "logoFeather", 0, 3, 0.1).name("Edge feather").onChange(sync);
-
-      const wordmark = gui.addFolder("T0 wordmark");
-      wordmark.add(s, "wordmarkSize", 0.2, 1, 0.01).name("Wordmark size").onChange(sync);
-      wordmark.add(s, "wordmarkThreshold", 0, 1, 0.01).name("Edge threshold").onChange(sync);
-
-      const ascii = gui.addFolder("ASCII logo");
-      ascii.add(s, "asciiSize", 0.2, 1, 0.01).name("Logo size").onChange(sync);
-      ascii.add(s, "asciiTile").name("Draw tile").onChange(sync);
-      ascii.add(s, "asciiTileAlpha", 0, 1, 0.01).name("Tile alpha").onChange(sync);
-      ascii.add(s, "asciiGlyphAlpha", 0, 1, 0.01).name("T/0 alpha").onChange(sync);
-      ascii.add(s, "asciiHalo", 0, 10, 0.5).name("Halo width (cells)").onChange(sync);
-      ascii.add(s, "asciiHaloAlpha", 0, 1, 0.01).name("Halo alpha").onChange(sync);
-      ascii.add(s, "asciiShimmer", 0, 1, 0.01).name("Shimmer").onChange(sync);
-      ascii.add(s, "asciiShimmerPeriod", 0.5, 12, 0.5).name("Shimmer period (s)").onChange(sync);
-
-      const caption = gui.addFolder("Caption");
-      caption.add(s, "captionShow").name("Show").onChange(sync);
-      caption.add(s, "captionText").name("Text").onChange(sync);
-      caption.add(s, "captionX", 0, 100, 0.5).name("X (%)").onChange(sync);
-      caption.add(s, "captionY", 0, 100, 0.5).name("Y (%)").onChange(sync);
-      caption.add(s, "captionFont", { Sans: "sans", Mono: "mono" }).name("Font").onChange(sync);
-      caption.add(s, "captionSize", 8, 64, 1).name("Size (px)").onChange(sync);
-      caption.add(s, "captionWeight", 100, 900, 100).name("Weight").onChange(sync);
-      caption.addColor(s, "captionColor").name("Color").onChange(sync);
-      caption.add(s, "captionOpacity", 0, 1, 0.01).name("Opacity").onChange(sync);
-      caption.add(s, "captionMaxWidth", 120, 1200, 10).name("Max width (px)").onChange(sync);
-      caption.open();
-
-      const maskFolder = gui.addFolder("Simulate wait mask");
-      maskFolder.add(s, "simulateMask").name("Enable").onChange(sync);
-      maskFolder.add(s, "maskOpacity", 0, 1, 0.01).name("White opacity").onChange(sync);
-      maskFolder.add(s, "maskBlur", 0, 30, 1).name("Blur (px)").onChange(sync);
-      maskFolder.open();
-
-      gui
-        .add(
-          {
-            reset: () => {
-              Object.assign(s, DEFAULT_COVER_SETTINGS);
-              gui?.updateDisplay();
-              sync();
-            },
-          },
-          "reset",
-        )
-        .name("Reset to defaults");
-      gui
-        .add(
-          {
-            copy: () => {
-              void navigator.clipboard?.writeText(JSON.stringify(s, null, 2));
-            },
-          },
-          "copy",
-        )
-        .name("Copy settings JSON");
-    });
-
-    return () => {
-      disposed = true;
-      gui?.destroy();
-    };
+    const started = Date.now();
+    const id = window.setInterval(() => setSeconds(Math.floor((Date.now() - started) / 1000)), 1000);
+    return () => window.clearInterval(id);
   }, []);
-
+  const pad = (n: number) => String(n).padStart(2, "0");
   return (
-    <>
-      <TemplatePreviewWaveGrid settingsRef={settingsRef} />
-      {dom.captionShow && (
-        <p
-          className="pointer-events-none absolute m-0 -translate-x-1/2 -translate-y-1/2 text-center leading-relaxed"
-          style={{
-            left: `${dom.captionX}%`,
-            top: `${dom.captionY}%`,
-            maxWidth: dom.captionMaxWidth,
-            fontFamily: dom.captionFont === "mono" ? "var(--font-app-mono, ui-monospace, monospace)" : "var(--font-app-sans, system-ui, sans-serif)",
-            fontSize: dom.captionSize,
-            fontWeight: dom.captionWeight,
-            color: dom.captionColor,
-            opacity: dom.captionOpacity,
-          }}
-        >
-          {dom.captionText}
-        </p>
-      )}
-      {dom.simulateMask && (
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-          <div
-            className="absolute inset-0"
-            style={{ backdropFilter: `blur(${dom.maskBlur}px)`, WebkitBackdropFilter: `blur(${dom.maskBlur}px)` }}
-          />
-          <div className="absolute inset-0 bg-background" style={{ opacity: dom.maskOpacity }} />
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center">
-            <div className="size-6 animate-spin rounded-full border-2 border-muted border-t-highlight" />
-            <div className="text-sm font-medium text-foreground">Generating your app…</div>
-            <div className="text-sm text-muted-foreground">
-              Tips: Use the console to inspect runtime errors while the agent iterates.
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+    <span>
+      {pad(Math.floor(seconds / 3600))}:{pad(Math.floor((seconds % 3600) / 60))}:{pad(seconds % 60)}
+    </span>
   );
 }
