@@ -366,6 +366,8 @@ body {
  * cleanly under the platform's wait mask. */
 .template-preview-cover {
   --cover-accent: var(--tier0-highlight-deep);
+  /* a shade below the window so its edge reads on the page */
+  background: color-mix(in srgb, var(--tier0-surface-muted) 35%, var(--tier0-canvas));
 }
 .template-preview-cover__accent {
   color: var(--cover-accent);

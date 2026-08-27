@@ -14,7 +14,7 @@ import { ClientOnly } from "@/components/client-only";
 export function TemplatePreviewPlaceholder() {
   return (
     <section
-      className="template-preview-placeholder template-preview-cover pointer-events-none fixed inset-0 z-50 hidden min-h-svh items-center justify-center overflow-hidden bg-background p-6 text-foreground sm:p-12"
+      className="template-preview-placeholder template-preview-cover pointer-events-none fixed inset-0 z-50 hidden min-h-svh items-center justify-center overflow-hidden p-6 text-foreground sm:p-12"
       aria-label="Start building to see your Tier0 app here."
     >
       <div className="template-preview-cover__window flex h-[min(62vh,560px)] w-full max-w-[840px] flex-col overflow-hidden rounded-xl bg-background">
