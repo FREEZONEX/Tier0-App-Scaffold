@@ -361,31 +361,23 @@ body {
   display: flex;
 }
 
-/* Pre-generation cover: crosshair + rotating tick ring + wordmark. Kept to
- * thin lines and the deep highlight so it stays legible on white and blurs
- * away cleanly under the platform's wait mask. */
+/* Pre-generation cover: mac-style window frame + wordmark. Kept to thin
+ * lines and the deep highlight so it stays legible on white and blurs away
+ * cleanly under the platform's wait mask. */
 .template-preview-cover {
   --cover-accent: var(--tier0-highlight-deep);
 }
 .template-preview-cover__accent {
   color: var(--cover-accent);
 }
-.template-preview-cover__line {
-  background: color-mix(in srgb, var(--cover-accent) 35%, transparent);
+.template-preview-cover__dot {
+  background: var(--cover-accent);
 }
-.template-preview-cover__ring {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: template-preview-rotate 60s linear infinite;
+.template-preview-cover__bar {
+  background: var(--tier0-bg-secondary);
 }
-.template-preview-cover__ring-outer {
-  stroke: color-mix(in srgb, var(--cover-accent) 50%, transparent);
-}
-.template-preview-cover__ring-inner {
-  stroke: color-mix(in srgb, var(--foreground) 15%, transparent);
-}
-.template-preview-cover__tick {
-  stroke: var(--cover-accent);
+.template-preview-cover__window {
+  animation: template-preview-breathe 6s ease-in-out infinite;
 }
 .template-preview-cover__mono {
   font-family: var(--font-geist-mono);
@@ -393,9 +385,17 @@ body {
 .template-preview-cover__cursor {
   animation: template-preview-blink 1.6s steps(1) infinite;
 }
-@keyframes template-preview-rotate {
-  to {
-    transform: rotate(360deg);
+@keyframes template-preview-breathe {
+  0%,
+  100% {
+    box-shadow:
+      0 24px 80px rgb(5 11 20 / 0.06),
+      0 0 0 1px rgb(5 11 20 / 0.1);
+  }
+  50% {
+    box-shadow:
+      0 32px 96px rgb(5 11 20 / 0.09),
+      0 0 0 1px rgb(5 11 20 / 0.14);
   }
 }
 @keyframes template-preview-blink {
@@ -404,7 +404,12 @@ body {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .template-preview-cover__ring,
+  .template-preview-cover__window {
+    animation: none;
+    box-shadow:
+      0 24px 80px rgb(5 11 20 / 0.06),
+      0 0 0 1px rgb(5 11 20 / 0.1);
+  }
   .template-preview-cover__cursor {
     animation: none;
   }
