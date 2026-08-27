@@ -366,8 +366,7 @@ body {
  * cleanly under the platform's wait mask. */
 .template-preview-cover {
   --cover-accent: var(--tier0-highlight-deep);
-  /* a shade below the window so its edge reads on the page */
-  background: color-mix(in srgb, var(--tier0-surface-muted) 35%, var(--tier0-canvas));
+  background: var(--tier0-canvas);
 }
 .template-preview-cover__accent {
   color: var(--cover-accent);
@@ -391,13 +390,13 @@ body {
   0%,
   100% {
     box-shadow:
-      0 20px 60px rgb(5 11 20 / 0.04),
-      0 0 0 0.5px rgb(5 11 20 / 0.06);
+      0 12px 40px rgb(5 11 20 / 0.025),
+      0 0 0 0.5px rgb(5 11 20 / 0.08);
   }
   50% {
     box-shadow:
-      0 28px 80px rgb(5 11 20 / 0.06),
-      0 0 0 0.5px rgb(5 11 20 / 0.08);
+      0 16px 48px rgb(5 11 20 / 0.04),
+      0 0 0 0.5px rgb(5 11 20 / 0.1);
   }
 }
 @keyframes template-preview-blink {
@@ -409,8 +408,8 @@ body {
   .template-preview-cover__window {
     animation: none;
     box-shadow:
-      0 20px 60px rgb(5 11 20 / 0.04),
-      0 0 0 0.5px rgb(5 11 20 / 0.06);
+      0 12px 40px rgb(5 11 20 / 0.025),
+      0 0 0 0.5px rgb(5 11 20 / 0.08);
   }
   .template-preview-cover__cursor {
     animation: none;
