@@ -1,10 +1,16 @@
+import { ClientOnly } from "@/components/client-only";
+import { TemplatePreviewWaveGrid } from "@/components/TemplatePreviewWaveGrid";
+
 export function TemplatePreviewPlaceholder() {
   return (
     <section
       className="template-preview-placeholder pointer-events-none fixed inset-0 z-50 hidden min-h-svh items-center justify-center overflow-hidden bg-background px-6 py-12 text-foreground"
       aria-labelledby="template-preview-title"
     >
-      <div className="flex w-full max-w-md -translate-y-[3vh] flex-col items-center text-center">
+      <ClientOnly>
+        <TemplatePreviewWaveGrid />
+      </ClientOnly>
+      <div className="relative flex w-full max-w-md -translate-y-[3vh] flex-col items-center text-center">
         <img
           src="/builder-logo-dark.svg"
           alt="Tier0"
