@@ -1,85 +1,41 @@
 import { useEffect, useRef } from "react";
 
 /**
- * Pre-generation placeholder artwork: a large "T0" wordmark built from a grid
- * of small monospace "T"/"0" glyphs.
+ * Ambient background for the pre-generation placeholder.
  *
- * Cells are only drawn where they fall inside the wordmark silhouette. Glyph
- * colour drifts between the tertiary text grey and the Tier0 highlight green;
- * brightness is a pure function of (column, row, time): a slow diagonal
- * travelling wave plus a whole-screen breathing envelope. No pointer tracking,
- * no random light sources — deterministic apart from the glyph flips.
+ * A grid of monospace "T"/"0" glyphs whose colour drifts between the tertiary
+ * text grey and the Tier0 highlight green. Brightness is a pure function of
+ * (column, row, time): a slow diagonal travelling wave plus a whole-screen
+ * breathing envelope. No pointer tracking, no random light sources — the
+ * animation is deterministic and stateless apart from the glyph flips.
  *
- * Kept translucent on purpose: the platform preview shows this page under a
- * blurred, 70–95% opaque wait mask with its own copy in the centre. Small
- * low-alpha glyphs blur into a faint tint rather than a solid shape, unlike a
- * dark logo would.
+ * The platform preview shows this page underneath a blurred, 70–95% opaque
+ * wait mask with its own copy in the centre. Small translucent glyphs blur
+ * into an even tint under that mask, so nothing solid sits on this cover.
  */
 
-const CELL = 20;
-const FONT_SIZE = 10;
+const CELL = 30;
+const FONT_SIZE = 12;
 const GLYPHS = "T0";
 const FLIP_INTERVAL_MS = 120;
 const FLIP_CHANCE = 0.15;
 
 // Brightness: alpha = ALPHA_BASE + t * ALPHA_RANGE, t in [0, 1].
-const ALPHA_BASE = 0.18;
-const ALPHA_RANGE = 0.62;
-// Colour: grey -> highlight interpolation is capped so peaks are greenish grey.
-const COLOR_MIX_MAX = 0.85;
+const ALPHA_BASE = 0.08;
+const ALPHA_RANGE = 0.7;
+// Colour: grey -> highlight interpolation cap.
+const COLOR_MIX_MAX = 0.95;
 
 // Diagonal travelling wave in cell units. Wavelength ~40 cells.
-const WAVE_KX = 0.12;
-const WAVE_KY = 0.08;
+const WAVE_KX = 0.18;
+const WAVE_KY = 0.12;
 const WAVE_PERIOD_S = 7;
 // Per-cell slow twinkle with a stable phase from a hash of (c, r).
 const TWINKLE_PERIOD_S = 5;
 const TWINKLE_WEIGHT = 0.3;
 // Whole-screen envelope. Kept off the platform mask's 4.5s so they don't beat.
 const BREATH_PERIOD_S = 6;
-const BREATH_MIN = 0.5;
-
-// Wordmark silhouette: rendered offscreen and sampled at cell centres.
-const WORDMARK = "T0";
-const WORDMARK_WIDTH_RATIO = 0.7; // of the shorter of (width, height*1.6)
-
-function resolveWordmarkFont(px: number) {
-  const family =
-    getComputedStyle(document.documentElement).getPropertyValue("--font-app-sans").trim() ||
-    "system-ui, sans-serif";
-  return `700 ${px}px ${family}`;
-}
-
-/** Bit per cell: 1 when the cell centre lies inside the wordmark. */
-function buildWordmarkMask(width: number, height: number, cols: number, rows: number) {
-  const mask = new Uint8Array(cols * rows);
-  const off = document.createElement("canvas");
-  off.width = Math.max(1, width);
-  off.height = Math.max(1, height);
-  const octx = off.getContext("2d", { willReadFrequently: true });
-  if (!octx) return mask;
-
-  const targetWidth = Math.min(width, height * 1.6) * WORDMARK_WIDTH_RATIO;
-  // Fit the text width to targetWidth by measuring at a reference size.
-  octx.font = resolveWordmarkFont(100);
-  const refWidth = octx.measureText(WORDMARK).width || 1;
-  const px = (100 * targetWidth) / refWidth;
-  octx.font = resolveWordmarkFont(px);
-  octx.textAlign = "center";
-  octx.textBaseline = "middle";
-  octx.fillStyle = "#000";
-  octx.fillText(WORDMARK, width / 2, height / 2);
-
-  const data = octx.getImageData(0, 0, off.width, off.height).data;
-  for (let r = 0; r < rows; r++) {
-    const y = Math.min(off.height - 1, Math.floor(r * CELL + CELL / 2));
-    for (let c = 0; c < cols; c++) {
-      const x = Math.min(off.width - 1, Math.floor(c * CELL + CELL / 2));
-      mask[r * cols + c] = data[(y * off.width + x) * 4 + 3] > 96 ? 1 : 0;
-    }
-  }
-  return mask;
-}
+const BREATH_MIN = 0.4;
 
 function hexToRgb(hex: string): [number, number, number] | null {
   const h = hex.trim().replace("#", "");
@@ -119,7 +75,6 @@ export function TemplatePreviewWaveGrid() {
     let rows = 0;
     let glyphs: Uint8Array = new Uint8Array(0);
     let phases: Float32Array = new Float32Array(0);
-    let mask: Uint8Array = new Uint8Array(0);
     let frame = 0;
     let lastFlip = 0;
     const start = performance.now();
@@ -135,7 +90,6 @@ export function TemplatePreviewWaveGrid() {
       rows = Math.ceil(height / CELL) + 1;
       glyphs = new Uint8Array(cols * rows);
       phases = new Float32Array(cols * rows);
-      mask = buildWordmarkMask(width, height, cols, rows);
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
           const i = r * cols + c;
@@ -156,17 +110,16 @@ export function TemplatePreviewWaveGrid() {
         BREATH_MIN + (1 - BREATH_MIN) * (0.5 + 0.5 * Math.sin((time / BREATH_PERIOD_S) * Math.PI * 2));
       const wavePhase = (time / WAVE_PERIOD_S) * Math.PI * 2;
       const twinklePhase = (time / TWINKLE_PERIOD_S) * Math.PI * 2;
-
       for (let r = 0; r < rows; r++) {
         const y = r * CELL + CELL / 2;
         for (let c = 0; c < cols; c++) {
           const i = r * cols + c;
-          if (!mask[i]) continue;
           const x = c * CELL + CELL / 2;
 
           const wave = Math.sin(WAVE_KX * c + WAVE_KY * r - wavePhase);
           const twinkle = Math.sin(twinklePhase + phases[i]) * TWINKLE_WEIGHT;
           let t = 0.5 + 0.5 * (wave + twinkle) / (1 + TWINKLE_WEIGHT);
+          t = t * t; // sharpen crests so bands read clearly
           t *= breath;
 
           const mix = t * COLOR_MIX_MAX;
