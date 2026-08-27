@@ -302,6 +302,9 @@ to `.env.example`, business tables, or user-facing settings unless the user
 explicitly requests an operator-managed credential console. Keep human app
 names separate from `APP_ID`/manifest runtime identifiers.
 
+Do not use the sandbox file system for application-generated or user-uploaded
+data. Use the platform File Storage API instead.
+
 ## App Identity and Product Copy
 
 Set `APP_NAME` and `APP_LOCALE` once in `src/lib/app-chrome.ts`; update used
