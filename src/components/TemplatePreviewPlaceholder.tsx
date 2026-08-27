@@ -50,16 +50,13 @@ function saveSettings(s: CoverSettings) {
  */
 function CoverStage() {
   const settingsRef = useRef<CoverSettings>(DEFAULT_COVER_SETTINGS);
-  const [mask, setMask] = useState({
-    on: DEFAULT_COVER_SETTINGS.simulateMask,
-    opacity: DEFAULT_COVER_SETTINGS.maskOpacity,
-    blur: DEFAULT_COVER_SETTINGS.maskBlur,
-  });
+  // Snapshot of the DOM-rendered bits (mask + caption); the canvas reads the ref directly.
+  const [dom, setDom] = useState<CoverSettings>(DEFAULT_COVER_SETTINGS);
 
   useEffect(() => {
     settingsRef.current = loadSettings();
     const s = settingsRef.current;
-    setMask({ on: s.simulateMask, opacity: s.maskOpacity, blur: s.maskBlur });
+    setDom({ ...s });
 
     let disposed = false;
     let gui: import("dat.gui").GUI | undefined;
@@ -76,7 +73,7 @@ function CoverStage() {
 
       const sync = () => {
         saveSettings(s);
-        setMask({ on: s.simulateMask, opacity: s.maskOpacity, blur: s.maskBlur });
+        setDom({ ...s });
       };
 
       gui
@@ -118,6 +115,33 @@ function CoverStage() {
       logo.add(s, "logoPulsePeriod", 0, 10, 0.5).name("Pulse period (s)").onChange(sync);
       logo.add(s, "logoFeather", 0, 3, 0.1).name("Edge feather").onChange(sync);
 
+      const wordmark = gui.addFolder("T0 wordmark");
+      wordmark.add(s, "wordmarkSize", 0.2, 1, 0.01).name("Wordmark size").onChange(sync);
+      wordmark.add(s, "wordmarkThreshold", 0, 1, 0.01).name("Edge threshold").onChange(sync);
+
+      const ascii = gui.addFolder("ASCII logo");
+      ascii.add(s, "asciiSize", 0.2, 1, 0.01).name("Logo size").onChange(sync);
+      ascii.add(s, "asciiTile").name("Draw tile").onChange(sync);
+      ascii.add(s, "asciiTileAlpha", 0, 1, 0.01).name("Tile alpha").onChange(sync);
+      ascii.add(s, "asciiGlyphAlpha", 0, 1, 0.01).name("T/0 alpha").onChange(sync);
+      ascii.add(s, "asciiHalo", 0, 10, 0.5).name("Halo width (cells)").onChange(sync);
+      ascii.add(s, "asciiHaloAlpha", 0, 1, 0.01).name("Halo alpha").onChange(sync);
+      ascii.add(s, "asciiShimmer", 0, 1, 0.01).name("Shimmer").onChange(sync);
+      ascii.add(s, "asciiShimmerPeriod", 0.5, 12, 0.5).name("Shimmer period (s)").onChange(sync);
+
+      const caption = gui.addFolder("Caption");
+      caption.add(s, "captionShow").name("Show").onChange(sync);
+      caption.add(s, "captionText").name("Text").onChange(sync);
+      caption.add(s, "captionX", 0, 100, 0.5).name("X (%)").onChange(sync);
+      caption.add(s, "captionY", 0, 100, 0.5).name("Y (%)").onChange(sync);
+      caption.add(s, "captionFont", { Sans: "sans", Mono: "mono" }).name("Font").onChange(sync);
+      caption.add(s, "captionSize", 8, 64, 1).name("Size (px)").onChange(sync);
+      caption.add(s, "captionWeight", 100, 900, 100).name("Weight").onChange(sync);
+      caption.addColor(s, "captionColor").name("Color").onChange(sync);
+      caption.add(s, "captionOpacity", 0, 1, 0.01).name("Opacity").onChange(sync);
+      caption.add(s, "captionMaxWidth", 120, 1200, 10).name("Max width (px)").onChange(sync);
+      caption.open();
+
       const maskFolder = gui.addFolder("Simulate wait mask");
       maskFolder.add(s, "simulateMask").name("Enable").onChange(sync);
       maskFolder.add(s, "maskOpacity", 0, 1, 0.01).name("White opacity").onChange(sync);
@@ -157,13 +181,30 @@ function CoverStage() {
   return (
     <>
       <TemplatePreviewWaveGrid settingsRef={settingsRef} />
-      {mask.on && (
+      {dom.captionShow && (
+        <p
+          className="pointer-events-none absolute m-0 -translate-x-1/2 -translate-y-1/2 text-center leading-relaxed"
+          style={{
+            left: `${dom.captionX}%`,
+            top: `${dom.captionY}%`,
+            maxWidth: dom.captionMaxWidth,
+            fontFamily: dom.captionFont === "mono" ? "var(--font-app-mono, ui-monospace, monospace)" : "var(--font-app-sans, system-ui, sans-serif)",
+            fontSize: dom.captionSize,
+            fontWeight: dom.captionWeight,
+            color: dom.captionColor,
+            opacity: dom.captionOpacity,
+          }}
+        >
+          {dom.captionText}
+        </p>
+      )}
+      {dom.simulateMask && (
         <div aria-hidden="true" className="pointer-events-none absolute inset-0">
           <div
             className="absolute inset-0"
-            style={{ backdropFilter: `blur(${mask.blur}px)`, WebkitBackdropFilter: `blur(${mask.blur}px)` }}
+            style={{ backdropFilter: `blur(${dom.maskBlur}px)`, WebkitBackdropFilter: `blur(${dom.maskBlur}px)` }}
           />
-          <div className="absolute inset-0 bg-background" style={{ opacity: mask.opacity }} />
+          <div className="absolute inset-0 bg-background" style={{ opacity: dom.maskOpacity }} />
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center">
             <div className="size-6 animate-spin rounded-full border-2 border-muted border-t-highlight" />
             <div className="text-sm font-medium text-foreground">Generating your app…</div>

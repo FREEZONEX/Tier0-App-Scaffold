@@ -11,7 +11,7 @@ export const LOGO_T_PATH =
 export const LOGO_ZERO_PATH =
   "M21.2388 26.8338V14.5458L23.4948 12.2898H31.9428L34.1988 14.5458V26.8338L31.9428 29.0898H23.4948L21.2388 26.8338ZM24.0228 14.7858V26.5938H31.4148V14.7858H24.0228Z";
 
-export type CoverVariantId = "drift" | "emboss";
+export type CoverVariantId = "drift" | "emboss" | "wordmark" | "ascii";
 
 export interface CoverSettings {
   variant: CoverVariantId;
@@ -56,6 +56,43 @@ export interface CoverSettings {
   /** softness of the logo edge in cells */
   logoFeather: number;
 
+  // Wordmark only
+  /** wordmark width as a fraction of min(width, height * 1.6) */
+  wordmarkSize: number;
+  /** alpha threshold for a cell to count as inside the wordmark */
+  wordmarkThreshold: number;
+
+  // ASCII logo only (ghostty-style density art)
+  /** logo size as a fraction of min(width, height) */
+  asciiSize: number;
+  /** draw the rounded tile behind T/0 with light characters */
+  asciiTile: boolean;
+  /** tile character alpha */
+  asciiTileAlpha: number;
+  /** glyph (T / 0) character alpha */
+  asciiGlyphAlpha: number;
+  /** halo ring width outside the tile, in cells (0 = none) */
+  asciiHalo: number;
+  asciiHaloAlpha: number;
+  /** per-cell density jitter amplitude (0 = static art) */
+  asciiShimmer: number;
+  asciiShimmerPeriod: number;
+
+  // Caption
+  captionShow: boolean;
+  captionText: string;
+  /** horizontal centre, % of width */
+  captionX: number;
+  /** vertical centre, % of height */
+  captionY: number;
+  captionFont: "sans" | "mono";
+  captionSize: number;
+  captionWeight: number;
+  /** hex colour */
+  captionColor: string;
+  captionOpacity: number;
+  captionMaxWidth: number;
+
   // Evaluation aids
   /** overlay a blurred white layer like the platform wait mask */
   simulateMask: boolean;
@@ -88,6 +125,29 @@ export const DEFAULT_COVER_SETTINGS: CoverSettings = {
   logoStrength: 0.85,
   logoPulsePeriod: 3,
   logoFeather: 1,
+
+  wordmarkSize: 0.7,
+  wordmarkThreshold: 0.35,
+
+  asciiSize: 0.55,
+  asciiTile: true,
+  asciiTileAlpha: 0.35,
+  asciiGlyphAlpha: 0.9,
+  asciiHalo: 3,
+  asciiHaloAlpha: 0.7,
+  asciiShimmer: 0.25,
+  asciiShimmerPeriod: 4,
+
+  captionShow: true,
+  captionText: "Start building to see your Tier0 app here.",
+  captionX: 50,
+  captionY: 78,
+  captionFont: "sans",
+  captionSize: 14,
+  captionWeight: 400,
+  captionColor: "#878787",
+  captionOpacity: 1,
+  captionMaxWidth: 480,
 
   simulateMask: false,
   maskOpacity: 0.7,
@@ -136,7 +196,15 @@ export function embossField(input: FieldInput, s: CoverSettings) {
 export const COVER_VARIANTS: { id: CoverVariantId; label: string }[] = [
   { id: "drift", label: "Drifting clouds" },
   { id: "emboss", label: "Embossed logo" },
+  { id: "wordmark", label: "T0 wordmark only" },
+  { id: "ascii", label: "ASCII logo (ghostty)" },
 ];
+
+/** Density ramp, lightest to densest. */
+export const ASCII_RAMP = " ·:-=+*o%@$";
+export const ASCII_HALO_CHARS = "·=+x";
+
+export const WORDMARK_TEXT = "T0";
 
 export function fieldFor(id: CoverVariantId) {
   return id === "emboss" ? embossField : driftField;

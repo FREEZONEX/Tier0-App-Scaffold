@@ -1,10 +1,13 @@
 import { useEffect, useRef, type RefObject } from "react";
 
 import {
+  ASCII_HALO_CHARS,
+  ASCII_RAMP,
   fieldFor,
   LOGO_T_PATH,
   LOGO_TILE_SIZE,
   LOGO_ZERO_PATH,
+  WORDMARK_TEXT,
   type CoverSettings,
   type FieldInput,
 } from "@/components/template-preview-covers";
@@ -44,14 +47,28 @@ function cellHash(c: number, r: number) {
   return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
 }
 
-/** Per-cell 0..1 weight of the logo glyph paths, feathered at the edges. */
-function buildLogoMask(
+function wordmarkFont(px: number) {
+  const family =
+    getComputedStyle(document.documentElement).getPropertyValue("--font-app-sans").trim() ||
+    "system-ui, sans-serif";
+  return `700 ${px}px ${family}`;
+}
+
+/**
+ * Per-cell 0..1 weight of a centred silhouette, feathered at the edges.
+ * "logo" fills the builder logo glyph paths; "wordmark" fills a large "T0".
+ */
+type ShapeKind = "logo" | "wordmark" | "ascii-tile" | "ascii-t" | "ascii-zero" | "ascii-halo";
+
+function buildShapeMask(
+  kind: ShapeKind,
   width: number,
   height: number,
   cols: number,
   rows: number,
   cell: number,
   s: CoverSettings,
+  taps = 5,
 ) {
   const mask = new Float32Array(cols * rows);
   const off = document.createElement("canvas");
@@ -60,13 +77,39 @@ function buildLogoMask(
   const octx = off.getContext("2d", { willReadFrequently: true });
   if (!octx) return mask;
 
-  const size = Math.min(width, height) * s.logoSize;
-  const scale = size / LOGO_TILE_SIZE;
-  octx.setTransform(scale, 0, 0, scale, (width - size) / 2, (height - size) / 2);
   octx.fillStyle = "#000";
-  octx.fill(new Path2D(LOGO_T_PATH));
-  octx.fill(new Path2D(LOGO_ZERO_PATH), "evenodd");
-  octx.setTransform(1, 0, 0, 1, 0, 0);
+  if (kind.startsWith("ascii")) {
+    const size = Math.min(width, height) * s.asciiSize;
+    const scale = size / LOGO_TILE_SIZE;
+    octx.setTransform(scale, 0, 0, scale, (width - size) / 2, (height - size) / 2);
+    const tile = new Path2D();
+    tile.roundRect(0, 0, LOGO_TILE_SIZE, LOGO_TILE_SIZE, 5);
+    if (kind === "ascii-tile") octx.fill(tile);
+    if (kind === "ascii-t") octx.fill(new Path2D(LOGO_T_PATH));
+    if (kind === "ascii-zero") octx.fill(new Path2D(LOGO_ZERO_PATH), "evenodd");
+    if (kind === "ascii-halo") {
+      octx.lineWidth = (2 * s.asciiHalo * cell) / scale;
+      octx.strokeStyle = "#000";
+      octx.stroke(tile);
+      octx.fill(tile);
+    }
+    octx.setTransform(1, 0, 0, 1, 0, 0);
+  } else if (kind === "logo") {
+    const size = Math.min(width, height) * s.logoSize;
+    const scale = size / LOGO_TILE_SIZE;
+    octx.setTransform(scale, 0, 0, scale, (width - size) / 2, (height - size) / 2);
+    octx.fill(new Path2D(LOGO_T_PATH));
+    octx.fill(new Path2D(LOGO_ZERO_PATH), "evenodd");
+    octx.setTransform(1, 0, 0, 1, 0, 0);
+  } else {
+    const targetWidth = Math.min(width, height * 1.6) * s.wordmarkSize;
+    octx.font = wordmarkFont(100);
+    const refWidth = octx.measureText(WORDMARK_TEXT).width || 1;
+    octx.font = wordmarkFont((100 * targetWidth) / refWidth);
+    octx.textAlign = "center";
+    octx.textBaseline = "middle";
+    octx.fillText(WORDMARK_TEXT, width / 2, height / 2);
+  }
 
   const data = octx.getImageData(0, 0, off.width, off.height).data;
   const sample = (x: number, y: number) => {
@@ -74,20 +117,27 @@ function buildLogoMask(
     const yi = Math.min(off.height - 1, Math.max(0, Math.floor(y)));
     return data[(yi * off.width + xi) * 4 + 3] / 255;
   };
-  const q = (cell * s.logoFeather) / 4;
+  const q = kind.startsWith("ascii") ? cell / 3 : (cell * s.logoFeather) / 4;
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       const x = c * cell + cell / 2;
       const y = r * cell + cell / 2;
-      mask[r * cols + c] =
-        q <= 0
-          ? sample(x, y)
-          : (sample(x, y) +
-              sample(x - q, y - q) +
-              sample(x + q, y - q) +
-              sample(x - q, y + q) +
-              sample(x + q, y + q)) /
-            5;
+      if (q <= 0) {
+        mask[r * cols + c] = sample(x, y);
+      } else if (taps === 9) {
+        let sum = 0;
+        for (let dy = -1; dy <= 1; dy++)
+          for (let dx = -1; dx <= 1; dx++) sum += sample(x + dx * q, y + dy * q);
+        mask[r * cols + c] = sum / 9;
+      } else {
+        mask[r * cols + c] =
+          (sample(x, y) +
+            sample(x - q, y - q) +
+            sample(x + q, y - q) +
+            sample(x - q, y + q) +
+            sample(x + q, y + q)) /
+          5;
+      }
     }
   }
   return mask;
@@ -108,6 +158,7 @@ export function TemplatePreviewWaveGrid({
 
     const grey = readRgb("--tier0-text-tertiary", [135, 135, 135]);
     const green = readRgb("--tier0-highlight", [178, 237, 29]);
+    const ink = readRgb("--tier0-text-color", [5, 11, 20]);
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     let width = 0;
@@ -118,6 +169,11 @@ export function TemplatePreviewWaveGrid({
     let phases: Float32Array = new Float32Array(0);
     let visible: Uint8Array = new Uint8Array(0);
     let logoMask: Float32Array = new Float32Array(0);
+    // ASCII variant region coverages
+    let asciiTile: Float32Array = new Float32Array(0);
+    let asciiT: Float32Array = new Float32Array(0);
+    let asciiZero: Float32Array = new Float32Array(0);
+    let asciiHalo: Float32Array = new Float32Array(0);
     let layoutKey = "";
     let frame = 0;
     let lastFlip = 0;
@@ -132,6 +188,10 @@ export function TemplatePreviewWaveGrid({
         s.variant,
         s.logoSize,
         s.logoFeather,
+        s.wordmarkSize,
+        s.wordmarkThreshold,
+        s.asciiSize,
+        s.asciiHalo,
       ].join("|");
 
     const rebuild = (s: CoverSettings) => {
@@ -152,8 +212,20 @@ export function TemplatePreviewWaveGrid({
       }
       logoMask =
         s.variant === "emboss"
-          ? buildLogoMask(width, height, cols, rows, cell, s)
+          ? buildShapeMask("logo", width, height, cols, rows, cell, s)
           : new Float32Array(cols * rows);
+      if (s.variant === "wordmark") {
+        const shape = buildShapeMask("wordmark", width, height, cols, rows, cell, s);
+        for (let i = 0; i < visible.length; i++) {
+          if (shape[i] < s.wordmarkThreshold) visible[i] = 0;
+        }
+      }
+      if (s.variant === "ascii") {
+        asciiTile = buildShapeMask("ascii-tile", width, height, cols, rows, cell, s, 9);
+        asciiT = buildShapeMask("ascii-t", width, height, cols, rows, cell, s, 9);
+        asciiZero = buildShapeMask("ascii-zero", width, height, cols, rows, cell, s, 9);
+        asciiHalo = buildShapeMask("ascii-halo", width, height, cols, rows, cell, s, 9);
+      }
       layoutKey = layoutKeyFor(s);
     };
 
@@ -169,6 +241,66 @@ export function TemplatePreviewWaveGrid({
 
     const input: FieldInput = { c: 0, r: 0, time: 0, phase: 0, logo: 0 };
 
+    const rgba = (col: [number, number, number], a: number) =>
+      `rgba(${col[0]},${col[1]},${col[2]},${a.toFixed(3)})`;
+
+    /** Ghostty-style density art: character chosen by region coverage. */
+    const drawAscii = (s: CoverSettings, time: number) => {
+      const cell = s.cell;
+      const last = ASCII_RAMP.length - 1;
+      const shimmerPhase = s.asciiShimmerPeriod > 0 ? (time / s.asciiShimmerPeriod) * Math.PI * 2 : 0;
+      const breathe = s.breathPeriod > 0
+        ? s.breathMin + (1 - s.breathMin) * (0.5 + 0.5 * Math.sin((time / s.breathPeriod) * Math.PI * 2))
+        : 1;
+
+      for (let r = 0; r < rows; r++) {
+        const y = r * cell + cell / 2;
+        for (let c = 0; c < cols; c++) {
+          const i = r * cols + c;
+          const x = c * cell + cell / 2;
+          const jitter = s.asciiShimmer * 0.5 * Math.sin(shimmerPhase + phases[i] * 3);
+
+          const zc = asciiZero[i];
+          const tc = asciiT[i];
+          const tileC = asciiTile[i];
+          const haloC = asciiHalo[i];
+
+          let ch = "";
+          let color: [number, number, number] = grey;
+          let alpha = 0;
+
+          if (zc > 0.08) {
+            const d = Math.min(1, Math.max(0, zc + jitter * 0.4));
+            ch = ASCII_RAMP[Math.round(d * last)];
+            color = green;
+            alpha = s.asciiGlyphAlpha;
+          } else if (tc > 0.08) {
+            const d = Math.min(1, Math.max(0, tc + jitter * 0.4));
+            ch = ASCII_RAMP[Math.round(d * last)];
+            color = ink;
+            alpha = s.asciiGlyphAlpha;
+          } else if (s.asciiTile && tileC > 0.08) {
+            // light texture inside the tile: low ramp levels only
+            const d = Math.min(1, Math.max(0, tileC * 0.35 + jitter * 0.2));
+            ch = ASCII_RAMP[Math.max(1, Math.round(d * last))];
+            color = grey;
+            alpha = s.asciiTileAlpha;
+          } else if (s.asciiHalo > 0 && haloC > 0.08 && tileC < 0.5) {
+            // halo ring: sparse green chars, fading outwards, gently cycling
+            const k = Math.floor(
+              ((Math.sin(shimmerPhase * 0.5 + phases[i]) + 1) / 2) * (ASCII_HALO_CHARS.length - 1) + 0.5,
+            );
+            ch = ASCII_HALO_CHARS[k];
+            color = green;
+            alpha = s.asciiHaloAlpha * Math.min(1, haloC * 1.2) * breathe;
+          }
+          if (!ch || ch === " " || alpha <= 0.005) continue;
+          ctx.fillStyle = rgba(color, alpha);
+          ctx.fillText(ch, x, y);
+        }
+      }
+    };
+
     const draw = (now: number) => {
       const s = settingsRef.current;
       if (layoutKey !== layoutKeyFor(s)) rebuild(s);
@@ -180,6 +312,11 @@ export function TemplatePreviewWaveGrid({
       ctx.font = `${s.fontSize}px ui-monospace, SFMono-Regular, Menlo, monospace`;
       ctx.textBaseline = "middle";
       ctx.textAlign = "center";
+
+      if (s.variant === "ascii") {
+        drawAscii(s, input.time);
+        return;
+      }
 
       for (let r = 0; r < rows; r++) {
         const y = r * cell + cell / 2;
