@@ -151,9 +151,18 @@ Every implemented module service owns and awaits one module-level
   can turn into SQL `default`.
 - Use raw SQL only for schema/bootstrap setup and read-only helpers, not seed
   inserts/updates/deletes.
-- Runtime startup must not depend on a prior `drizzle push` or execution of
+- Runtime startup must not depend on a prior `db:push` or execution of
   `src/db/seed.ts`. The latter is for explicit bulk/reset fixtures and uses
   relative imports only.
+- Declare every table and enum in `src/db/schema.ts` through
+  `appSchema.table(...)` / `appSchema.enum(...)`, never bare `pgTable` /
+  `pgEnum` and never in another file. The platform deploys with
+  `drizzle-kit push --force` scoped to `DB_SCHEMA`; a declaration outside
+  `appSchema` is invisible to it and every table in the schema gets dropped.
+- `bootstrapModule(...)` entries pass the declared table object (`table:
+  workOrders`), so a runtime table always has a declaration push can see.
+- Locally sync with `npm run db:push`; it refuses DROP/TRUNCATE plans unless
+  `DB_SYNC_ALLOW_DESTRUCTIVE=1`.
 
 ## Routing and Server Boundaries
 
@@ -351,7 +360,7 @@ unchanged unless the task is deployment work.
 
 Environment contracts are documented in `docs/platform-integration.md`.
 Important names are `DATABASE_URL`, `DIRECT_DATABASE_URL`, `DB_SCHEMA`,
-`APP_ID`, and `VITE_BASE_PATH` (`NEXT_PUBLIC_BASE_PATH` is legacy only).
+`DB_SYNC_ALLOW_DESTRUCTIVE`, `APP_ID`, and `VITE_BASE_PATH` (`NEXT_PUBLIC_BASE_PATH` is legacy only).
 
 ## Completion Check
 

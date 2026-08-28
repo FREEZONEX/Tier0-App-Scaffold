@@ -2,7 +2,7 @@
   "locked": {
     "src/lib/gateway.test.ts": "61c93fd14170a4481b6ccc577ffa1ddf2c3af096a1c93cb0cf839e15346aa6af",
     "src/lib/permissions.test.mjs": "894dc637070d8a7dbdf4fe8a6073dd2547dfa6f2fde413d8786bfd12a5129bfb",
-    "src/lib/app-chrome.test.mjs": "f90484780f729e00940204935a613e023ffb4d684ef81d9aae060d932e27aa17",
+    "src/lib/app-chrome.test.mjs": "b0623e9cbd6e0045859aca0653c582aee129e9c389c9d205c338c9762c3018a7",
     "src/lib/navigation-contracts.test.mjs": "8b17bb2b12b23c5d70c6b400fb7a73c0826b2e909d13c470f29af478cca5cfd7",
     "src/lib/content-contracts.test.mjs": "1bf12c14667828208a97792fa52331d45819500d6218b2ee1540a9264235ce77",
     "src/lib/button-contracts.test.mjs": "b791163536f37c5090d0b5e57e8a5574a41d250ec50d0aae66ef59c65abbe0d8",
@@ -12,6 +12,7 @@
     "src/lib/table-contracts.test.mjs": "bce68248ad728a4c4ca7172b5359befe7b2063b0e7e141e00fc554196a91bf36",
     "src/lib/copy-contracts.test.mjs": "088e966a88889542f51f52e1fdb320fefdc4fed7861d8caddd9034ab465f05c2",
     "src/lib/db-contracts.test.mjs": "bc0a767ac93bdab7cbd0eb986af0bb9521124fa431adb3488ecaf65015ac8fbf",
+    "src/lib/db-schema-contracts.test.mjs": "f0b1a65ff8d5da81b42bf665a85328b48a000cde760af69b9d7c1bcb1738dd20",
     "src/lib/route-smoke-contracts.test.mjs": "7dd249a5563cd943d33ad1c44082a4464de9b7d6d31c64a736a62d0ed9b905d9",
     "src/lib/route-nesting-contracts.test.mjs": "9211ebb6be4f49f535c92c08ebc35b186c8b23027385e6018c8828bcc5bf9fc7",
     "src/lib/hooks-contracts.test.mjs": "36a2745d7a2f09b6846538f1940a76fdf62cd65840278ffd150a0d27662aa465",
@@ -23,7 +24,8 @@
     "scripts/route-smoke.mjs": "fabf6c5b4df6fa12dd373d0f7cdcaf2eae4faab33c3c31bfee6e95878feaf934",
     "scripts/route-nesting.mjs": "c7da9d6754ebd25de978ab395e9051f41d7a9a0f4733c24f7c2fd8d277c59891",
     "scripts/responsive-contract.mjs": "dcde5d6bf6da9e383dd388f9640a3a751e84ed5e95a2f49e4fa45c5c40cad584",
-    "scripts/post-build-verify.mjs": "94b9a634139bcf6811d24e1cdc8cc054dad3e93fff09e918a7c9d450b641b6c5",
-    "scripts/gate-integrity.mjs": "6eada7d59f32c695ecb8d2ced02a3a99c84bfe696612852a66b6bd2882a9d9b1"
+    "scripts/post-build-verify.mjs": "15a86c7e306db2a278ab12ca63f4a53c81007abb336547741cd4a3805093fb2f",
+    "scripts/db-sync-guard.mjs": "685d3702aeed7af44601f3fa0eb64a355df61d9afd6d2e5f0751a37b6ab7c849",
+    "scripts/gate-integrity.mjs": "a151dba2c552340dace1be85d4faeb646604a346f9fde113e0b6c0a8036ea5c3"
   }
 }

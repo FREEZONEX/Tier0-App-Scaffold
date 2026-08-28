@@ -1,4 +1,5 @@
 import { sql, type SQL } from "drizzle-orm";
+import { getTableConfig, type PgTable } from "drizzle-orm/pg-core";
 import { db } from "@/db";
 import { rowsOf } from "@/services/db-results";
 
@@ -6,10 +7,12 @@ type BootstrapTx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 export interface RuntimeTableBootstrap {
   /**
-   * Physical table name from schema.ts. Keep it unqualified; DB_SCHEMA is
-   * applied by the runtime connection search_path and by the empty-table check.
+   * The table object declared in `src/db/schema.ts` (bound to `appSchema`).
+   * Passing the declaration — not a name — is what keeps runtime-created
+   * tables and `drizzle-kit push` on the same table set: a table that only
+   * exists in bootstrap SQL is undeclared to push and gets dropped by it.
    */
-  tableName: string;
+  table: PgTable;
   /**
    * Optional idempotent setup that must exist before tables are created, such
    * as extensions, enums, functions, or prerequisite schema objects.
@@ -70,38 +73,29 @@ async function runBootstrap(
     }
 
     for (const table of tables) {
-      if (table.seed && !(await hasRows(tx, schemaName, table.tableName))) {
+      if (table.seed && !(await hasRows(tx, table.table))) {
         await table.seed(tx);
       }
     }
   });
 }
 
-async function hasRows(
-  tx: BootstrapTx,
-  schemaName: string | null,
-  tableName: string,
-) {
+async function hasRows(tx: BootstrapTx, table: PgTable) {
   const result = await tx.execute(
-    sql.raw(
-      `select exists (select 1 from ${tableReference(
-        schemaName,
-        tableName,
-      )} limit 1) as has_rows`,
-    ),
+    sql`select exists (select 1 from ${table} limit 1) as has_rows`,
   );
   const [row] = rowsOf(result) as Array<{ has_rows?: unknown }>;
   return row?.has_rows === true || row?.has_rows === "true";
 }
 
+/** Physical table name of a declaration, for bootstrap SQL and diagnostics. */
+export function tableName(table: PgTable): string {
+  return getTableConfig(table).name;
+}
+
 function getRuntimeSchema() {
   const schemaName = process.env.DB_SCHEMA?.trim();
   return schemaName ? schemaName : null;
-}
-
-function tableReference(schemaName: string | null, tableName: string) {
-  const table = quoteIdentifier(tableName);
-  return schemaName ? `${quoteIdentifier(schemaName)}.${table}` : table;
 }
 
 function quoteIdentifier(identifier: string) {
