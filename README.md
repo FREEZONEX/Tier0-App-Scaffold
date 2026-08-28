@@ -29,7 +29,7 @@ target application instead of being constrained by a fixed template library.
 ```bash
 npm install
 # Configure DATABASE_URL in .env
-npx drizzle-kit push      # Optional: pre-sync schema locally; services can also bootstrap at runtime
+npm run db:push           # Optional: pre-sync schema locally through the sync guard; services can also bootstrap at runtime
 npx tsx src/db/seed.ts    # Optional: explicit seed / fixture reset
 npm run dev               # -> http://localhost:5173
 ```
@@ -47,8 +47,9 @@ enabled.
 | Variable | Required | When unset | When set |
 |---|:---:|---|---|
 | `DATABASE_URL` | ✅ | — | Connects to PostgreSQL |
-| `DIRECT_DATABASE_URL` | | — | Direct database connection for `drizzle-kit push` and `seed.ts` |
-| `DB_SCHEMA` | | Uses `public` | Runs all queries inside the specified schema |
+| `DIRECT_DATABASE_URL` | | — | Direct database connection for `db:push` and `seed.ts` |
+| `DB_SCHEMA` | | Uses `public` | Binds `appSchema` in `src/db/schema.ts`, the runtime `search_path` and `drizzle-kit push` to the specified schema |
+| `DB_SYNC_ALLOW_DESTRUCTIVE` | | `db:push` refuses DROP/TRUNCATE plans | Set to `1` to let `db:push` apply destructive statements (back up first) |
 | `APP_ID` | | Defaults to `"monoapp"` | Returned by `/api/manifest` as the app id |
 | `VITE_BASE_PATH` | | No URL prefix | Applied to Vite `base`, router `basepath`, and `apiUrl()` |
 | `NEXT_PUBLIC_BASE_PATH` | | Legacy fallback only | Used by `apiUrl()` when `VITE_BASE_PATH` is absent |

@@ -20,7 +20,8 @@
     "smoke:routes": "node --import tsx scripts/route-smoke.mjs",
     "start": "node server.mjs",
     "lint": "eslint .",
-    "db:push": "drizzle-kit push",
+    "db:push": "node --import tsx scripts/db-sync-guard.mjs",
+    "db:push:check": "node --import tsx scripts/db-sync-guard.mjs --dry-run",
     "db:seed": "tsx src/db/seed.ts",
     "db:studio": "drizzle-kit studio"
   },

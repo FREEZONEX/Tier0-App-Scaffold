@@ -2,8 +2,28 @@
  * The imports below are intentional templates for the agent to consume when
  * defining schemas. They become "used" the moment the agent adds the first table.
  */
-import { pgTable, pgEnum, text, integer, boolean, timestamp, json, real } from "drizzle-orm/pg-core";
+import { pgEnum, pgSchema, pgTable, text, integer, boolean, timestamp, json, real, type PgSchema } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-zod";
+
+/**
+ * The application schema. Every table and enum is declared through it.
+ *
+ * The platform runs each app inside its own PostgreSQL schema (`DB_SCHEMA`)
+ * and deploys with `drizzle-kit push --force` scoped to that schema via
+ * `schemaFilter` in `drizzle.config.ts`. drizzle-kit only diffs tables whose
+ * declared schema is inside the filter: a bare `pgTable(...)` (schema
+ * `public`) is discarded, push then sees zero declared tables and drops every
+ * existing table in `DB_SCHEMA`. Binding declarations to `appSchema` makes
+ * local (`public`), preview and deployed environments share one definition.
+ * Only `appSchema` may be used to declare tables — never `pgTable` / `pgEnum`
+ * directly; `src/lib/db-schema-contracts.test.mjs` enforces it.
+ */
+type AppSchema = Pick<PgSchema<string>, "table" | "enum">;
+const dbSchemaName = process.env.DB_SCHEMA?.trim();
+export const appSchema: AppSchema = dbSchemaName
+  ? pgSchema(dbSchemaName)
+  : // drizzle-kit rejects pgSchema("public"); locally the plain factories are the public schema.
+    ({ table: pgTable, enum: pgEnum } as unknown as AppSchema);
 
 /**
  * Standard audit columns. Spread `...timestamps` into every table so
@@ -21,11 +41,16 @@ export const timestamps = {
 
 // ─── Agent: define your enums and tables below ───
 //
+// Declare everything with `appSchema.table(...)` / `appSchema.enum(...)` in
+// this file only. Services bootstrap tables by passing these declared objects
+// to `bootstrapModule(...)`, so a runtime table can never exist without its
+// declaration.
+//
 // Example enum:
-//   export const orderStatus = pgEnum("order_status", ["DRAFT", "RELEASED", "IN_PROGRESS", "COMPLETED", "CLOSED"]);
+//   export const orderStatus = appSchema.enum("order_status", ["DRAFT", "RELEASED", "IN_PROGRESS", "COMPLETED", "CLOSED"]);
 //
 // Example table:
-//   export const workOrders = pgTable("work_orders", {
+//   export const workOrders = appSchema.table("work_orders", {
 //     id:          text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
 //     code:        text("code").notNull().unique(),
 //     productName: text("product_name").notNull(),
@@ -44,6 +69,7 @@ export const timestamps = {
 //   export type WorkOrder        = typeof workOrders.$inferSelect;
 //   export type NewWorkOrder     = typeof workOrders.$inferInsert;
 //
-// After editing: npx drizzle-kit push is useful for local pre-sync, but each
-// implemented service must also runtime-bootstrap its own tables so preview
-// and new tenant schemas work before any manual push/seed command runs.
+// After editing: `npm run db:push` syncs the target schema and refuses
+// destructive statements unless DB_SYNC_ALLOW_DESTRUCTIVE=1. Each implemented
+// service must also runtime-bootstrap its own tables so preview and new
+// tenant schemas work before any push/seed command runs.

@@ -16,7 +16,7 @@ capability is enabled.
 
 | Variable | Description |
 |---|---|
-| `DIRECT_DATABASE_URL` | Direct DB connection that bypasses the pool. Preferred by `drizzle-kit push` and `seed.ts`. |
+| `DIRECT_DATABASE_URL` | Direct DB connection that bypasses the pool. Preferred by `db:push` and `seed.ts`. |
 
 ### Platform-Injected
 
@@ -24,7 +24,8 @@ These variables are platform-driven. Local development does not need them.
 
 | Variable | Behavior when unset | Behavior when set |
 |---|---|---|
-| `DB_SCHEMA` | Uses the `public` schema | Runs all queries in the specified schema |
+| `DB_SCHEMA` | Uses the `public` schema | Binds `appSchema`, runtime queries and `drizzle-kit push` to the specified schema |
+| `DB_SYNC_ALLOW_DESTRUCTIVE` | `db:push` fails on any DROP/TRUNCATE | `1` lets `db:push` apply destructive statements; only after a verified backup |
 | `APP_ID` | Defaults to `"monoapp"` | Returned by `/api/manifest` as the app id |
 | `VITE_BASE_PATH` | No URL prefix | Applied by `apiUrl()` and Vite `base` |
 | `NEXT_PUBLIC_BASE_PATH` | Legacy fallback only | Read by `apiUrl()` if `VITE_BASE_PATH` is missing |
@@ -212,7 +213,7 @@ the app:
 
 ```bash
 npm install
-npx drizzle-kit push    # create tables under DB_SCHEMA
+npm run db:push         # sync tables under DB_SCHEMA through scripts/db-sync-guard.mjs (non-zero exit on any destructive plan)
 npx tsx src/db/seed.ts  # seed DB_SCHEMA on first use
 npm run build           # outputs dist/{client,server}
 node server.mjs         # equivalent to npm start, listens on PORT (default 3000)
@@ -220,13 +221,47 @@ node server.mjs         # equivalent to npm start, listens on PORT (default 3000
 
 ---
 
+## Schema Declaration and Migration Safety
+
+One app owns exactly one PostgreSQL schema (`DB_SCHEMA`). When the platform
+deploys or replaces an app it runs `npx drizzle-kit push --force` in a
+migration container with `DB_SCHEMA` and `DATABASE_URL` injected, reading
+`drizzle.config.ts` and `src/db/schema.ts` directly. drizzle-kit diffs only
+tables whose declared schema is inside `schemaFilter`; anything it finds in
+`DB_SCHEMA` that is not declared there is dropped, and `--force` skips the
+confirmation. The scaffold therefore makes the declaration shape itself the
+safety guarantee:
+
+- `src/db/schema.ts` exports one `appSchema = pgSchema(DB_SCHEMA || "public")`
+  and declares every table and enum through `appSchema.table(...)` /
+  `appSchema.enum(...)`. Local, preview and deployed environments share that
+  single definition; a bare `pgTable(...)` fails the build.
+- Table declarations live only in `src/db/schema.ts`, the one file
+  `drizzle.config.ts` reads. A declaration in any other file is invisible to
+  push and its table would be dropped; the build rejects it.
+- `bootstrapModule(...)` accepts declared table objects, not names. A runtime
+  table cannot exist without a declaration, so push never sees it as garbage.
+- `drizzle.config.ts` keeps `schemaFilter: [DB_SCHEMA]` so a sync never reads
+  or writes another app's schema.
+
+These are enforced by `src/lib/db-schema-contracts.test.mjs` in `postbuild`.
+
+For developers and CI, `npm run db:push` runs `scripts/db-sync-guard.mjs`
+instead of raw push: it verifies the binding, prints the plan, and exits
+non-zero before applying anything if the plan contains `DROP TABLE`,
+`DROP SCHEMA`, `DROP COLUMN`, `TRUNCATE` or a drizzle-reported data-loss
+statement, unless `DB_SYNC_ALLOW_DESTRUCTIVE=1`. `npm run db:push:check` is
+the dry run. Raw `drizzle-kit push` exits 0 even when it drops tables or
+throws, so its exit code must never be treated as a success signal.
+
 ## Where Each Variable Is Read
 
 | Variable | Read from |
 |---|---|
 | `DATABASE_URL` | `db/index.ts`, `drizzle.config.ts`, `db/seed.ts` |
 | `DIRECT_DATABASE_URL` | `drizzle.config.ts`, `db/seed.ts` |
-| `DB_SCHEMA` | `db/index.ts` (`search_path`), `drizzle.config.ts` (`schemaFilter`), `db/seed.ts` |
+| `DB_SCHEMA` | `db/schema.ts` (`appSchema`), `db/index.ts` (`search_path`), `drizzle.config.ts` (`schemaFilter`), `db/seed.ts`, `services/bootstrap.ts`, `scripts/db-sync-guard.mjs` |
+| `DB_SYNC_ALLOW_DESTRUCTIVE` | `scripts/db-sync-guard.mjs` |
 | `APP_ID` | `routes/api/manifest.ts` |
 | `VITE_BASE_PATH` | `vite.config.ts` (`base`), `router.tsx` (`basepath`), `lib/utils.ts` (`apiUrl` primary source) |
 | `NEXT_PUBLIC_BASE_PATH` | `lib/utils.ts`, and as a fallback in `vite.config.ts` / `router.tsx` |
