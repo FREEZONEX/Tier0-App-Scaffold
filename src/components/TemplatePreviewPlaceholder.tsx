@@ -39,14 +39,13 @@ export function TemplatePreviewPlaceholder() {
           <div className="flex items-center gap-3">
             <img src="/tier0-logo.svg" alt="Tier0" className="h-5 w-auto" />
             <h2 className="m-0 text-[17px] font-medium tracking-[-0.01em] text-foreground">
-              Start building to see your app here
+              Welcome to Tier0 App Builder
               <span className="template-preview-cover__cursor template-preview-cover__accent">_</span>
             </h2>
           </div>
           <p className="m-0 mt-2 max-w-[60ch] text-[13.5px] leading-relaxed text-muted-foreground">
-            This route is a blank scaffold. Describe what you want and Tier0 fills it with
-            a shell, data tables, forms and actions wired to the platform — replacing this
-            cover as soon as the first screen is generated.
+            Describe what you want and Tier0 fills this scaffold with a shell, data tables,
+            forms and actions wired to the platform.
           </p>
         </div>
 
@@ -56,10 +55,9 @@ export function TemplatePreviewPlaceholder() {
             Scaffold v0
           </div>
           <div className="flex flex-1 items-center justify-center gap-2.5">
-            <Step label="Scaffold" state="done" />
-            <Step label="Generate" state="active" />
-            <Step label="Data" />
-            <Step label="Actions" />
+            <Step label="Spec" state="done" />
+            <Step label="Design" state="active" />
+            <Step label="Develop" />
             <Step label="Ship" />
           </div>
           <div className="flex items-center gap-2 whitespace-nowrap border-l border-foreground/5 px-4 sm:px-5">
