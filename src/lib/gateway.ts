@@ -135,7 +135,7 @@ export function getGatewayRole(headers: Headers): string | undefined {
  *
  * `undefined` means no authoritative role context is present. An empty array
  * in deployed mode is meaningful: the authenticated user has no app role and
- * must receive zero permissions rather than the preview admin fallback.
+ * must receive zero permissions.
  */
 export function getTrustedGatewayRoles(
   headers: Headers,

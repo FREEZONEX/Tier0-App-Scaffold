@@ -10,12 +10,13 @@ const FAILURE_TEXT = [
   "Application error",
   "Internal Server Error",
 ];
+// Preview identity with no selected role: the platform sends no role headers
+// before roles are registered, and the app must render with zero permissions.
 const DEFAULT_GATEWAY_HEADERS = {
-  "X-App-User-ID": "preview-admin",
-  "X-App-User-Name": "Preview Admin",
-  "X-App-User-Email": "preview-admin@example.com",
+  "X-App-User-ID": "preview-user",
+  "X-App-User-Name": "Preview User",
+  "X-App-User-Email": "preview-user@example.com",
   "X-Tier0-Runtime": "preview",
-  "X-Tier0-Preview-Role": "admin",
 };
 const MAX_AUTH_REDIRECTS = 3;
 

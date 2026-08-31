@@ -8,12 +8,7 @@ import {
   type GatewayUser,
 } from "./gateway";
 import { HttpError } from "./route-handlers";
-import {
-  ADMIN_ROLE,
-  hasAnyRole,
-  PERMISSION_MATRIX,
-  toRoleList,
-} from "./permissions";
+import { hasAnyRole, PERMISSION_MATRIX, toRoleList } from "./permissions";
 
 function isValidRole(role: string | undefined): role is string {
   return typeof role === "string" &&
@@ -39,10 +34,9 @@ function toAppUser(gatewayUser: GatewayUser, roles: readonly string[]): AppUser 
  * permissions are its union.
  *
  * Preview intentionally remains single-role "view as". A preview identity
- * without a selected role may use the built-in admin fallback so a fresh app
- * stays open before role registration, without creating an App-owned session.
- * An explicit deployed empty role list never receives that fallback: it enters
- * with zero permissions.
+ * without a selected role enters with zero roles and zero permissions — the
+ * scaffold reserves no fallback role. An explicit deployed empty role list is
+ * likewise authoritative zero access.
  */
 export async function getCurrentUser(): Promise<AppUser | null> {
   const headers = new Headers(getRequestHeaders());
@@ -63,12 +57,9 @@ export async function getCurrentUser(): Promise<AppUser | null> {
     return toAppUser(gatewayUser, getGatewayRoles(headers));
   }
 
-  if (
-    gatewayUser?.id &&
-    runtime === "preview" &&
-    isValidRole(ADMIN_ROLE)
-  ) {
-    return toAppUser(gatewayUser, [ADMIN_ROLE]);
+  if (gatewayUser?.id && runtime === "preview") {
+    // No selected preview role: zero roles, zero permissions.
+    return toAppUser(gatewayUser, []);
   }
 
   return null;

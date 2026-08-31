@@ -222,22 +222,22 @@ passwords, users, cookies, local sessions, login/register APIs, or logout.
   assigned roles.
 - `X-Tier0-Active-Role` / `user.primaryRole` is display metadata only; never
   choose one “highest” role for authorization.
-- Preview uses `X-Tier0-Preview-Role`; its admin fallback is request-scoped and
-  never writes a cookie.
+- Preview uses `X-Tier0-Preview-Role`; a preview request without a selected
+  role enters with zero roles and zero permissions.
 - Unknown trusted roles contribute zero permissions; explicit empty deployed
   roles remain zero-access. Forgeable unknown legacy roles fail closed.
 
 Register roles in one pass:
 
-Default the first version to no more than three effective roles total: the
-built-in `admin` plus at most two business roles chosen for materially different
-permission scopes. Do not create one role per page, action, or job title.
+The scaffold ships with no roles: `PERMISSION_MATRIX`, `ROLE_METADATA`, and
+`roles.json` start empty, and no role name is reserved — define `admin` only
+if the business genuinely needs a role by that name. Default the first version
+to no more than three roles chosen for materially different permission scopes.
+Do not create one role per page, action, or job title.
 
-1. Define actions and `PERMISSION_MATRIX` in `src/lib/permissions.ts`; keep
-   `[ADMIN_ROLE]: [...ACTIONS]`.
-2. Mirror every matrix role in `src/lib/role-metadata.ts` and `roles.json`.
-   New `role_key` values use ASCII snake_case. Internal admin stays out of
-   `roles.json`.
+1. Define actions and `PERMISSION_MATRIX` in `src/lib/permissions.ts`.
+2. Mirror every matrix role in `src/lib/role-metadata.ts` and `roles.json` —
+   every role, no exceptions. `role_key` values use ASCII snake_case.
 3. Guard APIs with `requireAuth(...)` and UI actions with
    `can(user.roles, action)`; both use permission-union semantics.
 4. Verify each role's reachable navigation and actions.

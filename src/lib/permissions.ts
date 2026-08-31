@@ -3,17 +3,21 @@
  *
  * Agent: define your actions and permission matrix here.
  *
+ * The scaffold ships with NO roles. Every role — including one named "admin",
+ * if the business actually needs it — is an ordinary business role you define
+ * from the requirements and register through the full chain:
+ *
  * 1. Define ACTIONS with all permissioned operations.
  * 2. Create PERMISSION_MATRIX mapping each role to its allowed actions.
- * 3. Use can(user.roles, action) everywhere to check permissions.
+ * 3. Mirror every matrix role in `role-metadata.ts` and `roles.json` — every
+ *    role, no exceptions; the platform can only assign registered roles.
+ * 4. Use can(user.roles, action) everywhere to check permissions.
  *
- * The template always ships with a built-in Admin role. When adding actions,
- * add them to ACTIONS first so Admin automatically retains full access.
+ * Until roles are defined, every request resolves to zero permissions —
+ * nothing is granted implicitly.
  */
 
 import { ROLE_METADATA, getRoleMetadata } from "./role-metadata";
-
-export const ADMIN_ROLE = "admin";
 
 export const ACTIONS = [
   "manage_system",
@@ -23,14 +27,10 @@ export type Action = (typeof ACTIONS)[number];
 export type RoleInput = string | readonly string[] | null | undefined;
 
 export const PERMISSION_MATRIX: Record<string, Action[]> = {
-  [ADMIN_ROLE]: [...ACTIONS],
 };
 
 export const ROLE_LABELS: Record<string, string> = Object.fromEntries(
-  Object.entries(ROLE_METADATA).map(([key, metadata]) => [
-    key,
-    metadata.label,
-  ]),
+  Object.keys(ROLE_METADATA).map((key) => [key, getRoleMetadata(key).label]),
 );
 
 export function getDefaultRouteForRole(role: string): string {

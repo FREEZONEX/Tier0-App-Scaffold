@@ -1,8 +1,10 @@
 /**
- * App manifest endpoint — declares available roles to the platform.
+ * App manifest endpoint — declares available roles for diagnostics.
  *
- * The platform admin UI calls this endpoint to know which roles
- * exist in this app, then presents a dropdown for role assignment.
+ * Role registration itself flows through root `roles.json` (read by the
+ * platform on import/fork) or the builder's `sync_business_roles` tool — the
+ * platform does not discover roles from this endpoint. It remains a cheap,
+ * always-current view of the app's role surface for debugging and tooling.
  *
  * Data source: PERMISSION_MATRIX from permissions.ts.
  * When the Agent adds/removes roles, this endpoint auto-updates.
@@ -14,7 +16,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PERMISSION_MATRIX, ROLE_LABELS } from "@/lib/permissions";
 
 const APP_ID = process.env.APP_ID || "monoapp";
-const DEFAULT_ROLE = "admin";
 
 export const Route = createFileRoute("/api/manifest")({
   server: {
@@ -28,9 +29,7 @@ export const Route = createFileRoute("/api/manifest")({
         return Response.json({
           appId: APP_ID,
           roles,
-          defaultRole: roles.some((r) => r.key === DEFAULT_ROLE)
-            ? DEFAULT_ROLE
-            : roles[0]?.key || "admin",
+          defaultRole: roles[0]?.key ?? null,
         });
       },
     },
