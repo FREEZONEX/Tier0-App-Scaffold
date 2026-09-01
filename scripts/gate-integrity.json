@@ -3,6 +3,7 @@
     "src/lib/gateway.test.ts": "61c93fd14170a4481b6ccc577ffa1ddf2c3af096a1c93cb0cf839e15346aa6af",
     "src/lib/permissions.test.mjs": "ff870a77b90732d1154884cfec77f00a5c73a271186245c7e9ac9204b227a26f",
     "src/lib/app-chrome.test.mjs": "6130ee1e3f38e82edf1b8aa93d9d4ad655fb1fbec614f930c50b89899bdf414c",
+    "src/lib/app-id-contracts.test.mjs": "1489f244f5bb310a4524bfb550aeebc45e1e4aeda575f46f353145d69b4f2961",
     "src/lib/navigation-contracts.test.mjs": "8b17bb2b12b23c5d70c6b400fb7a73c0826b2e909d13c470f29af478cca5cfd7",
     "src/lib/content-contracts.test.mjs": "1bf12c14667828208a97792fa52331d45819500d6218b2ee1540a9264235ce77",
     "src/lib/button-contracts.test.mjs": "b791163536f37c5090d0b5e57e8a5574a41d250ec50d0aae66ef59c65abbe0d8",
@@ -24,8 +25,8 @@
     "scripts/route-smoke.mjs": "fa09f7e8fb2619d27ddf132c0f49650c974724df9c1d99c612a0c29752995e48",
     "scripts/route-nesting.mjs": "c7da9d6754ebd25de978ab395e9051f41d7a9a0f4733c24f7c2fd8d277c59891",
     "scripts/responsive-contract.mjs": "dcde5d6bf6da9e383dd388f9640a3a751e84ed5e95a2f49e4fa45c5c40cad584",
-    "scripts/post-build-verify.mjs": "15a86c7e306db2a278ab12ca63f4a53c81007abb336547741cd4a3805093fb2f",
+    "scripts/post-build-verify.mjs": "12c3c7c1e6597441f909b9b100669bcab949f621b2fe0bbc850b3bd8bdaea6e3",
     "scripts/db-sync-guard.mjs": "685d3702aeed7af44601f3fa0eb64a355df61d9afd6d2e5f0751a37b6ab7c849",
-    "scripts/gate-integrity.mjs": "a151dba2c552340dace1be85d4faeb646604a346f9fde113e0b6c0a8036ea5c3"
+    "scripts/gate-integrity.mjs": "300d79c725692e70bb0a1e828b64e598bc4807b04d8402c526ad2b356403b0f1"
   }
 }

@@ -311,6 +311,13 @@ to `.env.example`, business tables, or user-facing settings unless the user
 explicitly requests an operator-managed credential console. Keep human app
 names separate from `APP_ID`/manifest runtime identifiers.
 
+When the app must identify itself to the platform (notification `sender.id`
+and similar), use `resolveAppId()` from `@/lib/app-id` — the platform-injected
+`APP_ID`, i.e. the agent-platform App UUID — read at runtime. Never hard-code
+its value at generation time: an imported copy of the app gets a new UUID and
+a hard-coded value keeps pointing at the source app, so the notification's
+name, icon and Open button silently break.
+
 Do not use the sandbox file system for application-generated or user-uploaded
 data. Use the platform File Storage API instead.
 
@@ -319,6 +326,13 @@ data. Use the platform File Storage API instead.
 Set `APP_NAME` and `APP_LOCALE` once in `src/lib/app-chrome.ts`; update used
 layout shells and platform App Info in the same closeout. Product UI uses one
 explicit locale unless bilingual output is requested.
+
+`APP_ID` is a platform-owned runtime identifier: the agent-platform App UUID,
+injected into Preview and deployed runs. Never hard-code, rename, or surface
+it as the app's name or business identity.
+Without injection it resolves to `local-app` (`src/lib/app-id.ts`) — a
+local-development placeholder only. The full contract lives in
+`docs/platform-integration.md`.
 
 On first generation and every rebrand, complete all three steps below before
 reporting App Identity finished. The app icon is one shared 512×512 PNG for
@@ -360,7 +374,8 @@ unchanged unless the task is deployment work.
 
 Environment contracts are documented in `docs/platform-integration.md`.
 Important names are `DATABASE_URL`, `DIRECT_DATABASE_URL`, `DB_SCHEMA`,
-`DB_SYNC_ALLOW_DESTRUCTIVE`, `APP_ID`, and `VITE_BASE_PATH` (`NEXT_PUBLIC_BASE_PATH` is legacy only).
+`DB_SYNC_ALLOW_DESTRUCTIVE`, `APP_ID`, and `VITE_BASE_PATH`
+(`NEXT_PUBLIC_BASE_PATH` is legacy only).
 
 ## Completion Check
 

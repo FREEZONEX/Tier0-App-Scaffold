@@ -26,7 +26,7 @@ These variables are platform-driven. Local development does not need them.
 |---|---|---|
 | `DB_SCHEMA` | Uses the `public` schema | Binds `appSchema`, runtime queries and `drizzle-kit push` to the specified schema |
 | `DB_SYNC_ALLOW_DESTRUCTIVE` | `db:push` fails on any DROP/TRUNCATE | `1` lets `db:push` apply destructive statements; only after a verified backup |
-| `APP_ID` | Defaults to `"monoapp"` | Returned by `/api/manifest` as the app id |
+| `APP_ID` | `local-app` (local-development placeholder only) | Platform-injected agent-platform App UUID (36 chars); echoed by `/api/manifest` and used wherever the app identifies itself to the platform (e.g. notification `sender.id`) |
 | `VITE_BASE_PATH` | No URL prefix | Applied by `apiUrl()` and Vite `base` |
 | `NEXT_PUBLIC_BASE_PATH` | Legacy fallback only | Read by `apiUrl()` if `VITE_BASE_PATH` is missing |
 | `TIER0_API_HOST` | — | Tier0 OpenAPI host injected by the platform |
@@ -34,7 +34,13 @@ These variables are platform-driven. Local development does not need them.
 | `TIER0_MQTT_HOST` | — | Tier0 MQTT WebSocket broker host injected by the platform |
 | `TIER0_MQTT_PORT` | Defaults to `8084` | Tier0 MQTT WebSocket port injected by the platform |
 
-`DB_SCHEMA` and `APP_ID` are typically set to the same session id. Tier0 SDK
+`APP_ID` is platform-owned: the agent-platform App UUID the platform can
+resolve back to the app's name, icon and Open button. Read it at runtime
+through `resolveAppId()` (`src/lib/app-id.ts`) — never hard-code the value at
+generation time, because an app imported into another project gets a new UUID
+and a hard-coded value keeps pointing at the source app. Without injection it
+resolves to `local-app`, a placeholder that must never be treated as the app's
+identity; Preview and deployed runs always carry the platform value. Tier0 SDK
 variables are injected by the platform during deployment. Do not place them in
 `.env.example`, and do not generate application UI for end users to edit them.
 
@@ -166,8 +172,9 @@ Project (proj-abc123)
        └─ schema: session-003  <- app 3
 ```
 
-One session equals one app. `DB_SCHEMA` and `APP_ID` should normally use the
-same value.
+One session equals one app. `DB_SCHEMA` is the schema the platform assigns to
+the app and `APP_ID` is the app's platform UUID; both are injected, and neither
+is derived from the other by the app.
 
 ### Platform Responsibilities
 
@@ -264,7 +271,7 @@ throws, so its exit code must never be treated as a success signal.
 | `DIRECT_DATABASE_URL` | `drizzle.config.ts`, `db/seed.ts` |
 | `DB_SCHEMA` | `db/schema.ts` (`appSchema`), `db/index.ts` (`search_path`), `drizzle.config.ts` (`schemaFilter`), `db/seed.ts`, `services/bootstrap.ts`, `scripts/db-sync-guard.mjs` |
 | `DB_SYNC_ALLOW_DESTRUCTIVE` | `scripts/db-sync-guard.mjs` |
-| `APP_ID` | `routes/api/manifest.ts` |
+| `APP_ID` | `lib/app-id.ts` (`resolveAppId`), used by `routes/api/manifest.ts` and by application code wherever it identifies itself to the platform (e.g. SDK notification `sender.id`); always read at runtime |
 | `VITE_BASE_PATH` | `vite.config.ts` (`base`), `router.tsx` (`basepath`), `lib/utils.ts` (`apiUrl` primary source) |
 | `NEXT_PUBLIC_BASE_PATH` | `lib/utils.ts`, and as a fallback in `vite.config.ts` / `router.tsx` |
 | `TIER0_API_HOST` | Injected by the platform; read by `@tier0/sdk/openapi` at runtime |
