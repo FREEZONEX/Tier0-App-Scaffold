@@ -103,7 +103,9 @@ describe("route smoke contracts", () => {
     assert.equal(calls.length, 2);
     assert.equal(calls[0].redirect, "manual");
     assert.equal(calls[1].headers["x-tier0-runtime"], "preview");
-    assert.equal(calls[1].headers["x-tier0-preview-role"], "admin");
+    // No selected preview role: the platform sends no role header before
+    // roles are registered, and the app must still render (zero permissions).
+    assert.equal(calls[1].headers["x-tier0-preview-role"], undefined);
     assert.equal(calls[1].headers.cookie, undefined);
   });
 });

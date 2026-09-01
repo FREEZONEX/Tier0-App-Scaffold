@@ -115,8 +115,8 @@ Browser -> Platform resolves the user's app role assignments
               -> 403 fail closed
 
             preview gateway user present but no selected role
-              -> use the built-in admin role for this request only
-              -> if the app defines no admin role, 503
+              -> enter with zero roles and zero permissions
+                 (the scaffold reserves no fallback role)
 
             gateway user present but no applicable role context
               -> 403
@@ -125,7 +125,7 @@ Browser -> Platform resolves the user's app role assignments
               -> 401
 ```
 
-An explicit empty deployed role set stays empty and never falls back to admin.
+An explicit empty deployed role set stays empty; no request falls back to any role.
 The App does not read, write, or clear platform login Cookies.
 
 `/login` is only a hidden platform-auth error bridge. It does not mint a Cookie
@@ -135,9 +135,11 @@ or render a role picker.
 
 Role definitions belong to the app. Role assignment belongs to the platform.
 
-1. The agent defines `PERMISSION_MATRIX` in `permissions.ts`
-2. The platform calls `GET /api/manifest` to discover valid roles
-3. The platform assigns one or more roles to each user in its admin UI
+1. The agent defines `PERMISSION_MATRIX` in `permissions.ts` and mirrors the
+   roles in `roles.json`
+2. The platform registers the `roles.json` roles on import/fork (or via the
+   builder's `sync_business_roles` tool)
+3. The platform assigns one or more registered roles to each user in its admin UI
 4. The gateway injects all assigned app roles in `X-Tier0-Business-Roles`
 5. The gateway may also inject one `X-Tier0-Active-Role` as the primary label
 6. The app unions permissions across every role for the current request

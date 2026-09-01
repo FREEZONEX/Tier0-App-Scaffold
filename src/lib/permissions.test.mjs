@@ -3,57 +3,48 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, it } from "node:test";
 
-describe("template admin role defaults", () => {
-  it("keeps admin built into the permission matrix", () => {
-    const permissions = readFileSync(
-      join(process.cwd(), "src/lib/permissions.ts"),
-      "utf8",
-    );
+// Role contracts (issue #55): the scaffold reserves no role names and grants
+// nothing implicitly. Every role — "admin" included, if the business defines
+// one — is an ordinary business role that must travel the full chain:
+// PERMISSION_MATRIX -> ROLE_METADATA -> roles.json -> platform registration.
 
-    assert.match(permissions, /export const ADMIN_ROLE = "admin"/);
-    assert.match(permissions, /\[ADMIN_ROLE\]:/);
-  });
-
-  it("keeps admin on full access to every action", () => {
-    const permissions = readFileSync(
-      join(process.cwd(), "src/lib/permissions.ts"),
-      "utf8",
-    );
-
-    assert.match(
-      permissions,
-      /\[ADMIN_ROLE\]:\s*\[\s*\.\.\.ACTIONS\s*\]/,
-      "Admin must keep [...ACTIONS] full access — preview fallback and the 'admin reaches everything' guarantee depend on it. Do not enumerate a subset.",
-    );
+describe("no preset or reserved roles", () => {
+  it("reserves no built-in role and no implicit grant", () => {
+    for (const file of ["src/lib/permissions.ts", "src/lib/auth.ts", "src/start.ts"]) {
+      const source = readFileSync(join(process.cwd(), file), "utf8");
+      assert.doesNotMatch(
+        source,
+        /ADMIN_ROLE/,
+        `${file} reintroduces a reserved built-in role. The scaffold must not reserve role names or grant a fallback role — define business roles in PERMISSION_MATRIX and register them via roles.json.`,
+      );
+    }
   });
 
   it("does not ship a template role.json file", () => {
     assert.equal(
       existsSync(join(process.cwd(), "role.json")),
       false,
-      "Role definitions must come from src/lib/permissions.ts and /api/manifest, not a root role.json file.",
+      "Role definitions must come from src/lib/permissions.ts and roles.json, not a root role.json file.",
     );
   });
 });
 
 function permissionMatrixKeys(source) {
-  const block = source.match(/PERMISSION_MATRIX[^=]*=\s*\{([\s\S]*?)\n\};/);
-  if (!block) return [];
+  const block = source.match(/PERMISSION_MATRIX[^=]*=\s*\{([\s\S]*?)\n?\};/);
+  if (!block) return null;
 
   const keys = [];
   for (const line of block[1].split("\n")) {
-    const match = line.match(
-      /^\s*(?:\[ADMIN_ROLE\]|"([^"]+)"|([\p{L}\p{N}_]+))\s*:/u,
-    );
+    const match = line.match(/^\s*(?:"([^"]+)"|([\p{L}\p{N}_]+))\s*:/u);
     if (!match) continue;
-    keys.push(match[1] ?? match[2] ?? "admin");
+    keys.push(match[1] ?? match[2]);
   }
   return keys;
 }
 
 function roleMetadataKeys(source) {
-  const block = source.match(/ROLE_METADATA\s*=\s*\{([\s\S]*?)\n\}\s*as const/);
-  if (!block) return [];
+  const block = source.match(/ROLE_METADATA\s*=\s*\{([\s\S]*?)\n?\}\s*as const/);
+  if (!block) return null;
 
   const keys = [];
   for (const line of block[1].split("\n")) {
@@ -65,22 +56,26 @@ function roleMetadataKeys(source) {
 }
 
 const MAX_EFFECTIVE_APP_ROLES = 3;
-const MAX_BUSINESS_ROLES = MAX_EFFECTIVE_APP_ROLES - 1;
 
 describe("role definition sync", () => {
   it("parses matrix and metadata keys (self-check)", () => {
     assert.deepEqual(
       permissionMatrixKeys(
-        `const PERMISSION_MATRIX: Record<string, Action[]> = {\n  [ADMIN_ROLE]: [...ACTIONS],\n  老板: [...ACTIONS],\n  test_role_a: [],\n};`,
+        `const PERMISSION_MATRIX: Record<string, Action[]> = {\n  老板: [...ACTIONS],\n  test_role_a: [],\n};`,
       ),
-      ["admin", "老板", "test_role_a"],
+      ["老板", "test_role_a"],
+    );
+    assert.deepEqual(
+      permissionMatrixKeys(`const PERMISSION_MATRIX: Record<string, Action[]> = {\n};`),
+      [],
     );
     assert.deepEqual(
       roleMetadataKeys(
-        `const ROLE_METADATA = {\n  admin: {\n    label: "Admin",\n  },\n  老板: {\n    label: "老板",\n  },\n} as const satisfies X;`,
+        `const ROLE_METADATA = {\n  老板: {\n    label: "老板",\n  },\n} as const satisfies X;`,
       ),
-      ["admin", "老板"],
+      ["老板"],
     );
+    assert.deepEqual(roleMetadataKeys(`const ROLE_METADATA = {\n} as const satisfies X;`), []);
   });
 
   it("keeps PERMISSION_MATRIX, ROLE_METADATA, and roles.json in sync", () => {
@@ -95,7 +90,8 @@ describe("role definition sync", () => {
     );
     const platformKeys = rolesJson.roles.map((role) => role.role_key);
 
-    assert.ok(matrixKeys.length >= 1, "PERMISSION_MATRIX parse produced no keys");
+    assert.ok(matrixKeys !== null, "PERMISSION_MATRIX block not found in permissions.ts");
+    assert.ok(metadataKeys !== null, "ROLE_METADATA block not found in role-metadata.ts");
 
     // Every matrix role needs metadata (label/defaultRoute); the silent
     // getRoleMetadata fallback otherwise hides the omission.
@@ -126,46 +122,33 @@ describe("role definition sync", () => {
       );
     }
 
-    // A matrix role absent from roles.json cannot be assigned from the
-    // platform — an unreachable role. Admin is the app-internal fallback and
-    // deliberately stays out of roles.json.
+    // A matrix role absent from roles.json is unreachable: the platform can
+    // only assign registered roles. No role is exempt from registration.
     const unreachableRoles = matrixKeys.filter(
-      (key) => key !== "admin" && !platformKeys.includes(key),
+      (key) => !platformKeys.includes(key),
     );
     assert.deepEqual(
       unreachableRoles,
       [],
-      `PERMISSION_MATRIX roles missing from roles.json (platform cannot assign them): ${unreachableRoles.join(", ")}`,
+      `PERMISSION_MATRIX roles missing from roles.json (platform cannot assign them; register every role, no exceptions): ${unreachableRoles.join(", ")}`,
     );
   });
 
-  it("keeps the first-version role model to admin plus at most two business roles", () => {
+  it("keeps the first-version role model to at most three business roles", () => {
     const matrixKeys = permissionMatrixKeys(
       readFileSync(join(process.cwd(), "src/lib/permissions.ts"), "utf8"),
     );
     const metadataKeys = roleMetadataKeys(
       readFileSync(join(process.cwd(), "src/lib/role-metadata.ts"), "utf8"),
     );
-    const rolesJson = JSON.parse(
-      readFileSync(join(process.cwd(), "roles.json"), "utf8"),
-    );
-    const businessMatrixKeys = matrixKeys.filter((key) => key !== "admin");
-    const registeredEffectiveRoles = rolesJson.roles
-      .map((role) => role.role_key)
-      .filter((key) => businessMatrixKeys.includes(key));
 
-    assert.equal(matrixKeys.includes("admin"), true, "admin is required");
     assert.ok(
       matrixKeys.length <= MAX_EFFECTIVE_APP_ROLES,
-      `Keep at most ${MAX_EFFECTIVE_APP_ROLES} effective roles total: built-in admin plus at most ${MAX_BUSINESS_ROLES} business roles. Current matrix: ${matrixKeys.join(", ")}`,
+      `Keep at most ${MAX_EFFECTIVE_APP_ROLES} roles, chosen for materially different permission scopes. Current matrix: ${matrixKeys.join(", ")}`,
     );
     assert.ok(
       metadataKeys.length <= MAX_EFFECTIVE_APP_ROLES,
       `ROLE_METADATA exceeds the ${MAX_EFFECTIVE_APP_ROLES}-role first-version limit: ${metadataKeys.join(", ")}`,
-    );
-    assert.ok(
-      registeredEffectiveRoles.length <= MAX_BUSINESS_ROLES,
-      `Register at most ${MAX_BUSINESS_ROLES} effective business roles in roles.json: ${registeredEffectiveRoles.join(", ")}`,
     );
   });
 

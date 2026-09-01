@@ -37,9 +37,9 @@ const TEMPLATE_STATE_FINGERPRINTS = {
   "src/lib/app-chrome.ts":
     "e772ac721e016dcd98a848ea0159ed924c56df75677f3b0016d52210a4008ff8",
   "src/lib/permissions.ts":
-    "6aca9ae08be3e6191d9a58b7b3049797db01cff0ce4e5711d9ccd180cb89e70a",
+    "aa704dc9ccd483bc0ace463303c1434726cbff48477cb88db7219fbc77051a6f",
   "src/lib/role-metadata.ts":
-    "29b7cdb8bd91aae41d7d49126f3324336257868f033a08d7ceb6a0569bb90e18",
+    "15aea100b5a0037ca8193f58f562717cf934e1c66ab69ee5803fa6ca8041511e",
   "src/routes/_app.index.tsx":
     "9b6c23fac6a4cba1d4c1723744cadacb35d68210146acf7432715a5aff2db131",
 };

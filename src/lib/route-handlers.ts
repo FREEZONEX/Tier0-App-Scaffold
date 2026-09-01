@@ -17,7 +17,7 @@
  *           return Response.json(await listWorkOrders());
  *         }),
  *         POST: withErrors(async ({ request }) => {
- *           const user = await requireAuth("admin");
+ *           const user = await requireAuth("warehouse_manager");
  *           const data = insertWorkOrderSchema.parse(await request.json());
  *           return Response.json(await createWorkOrder(data, user.id));
  *         }),

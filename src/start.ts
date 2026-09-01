@@ -16,7 +16,7 @@ import {
   getTrustedGatewayRoles,
   parseGatewayUser,
 } from "@/lib/gateway";
-import { ADMIN_ROLE, PERMISSION_MATRIX } from "@/lib/permissions";
+import { PERMISSION_MATRIX } from "@/lib/permissions";
 
 // Exact path or proper child segment. This avoids `/login-attempts` matching
 // the public `/login` prefix.
@@ -94,13 +94,10 @@ const authBridge = createMiddleware().server(
     }
 
     if (gatewayUser && runtime === "preview") {
-      // Preview before role registration stays usable without minting an App
-      // session. Deployed empty role lists were handled above and never reach
-      // this fallback.
-      if (validRoles.includes(ADMIN_ROLE)) {
-        return next();
-      }
-      return jsonError(503, "No roles configured for this app");
+      // Preview before role registration: the platform sends no role headers
+      // and the request enters with zero roles. Nothing is granted implicitly;
+      // can() stays false for every action until business roles are defined.
+      return next();
     }
 
     if (gatewayUser) {

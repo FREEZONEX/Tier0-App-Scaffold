@@ -36,12 +36,12 @@ them is a half-finished role.
 3. **`roles.json`** (repo root) — mirror the role so the platform registers it.
    This is the registration plane's input.
 
-`admin` is the app-internal fallback role. It stays in `permissions.ts` /
-`role-metadata.ts` but **must not** be listed in `roles.json` — it is not a
-platform business role.
+There is no built-in or reserved role. Every role in `PERMISSION_MATRIX` —
+including one named `admin`, if the business defines it — must appear in all
+three files and be registered like any other business role.
 
 For the first generated version, keep the effective model to at most three
-roles total: this built-in `admin` plus no more than two business roles. Split
+business roles total. Split
 roles only when their permission scopes materially differ; do not mirror every
 page, action, or organizational job title as a separate role.
 
@@ -162,7 +162,7 @@ When you add/finish a business role (worked example: guest `youke` / 游客):
 
 ## Related files
 
-- `src/lib/permissions.ts` — `PERMISSION_MATRIX`, `ACTIONS`, `can()`, `ADMIN_ROLE`
+- `src/lib/permissions.ts` — `PERMISSION_MATRIX`, `ACTIONS`, `can()`
 - `src/lib/role-metadata.ts` — `ROLE_METADATA`, `getRoleMetadata()`
 - `src/lib/gateway.ts` — `getGatewayRole()`, `getGatewayRoles()`, `getTrustedGatewayRoles()`
 - `src/start.ts` — request middleware / role authority decision

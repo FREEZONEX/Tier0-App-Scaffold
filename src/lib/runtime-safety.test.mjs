@@ -4,7 +4,12 @@ import { join, relative } from "node:path";
 import { describe, it } from "node:test";
 
 const ROOTS = ["src/components", "src/routes", "src/lib"];
-const INTERVAL_ALLOWLIST = new Set(["src/lib/hooks.ts"]);
+// TemplatePreviewPlaceholder: the pre-generation cover's decorative 1s clock,
+// cleaned up on unmount and mounted only while the blank scaffold route shows.
+const INTERVAL_ALLOWLIST = new Set([
+  "src/lib/hooks.ts",
+  "src/components/TemplatePreviewPlaceholder.tsx",
+]);
 
 function toPosixPath(filePath) {
   return filePath.replaceAll("\\", "/");
