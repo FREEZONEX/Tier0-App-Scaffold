@@ -35,6 +35,7 @@ const steps = [
       "src/lib/gateway.test.ts",
       "src/lib/permissions.test.mjs",
       "src/lib/app-chrome.test.mjs",
+      "src/lib/app-id-contracts.test.mjs",
       "src/lib/navigation-contracts.test.mjs",
       "src/lib/content-contracts.test.mjs",
       "src/lib/button-contracts.test.mjs",

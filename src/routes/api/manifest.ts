@@ -13,9 +13,8 @@
  */
 
 import { createFileRoute } from "@tanstack/react-router";
+import { resolveAppId } from "@/lib/app-id";
 import { PERMISSION_MATRIX, ROLE_LABELS } from "@/lib/permissions";
-
-const APP_ID = process.env.APP_ID || "monoapp";
 
 export const Route = createFileRoute("/api/manifest")({
   server: {
@@ -27,7 +26,7 @@ export const Route = createFileRoute("/api/manifest")({
         }));
 
         return Response.json({
-          appId: APP_ID,
+          appId: resolveAppId(),
           roles,
           defaultRole: roles[0]?.key ?? null,
         });
