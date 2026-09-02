@@ -44,6 +44,27 @@ identity; Preview and deployed runs always carry the platform value. Tier0 SDK
 variables are injected by the platform during deployment. Do not place them in
 `.env.example`, and do not generate application UI for end users to edit them.
 
+### Agent-registered visual assets
+
+File-based App Icon and Cover updates use workspace paths. Keep the final
+registration sources at stable project-root paths so the same files remain in
+Download Source Code and in Snapshots created after the update:
+
+- Icon: root `icon.png` is the registration/export source and matches the
+  platform import/export package name. Copy it byte-for-byte to
+  `public/app-icon.png` for the App runtime, set
+  `APP_ICON = "/app-icon.png"`, and register `icon_path: "icon.png"`.
+- Designed/generated Cover: save root `cover.png`, matching the platform
+  package name, and register `cover_path: "cover.png"`.
+
+Do not use a temporary directory, a workspace-external path, or a separately
+generated file as the only registration source. On replacement, persist every
+root/runtime copy before calling `update_app_info`; if persistence fails, do not
+leave the platform pointing at an asset the project does not retain. This is a
+Scaffold/Agent contract for file-based `update_app_info` calls; the platform
+remains authoritative for uploads and automatic captures performed outside the
+Agent workspace.
+
 ---
 
 ## Authentication Model

@@ -334,19 +334,33 @@ Without injection it resolves to `local-app` (`src/lib/app-id.ts`) — a
 local-development placeholder only. The full contract lives in
 `docs/platform-integration.md`.
 
-On first generation and every rebrand, complete all three steps below before
-reporting App Identity finished. The app icon is one shared 512×512 PNG for
-both in-app chrome and the platform:
+On first generation and every rebrand, complete all four steps below before
+reporting App Identity finished. Platform-registered image assets must have a
+stable source copy at the project root so Download Source Code and Download
+Snapshot retain the same files; never register a temporary or workspace-external
+file as the only copy.
 
 1. Create a simple, high-contrast domain mark and export the final asset as
-   `public/app-icon.png` (512×512, ≤2 MB). Coded artwork is allowed: SVG,
+   root `icon.png` (512×512, ≤2 MB). This matches the platform import/export
+   package name. Coded artwork is allowed: SVG,
    Canvas, Node, HTML/browser rendering, or another deterministic drawing path
    may be used to produce the PNG. Prefer one bold centered symbol, generous
    padding, one or two solid colors, and no text or fine detail so it remains
    legible around 32px. Do not leave the scaffold placeholder unchanged.
-2. Set `APP_ICON = "/app-icon.png"` in `src/lib/app-chrome.ts`.
-3. Sync the same file with `update_app_info({ icon_path:
-   "public/app-icon.png" })`, including name/description when changed.
+2. Copy that exact file byte-for-byte to `public/app-icon.png` (also 512×512,
+   ≤2 MB), then set `APP_ICON = "/app-icon.png"` in `src/lib/app-chrome.ts`.
+   The public copy is the runtime asset; root `icon.png` is the durable
+   registration/export source. Never generate the two copies independently.
+3. Sync the root source with `update_app_info({ icon_path: "icon.png" })`,
+   including name/description when changed. If either root persistence or the
+   public copy fails, do not register the icon or report App Identity complete.
+4. When registering a designed/generated cover with `cover_path`, first save
+   the final file as root `cover.png` (PNG, ≤8 MB), matching the platform
+   package name, then call `update_app_info({ cover_path: "cover.png" })`.
+   This rule applies on first generation and every cover change; do not
+   register a temporary path or a second independently generated image. If
+   both icon and cover change, persist both root files before one
+   `update_app_info` call.
 
 Page titles name the work. Visible copy describes business data, state, action,
 or consequence—not design-system commentary or implementation notes. Remove
