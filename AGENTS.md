@@ -266,6 +266,20 @@ Keep forms controlled and stable: do not key fields from their current value or
 declare field components inside a form render. Validate inputs and show
 success/error through `toast()`.
 
+Never call the browser-native `alert()`, `confirm()`, or `prompt()` APIs,
+including through `window`, `globalThis`, or `self`. They expose the Preview
+host, block the page, and cannot follow the app's theme, locale, or mobile
+layout. Use the application primitives instead:
+
+- Use `toast()` for success, failure, and other information that does not need
+  acknowledgement. Use `Dialog` when acknowledgement is part of the workflow.
+- Use `ConfirmDialog` for risky or irreversible actions. Name the affected
+  object and consequence, use a concrete action label such as Delete or
+  Deactivate, set `destructive` when appropriate, and wire `pending` so a
+  submission cannot be repeated. Cancelling must not mutate data.
+- Use `FormDialog` for requested input, with controlled fields, validation, and
+  an explicit submit label.
+
 Fetch local APIs with `apiUrl()`. Shared loads use stable primitive request keys
 with `useRequest()` / `usePolling()`; do not depend on a newly created loader
 function each render. Render request state through `AsyncView` so failures show
