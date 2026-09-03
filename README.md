@@ -289,7 +289,7 @@ business logic, state machines, and transactions belong. The `db` client may
 only appear in `services/` and `db/seed.ts`. Each implemented module should
 define runtime `bootstrapModule(...)` behavior near the top of the service so
 preview and new tenant schemas can create tables, indexes, and baseline data on
-first use. Shared bootstrap helpers create all module schemas/tables/indexes
+first use. Shared bootstrap helpers create all module tables/indexes
 first and seed afterward; do not hand-roll local create/seed ordering in each
 service.
 

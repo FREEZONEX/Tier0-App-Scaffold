@@ -56,11 +56,8 @@ async function runBootstrap(
   await db.transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${lockKey}))`);
 
-    if (schemaName) {
-      await tx.execute(
-        sql.raw(`create schema if not exists ${quoteIdentifier(schemaName)}`),
-      );
-    }
+    // The app schema (DB_SCHEMA) is provisioned by the platform and must exist
+    // before bootstrap runs; a missing schema fails loudly here on purpose.
 
     for (const table of tables) {
       for (const prepareSql of table.prepare ?? []) {
@@ -96,11 +93,4 @@ export function tableName(table: PgTable): string {
 function getRuntimeSchema() {
   const schemaName = process.env.DB_SCHEMA?.trim();
   return schemaName ? schemaName : null;
-}
-
-function quoteIdentifier(identifier: string) {
-  if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(identifier)) {
-    throw new Error(`Unsafe PostgreSQL identifier: ${identifier}`);
-  }
-  return `"${identifier.replaceAll('"', '""')}"`;
 }

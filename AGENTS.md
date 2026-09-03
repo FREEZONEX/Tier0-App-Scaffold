@@ -141,8 +141,8 @@ Hard invariants:
 Every implemented module service owns and awaits one module-level
 `bootstrapModule(...)` promise before querying.
 
-- Bootstrap schema, tables, and indexes before seed callbacks; keep
-  foreign-key order explicit.
+- Bootstrap tables and indexes before seed callbacks; keep foreign-key order
+  explicit. The schema itself is platform-provisioned; never create it.
 - Use `create ... if not exists` and idempotent typed Drizzle seed writes.
 - Seed dates use `seedDate()` / `seedTimestamp()` from
   `@/services/seed-utils`.
