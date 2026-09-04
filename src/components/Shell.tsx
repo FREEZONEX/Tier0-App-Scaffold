@@ -215,7 +215,7 @@ export function Shell({
         >
           {showBrandIdentity && (
             <div className="flex shrink-0 items-center">
-              <div className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-md border border-highlight-bg-primary bg-highlight-bg-accent text-accent-foreground">
+              <div className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-highlight-bg-accent text-accent-foreground">
                 <img
                   src={APP_ICON}
                   alt={`${APP_NAME} icon`}

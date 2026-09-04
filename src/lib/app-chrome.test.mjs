@@ -29,7 +29,7 @@ const TEMPLATE_SERVICE_FILES = [
 const TEMPLATE_STATE_FINGERPRINTS = {
   "roles.json": "b2d07f68818cfc353b2f98543a018fa6ef6157026f910ad359eb7370a4b25172",
   "src/components/Shell.tsx":
-    "8b755415ee11abe575fff41606d88c21fd302d80a64111286013393985a8a9c3",
+    "793fa93ab0f012a1f2ebaa893337dc4bdd645ac0122f27b3d9921d30ad25c4ed",
   "src/components/shell-modules.ts":
     "f4723dafb7d19601437521226a7f58ccce27ac31245d07165d28bbfa6ff9a850",
   "src/db/schema.ts":
@@ -193,6 +193,19 @@ describe("app chrome policy", () => {
 
     assert.match(shell, /filterSidebarModules/);
     assert.doesNotMatch(shell, /NO_SIDEBAR_ROUTE_PREFIXES/);
+  });
+
+  it("keeps the sidebar brand icon free of a highlight border", () => {
+    const shell = readFileSync(
+      join(process.cwd(), "src/components/Shell.tsx"),
+      "utf8",
+    );
+    const brandIconClasses =
+      shell.match(/<div className="([^"]*)">\s*<img\s+src=\{APP_ICON\}/)?.[1] ??
+      "";
+
+    assert.ok(brandIconClasses, "The sidebar brand icon container is missing.");
+    assert.doesNotMatch(brandIconClasses, /\bborder-highlight-bg-primary\b/);
   });
 
   it("keeps the template blank route unique", () => {
