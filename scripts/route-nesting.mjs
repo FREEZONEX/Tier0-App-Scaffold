@@ -138,6 +138,7 @@ export function inspectRouteModule(source) {
 
   let hasOutlet = false;
   let hasComponent = false;
+  let hasServerHandlers = false;
 
   const visit = (node) => {
     if (ts.isJsxSelfClosingElement(node) || ts.isJsxOpeningElement(node)) {
@@ -154,6 +155,11 @@ export function inspectRouteModule(source) {
         for (const prop of arg.properties) {
           const name = prop.name && ts.isIdentifier(prop.name) ? prop.name.text : null;
           if (name === "component") hasComponent = true;
+          if (name === "server" && ts.isPropertyAssignment(prop) && ts.isObjectLiteralExpression(prop.initializer)) {
+            hasServerHandlers = prop.initializer.properties.some((item) =>
+              item.name && (ts.isIdentifier(item.name) || ts.isStringLiteral(item.name)) && item.name.text === "handlers",
+            );
+          }
         }
       }
     }
@@ -161,7 +167,7 @@ export function inspectRouteModule(source) {
   };
   visit(sf);
 
-  return { hasOutlet, hasComponent };
+  return { hasOutlet, hasComponent, hasServerHandlers };
 }
 
 function isRouteFactory(expr) {
@@ -198,7 +204,10 @@ export function analyzeRouteNesting({ routes, readModule }) {
 
     const source = readModule(parent.module);
     if (source === null) continue; // 解析不到源文件时不臆断
-    const { hasOutlet, hasComponent } = inspectRouteModule(source);
+    const { hasOutlet, hasComponent, hasServerHandlers } = inspectRouteModule(source);
+    // HTTP-only routes do not render an outlet or an index page. Mixed routes
+    // with a component still participate in the UI nesting contract.
+    if (hasServerHandlers && !hasComponent) continue;
 
     const dynamicChildren = children.filter(isDynamicRoute);
 

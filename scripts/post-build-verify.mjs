@@ -38,6 +38,7 @@ const steps = [
       "src/lib/app-id-contracts.test.mjs",
       "src/lib/navigation-contracts.test.mjs",
       "src/lib/content-contracts.test.mjs",
+      "src/lib/advisory-regressions.test.mjs",
       "src/lib/button-contracts.test.mjs",
       "src/lib/form-contracts.test.mjs",
       "src/lib/overlay-contracts.test.mjs",
@@ -53,7 +54,6 @@ const steps = [
       "src/lib/write-path-contracts.test.mjs",
       "src/lib/ui-primitives-contracts.test.mjs",
       "src/lib/responsive-contracts.test.mjs",
-      "src/lib/template-state.test.mjs",
     ],
   },
   {

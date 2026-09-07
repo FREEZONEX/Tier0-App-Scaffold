@@ -153,4 +153,22 @@ describe("responsive contracts", () => {
       );
     });
   });
+  it("recognizes imported table scroll primitives including aliases", () => {
+    assert.deepEqual(rules(`
+      import { DataTable as Table, TableViewport as Viewport } from "@/components/data";
+      const Page = () => <><Table className="min-w-[920px]" /><Viewport><table className="min-w-[920px]" /></Viewport></>;
+    `), []);
+  });
+
+  it("does not exempt unrelated components with the same names or a wide viewport itself", () => {
+    assert.deepEqual(rules(`
+      import { DataTable } from "./custom";
+      const Page = () => <DataTable className="min-w-[920px]" />;
+    `), ["min-width-breaks-narrow-viewport"]);
+    assert.deepEqual(rules(`
+      import { TableViewport } from "@/components/data/table-layout";
+      const Page = () => <TableViewport className="min-w-[920px]" />;
+    `), ["min-width-breaks-narrow-viewport"]);
+  });
+
 });

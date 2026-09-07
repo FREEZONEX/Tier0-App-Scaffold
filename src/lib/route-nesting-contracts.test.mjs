@@ -175,14 +175,28 @@ describe("route nesting contracts", () => {
     assert.deepEqual(inspectRouteModule(PARENT_WITH_OUTLET), {
       hasOutlet: true,
       hasComponent: true,
+      hasServerHandlers: false,
     });
     assert.deepEqual(inspectRouteModule(PARENT_LAYOUT_ONLY), {
       hasOutlet: false,
       hasComponent: false,
+      hasServerHandlers: false,
     });
     assert.deepEqual(inspectRouteModule(PARENT_WITHOUT_OUTLET), {
       hasOutlet: false,
       hasComponent: true,
+      hasServerHandlers: false,
     });
   });
+  it("excludes HTTP-only parents but still checks mixed page/API parents", () => {
+    const routes = [
+      { ident: "Api", module: "./routes/api/items", id: "/api/items", parent: "rootRouteImport" },
+      { ident: "Detail", module: "./routes/api/items.$id", id: "/$id", parent: "Api" },
+    ];
+    const server = `createFileRoute("/api/items")({ server: { handlers: { GET: () => new Response() } } })`;
+    assert.deepEqual(analyze(routes, { "./routes/api/items": server }), []);
+    const mixed = `createFileRoute("/api/items")({ component: () => <div />, server: { handlers: { GET: () => new Response() } } })`;
+    assert.equal(analyze(routes, { "./routes/api/items": mixed })[0].rule, "missing-outlet");
+  });
+
 });

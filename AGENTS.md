@@ -392,12 +392,20 @@ scaffold/default branding from the finished app.
 Run `npm run build` for completion. Its postbuild verifies the client/SSR
 bundle, gate integrity, TypeScript, ESLint, contracts, runtime safety, and
 first-load behavior. UI advisories are review prompts rather than failures.
+Lifecycle and mutation-caller scans are also non-blocking review hints: they
+cannot follow all component composition or request wrappers. Verify actual
+UI → API behavior; do not inline working abstractions to satisfy a regex.
+Pure server-handler routes are excluded from page nesting checks. Responsive
+checks understand the shipped DataTable and TableViewport scroll containers.
 Do not bypass completion with `vite build` alone.
 
 Contract files have two classes:
 
 - `src/lib/template-state.test.mjs` describes the blank template and is the only
-  contract test generated apps may adapt.
+  contract test generated apps may adapt. Run it explicitly with
+  `npm run test:template` when maintaining the blank scaffold; it is excluded
+  from app deployment builds. Replace its assertions with app-specific tests
+  when generating real navigation and pages.
 - Every other test under `src/lib/`, plus gate/verify/audit scripts and
   `scripts/gate-integrity.json`, is locked. Do not edit, weaken, or delete it.
   Use documented opt-outs such as `EXTERNAL_CALLER` / `READ_ONLY_SURFACE`, or

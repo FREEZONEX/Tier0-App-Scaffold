@@ -23,7 +23,8 @@
     "db:push": "node --import tsx scripts/db-sync-guard.mjs",
     "db:push:check": "node --import tsx scripts/db-sync-guard.mjs --dry-run",
     "db:seed": "tsx src/db/seed.ts",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "test:template": "node --import tsx --test src/lib/template-state.test.mjs"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.2.7",

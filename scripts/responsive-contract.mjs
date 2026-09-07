@@ -97,6 +97,19 @@ function tagNameOf(element, sf) {
 export function analyzeSource(source, filePath = "source.tsx") {
   const sf = ts.createSourceFile(filePath, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
   const violations = [];
+  const scrollPrimitives = new Map();
+  for (const statement of sf.statements) {
+    if (!ts.isImportDeclaration(statement) || !ts.isStringLiteral(statement.moduleSpecifier)) continue;
+    if (!["@/components/data", "@/components/data/table-layout"].includes(statement.moduleSpecifier.text)) continue;
+    const bindings = statement.importClause?.namedBindings;
+    if (!bindings || !ts.isNamedImports(bindings)) continue;
+    for (const binding of bindings.elements) {
+      const exported = (binding.propertyName ?? binding.name).text;
+      if (exported === "DataTable" || exported === "TableViewport") {
+        scrollPrimitives.set(binding.name.text, exported);
+      }
+    }
+  }
 
   const visit = (node, insideScrollRegion) => {
     let nextInsideScroll = insideScrollRegion;
@@ -110,6 +123,10 @@ export function analyzeSource(source, filePath = "source.tsx") {
     if (element) {
       const tokens = classTokensOf(element, sf);
       const tag = tagNameOf(element, sf);
+      const primitive = scrollPrimitives.get(tag);
+      // DataTable forwards className to its inner table; TableViewport applies
+      // className to the outer div, so a minimum width on that div still fails.
+      if (primitive) nextInsideScroll = true;
       const line = sf.getLineAndCharacterOfPosition(element.getStart(sf)).line + 1;
 
       if (tokens.some((t) => SCROLL_CLASSES.has(t))) nextInsideScroll = true;
@@ -136,7 +153,7 @@ export function analyzeSource(source, filePath = "source.tsx") {
       for (const token of tokens) {
         const px = widthToPx(token);
         if (px === null || px <= NARROW_VIEWPORT_PX) continue;
-        if (insideScrollRegion || nextInsideScroll) continue;
+        if (insideScrollRegion || (nextInsideScroll && primitive !== "TableViewport")) continue;
         violations.push({
           rule: "min-width-breaks-narrow-viewport",
           file: filePath,

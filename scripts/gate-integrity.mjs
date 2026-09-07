@@ -20,6 +20,7 @@ const LOCKED_FILES = [
   "src/lib/app-id-contracts.test.mjs",
   "src/lib/navigation-contracts.test.mjs",
   "src/lib/content-contracts.test.mjs",
+  "src/lib/advisory-regressions.test.mjs",
   "src/lib/button-contracts.test.mjs",
   "src/lib/form-contracts.test.mjs",
   "src/lib/overlay-contracts.test.mjs",

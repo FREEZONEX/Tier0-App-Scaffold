@@ -5,6 +5,7 @@ import { describe, it } from "node:test";
 
 // TEMPLATE-STATE ASSERTIONS — the one contract file generated apps ADAPT.
 //
+// Run explicitly with npm run test:template; this is not an app deployment gate.
 // This file asserts the scaffold's blank-template condition. When you build a
 // real application these assertions become wrong BY DESIGN: replace them with
 // assertions that describe the app you actually built (its navigation modules,
