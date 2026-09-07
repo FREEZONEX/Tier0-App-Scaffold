@@ -262,6 +262,13 @@ as a mandatory page recipe.
 - `actions`: `RecommendationAction` and `ImpactPreviewDialog` for transparent
   automatic/recommended/bulk changes.
 
+Wrap every ordinary `_app` workspace page in
+`<div className="page-shell ...">`. The shared class provides responsive page
+padding (compact on phones, wider on desktop) and keeps direct children
+shrinkable; keep page-specific vertical rhythm such as `space-y-6` on the same
+element. Do not add a second outer `px-*` / `py-*` layer. Station, review, and
+monitor layouts own their spacing separately and do not use `page-shell`.
+
 Keep forms controlled and stable: do not key fields from their current value or
 declare field components inside a form render. Validate inputs and show
 success/error through `toast()`.

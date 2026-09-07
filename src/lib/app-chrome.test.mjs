@@ -185,6 +185,29 @@ describe("app chrome policy", () => {
     assert.match(shell, /max-w-\[1440px\]/);
   });
 
+  it("keeps responsive page-shell padding available to generated workspace pages", () => {
+    const styles = readFileSync(
+      join(process.cwd(), "src/styles/globals.css"),
+      "utf8",
+    );
+    const agents = readFileSync(join(process.cwd(), "AGENTS.md"), "utf8");
+
+    assert.match(
+      styles,
+      /\.page-shell\s*\{[^}]*min-width:\s*0;[^}]*padding:\s*var\(--tier0-space-lg\)\s+var\(--tier0-space-md\);[^}]*\}/s,
+    );
+    assert.match(styles, /\.page-shell\s*>\s*\*\s*\{[^}]*min-width:\s*0;/s);
+    assert.match(
+      styles,
+      /@media\s*\(min-width:\s*640px\)\s*\{\s*\.page-shell\s*\{[^}]*padding:\s*var\(--tier0-space-xl\);/s,
+    );
+    assert.match(
+      styles,
+      /@media\s*\(min-width:\s*1024px\)\s*\{\s*\.page-shell\s*\{[^}]*padding:\s*var\(--tier0-space-xxl\);/s,
+    );
+    assert.match(agents, /className="page-shell/);
+  });
+
   it("uses the centralized sidebar filter in Shell", () => {
     const shell = readFileSync(
       join(process.cwd(), "src/components/Shell.tsx"),
