@@ -327,6 +327,13 @@ Flow, files, MQTT/MQ/WebSocket, or device commands. Call lazy helpers from
 invoke SDK submodules on SSR startup paths. Keep `vite.config.ts`
 `ssr.external: ["pg", "@tier0/sdk", "mqtt"]`.
 
+The SDK baseline is `^0.5.1` (locked to `0.5.1`). For notifications, omitted
+`channels` means Web & Desktop plus Mobile; use `[]` for inbox only, `['web']`
+or `['mobile']` for explicit scope. There is no `desktop` channel. When
+upgrading an existing app, change calls that relied on omitted channels for
+silent delivery to `channels: []`. See `docs/platform-integration.md` for
+notification migration and MQTT broker handling.
+
 The platform injects SDK hosts, keys, and connection details. Do not add them
 to `.env.example`, business tables, or user-facing settings unless the user
 explicitly requests an operator-managed credential console. Keep human app
