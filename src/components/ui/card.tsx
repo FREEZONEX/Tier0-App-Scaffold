@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * Card — the standard raised surface (DESIGN.md panel recipe): white on the
- * off-white canvas, hairline border, subtle elevation. Use for content
+ * white canvas, hairline border, subtle elevation. Use for content
  * groupings; use plain divs for in-card sections.
  *
  * `accent` draws a 3px status bar on the left edge — the sanctioned way to

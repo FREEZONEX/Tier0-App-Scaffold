@@ -13,6 +13,12 @@ export interface ConfirmDialogProps {
   confirmLabel?: string;
   cancelLabel?: string;
   destructive?: boolean;
+  /**
+   * Disables footer actions only. Esc, backdrop and header-close dismissal
+   * remain controlled by onOpenChange. Guard closing there while pending when
+   * the workflow requires it; otherwise retain operation state after dismissal.
+   * Closing does not cancel a submitted request. The caller handles async errors.
+   */
   pending?: boolean;
   onConfirm: () => void | Promise<void>;
 }

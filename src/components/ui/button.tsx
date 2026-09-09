@@ -5,7 +5,8 @@ import { cn } from "@/lib/utils";
  * Button — implements the DESIGN.md button recipes. Use this instead of
  * hand-styling native buttons: variants carry the brand palette and states.
  *
- * - highlight: brand lime fill — the ONE most important action on a screen.
+ * - highlight: optional lime emphasis for a deliberately highlighted workflow
+ *   action; importance alone does not require this variant.
  * - primary:   ink fill — standard primary/submit actions.
  * - secondary: soft surface fill — supporting actions.
  * - outline:   white with border — cancel/neutral actions.

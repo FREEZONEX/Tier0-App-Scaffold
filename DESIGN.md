@@ -102,6 +102,9 @@ rounded:
   pill: "var(--tier0-radius-pill)"
   full: "var(--tier0-radius-pill)"
 
+shadow:
+  sm: "var(--shadow-sm)"
+
 spacing:
   xxs: "var(--tier0-space-xxs)"
   xs: "var(--tier0-space-xs)"
@@ -236,15 +239,19 @@ shifts and on shared terminals without becoming a dark control-room theme.
 
 - Workspace: neutral canvas, raised white surfaces, compact information rhythm.
 - Primary decisions: near-black; active/selected/progress emphasis: Tier0 signal
-  green; urgency: semantic status colors.
+  green; urgency: semantic status colors. Use `Button` variant `primary` for
+  standard submit and primary actions. Reserve `highlight` for a deliberately
+  emphasized workflow action; being the most important action alone does not
+  require a green button.
 - Station: larger touch targets. Review: evidence-first. Monitor: fixed,
   distance-readable composition.
 - Hierarchy comes from typography, borders, restrained surface changes, and
   stable spacing rather than decoration.
 
 Use semantic tokens and Tailwind aliases instead of local color systems.
-Enabled controls remain visibly editable on white surfaces. Normal panels are
-flat; overlay surfaces may use restrained elevation. IDs, lot/document/location
+Enabled controls remain visibly editable on white surfaces. Normal panels use
+hairline borders and a subtle `shadow-sm`; overlays may use stronger, restrained
+elevation. IDs, lot/document/location
 codes, and tabular technical values suit `font-mono` / `tabular-nums`.
 
 ## Composition
@@ -295,5 +302,6 @@ new global prescriptions for individual layouts.
 Toolbar controls read best at a deliberate width. A search field stretched to
 fill every pixel of a wide toolbar looks unresolved and drags its placeholder far
 from the results it filters; give it a ceiling — `max-w-xs` is a good default —
-and let the empty space carry the layout. The build enforces this; see the
-responsive rules in [AGENTS.md](AGENTS.md).
+and let the empty space carry the layout. The build catches known unbounded
+control-growth patterns; it does not verify rendered mobile usability. See the
+static-check and viewport-review boundaries in [AGENTS.md](AGENTS.md).

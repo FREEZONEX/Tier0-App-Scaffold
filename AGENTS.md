@@ -138,8 +138,10 @@ Hard invariants:
 
 ### First-Load Database Safety
 
-Every implemented module service owns and awaits one module-level
-`bootstrapModule(...)` promise before querying.
+Call and await `bootstrapModule(...)` at each service entrypoint before querying
+its module tables. The helper shares in-flight/completed work and clears its
+cache on failure so a later call can retry. Do not permanently cache the first
+returned Promise in a module-level constant or start bootstrap at import time.
 
 - Bootstrap tables and indexes before seed callbacks; keep foreign-key order
   explicit. The schema itself is platform-provisioned; never create it.
@@ -283,7 +285,12 @@ layout. Use the application primitives instead:
 - Use `ConfirmDialog` for risky or irreversible actions. Name the affected
   object and consequence, use a concrete action label such as Delete or
   Deactivate, set `destructive` when appropriate, and wire `pending` so a
-  submission cannot be repeated. Cancelling must not mutate data.
+  submission cannot be repeated. Cancelling before submission must not mutate
+  data. `pending` disables footer actions, but does not block Esc, backdrop or
+  header-close dismissal. Choose the in-flight close policy for the workflow:
+  guard `onOpenChange(false)` while pending if dismissal must wait; if dismissal
+  is allowed, retain operation state and report the eventual result. Closing
+  does not abort an already-submitted request. Handle async errors in the caller.
 - Use `FormDialog` for requested input, with controlled fields, validation, and
   an explicit submit label.
 
@@ -300,8 +307,11 @@ per clickable leaf. Do not create an Overview module unless the product needs on
 
 Wide tables own their horizontal scroll region. Interactive pages remain usable
 at 375px without page-level overflow; station controls are touch-friendly and
-monitor boards fit their intended viewport. `npm run build` enforces the 375px
-rule through `src/lib/responsive-contracts.test.mjs`, which is a locked gate:
+monitor boards fit their intended viewport. `npm run build` checks known source
+patterns through the locked `src/lib/responsive-contracts.test.mjs` gate; it
+does not measure rendered layout or prove 375px usability. Inspect affected
+pages at a real 375px viewport when browser tooling is available, and report
+when that check could not be run. The static checks cover these patterns:
 
 - A search or filter control declares a **bounded** width. `flex-1` alone lets it
   swallow the whole toolbar on a wide screen and squeeze its siblings on a narrow
