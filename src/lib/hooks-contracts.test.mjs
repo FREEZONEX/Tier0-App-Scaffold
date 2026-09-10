@@ -44,6 +44,14 @@ describe("API failure visibility contracts", () => {
     assert.match(utils, /throw error;/);
   });
 
+  it("requestJson sends 5xx failures over the preview bridge as network errors", () => {
+    const utils = read("src/lib/utils.ts");
+
+    assert.match(utils, /import \{ sendPreviewError \} from "@\/lib\/preview-bridge"/);
+    assert.match(utils, /res\.status >= 500 && typeof window !== "undefined"/);
+    assert.match(utils, /sendPreviewError\(error\.message, "network"\)/);
+  });
+
   it("hooks load through requestJson and report every other loader failure", () => {
     const hooks = read("src/lib/hooks.ts");
 
@@ -64,6 +72,8 @@ describe("API failure visibility contracts", () => {
     const originalFetch = globalThis.fetch;
     const originalError = console.error;
     const logged = [];
+    // Node has no window: the bridge branch must be skipped, not crash.
+    assert.equal(typeof globalThis.window, "undefined");
     globalThis.fetch = async () =>
       new Response(
         JSON.stringify({
@@ -85,6 +95,51 @@ describe("API failure visibility contracts", () => {
       assert.equal(logged.length, 1);
       assert.match(logged[0], /^\[api\] HTTP 500 \/api\/inspections: Failed query: create schema/);
     } finally {
+      globalThis.fetch = originalFetch;
+      console.error = originalError;
+    }
+  });
+
+  it("requestJson runtime: a 5xx posts a network error to the parent preview window", async () => {
+    const { requestJson } = await import("./utils.ts");
+    const originalFetch = globalThis.fetch;
+    const originalError = console.error;
+    const posted = [];
+    const parent = { postMessage: (data) => posted.push(data) };
+    // Minimal browser stand-in: an embedded window whose parent is the Builder.
+    globalThis.window = {
+      parent,
+      location: { origin: "https://app.example", ancestorOrigins: { length: 1, 0: "https://builder.example" } },
+    };
+    globalThis.fetch = async () =>
+      new Response(JSON.stringify({ error: "Internal error", cause: "Failed query: select 1" }), { status: 503 });
+    console.error = () => {};
+    try {
+      await assert.rejects(requestJson("/api/items"));
+      assert.equal(posted.length, 1);
+      assert.equal(posted[0].type, "tier0.preview.error");
+      assert.equal(posted[0].kind, "network");
+      assert.match(posted[0].error, /^HTTP 503 \/api\/items: Failed query: select 1/);
+    } finally {
+      delete globalThis.window;
+      globalThis.fetch = originalFetch;
+      console.error = originalError;
+    }
+  });
+
+  it("requestJson runtime: a 4xx stays local (no bridge message)", async () => {
+    const { requestJson } = await import("./utils.ts");
+    const originalFetch = globalThis.fetch;
+    const originalError = console.error;
+    const posted = [];
+    globalThis.window = { parent: { postMessage: (data) => posted.push(data) }, location: { origin: "https://app.example" } };
+    globalThis.fetch = async () => new Response(JSON.stringify({ error: "Not found" }), { status: 404 });
+    console.error = () => {};
+    try {
+      await assert.rejects(requestJson("/api/items/9"));
+      assert.equal(posted.length, 0);
+    } finally {
+      delete globalThis.window;
       globalThis.fetch = originalFetch;
       console.error = originalError;
     }
