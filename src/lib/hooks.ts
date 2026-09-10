@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { apiUrl } from "@/lib/utils";
+import { requestJson } from "@/lib/utils";
 
 export interface RequestResult<T> {
   /** Latest successful response, or null if no response yet. */
@@ -35,6 +35,17 @@ function toError(value: unknown) {
 }
 
 /**
+ * Make a failed load visible to the preview console. `requestJson()` already
+ * reports API failures (flagged `reported`); this covers loaders that throw
+ * for other reasons (bad JSON, a thrown Error in mapping code) so no request
+ * failure ends up only as a silent error state.
+ */
+function reportRequestFailure(scope: string, error: Error) {
+  if ((error as { reported?: boolean }).reported) return;
+  console.error(`[request] ${scope} failed:`, error.message);
+}
+
+/**
  * Run a client request keyed by a stable primitive request key.
  *
  * The loader identity is read from a ref so re-renders do not re-trigger the
@@ -44,11 +55,12 @@ function toError(value: unknown) {
  * Usage:
  *   const request = useRequest(
  *     `orders:${orderId}`,
- *     async (signal) => {
- *       const res = await fetch(apiUrl(`/api/orders/${orderId}`), { signal });
- *       return (await res.json()) as Order;
- *     },
+ *     (signal) => requestJson<Order>(`/api/orders/${orderId}`, { signal }),
  *   );
+ *
+ * Load with `requestJson()`: a non-2xx response is reported to the console
+ * (with the server cause) and thrown, so the error state is never the only
+ * trace of a failure.
  */
 export function useRequest<T>(
   requestKey: string,
@@ -125,7 +137,9 @@ export function useRequest<T>(
         ) {
           return;
         }
-        setError(toError(requestError));
+        const error = toError(requestError);
+        reportRequestFailure(requestKey, error);
+        setError(error);
       })
       .finally(() => {
         if (disposed || requestId !== requestIdRef.current) {
@@ -205,14 +219,7 @@ export function usePolling<T>(
       setIsLoading(true);
 
       try {
-        const res = await fetch(apiUrl(url), {
-          signal: controller.signal,
-          cache: "no-store",
-        });
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status} ${res.statusText}`.trim());
-        }
-        const json = (await res.json()) as T;
+        const json = await requestJson<T>(url, { signal: controller.signal });
         if (controller.signal.aborted || requestId !== requestIdRef.current) {
           return;
         }
@@ -228,7 +235,9 @@ export function usePolling<T>(
         if (controller.signal.aborted || requestId !== requestIdRef.current) {
           return;
         }
-        setError(toError(requestError));
+        const error = toError(requestError);
+        reportRequestFailure(url, error);
+        setError(error);
       } finally {
         const isCurrentRequest = requestId === requestIdRef.current;
         if (isCurrentRequest && controllerRef.current === controller) {

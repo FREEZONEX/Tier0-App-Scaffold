@@ -287,10 +287,18 @@ layout. Use the application primitives instead:
 - Use `FormDialog` for requested input, with controlled fields, validation, and
   an explicit submit label.
 
-Fetch local APIs with `apiUrl()`. Shared loads use stable primitive request keys
-with `useRequest()` / `usePolling()`; do not depend on a newly created loader
+Load local APIs with `requestJson()` (it applies `apiUrl()`); pass the loader
+`signal` through. Shared loads use stable primitive request keys with
+`useRequest()` / `usePolling()`; do not depend on a newly created loader
 function each render. Render request state through `AsyncView` so failures show
 an error and retry instead of indefinite loading.
+
+A failed request must reach `console.error`, never only an error state:
+`requestJson()` reports a non-2xx response with the server `cause` before it
+throws, and the hooks report any other loader failure. The Builder preview
+console only sees `console.error`; a silently caught fetch looks like an empty
+page while the real cause stays in the server log. Do not wrap `requestJson()`
+in a `catch` that drops the error.
 
 Do not add a page-introduction subtitle that explains navigation or repeats the title.
 Put actionable rules and risk beside the affected record/control. Role
