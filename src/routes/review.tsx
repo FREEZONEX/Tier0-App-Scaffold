@@ -15,7 +15,7 @@ import {
 } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { ReviewLayout } from "@/components/layouts/ReviewLayout";
-import { RouteError } from "@/components/ui";
+import { RouteErrorBoundary } from "@/components/ui";
 import { getCurrentUser } from "@/lib/auth";
 import type { AppUser } from "@/lib/users";
 
@@ -63,8 +63,6 @@ function ReviewPending() {
   );
 }
 
-function ReviewError({ error, reset }: ErrorComponentProps) {
-  return (
-    <RouteError title="Review page failed to load" error={error} reset={reset} />
-  );
+function ReviewError({ error }: ErrorComponentProps) {
+  return <RouteErrorBoundary error={error} scope="review" />;
 }

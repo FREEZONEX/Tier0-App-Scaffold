@@ -20,10 +20,10 @@ import {
 import { createServerFn } from "@tanstack/react-start";
 import { useEffect } from "react";
 import { TemplatePreviewPlaceholder } from "@/components/TemplatePreviewPlaceholder";
-import { RouteError } from "@/components/ui";
+import { RouteErrorBoundary } from "@/components/ui";
 import { Shell } from "@/components/Shell";
 import { getCurrentUser } from "@/lib/auth";
-import { sendPreviewError, sendPreviewReady } from "@/lib/preview-bridge";
+import { sendPreviewReady } from "@/lib/preview-bridge";
 import type { AppUser } from "@/lib/users";
 
 const loadGatewayUser = createServerFn().handler(
@@ -83,10 +83,6 @@ function AppPending() {
   );
 }
 
-function AppError({ error, reset }: ErrorComponentProps) {
-  useEffect(() => {
-    sendPreviewError(error.message || 'Page failed to load', 'app');
-  }, [error]);
-
-  return <RouteError error={error} reset={reset} />;
+function AppError({ error }: ErrorComponentProps) {
+  return <RouteErrorBoundary error={error} scope="page" />;
 }

@@ -19,7 +19,7 @@ describe("route smoke contracts", () => {
     const script = readFileSync(scriptPath, "utf8");
     assert.match(script, /export function evaluateSmokeResponse/);
     assert.match(script, /export function buildSmokePaths/);
-    assert.match(script, /Page failed to load/);
+    assert.match(script, /data-route-error/);
     assert.match(script, /process\.exitCode = 1/);
     assert.equal(
       packageJson.scripts["smoke:routes"],
@@ -52,7 +52,7 @@ describe("route smoke contracts", () => {
       evaluateSmokeResponse({
         path: "/",
         status: 200,
-        body: "<main>Page failed to load</main>",
+        body: '<main><div data-route-error="page" hidden>boom</div></main>',
       }).ok,
       false,
     );
