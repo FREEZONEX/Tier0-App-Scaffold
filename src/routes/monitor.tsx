@@ -15,7 +15,7 @@ import {
 } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { MonitorLayout } from "@/components/layouts/MonitorLayout";
-import { RouteError } from "@/components/ui";
+import { RouteErrorBoundary } from "@/components/ui";
 import { getCurrentUser } from "@/lib/auth";
 import type { AppUser } from "@/lib/users";
 
@@ -63,13 +63,6 @@ function MonitorPending() {
   );
 }
 
-function MonitorError({ error, reset }: ErrorComponentProps) {
-  return (
-    <RouteError
-      title="Monitor page failed to load"
-      error={error}
-      reset={reset}
-      className="h-screen overflow-hidden bg-background"
-    />
-  );
+function MonitorError({ error }: ErrorComponentProps) {
+  return <RouteErrorBoundary error={error} scope="monitor" />;
 }

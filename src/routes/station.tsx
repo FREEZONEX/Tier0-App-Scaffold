@@ -15,7 +15,7 @@ import {
 } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { StationLayout } from "@/components/layouts/StationLayout";
-import { RouteError } from "@/components/ui";
+import { RouteErrorBoundary } from "@/components/ui";
 import { getCurrentUser } from "@/lib/auth";
 import type { AppUser } from "@/lib/users";
 
@@ -63,8 +63,6 @@ function StationPending() {
   );
 }
 
-function StationError({ error, reset }: ErrorComponentProps) {
-  return (
-    <RouteError title="Station page failed to load" error={error} reset={reset} />
-  );
+function StationError({ error }: ErrorComponentProps) {
+  return <RouteErrorBoundary error={error} scope="station" />;
 }

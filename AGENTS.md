@@ -292,6 +292,11 @@ with `useRequest()` / `usePolling()`; do not depend on a newly created loader
 function each render. Render request state through `AsyncView` so failures show
 an error and retry instead of indefinite loading.
 
+Route `errorComponent`s render `RouteErrorBoundary` and nothing else. It shows
+no visible error UI: the Builder preview intercepts the failure through the
+preview bridge and shows its own error card with Retry and Agent fix. Do not
+add a page-level "failed to load" headline, message, or Retry button.
+
 Do not add a page-introduction subtitle that explains navigation or repeats the title.
 Put actionable rules and risk beside the affected record/control. Role
 summaries stay out of page content. Shell `defaultModules` starts empty; declare

@@ -5,11 +5,10 @@ import {
 } from "../src/components/shell-modules.ts";
 
 const DEFAULT_PATHS = ["/"];
-const FAILURE_TEXT = [
-  "Page failed to load",
-  "Application error",
-  "Internal Server Error",
-];
+// Route boundaries render no visible failure copy (the Builder preview owns the
+// error card); a failed route is identified by the hidden marker they emit.
+const FAILURE_MARKER = /<[^>]+\sdata-route-error(?:=|[\s>])/;
+const FAILURE_TEXT = ["Application error", "Internal Server Error"];
 // Preview identity with no selected role: the platform sends no role headers
 // before roles are registered, and the app must render with zero permissions.
 const DEFAULT_GATEWAY_HEADERS = {
@@ -25,6 +24,13 @@ export function evaluateSmokeResponse({ path, status, body }) {
     return {
       ok: false,
       message: `${path} returned HTTP ${status}`,
+    };
+  }
+
+  if (FAILURE_MARKER.test(body)) {
+    return {
+      ok: false,
+      message: `${path} rendered a route error boundary (data-route-error)`,
     };
   }
 
