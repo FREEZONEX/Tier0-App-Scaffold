@@ -16,7 +16,9 @@ import { cn } from "@/lib/utils";
  *   - loaded             → children(data); empty arrays show the empty view
  *                          automatically, other shapes via isEmpty
  *
- *   const orders = useRequest("orders", loadOrders);
+ *   const orders = useRequest("orders", (signal) =>
+ *     requestJson<Order[]>("/api/orders", { signal }),
+ *   );
  *   <AsyncView result={orders}>
  *     {(data) => <OrderTable rows={data} />}
  *   </AsyncView>
