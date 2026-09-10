@@ -16,7 +16,7 @@
     "src/lib/db-schema-contracts.test.mjs": "f0b1a65ff8d5da81b42bf665a85328b48a000cde760af69b9d7c1bcb1738dd20",
     "src/lib/route-smoke-contracts.test.mjs": "14836fdeedaa817893e6928f8c059b261176d6d3deff91a4b9e793eadbb33888",
     "src/lib/route-nesting-contracts.test.mjs": "9211ebb6be4f49f535c92c08ebc35b186c8b23027385e6018c8828bcc5bf9fc7",
-    "src/lib/hooks-contracts.test.mjs": "360406492a77ff7707dc3c4c46ba2bcff45ff0405684c202a2346516271f4fae",
+    "src/lib/hooks-contracts.test.mjs": "27ed053436972b913c70ce55688167f093b6119fc5dc68f89eab5efec70cfd86",
     "src/lib/runtime-safety.test.mjs": "335221a0b9fb73a1137fa5fdc2ba95ec13b169284131f1282bbab178d8ccc6c5",
     "src/lib/write-path-contracts.test.mjs": "b5d37d243fbbe3e92622e3d867d30797c7fd6a753f8eb680d599be68ee3ac2a8",
     "src/lib/ui-primitives-contracts.test.mjs": "2506d644435601702fb748d5a575313bdac4a5cec745a808e199fa7e9e8750be",
