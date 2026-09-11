@@ -262,6 +262,13 @@ as a mandatory page recipe.
 - `actions`: `RecommendationAction` and `ImpactPreviewDialog` for transparent
   automatic/recommended/bulk changes.
 
+Wrap every ordinary `_app` workspace page in
+`<div className="page-shell ...">`. The shared class provides responsive page
+padding (compact on phones, wider on desktop) and keeps direct children
+shrinkable; keep page-specific vertical rhythm such as `space-y-6` on the same
+element. Do not add a second outer `px-*` / `py-*` layer. Station, review, and
+monitor layouts own their spacing separately and do not use `page-shell`.
+
 Keep forms controlled and stable: do not key fields from their current value or
 declare field components inside a form render. Validate inputs and show
 success/error through `toast()`.
@@ -280,10 +287,24 @@ layout. Use the application primitives instead:
 - Use `FormDialog` for requested input, with controlled fields, validation, and
   an explicit submit label.
 
-Fetch local APIs with `apiUrl()`. Shared loads use stable primitive request keys
-with `useRequest()` / `usePolling()`; do not depend on a newly created loader
+Load local APIs with `requestJson()` (it applies `apiUrl()`); pass the loader
+`signal` through. Shared loads use stable primitive request keys with
+`useRequest()` / `usePolling()`; do not depend on a newly created loader
 function each render. Render request state through `AsyncView` so failures show
 an error and retry instead of indefinite loading.
+
+A failed request must reach `console.error`, never only an error state:
+`requestJson()` reports a non-2xx response with the server `cause` before it
+throws (a 5xx is also sent to the Builder preview as a `network` error, which
+shows its blocking error card), and the hooks report any other loader failure. The Builder preview
+console only sees `console.error`; a silently caught fetch looks like an empty
+page while the real cause stays in the server log. Do not wrap `requestJson()`
+in a `catch` that drops the error.
+
+Route `errorComponent`s render `RouteErrorBoundary` and nothing else. It shows
+no visible error UI: the Builder preview intercepts the failure through the
+preview bridge and shows its own error card with Retry and Agent fix. Do not
+add a page-level "failed to load" headline, message, or Retry button.
 
 Do not add a page-introduction subtitle that explains navigation or repeats the title.
 Put actionable rules and risk beside the affected record/control. Role

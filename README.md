@@ -133,7 +133,7 @@ src/
     hooks.ts                  <- Polling and request hooks
     motion.ts                 <- motion/react re-export
     tier0.ts                  <- Server-side lazy loader for @tier0/sdk
-    utils.ts                  <- cn(), apiUrl()
+    utils.ts                  <- cn(), apiUrl(), requestJson()
 server.mjs                    <- Production Node HTTP entrypoint (do not modify)
 vite.config.ts                <- TanStack Start + Tailwind v4 + Vite 8 paths + Tier0 SDK SSR external rules
 ```
@@ -302,15 +302,18 @@ For a full state-machine example with multi-step `db.transaction(...)` logic
 and Zod validation, see
 [AGENTS.md §Build Order — Step 3](AGENTS.md#step-3-services--server-routes).
 
-In pages, always call `fetch(apiUrl("/api/work-orders"))`. Do not hardcode
-`/api/...` without `apiUrl()` or deployments with a base path will break.
+In pages, load with `requestJson<T>("/api/work-orders", { signal })` (it applies
+`apiUrl()`). Do not hardcode `/api/...` without `apiUrl()` or deployments with a
+base path will break. A non-2xx response is written to `console.error` with the
+server `cause` and then thrown, so the Builder preview console can show why a
+load failed; never catch and drop it.
 
 ## Three-Layer Architecture
 
 ```text
 Browser
   |
-  |  fetch(apiUrl("/api/..."))
+  |  requestJson("/api/...")   (apiUrl() + console.error on failure)
   v
 src/routes/api/**.ts          <- Interface layer: requireAuth -> Zod.parse -> service -> Response.json
   |                               Wrapped by withErrors for {status,message} / Zod issue mapping

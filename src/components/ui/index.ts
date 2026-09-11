@@ -10,4 +10,7 @@ export {
 export { RiskBanner, type RiskBannerProps } from "./risk-banner";
 export { EmptyState, type EmptyStateProps } from "./empty-state";
 export { StatCard, type StatCardProps } from "./stat-card";
-export { RouteError, type RouteErrorProps } from "./route-error";
+export {
+  RouteErrorBoundary,
+  type RouteErrorBoundaryProps,
+} from "./route-error-boundary";

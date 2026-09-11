@@ -212,6 +212,7 @@ components:
 
 layout:
   workspace-container: "1440px centered"  # Shell caps content width; wide boards scroll internally
+  workspace-page-inset: "page-shell: 16px x / 20px y narrow, 24px sm, 32px lg"
   table-actions-column: "table-col-fit"   # trailing action/badge columns shrink to content
 
 motion:
@@ -256,6 +257,11 @@ Page title rows contain the title, optional breadcrumb/status, and actions—not
 an explanation of the page or embedded cards, filters, charts, forms, or data
 boards. Wide content owns its scroll region, long values wrap or truncate
 intentionally, and interactive pages remain usable at 375px.
+
+Use `page-shell` on the root of every ordinary workspace page. `Shell` owns the
+centered 1440px maximum width; `page-shell` owns the responsive page inset, so
+do not repeat outer page padding. Station, review, and monitor layouts keep
+their own purpose-built spacing instead.
 
 The shipped component families are a discoverable toolkit, not a mandatory
 screen recipe:

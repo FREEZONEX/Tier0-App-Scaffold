@@ -667,6 +667,34 @@ body {
   }
 }
 
+@layer components {
+  /* Ordinary workspace routes own their vertical rhythm but share one page
+     inset. Keep this separate from Shell: Shell caps the workspace width,
+     while station/review/monitor layouts keep their purpose-built spacing.
+     Utility classes may still override these defaults for intentional cases. */
+  .page-shell {
+    width: 100%;
+    min-width: 0;
+    padding: var(--tier0-space-lg) var(--tier0-space-md);
+  }
+
+  .page-shell > * {
+    min-width: 0;
+  }
+
+  @media (min-width: 640px) {
+    .page-shell {
+      padding: var(--tier0-space-xl);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .page-shell {
+      padding: var(--tier0-space-xxl);
+    }
+  }
+}
+
 @layer utilities {
   .monitor-frame {
     --monitor-gap: var(--spacing-monitor-gap);

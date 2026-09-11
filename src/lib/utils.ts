@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { sendPreviewError } from "@/lib/preview-bridge";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -51,4 +52,90 @@ export function apiUrl(path: string): string {
   }
 
   return path;
+}
+
+/** Longest server-side failure detail kept on an ApiRequestError. */
+const API_ERROR_DETAIL_LIMIT = 300;
+
+/**
+ * A non-2xx response from a local API route.
+ *
+ * `detail` is the server's explanation: `withErrors()` returns `{ error }` for
+ * client-facing failures and, in dev, `{ error, cause }` for unhandled ones.
+ * The `cause` is what actually went wrong (a failed query, a missing schema);
+ * surfacing it is the difference between "Load failed" and a fixable report.
+ */
+export class ApiRequestError extends Error {
+  readonly status: number;
+  readonly path: string;
+  readonly detail: string;
+  /** Already written to console.error; hooks must not log it again. */
+  readonly reported = true;
+
+  constructor(status: number, path: string, detail: string) {
+    super(`HTTP ${status} ${path}${detail ? `: ${detail}` : ""}`);
+    this.name = "ApiRequestError";
+    this.status = status;
+    this.path = path;
+    this.detail = detail;
+  }
+}
+
+function extractApiErrorDetail(body: string): string {
+  const text = body.trim();
+  if (!text) return "";
+  let detail = text;
+  try {
+    const parsed = JSON.parse(text) as { cause?: unknown; error?: unknown };
+    if (typeof parsed.cause === "string" && parsed.cause.trim()) {
+      detail = parsed.cause;
+    } else if (typeof parsed.error === "string" && parsed.error.trim()) {
+      detail = parsed.error;
+    }
+  } catch {
+    // Not JSON (proxy HTML, plain text): keep the raw body.
+  }
+  detail = detail.replace(/\s+/g, " ").trim();
+  return detail.length > API_ERROR_DETAIL_LIMIT
+    ? `${detail.slice(0, API_ERROR_DETAIL_LIMIT)}…`
+    : detail;
+}
+
+/**
+ * Fetch a local API route and parse its JSON body.
+ *
+ * A non-2xx response is **reported and then thrown** as `ApiRequestError`:
+ *   - every failure is written to `console.error` (the preview console relays
+ *     it), and
+ *   - a 5xx is also sent over the preview bridge as a `network` error, so the
+ *     Builder shows its blocking error card with the server cause and an
+ *     "Ask Agent to Fix" action instead of a page that just says "Load failed".
+ *
+ * Never swallow it silently: a quiet failure looks like an empty page while
+ * the real cause (e.g. a failed query) stays hidden in the server log. Pass
+ * the `signal` from `useRequest` loaders so aborted navigations cancel the
+ * request instead of racing it.
+ */
+export async function requestJson<T>(
+  path: string,
+  init: RequestInit = {},
+): Promise<T> {
+  const res = await fetch(apiUrl(path), { cache: "no-store", ...init });
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    const error = new ApiRequestError(
+      res.status,
+      path,
+      extractApiErrorDetail(body),
+    );
+    console.error("[api]", error.message);
+    // Server-side failure: surface it to the Builder preview card. 4xx are
+    // client-facing outcomes (validation, missing record) the page handles
+    // itself; only the browser can post to the parent window.
+    if (res.status >= 500 && typeof window !== "undefined") {
+      sendPreviewError(error.message, "network");
+    }
+    throw error;
+  }
+  return (await res.json()) as T;
 }
