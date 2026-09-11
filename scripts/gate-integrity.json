@@ -21,7 +21,7 @@
     "src/lib/write-path-contracts.test.mjs": "b5d37d243fbbe3e92622e3d867d30797c7fd6a753f8eb680d599be68ee3ac2a8",
     "src/lib/ui-primitives-contracts.test.mjs": "2506d644435601702fb748d5a575313bdac4a5cec745a808e199fa7e9e8750be",
     "src/lib/responsive-contracts.test.mjs": "3a6269fc854ac35de28d8c0fc7d976aa7735e11adc010485b38e4547413a48eb",
-    "src/lib/scaffold-version-contracts.test.mjs": "5ef8f043b279b421653030defda34b8ab11018d20893f2e918ed39354e42bb68",
+    "src/lib/scaffold-version-contracts.test.mjs": "963c657e149b1bcaf2f98cb7b83f13b69e052753c5a0ceae0b3c977c47b19cdf",
     "scripts/ui-advisories.mjs": "7e84376f335486d27329eda6227628a4c4c1b265800567e577eaa72763eba3cc",
     "scripts/route-smoke.mjs": "af88f973637442d2ddb5fc360be9ac66fce7f809aba22078221df00a64942144",
     "scripts/route-nesting.mjs": "c7da9d6754ebd25de978ab395e9051f41d7a9a0f4733c24f7c2fd8d277c59891",

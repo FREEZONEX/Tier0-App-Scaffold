@@ -430,8 +430,11 @@ see `artifact.toml`.
 with the App's marker on import (missing or different → the Builder offers to
 align the App). `ref` is the short sha of the scaffold commit the version was
 stamped on; it is informational and lets the align Skill locate the source.
-The marker is validated by `src/lib/scaffold-version-contracts.test.mjs`
-(locked) and, warn-only, by `scripts/scaffold-version.mjs` in `postbuild`.
+`src/lib/scaffold-version-contracts.test.mjs` (locked) validates the field's
+format when it is present, and `scripts/scaffold-version.mjs` warns in
+`postbuild`; neither fails an App build that lost the field. Presence is
+required only in this repository's CI, through
+`node scripts/scaffold-version.mjs --strict`.
 
 **When to bump.** Every PR that changes what generated Apps inherit — the
 rules in `AGENTS.md` / `README.md`, `src/lib/**`, `src/services/bootstrap.ts`,
