@@ -1,0 +1,63 @@
+name: Scaffold version tag
+
+# After a merge to main that changed package.json.tier0Scaffold.version, tag
+# the merge commit as scaffold/v<version> so a version can be traced back to
+# its scaffold commit (`ref`) from the tag.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Tag scaffold/v<version> when the version changed
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+
+          read_version() {
+            node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const v=JSON.parse(s).tier0Scaffold;process.stdout.write(String(v&&Number.isInteger(v.version)?v.version:0))})'
+          }
+
+          head_version="$(read_version < package.json)"
+          if [ "$head_version" = "0" ]; then
+            echo "package.json has no tier0Scaffold.version; nothing to tag."
+            exit 0
+          fi
+
+          before_version=0
+          if [ -n "$BEFORE_SHA" ] && ! echo "$BEFORE_SHA" | grep -Eq '^0+$' && git cat-file -e "$BEFORE_SHA^{commit}" 2>/dev/null; then
+            before_version="$( (git show "$BEFORE_SHA:package.json" 2>/dev/null || echo '{}') | read_version)"
+          fi
+
+          echo "tier0Scaffold.version: before v$before_version -> now v$head_version"
+          if [ "$head_version" = "$before_version" ]; then
+            echo "Scaffold version unchanged in this push; no tag."
+            exit 0
+          fi
+
+          tag="scaffold/v$head_version"
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
+            echo "Tag $tag already exists; skipping."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$tag" -m "Tier0-App-Scaffold v$head_version" "$GITHUB_SHA"
+          git push origin "refs/tags/$tag"
+          echo "Created and pushed $tag at $GITHUB_SHA."

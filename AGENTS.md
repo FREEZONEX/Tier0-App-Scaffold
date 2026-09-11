@@ -443,6 +443,21 @@ Important names are `DATABASE_URL`, `DIRECT_DATABASE_URL`, `DB_SCHEMA`,
 `DB_SYNC_ALLOW_DESTRUCTIVE`, `APP_ID`, and `VITE_BASE_PATH`
 (`NEXT_PUBLIC_BASE_PATH` is legacy only).
 
+## Scaffold Version
+
+`package.json.tier0Scaffold` (`{ "version": <positive integer>, "ref":
+"<scaffold commit sha>" }`) records which Tier0-App-Scaffold version this app
+was generated from. The platform reads it when the app is imported and prompts
+alignment when it is missing or differs from the current scaffold; nothing at
+runtime depends on it, and `npm run build` only warns when it is missing or
+malformed.
+
+- Never edit `tier0Scaffold` by hand, and never remove it. It is not an app
+  setting, and changing the number does not align anything.
+- The align-platform-app Skill writes the version and ref it was pinned to
+  after a successful alignment; that is the only path that updates the field
+  inside an app.
+
 ## Completion Check
 
 - The requested core workflows satisfy their legal lifecycle rather than

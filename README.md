@@ -418,6 +418,50 @@ npm run db:studio    # Drizzle Studio
 `3000`), and serves `dist/client/` as static assets. For container deployment,
 see `artifact.toml`.
 
+## Scaffold Version (Maintainers)
+
+`package.json.tier0Scaffold` is the scaffold's version marker:
+
+```json
+"tier0Scaffold": { "version": 14, "ref": "e4f1c2a" }
+```
+
+`version` is a positive integer that the platform compares by strict equality
+with the App's marker on import (missing or different → the Builder offers to
+align the App). `ref` is the short sha of the scaffold commit the version was
+stamped on; it is informational and lets the align Skill locate the source.
+`src/lib/scaffold-version-contracts.test.mjs` (locked) validates the field's
+format when it is present, and `scripts/scaffold-version.mjs` warns in
+`postbuild`; neither fails an App build that lost the field. Presence is
+required only in this repository's CI, through
+`node scripts/scaffold-version.mjs --strict`.
+
+**When to bump.** Every PR that changes what generated Apps inherit — the
+rules in `AGENTS.md` / `README.md`, `src/lib/**`, `src/services/bootstrap.ts`,
+`scripts/**`, `artifact.toml`, `vite.config.ts`, `server.mjs`, `package.json`
+dependencies or scripts, `.env.example` — bumps the version by one. Do not
+judge the size of the change. Pure wording, placeholder covers, or internal
+test adjustments do not bump. The `Scaffold version check` workflow fails a PR
+that touches those paths without a bump.
+
+**How to bump.** Commit the content first, then stamp on a clean tree as its
+own commit so `ref` names the content commit:
+
+```bash
+git commit -am "feat(...): ..."          # the content commit
+node scripts/scaffold-version.mjs --bump  # version + 1, ref = short sha of HEAD
+git commit -am "chore(scaffold): stamp v<version>"
+```
+
+`--bump` exits 1 when anything other than `package.json` is uncommitted.
+`node scripts/scaffold-version.mjs` validates the field (warn-only);
+`--strict` makes problems fatal and is what CI runs.
+
+**Never squash-merge** scaffold PRs: `ref` would point at a commit that does
+not exist on `main`. After a merge that changed the version, the
+`Scaffold version tag` workflow tags the merge commit `scaffold/v<version>`,
+so a version can be traced back to its commit from the tag.
+
 ## Notes for Agents
 
 The full build instructions live in [AGENTS.md](AGENTS.md). For greenfield

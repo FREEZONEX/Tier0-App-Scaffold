@@ -1,0 +1,65 @@
+name: Scaffold version check
+
+# Required PR check: a change that touches the App contract must bump
+# package.json.tier0Scaffold.version. CI only gates; it never writes the repo.
+# Maintainers bump by hand with `node scripts/scaffold-version.mjs --bump`.
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  scaffold-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate tier0Scaffold (strict)
+        run: node scripts/scaffold-version.mjs --strict
+
+      - name: Require a version bump when contract paths change
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+
+          merge_base="$(git merge-base "$BASE_SHA" "$HEAD_SHA")"
+          changed="$(git diff --name-only "$merge_base" "$HEAD_SHA")"
+
+          # Contract paths (plan §3.1): a change here alters what generated
+          # Apps inherit, so the scaffold version must move with it.
+          contract_pattern='^(AGENTS\.md|README\.md|src/lib/.*|src/services/bootstrap\.ts|scripts/.*|artifact\.toml|vite\.config\.ts|server\.mjs|package\.json|\.env\.example)$'
+          contract_hits="$(printf '%s\n' "$changed" | grep -E "$contract_pattern" || true)"
+
+          if [ -z "$contract_hits" ]; then
+            echo "No contract path changed; no scaffold version bump required."
+            exit 0
+          fi
+
+          read_version() {
+            node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const v=JSON.parse(s).tier0Scaffold;process.stdout.write(String(v&&Number.isInteger(v.version)?v.version:0))})'
+          }
+
+          base_version="$( (git show "$merge_base:package.json" 2>/dev/null || echo '{}') | read_version)"
+          head_version="$(read_version < package.json)"
+
+          echo "Contract paths changed:"
+          printf '  %s\n' $contract_hits
+          echo "tier0Scaffold.version: base v$base_version -> head v$head_version"
+
+          if [ "$head_version" = "$base_version" ]; then
+            echo "::error::Contract paths changed but package.json.tier0Scaffold.version is still v$base_version. Commit the content, then run 'node scripts/scaffold-version.mjs --bump' on a clean tree and commit the bump separately."
+            exit 1
+          fi
+
+          echo "Scaffold version bumped; check passed."

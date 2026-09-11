@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "tier0Scaffold": {
+    "version": 1,
+    "ref": "ee72268"
+  },
   "engines": {
     "node": ">=22.12.0"
   },

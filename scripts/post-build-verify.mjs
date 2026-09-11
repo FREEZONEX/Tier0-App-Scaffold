@@ -26,6 +26,12 @@ const steps = [
     command: ["npm", "run", "lint"],
   },
   {
+    // Warn-only: the marker is metadata read by the platform on import. A
+    // missing or malformed field must never stop a working App from building.
+    label: "Scaffold version (non-blocking)",
+    command: ["node", "scripts/scaffold-version.mjs"],
+  },
+  {
     label: "Contract tests",
     command: [
       "node",
@@ -53,6 +59,7 @@ const steps = [
       "src/lib/write-path-contracts.test.mjs",
       "src/lib/ui-primitives-contracts.test.mjs",
       "src/lib/responsive-contracts.test.mjs",
+      "src/lib/scaffold-version-contracts.test.mjs",
       "src/lib/template-state.test.mjs",
     ],
   },
