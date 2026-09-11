@@ -1,5 +1,48 @@
 # Platform Integration and Deployment
 
+## SDK 0.5.1
+
+The scaffold declares `@tier0/sdk` `^0.5.1` and locks `0.5.1`. Load OpenAPI,
+Files and MQ through the existing `@/lib/tier0` server-side lazy helpers.
+Updating injected guidance alone does not upgrade an application's installed SDK.
+
+### Notification channels
+
+The SDK expands channels before sending the HTTP request:
+
+| Input | Reminder scope |
+|---|---|
+| Omitted or `undefined` | Web & Desktop plus Mobile (`['web', 'mobile']`) |
+| `[]` | Inbox only |
+| `['web']` | Web & Desktop |
+| `['mobile']` | Mobile |
+
+Explicit arrays are deduplicated without adding channels. There is no `desktop`
+value. TypeScript restricts channel values; the SDK does not validate them at
+runtime. The raw backend endpoint does not share the SDK's default expansion.
+
+When upgrading from 0.4.0 or earlier, review existing notification calls. Preserve
+intentional silent delivery with `channels: []`; generic notification requests
+can omit channels. Do not infer a narrower channel from the application's page
+layout. Reminder eligibility does not establish actual delivery.
+
+Use `mode: 'test'` in development/Preview and `mode: 'live'` for published runs.
+Do not add or detect a `[Test]` title prefix; test/live is represented by message
+mode. Keep notification App identity resolved at runtime through `resolveAppId()`.
+
+### MQTT broker addresses
+
+Use the MQ module's `toWebSocketUrl()` when converting a platform `mqttBroker`
+string to a WebSocket URL; `parseMqttBroker()` is available when endpoint fields
+are needed. Do not concatenate a broker string into `wss://...` or reuse a TCP
+port such as 1883 for WebSocket connections. Non-WebSocket inputs use the
+configured `wssPort` (default 8084); existing `ws://`/`wss://` URLs retain their
+scheme, port, path and query. Handle an undefined result as a configuration error.
+
+HTTPS browser/Worker contexts select WSS for non-WebSocket inputs. Server-side
+conversion cannot infer the browser's scheme: pass `secure: true` when WSS is
+required, and retain the platform's explicit connection settings.
+
 ## Environment Variables
 
 There is no explicit mode switch. If a variable is missing, the app uses its
