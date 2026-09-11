@@ -300,6 +300,33 @@ throws, so its exit code must never be treated as a success signal.
 | `TIER0_MQTT_HOST` | Injected by the platform; read by `@tier0/sdk/mq` |
 | `TIER0_MQTT_PORT` | Injected by the platform; read by `@tier0/sdk/mq` |
 
+## Scaffold Version Marker
+
+`package.json` carries a top-level `tier0Scaffold` field:
+
+```json
+"tier0Scaffold": { "version": 14, "ref": "e4f1c2a" }
+```
+
+| Field | Format | Meaning |
+|---|---|---|
+| `version` | positive integer | Scaffold version the App was generated from. Bumped by one whenever a contract-affecting scaffold change merges; compared by strict equality only |
+| `ref` | 7–40 lowercase hex | Scaffold commit the version was stamped on. Informational; lets the align Skill locate the scaffold source |
+
+The platform reads the field when an App package is imported. If it is missing
+or its `version` differs from the platform's current scaffold version, the
+import reports a `scaffold_missing` / `scaffold_mismatch` warning and the
+Builder prompts the user to align the App the first time it opens after
+import; the user can dismiss the prompt, and choosing to align places an
+`align-platform-app` prompt pinned to the current version and `ref` in the
+conversation. After alignment the Skill updates the field; the App must be
+redeployed before an export carries the new version.
+
+Nothing at runtime depends on the marker: the App does not read it, the
+platform does not inject it, and `npm run build` only warns when it is missing
+or malformed (`scripts/scaffold-version.mjs`). Apps and agents must not edit
+it by hand.
+
 ---
 
 ## Scenario Matrix

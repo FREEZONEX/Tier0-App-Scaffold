@@ -35,6 +35,7 @@ const LOCKED_FILES = [
   "src/lib/write-path-contracts.test.mjs",
   "src/lib/ui-primitives-contracts.test.mjs",
   "src/lib/responsive-contracts.test.mjs",
+  "src/lib/scaffold-version-contracts.test.mjs",
   "scripts/ui-advisories.mjs",
   "scripts/route-smoke.mjs",
   "scripts/route-nesting.mjs",
@@ -42,6 +43,7 @@ const LOCKED_FILES = [
   "scripts/post-build-verify.mjs",
   "scripts/db-sync-guard.mjs",
   "scripts/gate-integrity.mjs",
+  "scripts/scaffold-version.mjs",
 ];
 
 // Normalize line endings so pins hold across git autocrlf configurations.
