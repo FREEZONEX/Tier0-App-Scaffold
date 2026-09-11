@@ -10,6 +10,12 @@ export interface FormDialogProps
   children: ReactNode;
   submitLabel?: string;
   cancelLabel?: string;
+  /**
+   * Disables footer actions only. Esc, backdrop and header-close dismissal
+   * remain controlled by onOpenChange. Guard closing there while pending when
+   * the workflow requires it; otherwise retain operation state after dismissal.
+   * Closing does not cancel a submitted request. The caller handles async errors.
+   */
   pending?: boolean;
   submitVariant?: "primary" | "highlight";
   onSubmit: (event: FormEvent<HTMLFormElement>) => void | Promise<void>;
