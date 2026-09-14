@@ -392,13 +392,15 @@ stable source copy at the project root so Download Source Code and Download
 Snapshot retain the same files; never register a temporary or workspace-external
 file as the only copy.
 
-1. Create a simple, high-contrast domain mark and export the final asset as
+1. Create a domain-specific app icon following `DESIGN.md` → App Icons and export the final asset as
    root `icon.png` (512×512, ≤2 MB). This matches the platform import/export
    package name. Coded artwork is allowed: SVG,
    Canvas, Node, HTML/browser rendering, or another deterministic drawing path
-   may be used to produce the PNG. Prefer one bold centered symbol, generous
-   padding, one or two solid colors, and no text or fine detail so it remains
-   legible around 32px. Do not leave the scaffold placeholder unchanged.
+   may be used to produce the PNG. Use a rounded-square tile, a vivid tonal
+   gradient, and a centered white or lightly tinted business symbol with subtle
+   highlights and shallow layered depth. Keep generous padding and a clear
+   silhouette at 32px; omit text and fine detail. Do not leave the scaffold
+   placeholder unchanged.
 2. Copy that exact file byte-for-byte to `public/app-icon.png` (also 512×512,
    ≤2 MB), then set `APP_ICON = "/app-icon.png"` in `src/lib/app-chrome.ts`.
    The public copy is the runtime asset; root `icon.png` is the durable

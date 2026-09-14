@@ -254,6 +254,30 @@ hairline borders and a subtle `shadow-sm`; overlays may use stronger, restrained
 elevation. IDs, lot/document/location
 codes, and tabular technical values suit `font-mono` / `tabular-nums`.
 
+## App Icons
+
+App identity icons use a softly dimensional app-store style. Apply these rules
+to the app icon asset; navigation and action icons remain simple UI glyphs.
+
+- Shape: use a rounded-square tile with generous, consistent corner radii.
+  Center one recognizable business symbol with balanced padding and visual weight.
+- Color: choose one vivid dominant hue, such as orange, blue, or violet. Use
+  a restrained light-to-dark gradient within that hue, with a white or pale
+  tinted foreground. The app identity hue may differ from the UI's semantic colors.
+- Depth: give the symbol gentle tonal shading, a fine edge highlight, and a
+  short soft shadow. A few overlapping shapes can suggest cards, boards, or
+  messages. Keep the result crisp and shallow, without photorealistic texture,
+  exaggerated extrusion, heavy gloss, or a glass panel behind every symbol.
+- Meaning: simplify a concrete domain object, such as a helmet, contact card,
+  task board, or chat bubble. A familiar object may fill the tile, such as a
+  white notepad with a colored header, while retaining the same rounded silhouette.
+- Legibility: check the exported icon at 32px and 64px. Preserve the main
+  silhouette and foreground/background contrast; remove tiny lettering, dense
+  linework, decorative badges, and details that disappear when reduced.
+
+Use the asset dimensions, root/public copy, and registration workflow in
+`AGENTS.md` → App Identity and Product Copy.
+
 ## Composition
 
 Choose layout and density from the workflow. Keep the persistent page body
@@ -288,7 +312,7 @@ Visible copy names work, data, state, action, risk, or consequence. Keep route
 explanations, token commentary, and implementation notes out of product UI.
 Use one locale per surface unless bilingual output is requested.
 
-Motion clarifies state. Avoid animated ornaments, broad decorative gradients,
+Motion clarifies state. On application surfaces, avoid animated ornaments, broad decorative gradients,
 background blobs, glass effects, and heavy shadows. Import shared motion through
 `@/lib/motion`.
 
