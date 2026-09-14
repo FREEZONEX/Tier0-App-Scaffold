@@ -1,8 +1,8 @@
 # Platform Integration and Deployment
 
-## SDK 0.5.1
+## SDK 0.5.3
 
-The scaffold declares `@tier0/sdk` `^0.5.1` and locks `0.5.1`. Load OpenAPI,
+The scaffold declares `@tier0/sdk` `^0.5.3` and locks `0.5.3`. Load OpenAPI,
 Files and MQ through the existing `@/lib/tier0` server-side lazy helpers.
 Updating injected guidance alone does not upgrade an application's installed SDK.
 
@@ -39,9 +39,74 @@ port such as 1883 for WebSocket connections. Non-WebSocket inputs use the
 configured `wssPort` (default 8084); existing `ws://`/`wss://` URLs retain their
 scheme, port, path and query. Handle an undefined result as a configuration error.
 
-HTTPS browser/Worker contexts select WSS for non-WebSocket inputs. Server-side
-conversion cannot infer the browser's scheme: pass `secure: true` when WSS is
-required, and retain the platform's explicit connection settings.
+For non-WebSocket inputs, port 8084 or an HTTPS browser context selects WSS;
+other ports use WS outside HTTPS browsers. Explicit `secure: true/false`
+overrides inference; explicit `ws://`/`wss://` URLs retain their transport.
+A server cannot infer the eventual browser's scheme, so pass `secure: true`
+when that browser requires WSS on another port.
+
+`Tier0MQClient` accepts a bare `host:port` as a WebSocket endpoint, so
+`emqx:8083` uses WS in Node.js. This differs from `toWebSocketUrl()`, which
+uses its `wssPort` option for non-WebSocket inputs. Explicit TCP/MQTT URL
+ports are not WebSocket ports and must not be reused.
+
+### MQTT API-key compatibility
+
+Workspace-encoded keys (`sk-<type>-ws<base36>_<secret>`) supply MQTT identity.
+Non-service types require SDK 0.5.2 or later; use the 0.5.3 baseline for the
+additional connect-time credential and endpoint fixes. Preserve the original
+key as the password and let the SDK derive username/clientId. Legacy keys keep
+the Enterprise fallback; deliberate deployment-specific identity overrides
+remain explicit. Changing the key through `connect({ password })` recalculates
+automatically derived fields while preserving each explicit field. Disconnect
+an established connection before reconnecting with new credentials.
+
+For `Not authorized`, CONNACK code 5, repeated reconnects, or OpenAPI succeeding
+while MQTT fails:
+
+1. Check the actually installed version with `npm ls @tier0/sdk`, not only
+   the manifest range. Inspect key presence/type in the failing runtime without
+   printing its value. OpenAPI sends an opaque credential; HTTP 401 alone does
+   not establish an SDK incompatibility.
+2. If a workspace-encoded non-service key is used below 0.5.2, upgrade to the
+   selected supported baseline. Keep the package range and authoritative
+   lockfile consistent. Managed preview owns installation/restart; do not race
+   it with a manual install. In an unmanaged checkout, validate a clean install.
+3. If the SDK compatibility diagnostic is available in the installed package
+   or injected guidance, run it from the application root. Check that the script
+   exists first: published SDK 0.5.3 does not include
+   `skills/tier0-sdk/scripts/check-api-key-compat.mjs`. Its absence is a packaging
+   limitation, not an authentication failure; continue the checks here.
+4. Once the installed SDK is compatible, inspect runtime injection, key
+   revocation/expiry/permissions, broker endpoint/transport, and backend support
+   for that key type. Do not repeatedly upgrade or replace credentials without
+   evidence, and never log the complete key or hard-code a Workspace identity.
+
+After an upgrade, restart the runtime and verify its installed version and the
+affected MQTT connection/subscription. A build or local compatibility check does
+not prove broker authorization or message delivery.
+
+### Existing App API-key type changes
+
+Before the platform changes an existing App to a workspace-encoded non-service
+API key, inspect the SDK version actually running in that App and whether it
+uses MQTT. For MQTT apps below 0.5.2, upgrading the SDK is a prerequisite to the
+key-type change; target 0.5.3 for the complete fixes described above. Updating
+the scaffold or replacing a Skill does not upgrade deployed Apps.
+
+Upgrade and restart the App first, confirm the installed version, and verify
+its MQTT connection/subscription. Validate the target key in an authorized
+staging or controlled cutover before retiring the old credential; a successful
+connection using only the old key does not prove the new key works. If upgrade
+or verification cannot be completed, do not automatically switch credentials;
+report the compatibility blocker. Preserve a rollback path for the controlled
+cutover rather than invalidating the working credential first.
+
+An HTTP-only App must not be marked incompatible solely because its SDK is
+below 0.5.2; check the target key's permissions and endpoint support. Unknown
+runtime versions or unknown MQTT usage are unresolved checks, not evidence that
+a switch is safe. This is a requirement for the platform credential-switch
+workflow; these scaffold instructions do not implement platform enforcement.
 
 ## Environment Variables
 
