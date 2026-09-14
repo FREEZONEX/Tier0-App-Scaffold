@@ -86,6 +86,28 @@ After an upgrade, restart the runtime and verify its installed version and the
 affected MQTT connection/subscription. A build or local compatibility check does
 not prove broker authorization or message delivery.
 
+### Existing App API-key type changes
+
+Before the platform changes an existing App to a workspace-encoded non-service
+API key, inspect the SDK version actually running in that App and whether it
+uses MQTT. For MQTT apps below 0.5.2, upgrading the SDK is a prerequisite to the
+key-type change; target 0.5.3 for the complete fixes described above. Updating
+the scaffold or replacing a Skill does not upgrade deployed Apps.
+
+Upgrade and restart the App first, confirm the installed version, and verify
+its MQTT connection/subscription. Validate the target key in an authorized
+staging or controlled cutover before retiring the old credential; a successful
+connection using only the old key does not prove the new key works. If upgrade
+or verification cannot be completed, do not automatically switch credentials;
+report the compatibility blocker. Preserve a rollback path for the controlled
+cutover rather than invalidating the working credential first.
+
+An HTTP-only App must not be marked incompatible solely because its SDK is
+below 0.5.2; check the target key's permissions and endpoint support. Unknown
+runtime versions or unknown MQTT usage are unresolved checks, not evidence that
+a switch is safe. This is a requirement for the platform credential-switch
+workflow; these scaffold instructions do not implement platform enforcement.
+
 ## Environment Variables
 
 There is no explicit mode switch. If a variable is missing, the app uses its
