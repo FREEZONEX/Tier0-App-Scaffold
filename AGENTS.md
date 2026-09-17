@@ -300,6 +300,12 @@ Load local APIs with `requestJson()` (it applies `apiUrl()`); pass the loader
 function each render. Render request state through `AsyncView` so failures show
 an error and retry instead of indefinite loading.
 
+Keep live data current without routine Refresh buttons: `useRequest` revalidates
+on visible/reconnect; use `{ refetchInterval: 15000 }` for shared operational
+lists. Call `refresh()` after a successful mutation and for error retry. Keep
+form drafts separate from fetched data so background updates cannot erase edits;
+immutable reads can disable `refetchOnWindowFocus` / `refetchOnReconnect`.
+
 A failed request must reach `console.error`, never only an error state:
 `requestJson()` reports a non-2xx response with the server `cause` before it
 throws (a 5xx is also sent to the Builder preview as a `network` error, which
