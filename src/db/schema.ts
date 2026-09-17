@@ -3,6 +3,7 @@
  * defining schemas. They become "used" the moment the agent adds the first table.
  */
 import { pgEnum, pgSchema, pgTable, text, integer, boolean, timestamp, json, real, type PgSchema } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-zod";
 
 /**
@@ -32,9 +33,11 @@ export const appSchema: AppSchema = dbSchemaName
  * for "newest first"). Do not order by a column a table might not have.
  */
 export const timestamps = {
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  // Drizzle maps date-mode timestamps as UTC; keep database defaults consistent
+  // even when the PostgreSQL session TimeZone is not UTC.
+  createdAt: timestamp("created_at").default(sql`timezone('UTC', now())`).notNull(),
   updatedAt: timestamp("updated_at")
-    .defaultNow()
+    .default(sql`timezone('UTC', now())`)
     .notNull()
     .$onUpdateFn(() => new Date()),
 };
