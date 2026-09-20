@@ -19,6 +19,12 @@ export type PollingResult<T> = RequestResult<T>;
 export interface RequestOptions {
   enabled?: boolean;
   keepPreviousData?: boolean;
+  /** Revalidate when the document becomes visible. Defaults to true. */
+  refetchOnWindowFocus?: boolean;
+  /** Revalidate when the browser reports reconnecting. Defaults to true. */
+  refetchOnReconnect?: boolean;
+  /** Optional background interval in milliseconds; disabled by default. */
+  refetchInterval?: number | false;
 }
 
 export interface PollingOptions {
@@ -49,8 +55,10 @@ function reportRequestFailure(scope: string, error: Error) {
  * Run a client request keyed by a stable primitive request key.
  *
  * The loader identity is read from a ref so re-renders do not re-trigger the
- * request. Only `requestKey`, `enabled`, or `refresh()` may start a new load.
- * A new request aborts the previous one for the same hook instance.
+ * request. Returning to the page or reconnecting revalidates automatically;
+ * live lists can opt into `refetchInterval`. Automatic refreshes skip hidden,
+ * offline, and in-flight requests; explicit `refresh()` still replaces an
+ * in-flight request, so a completed mutation can invalidate an older read.
  *
  * Usage:
  *   const request = useRequest(
@@ -67,7 +75,13 @@ export function useRequest<T>(
   loader: (signal: AbortSignal) => Promise<T>,
   options: RequestOptions = {},
 ): RequestResult<T> {
-  const { enabled = true, keepPreviousData = true } = options;
+  const {
+    enabled = true,
+    keepPreviousData = true,
+    refetchOnWindowFocus = true,
+    refetchOnReconnect = true,
+    refetchInterval = false,
+  } = options;
   const loaderRef = useRef(loader);
   const previousKeyRef = useRef<string | null>(null);
   const controllerRef = useRef<AbortController | null>(null);
@@ -160,6 +174,41 @@ export function useRequest<T>(
     };
   }, [requestKey, enabled, keepPreviousData, refreshToken, loaderRef]);
 
+  useEffect(() => {
+    if (!enabled) return;
+
+    function revalidate() {
+      // onLine is only a scheduling hint: initial loads and explicit retries
+      // must still work when the browser misreports an available network.
+      if (
+        document.hidden ||
+        navigator.onLine === false ||
+        controllerRef.current
+      ) return;
+      refresh();
+    }
+
+    const timer =
+      typeof refetchInterval === "number" &&
+      Number.isFinite(refetchInterval) &&
+      refetchInterval > 0
+        ? window.setInterval(revalidate, refetchInterval)
+        : undefined;
+    if (refetchOnWindowFocus) {
+      document.addEventListener("visibilitychange", revalidate);
+    }
+    if (refetchOnReconnect) window.addEventListener("online", revalidate);
+
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", revalidate);
+      window.removeEventListener("online", revalidate);
+    };
+  }, [
+    requestKey, enabled, refetchInterval, refetchOnWindowFocus,
+    refetchOnReconnect, refresh,
+  ]);
+
   return { data, error, isLoading, refresh };
 }
 
@@ -196,6 +245,9 @@ export function usePolling<T>(
   useEffect(() => {
     loadRef.current = async (force = false) => {
       if (!enabled) {
+        return;
+      }
+      if (!force && navigator.onLine === false) {
         return;
       }
       if (
@@ -272,15 +324,20 @@ export function usePolling<T>(
       if (document.hidden) {
         return;
       }
-      void loadRef.current(true);
+      void loadRef.current();
     }
 
     if (pauseWhenHidden && typeof document !== "undefined") {
       document.addEventListener("visibilitychange", handleVisibilityChange);
     }
+    function handleOnline() {
+      void loadRef.current();
+    }
+    window.addEventListener("online", handleOnline);
 
     return () => {
       window.clearInterval(intervalId);
+      window.removeEventListener("online", handleOnline);
       if (pauseWhenHidden && typeof document !== "undefined") {
         document.removeEventListener(
           "visibilitychange",

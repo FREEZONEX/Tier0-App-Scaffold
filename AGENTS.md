@@ -300,6 +300,12 @@ Load local APIs with `requestJson()` (it applies `apiUrl()`); pass the loader
 function each render. Render request state through `AsyncView` so failures show
 an error and retry instead of indefinite loading.
 
+Keep live data current without routine Refresh buttons: `useRequest` revalidates
+on visible/reconnect; use `{ refetchInterval: 15000 }` for shared operational
+lists. Call `refresh()` after a successful mutation and for error retry. Keep
+form drafts separate from fetched data so background updates cannot erase edits;
+immutable reads can disable `refetchOnWindowFocus` / `refetchOnReconnect`.
+
 A failed request must reach `console.error`, never only an error state:
 `requestJson()` reports a non-2xx response with the server `cause` before it
 throws (a 5xx is also sent to the Builder preview as a `network` error, which
@@ -351,7 +357,7 @@ Flow, files, MQTT/MQ/WebSocket, or device commands. Call lazy helpers from
 invoke SDK submodules on SSR startup paths. Keep `vite.config.ts`
 `ssr.external: ["pg", "@tier0/sdk", "mqtt"]`.
 
-The SDK baseline is `^0.5.3` (locked to `0.5.3`). For notifications, omitted
+The SDK baseline is `^0.5.4` (locked to `0.5.4`). For notifications, omitted
 `channels` means Web & Desktop plus Mobile; use `[]` for inbox only, `['web']`
 or `['mobile']` for explicit scope. There is no `desktop` channel. When
 upgrading an existing app, change calls that relied on omitted channels for

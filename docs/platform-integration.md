@@ -1,8 +1,8 @@
 # Platform Integration and Deployment
 
-## SDK 0.5.3
+## SDK 0.5.4
 
-The scaffold declares `@tier0/sdk` `^0.5.3` and locks `0.5.3`. Load OpenAPI,
+The scaffold declares `@tier0/sdk` `^0.5.4` and locks `0.5.4`. Load OpenAPI,
 Files and MQ through the existing `@/lib/tier0` server-side lazy helpers.
 Updating injected guidance alone does not upgrade an application's installed SDK.
 
@@ -53,7 +53,7 @@ ports are not WebSocket ports and must not be reused.
 ### MQTT API-key compatibility
 
 Workspace-encoded keys (`sk-<type>-ws<base36>_<secret>`) supply MQTT identity.
-Non-service types require SDK 0.5.2 or later; use the 0.5.3 baseline for the
+Non-service types require SDK 0.5.2 or later; use the 0.5.4 baseline for the
 additional connect-time credential and endpoint fixes. Preserve the original
 key as the password and let the SDK derive username/clientId. Legacy keys keep
 the Enterprise fallback; deliberate deployment-specific identity overrides
@@ -74,9 +74,10 @@ while MQTT fails:
    it with a manual install. In an unmanaged checkout, validate a clean install.
 3. If the SDK compatibility diagnostic is available in the installed package
    or injected guidance, run it from the application root. Check that the script
-   exists first: published SDK 0.5.3 does not include
-   `skills/tier0-sdk/scripts/check-api-key-compat.mjs`. Its absence is a packaging
-   limitation, not an authentication failure; continue the checks here.
+   exists first: SDK 0.5.4 includes
+   `skills/tier0-sdk/scripts/check-api-key-compat.mjs`; published 0.5.3 omitted it.
+   Its absence in an older package is a packaging limitation, not an
+   authentication failure; continue the checks here.
 4. Once the installed SDK is compatible, inspect runtime injection, key
    revocation/expiry/permissions, broker endpoint/transport, and backend support
    for that key type. Do not repeatedly upgrade or replace credentials without
@@ -91,7 +92,7 @@ not prove broker authorization or message delivery.
 Before the platform changes an existing App to a workspace-encoded non-service
 API key, inspect the SDK version actually running in that App and whether it
 uses MQTT. For MQTT apps below 0.5.2, upgrading the SDK is a prerequisite to the
-key-type change; target 0.5.3 for the complete fixes described above. Updating
+key-type change; target 0.5.4 for the complete fixes described above. Updating
 the scaffold or replacing a Skill does not upgrade deployed Apps.
 
 Upgrade and restart the App first, confirm the installed version, and verify
