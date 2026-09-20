@@ -8,6 +8,30 @@ Do not re-initialize the project.
 Build a usable industrial application, not a demo. Prefer a small number of
 complete workflows over a wide read-only shell.
 
+## Visual Boundaries Before UI Implementation
+
+Before generating or changing UI, read the root `DESIGN.md`,
+`src/styles/globals.css`, and the shared components you will use.
+
+- Preserve the current design system's colors, typography, radii, shadows,
+  and base control appearance. Requests for a more modern, polished, or
+  attractive UI stay within that system unless the user explicitly requests
+  a design-system change.
+- Freely choose layout, information grouping, proportions, density, and
+  interactions to fit the business workflow. Composition freedom does not
+  include restyling the shared primitives.
+- Compose existing components first. When a component is missing, build it
+  with existing semantic tokens. Use component variants for appearance and
+  page-level classes for layout; do not override primitive colors, typography,
+  radii, or shadows just to create a different look.
+- Establish the main work area through position, size, typography, spacing,
+  density, and existing selected/status states. Do not invent a new palette
+  or decorative treatment to create visual focus.
+
+These are generation instructions, not additional build or delivery gates.
+Cosmetic deviations alone must not block delivery or trigger whole-page
+regeneration; preserve usable work and keep any correction scoped.
+
 ## Delivery Floor: Complete the Legal Lifecycle
 
 Infer each business object's lifecycle from the domain. Do not mechanically add
@@ -251,9 +275,9 @@ Do not modify `src/start.ts`, `src/lib/{gateway,auth}.ts`, or
 
 ## UI and Client Runtime
 
-Use `DESIGN.md`, existing tokens, and the shipped primitives as a neutral
-toolkit; choose compositions from the workflow rather than treating this list
-as a mandatory page recipe.
+Use `DESIGN.md`, existing tokens, and shipped primitives within the Visual
+Boundaries above. Choose page compositions from the workflow; the component
+list is not a mandatory page recipe.
 
 - `ui`: `Button`, `StatusBadge`, `Card`, `PageHeader`,
   `StatusFilterChips`, `RiskBanner`, `EmptyState`, `StatCard`.
