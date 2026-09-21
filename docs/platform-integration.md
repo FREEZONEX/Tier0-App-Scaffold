@@ -155,26 +155,26 @@ variables are injected by the platform during deployment. Do not place them in
 
 ### Agent-registered visual assets
 
-File-based App Icon and Cover updates use workspace paths. Keep the final
-registration sources at stable project-root paths so the same files remain in
-Download Source Code and in Snapshots created after the update:
+File-based App Icon and Cover updates use workspace paths. The registration
+source is the same file the app runtime serves, under `public/`:
 
-- Icon: root `icon.png` is the registration/export source and matches the
-  platform import/export package name. Copy it byte-for-byte to
-  `public/app-icon.png` for the App runtime, set
-  `APP_ICON = "/app-icon.png"`, and register `icon_path: "icon.png"`.
-- Designed/generated Cover: save root `cover.png`, matching the platform
-  package name, and register `cover_path: "cover.png"`.
+- Icon: `public/app-icon.png` (PNG, 512×512, ≤2 MB). Set
+  `APP_ICON = "/app-icon.png"` and register `icon_path: "public/app-icon.png"`.
+- Designed/generated Cover: `public/app-cover.png` (PNG or JPEG, ≤8 MB); register
+  `cover_path: "public/app-cover.png"`.
 
 Do not use a temporary directory, a workspace-external path, or a separately
-generated file as the only registration source. On replacement, persist every
-root/runtime copy before calling `update_app_info`; if persistence fails, do not
-leave the platform pointing at an asset the project does not retain. This is a
-Scaffold/Agent contract for file-based `update_app_info` calls; the platform
-remains authoritative for uploads and automatic captures performed outside the
-Agent workspace.
+generated file as the registration source. Write the file before calling
+`update_app_info`; if the write fails, do not leave the platform pointing at an
+asset the project does not retain.
 
----
+The platform is authoritative for what is registered: at the start of every
+turn it mirrors the current icon and cover back to these two paths (this is how
+an icon or cover the user uploaded from the UI reaches the workspace), and
+Download Source Code, Snapshots and Bundle exports carry the platform's current
+image at the same paths, replacing whatever the package held there. Uploads and
+automatic captures performed outside the Agent workspace therefore need no
+project-side copy to survive export and re-import.
 
 ## Authentication Model
 
