@@ -219,7 +219,8 @@ bytes read as latin-1. The gateway parser normalizes all three before matching
 
 When the platform is authoritative, the app resolves roles as follows:
 
-1. Preview: use `X-Tier0-Preview-Role` as the single view-as role.
+1. Preview: use every comma-separated `X-Tier0-Preview-Role` value as the
+   developer-selected view-as role set; the first value is the primary display role.
 2. Deployed: use every comma-separated `X-Tier0-Business-Roles` value;
    `X-Tier0-Active-Role` remains first as the primary display role.
 3. Legacy fallback: `X-Tier0-Active-Role`, `X-Tier0-Preview-Role`,
@@ -343,7 +344,8 @@ separate-header format and then proxy the request to the app.
 For deployed apps, the gateway must inject `X-Tier0-Runtime: deployed`,
 `X-Tier0-Business-Roles` with every assigned app role, and optionally
 `X-Tier0-Active-Role` as the primary display role. Preview uses
-`X-Tier0-Runtime: preview` plus one `X-Tier0-Preview-Role`.
+`X-Tier0-Runtime: preview` plus `X-Tier0-Preview-Role` carrying the selected
+view-as role set (comma-separated; absent when no role is selected).
 
 ### App Container Startup
 
