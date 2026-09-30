@@ -126,7 +126,7 @@ src/
   lib/                        <- Cross-cutting utilities, not domain logic
     auth.ts                   <- getCurrentUser() / requireAuth() (do not modify)
     gateway.ts                <- Gateway header parsing (do not modify)
-    preview-bridge.ts         <- Preview host bridge for surfacing auth/page errors
+    preview-bridge.ts         <- Preview host bridge for surfacing auth/page/preview-role errors
     route-handlers.ts         <- withErrors() response/error wrapper (do not modify)
     users.ts                  <- AppUser type (do not modify)
     permissions.ts            <- Permission matrix definition
@@ -363,7 +363,7 @@ missing, it stores an empty string.
 
 Active role header precedence:
 
-1. `X-Tier0-Runtime: preview` + `X-Tier0-Preview-Role`
+1. `X-Tier0-Runtime: preview` + the first `X-Tier0-Preview-Role` value
 2. `X-Tier0-Active-Role`
 3. `X-Tier0-Preview-Role`
 4. `X-App-User-Role`
@@ -379,7 +379,7 @@ Flow:
 2. `src/start.ts` blocks cross-origin mutating requests and bypasses auth only for `/login`, `/api/health`, `/api/manifest`, and TanStack runtime/build assets
 3. Explicit Tier0 runtime roles are authoritative; deployed permissions use the complete role union and unknown trusted roles contribute zero permissions
 4. A valid legacy role may continue; an unknown legacy role returns `403`
-5. Preview identity without a selected view-as role enters with zero roles and zero permissions; no App session is created
+5. Preview uses the complete comma-separated `X-Tier0-Preview-Role` set with the same permission union; a preview identity without a selected view-as role enters with zero roles and zero permissions; no App session is created
 6. Gateway identity without an applicable role context returns `403`
 7. Missing Gateway identity returns `401`
 8. `/login` only reports platform-auth failure; it does not mint a Cookie or render a role picker

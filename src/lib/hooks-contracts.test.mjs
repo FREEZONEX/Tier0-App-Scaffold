@@ -162,4 +162,24 @@ describe("API failure visibility contracts", () => {
       console.error = originalError;
     }
   });
+
+  it("preview role failures are told apart from App failures", async () => {
+    const { isPreviewRoleError, ROLE_REQUIRED_MESSAGE_PREFIX } = await import("./preview-bridge.ts");
+    const { ApiRequestError } = await import("./utils.ts");
+    // requestJson surfaced a 403 (requireAuth, or the auth middleware's role context checks).
+    assert.equal(isPreviewRoleError(new ApiRequestError(403, "/api/items", "Requires role: supervisor")), true);
+    // A server function's requireAuth failure reaches the browser as Error(message) only.
+    assert.equal(isPreviewRoleError(new Error(`${ROLE_REQUIRED_MESSAGE_PREFIX} supervisor or inspector`)), true);
+    assert.equal(isPreviewRoleError(new ApiRequestError(404, "/api/items/9", "Not found")), false);
+    assert.equal(isPreviewRoleError(new Error("Cannot read properties of undefined")), false);
+    assert.equal(isPreviewRoleError(undefined), false);
+  });
+
+  it("route error boundary reports role failures as kind role and the rest as app", () => {
+    const boundary = read("src/components/ui/route-error-boundary.tsx");
+    assert.match(boundary, /const kind = isPreviewRoleError\(error\) \? "role" : "app";/);
+    assert.match(boundary, /sendPreviewError\(message, kind\)/);
+    const auth = read("src/lib/auth.ts");
+    assert.match(auth, /\$\{ROLE_REQUIRED_MESSAGE_PREFIX\} \$\{roles\.join\(" or "\)\}/);
+  });
 });

@@ -37,7 +37,7 @@ describe("Tier0 multi-role gateway context", () => {
     ]);
   });
 
-  it("keeps preview as a single selected view-as role", () => {
+  it("reads the preview view-as role set only from X-Tier0-Preview-Role", () => {
     const headers = new Headers({
       "X-Tier0-Runtime": "preview",
       "X-Tier0-Preview-Role": "receiver",
@@ -46,6 +46,26 @@ describe("Tier0 multi-role gateway context", () => {
     });
 
     assert.deepEqual(getGatewayRoles(headers), ["receiver"]);
+  });
+
+  it("accepts several preview view-as roles as a permission union", () => {
+    const headers = new Headers({
+      "X-Tier0-Runtime": "preview",
+      "X-Tier0-Preview-Role": "receiver, quality_inspector,receiver",
+      "X-Tier0-Active-Role": "receiver",
+      "X-Tier0-Business-Roles": "receiver,quality_inspector",
+    });
+
+    assert.deepEqual(getGatewayRoles(headers), ["receiver", "quality_inspector"]);
+    assert.deepEqual(getTrustedGatewayRoles(headers), ["receiver", "quality_inspector"]);
+    assert.equal(getGatewayRole(headers), "receiver");
+  });
+
+  it("treats a preview without selected roles as zero roles", () => {
+    const headers = new Headers({ "X-Tier0-Runtime": "preview" });
+
+    assert.equal(getTrustedGatewayRoles(headers), undefined);
+    assert.equal(getGatewayRole(headers), undefined);
   });
 
   it("treats an explicit deployed empty role list as authoritative zero access", () => {

@@ -224,8 +224,9 @@ passwords, users, cookies, local sessions, login/register APIs, or logout.
   assigned roles.
 - `X-Tier0-Active-Role` / `user.primaryRole` is display metadata only; never
   choose one “highest” role for authorization.
-- Preview uses `X-Tier0-Preview-Role`; a preview request without a selected
-  role enters with zero roles and zero permissions.
+- Preview uses the comma-separated `X-Tier0-Preview-Role` role set selected by
+  the developer (one or several roles, permission union); a preview request
+  without a selected role enters with zero roles and zero permissions.
 - Unknown trusted roles contribute zero permissions; explicit empty deployed
   roles remain zero-access. Forgeable unknown legacy roles fail closed.
 

@@ -1,6 +1,6 @@
 import type { ErrorComponentProps } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { sendPreviewError } from "@/lib/preview-bridge";
+import { isPreviewRoleError, sendPreviewError } from "@/lib/preview-bridge";
 
 export interface RouteErrorBoundaryProps {
   /** Error surfaced by the route's `errorComponent` boundary. */
@@ -20,6 +20,10 @@ export interface RouteErrorBoundaryProps {
  * What it does render is a hidden machine-readable marker so
  * `scripts/route-smoke.mjs` can still tell a failed route from a working one
  * (server-rendered failures used to be detected by the visible headline).
+ *
+ * A failure caused by the preview role (see `isPreviewRoleError`) is reported
+ * as kind `role` instead of `app`, so the Builder does not treat a missing
+ * role as broken App code.
  */
 export function RouteErrorBoundary({
   error,
@@ -27,9 +31,11 @@ export function RouteErrorBoundary({
 }: RouteErrorBoundaryProps) {
   const message = error.message || `${scope} failed to load`;
 
+  const kind = isPreviewRoleError(error) ? "role" : "app";
+
   useEffect(() => {
-    sendPreviewError(message, "app");
-  }, [message]);
+    sendPreviewError(message, kind);
+  }, [message, kind]);
 
   return (
     <div data-route-error={scope} hidden>
