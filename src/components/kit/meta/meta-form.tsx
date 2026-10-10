@@ -187,7 +187,7 @@ function FormItem({
         <FieldLabel
           htmlFor={id}
           required={Boolean(widget.required)}
-          className={cn("min-w-0 flex-row-reverse text-sm font-normal text-foreground", horizontal && "text-right")}
+          className={cn("min-w-0 text-sm font-normal text-foreground", horizontal && "text-right")}
           title={field.name}
         >
           <span className="line-clamp-2">

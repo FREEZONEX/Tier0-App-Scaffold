@@ -135,7 +135,7 @@ function ConfigForm({
           {!isDetail ? (
             <>
               <div className="flex min-w-0 flex-col gap-1.5 sm:flex-row sm:items-start sm:gap-3">
-                <FieldLabel required className="flex-row-reverse pt-1 sm:w-20 sm:justify-end">
+                <FieldLabel required className="pt-1 sm:w-20 sm:justify-end">
                   标题
                 </FieldLabel>
                 <div className="min-w-0 flex-1">
@@ -154,7 +154,7 @@ function ConfigForm({
                 </div>
               </div>
               <div className="flex min-w-0 flex-col gap-1.5 sm:flex-row sm:items-start sm:gap-3">
-                <FieldLabel required className="flex-row-reverse pt-1 sm:w-20 sm:justify-end">
+                <FieldLabel required className="pt-1 sm:w-20 sm:justify-end">
                   指标
                 </FieldLabel>
                 <div className="min-w-0 flex-1">
@@ -171,7 +171,7 @@ function ConfigForm({
             </>
           ) : null}
           <div className="flex min-w-0 flex-col gap-1.5 sm:flex-row sm:items-start sm:gap-3">
-            <FieldLabel required className="flex-row-reverse pt-1 sm:w-20 sm:justify-end">
+            <FieldLabel required className="pt-1 sm:w-20 sm:justify-end">
               展示字段
             </FieldLabel>
             <div className="min-w-0 flex-1">
