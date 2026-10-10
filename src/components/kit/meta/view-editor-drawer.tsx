@@ -245,7 +245,7 @@ function EditorForm({
             <Section title="基本信息">
               <div className="grid max-w-xl gap-4">
                 <div className="grid gap-1.5 sm:grid-cols-[6rem_minmax(0,1fr)] sm:items-center">
-                  <FieldLabel required htmlFor="view-name" className="flex-row-reverse font-normal sm:justify-end">
+                  <FieldLabel required htmlFor="view-name" className="font-normal sm:justify-end">
                     视图名称：
                   </FieldLabel>
                   <div>

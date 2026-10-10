@@ -16,6 +16,20 @@
 
 可从 `@/components/kit` 导入公开能力；实际页面优先按文件导入。类型在 `@/lib/component-kit/types`。可视图库覆盖 56 个非业务组件分类（含原有能力，并非新增 56 个组件）。
 
+## 必填标记
+
+必填字段只在标题右侧显示一个红色 `*`，输入框下方不显示星号；下方保留帮助或校验错误文案。横向、纵向表单及可编辑明细表使用相同规则。
+
+使用 `FieldGroup required` 或 `FieldLabel required`，标题文本不手写 `*`，不反转标题排列方向。`FieldLabel` 只放标题，不包住输入框。`MetaForm` 使用字段的 `widget.required`，明细表使用列的 `required`。自定义标题可在文本后使用一次 `RequiredMark`。控件自身的 `required` / `aria-required` 和业务校验仍需保留。
+
+```tsx
+<FieldGroup label="设备名称" htmlFor="equipment-name" required>
+  <input id="equipment-name" required />
+</FieldGroup>
+```
+
+升级已有应用时，将手写星号和包住输入框的旧标签结构改为上述组件；全局 CSS 不再根据输入框属性自动追加星号。
+
 ## 受控表单与明细表
 
 ```tsx
