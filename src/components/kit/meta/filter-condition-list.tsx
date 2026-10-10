@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * FilterConditionList — 视图「数据过滤」 (237_wo_view_data_filter.png): rows of
- * 字段 + 运算符 + 值 + ×, 「＋ 添加筛选条件」. Date fields offer the nine 灵动
+ * FilterConditionList — 视图「数据过滤」: rows of
+ * 字段 + 运算符 + 值 + ×, 「＋ 添加筛选条件」. Date fields offer the nine
  * operators incl. 动态筛选 (今天 … 自定义(范围) 过去 N 日 ~ 当前 M 日). With
  * `lockFirst` the first row (创建时间) keeps its field and cannot be removed.
  */
@@ -59,7 +59,7 @@ function defaultValueFor(operator: FilterOperator): unknown {
 type DynamicUnit = NonNullable<DynamicDateValue["pastUnit"]>;
 
 /**
- * One bound of 自定义(范围) as the compact 灵动 box「过去 365 日 📅」: clicking it opens a small
+ * One bound of 自定义(范围) as the compact box「过去 365 日 📅」: clicking it opens a small
  * panel with the amount and the unit (日 / 周 / 月).
  */
 function DynamicBoundChip({

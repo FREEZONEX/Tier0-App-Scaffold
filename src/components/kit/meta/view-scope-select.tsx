@@ -4,7 +4,7 @@ import { useKitApi } from "@/components/kit/provider";
 
 
 /**
- * ViewScopeSelect — 视图「使用范围」 (234_wo_view_edit.png, 01 §7.4 / §8): a tag box
+ * ViewScopeSelect — 视图「使用范围」: a tag box
  * (「所有人 ×」 by default) opening a checkable tree — 与我相关（当前用户）、
  * 部门（公司名 → 部门 + 人数，可展开子部门与人员）、所有人 — with search.
  *

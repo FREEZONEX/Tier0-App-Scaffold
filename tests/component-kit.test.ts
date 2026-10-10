@@ -51,7 +51,7 @@ test('provider permissions fail closed and SSR renders do not share adapters', a
  assert.equal(await captured[1].getJson('/record'),'first');
  assert.equal(await captured[2].getJson('/record'),'second');
 });
-test('code-rule field validation uses supplied catalogs, not Lingo business objects', () => {
+test('code-rule field validation uses supplied catalogs, independent of business objects', () => {
  const draft={code:'',name:'编号',businessType:'CUSTOM',remark:'',segments:[{key:'a',type:'BIZ_FIELD' as const,value:'serial',padMode:'NONE' as const,padChar:'0',length:6,visible:true}]};
  assert.ok(validateCodeRuleDraft(draft).rows);
  assert.equal(validateCodeRuleDraft(draft,{CUSTOM:[{key:'serial',label:'序列'}]}).rows,undefined);

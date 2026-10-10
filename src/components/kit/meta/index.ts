@@ -1,4 +1,4 @@
-// 通用元数据页面组件（列表、表单、明细表、参照、视图、导入导出、打印、移动卡片）。说明见同目录 README.md。
+// 通用元数据页面组件（列表、表单、明细表、参照、视图、导入导出、打印、移动卡片）。接入说明见 docs/component-kit.md。
 
 // List page and its parts
 export { MetaListPage, type MetaListPageProps } from "@/components/kit/meta/meta-list-page";

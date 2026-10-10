@@ -4,7 +4,7 @@ import { useKitApi } from "@/components/kit/provider";
 
 
 /**
- * PersonPicker — 灵动「选择人员」 (122_prod_order_create_person_popup.png):
+ * PersonPicker — 「选择人员」:
  * left 公司下拉 + 部门 / 岗位 页签树; middle 搜索 + 人员列表 (未选择时「请选择左侧」);
  * 穿梭按钮 > <; right「已选：N」+ 全选 + 已选列表; 取消 / 保存.
  * Single mode keeps at most one person. Double-click moves an item directly.

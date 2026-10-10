@@ -65,7 +65,7 @@ export function ImagePreview({ images, index, onIndexChange }: ImagePreviewProps
       role="dialog"
       aria-modal="true"
       aria-label="图片预览"
-      className="fixed inset-0 z-[1100] flex animate-lingo-fade flex-col bg-black/80"
+      className="fixed inset-0 z-[1100] flex animate-tier0-fade flex-col bg-black/80"
       onClick={(event) => event.stopPropagation()}
       onMouseDown={(event) => {
         event.stopPropagation();
@@ -133,7 +133,7 @@ export function ImagePreview({ images, index, onIndexChange }: ImagePreviewProps
           key={imageKey}
           src={image.url}
           alt={image.name}
-          className="max-h-full max-w-full animate-lingo-pop select-none object-contain shadow-2xl transition-transform duration-200"
+          className="max-h-full max-w-full animate-tier0-pop select-none object-contain shadow-2xl transition-transform duration-200"
           style={{ transform: `scale(${scale}) rotate(${rotate}deg)` }}
           draggable={false}
         />
@@ -206,7 +206,7 @@ export function FilePreview({ file, onClose }: FilePreviewProps) {
       role="dialog"
       aria-modal="true"
       aria-label="文件预览"
-      className="fixed inset-0 z-[1100] flex animate-lingo-fade flex-col bg-black/80"
+      className="fixed inset-0 z-[1100] flex animate-tier0-fade flex-col bg-black/80"
       onClick={(event) => event.stopPropagation()}
       onMouseDown={(event) => event.stopPropagation()}
     >

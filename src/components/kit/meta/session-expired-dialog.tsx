@@ -1,11 +1,7 @@
 "use client";
 
-/**
- * SessionExpiredDialog — 灵动全局会话过期提示 (01 §1、L3 1.1.1): any API call answered with
- * 401 (see `@/lib/api-client`) opens「提示：登录已过期，是否跳转登录页？」with 否 / 是.
- * 是 reloads the page so the Tier0 Gateway can sign the user in again. Mounted once in
- * `src/routes/_app.tsx`.
- */
+/** Displays the shared session-expired event emitted by the application adapter.
+ * Confirm reloads the page to restart the platform sign-in flow. */
 import { useEffect, useState } from "react";
 import { ConfirmDialog } from "@/components/overlays/confirm-dialog";
 import { SESSION_EXPIRED_EVENT, SESSION_EXPIRED_MESSAGE } from "@/lib/component-kit/api-client";

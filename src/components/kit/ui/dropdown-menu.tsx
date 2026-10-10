@@ -23,7 +23,7 @@ export interface DropdownMenuProps {
   items: MenuItem[];
   /** The trigger (wrapped in an inline-flex span). */
   children: ReactNode;
-  /** hover (灵动 行操作 ⋯) or click (default). */
+  /** hover  or click (default). */
   trigger?: "hover" | "click";
   placement?: Placement;
   open?: boolean;

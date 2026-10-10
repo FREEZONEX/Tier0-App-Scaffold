@@ -1,11 +1,11 @@
 "use client";
 
 /**
- * 关联引用「引用字段」级联选择 (06 §3; 904_cc_reference_cascader.png, 905_cc_reference_cascader_l3.png):
- * column 1 = relation fields of the object (产品、生产订单明细、创建人、更新人…), each next column
+ * 关联引用「引用字段」级联选择:
+ * column 1 = relation fields of the object (产品、关联明细、创建人、更新人…), each next column
  * the fields of the related object; relations expand further (up to 4 levels). Picking a
  * non-relation field (or a relation at the last level) selects the whole path, shown as
- * 「生产订单明细 / 生产订单 / 客户 / 客户名称」.
+ * 「关联明细 / 记录 / 客户 / 客户名称」.
  */
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";

@@ -1,5 +1,5 @@
 /**
- * Browser-side .xlsx helpers for 导入 / 导出 / 日志下载.
+ * Browser-side.xlsx helpers for 导入 / 导出 / 日志下载.
  *
  * - Writing uses `write-excel-file/browser`, reading `read-excel-file/browser`;
  *   both are loaded lazily so they never enter the SSR bundle.
@@ -46,7 +46,7 @@ function timestampSuffix(now: Date = new Date()): string {
   return `${parts.year}${pad(parts.month)}${pad(parts.day)}${pad(parts.hour)}${pad(parts.minute)}${pad(parts.second)}`;
 }
 
-/** "单位导入模板.xlsx"-style file name with a safe .xlsx extension. */
+/** "单位导入模板.xlsx"-style file name with a safe.xlsx extension. */
 export function ensureXlsxName(name: string): string {
   const cleaned = name.replace(/[\\/:*?"<>|]+/g, "_").trim() || "导出数据";
   return /\.xlsx$/i.test(cleaned) ? cleaned : `${cleaned}.xlsx`;
@@ -197,7 +197,7 @@ async function loadReader() {
   }
 }
 
-/** Read the first sheet of an uploaded .xlsx: row 1 is the header. */
+/** Read the first sheet of an uploaded.xlsx: row 1 is the header. */
 export async function readFirstSheet(file: File | Blob): Promise<ParsedSheet> {
   const readSheet = await loadReader();
   const data = (await readSheet(file, 1)) as unknown[][];

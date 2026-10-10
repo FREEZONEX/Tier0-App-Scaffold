@@ -1,6 +1,6 @@
 # 通用组件接入
 
-本次扩充组件类型，保留脚手架黑白与荧光绿主题。Lingo 的业务页面、制造流程、数据服务和业务角色不在本次范围内。分类由提炼得出，源文件追溯见 [component-kit-source-map.json](component-kit-source-map.json)。
+本次扩充组件类型，保留脚手架黑白与荧光绿主题。业务页面、制造流程、数据服务和业务角色不在本次范围内。组件按通用职责组织，应用通过配置与适配器承载业务差异。
 
 ## 选择组件
 
@@ -58,7 +58,7 @@ const adapter: ComponentKitAdapter = {
 
 主要契约：`meta/config` 返回字段/视图配置，`meta/query` 返回分页数据；`meta/views` 与 `meta/prefs` 保存视图；`reference-options`、`org/tree`、`org/persons` 返回选择项；`meta/import-template`、`meta/import`、`meta/export` 处理 Excel；`print-templates`、`print/render` 返回打印配置/页面。完整字段以 TypeScript 类型和调用点为准，宿主只需实现实际使用的能力。
 
-移动卡片的 key、状态字段、详情布局和自定义内容均由应用传入；内置 `progress` 内容接收显式 `progress` 值，不计算工单/报工指标。上传组件产生前端文件值，应用需对接文件持久化、大小/类型限制及权限。日期格式工具当前沿用 UTC+8 显示约定，多时区应用应先调整格式适配。
+移动卡片的 key、状态字段、详情布局和自定义内容均由应用传入；内置 `progress` 内容接收显式 `progress` 值，业务指标计算由应用负责。上传组件产生前端文件值，应用需对接文件持久化、大小/类型限制及权限。日期格式工具当前沿用 UTC+8 显示约定，多时区应用应先调整格式适配。
 
 ## 样式与验证
 

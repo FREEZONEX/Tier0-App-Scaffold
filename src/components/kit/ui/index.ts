@@ -1,4 +1,4 @@
-// 小工单 UI 基础组件（灵动 / Ant Design v5 风格）。说明见同目录 README.md。
+// Tier0 generic UI components. See docs/component-kit.md for integration guidance.
 
 // Inputs
 export { Input, TextArea, type InputProps, type TextAreaProps } from "@/components/kit/ui/input";

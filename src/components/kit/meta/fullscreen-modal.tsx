@@ -1,8 +1,7 @@
 "use client";
 
 /**
- * FullscreenModal — 全屏弹窗表单 (01 §6.2; 110 查看生产订单, 120 创建生产订单,
- * 133 未提交确认): fills the viewport, title top-left, × top-right, scrollable
+ * FullscreenModal — 全屏弹窗表单: fills the viewport, title top-left, × top-right, scrollable
  * body, centered footer buttons. `mode="view"` shows only 「返回」 unless a
  * footer is given. With `dirty`, closing asks 「有未提交的修改，确定关闭吗？」.
  */

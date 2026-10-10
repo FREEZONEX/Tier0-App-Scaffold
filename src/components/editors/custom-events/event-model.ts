@@ -1,5 +1,5 @@
 /**
- * 自定义事件（01 §10）: editor option / record shapes of /api/system/custom-event-options and
+ * 自定义事件: editor option / record shapes of /api/system/custom-event-options and
  * /api/system/custom-events, the rule form model and its conversions, and client-side
  * condition checks (syntax + known variables) shared by the rule dialog and the
  * expression editor.
@@ -284,8 +284,8 @@ function compact(text: string): string {
 }
 
 /**
- * Variables the server resolves: option values (`${生产工单.工单编号}`, `${物料.物料名称}`), short
- * forms `${工单编号}`, relation paths by field name, ${系统.系统时间}; statistics slots for 定时触发.
+ * Variables the server resolves: option values (`${记录.记录编码}`, `${关联对象.名称}`), short
+ * forms `${记录编码}`, relation paths by field name, ${系统.系统时间}; statistics slots for 定时触发.
  */
 export function knownVariables(options: CustomEventOptions, withStatistics: boolean, configuredSlots: readonly number[] = []): Set<string> {
   const known = new Set<string>();

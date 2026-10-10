@@ -180,7 +180,7 @@ export interface CapsuleGroupProps<K extends string | number = string> {
   "aria-label"?: string;
 }
 
-/** CapsuleGroup — pill filters with counts (「全部 45」「返工单 22」). */
+/** CapsuleGroup — pill filters with counts (「全部 45」「进行中 22」). */
 export function CapsuleGroup<K extends string | number = string>({
   items,
   value,

@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * 单选框 / 复选框「设置可选范围」(06 §3; 903_cc_type_单选框.png, 906_cc_batch_edit_options.png):
+ * 单选框 / 复选框「设置可选范围」:
  * 「＋ 新增可选项」「批量编辑」; each row = 颜色块 (preset colors) + 选项输入框 0/100 + 默认
  * (单选框 one default, click again to clear; 复选框 several) + 删除.
  * 批量编辑 dialog: one option per line, up to 100 options.

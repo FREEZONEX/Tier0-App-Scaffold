@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { cn } from "@/lib/utils";
 
 export interface PageContainerProps {
-  /** Page title shown above the content card (灵动：卡片外左上). */
+  /** Page title shown above the content card. */
   title: ReactNode;
   /** Right side of the title row: page-level links such as 「移动端卡片」「自定义事件」. */
   extra?: ReactNode;

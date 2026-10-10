@@ -4,10 +4,10 @@ import { useKitApi } from "@/components/kit/provider";
 
 
 /**
- * ImportDialog — 导入数据 (140_prod_order_import.png):
+ * ImportDialog — 导入数据:
  * * 导入模式 仅新增数据 / 更新和新增数据 (ⓘ 唯一键说明);
  * 1. 下载导入模板 (built from GET /api/meta/import-template/$objectCode);
- * 2. 上传完善好的表格 (drag & drop .xlsx ≤ 10MB, first sheet only);
+ * 2. 上传完善好的表格 (drag & drop.xlsx ≤ 10MB, first sheet only);
  * 取消 / 确认 → POST /api/meta/import/$objectCode → result: 成功 / 失败条数,
  * 失败明细 (行号 + 原因), 下载结果文件, 查看导入日志.
  */

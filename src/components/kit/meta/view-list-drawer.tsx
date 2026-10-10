@@ -4,7 +4,7 @@ import { useKitApi } from "@/components/kit/provider";
 
 
 /**
- * ViewListDrawer — 视图列表 (267_wo_new_view.png): 「＋ 创建视图」「已创建 N 条，
+ * ViewListDrawer — 视图列表: 「＋ 创建视图」「已创建 N 条，
  * 最多创建 20 条」, table 视图名称 (drag handle + icon) / 操作 (编辑 复制 删除).
  * Dragging a row saves the new order (PUT sortOrder).
  */

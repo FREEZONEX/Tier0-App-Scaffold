@@ -2,7 +2,7 @@
  * Field value → display text. Pure functions shared by the browser (lists,
  * forms, print preview, mobile cards) and the server (export, print render).
  *
- * Conventions (specs/architecture.md §2):
+ * Conventions:
  * - Empty values render as「-」(`EMPTY_TEXT`); exports use an empty cell.
  * - Timestamps arrive as ISO strings (UTC) and display in Asia/Shanghai.
  *   Date-only values ("YYYY-MM-DD") are calendar dates and never shift.
@@ -65,7 +65,7 @@ function pad2(value: number | string): string {
 /* ------------------------------------------------------------------ */
 
 export interface NumberFormatOptions {
-  /** Maximum fraction digits (default 6, the 灵动 quantity precision). */
+  /** Maximum fraction digits. */
   decimalPlaces?: number;
   thousandSeparator?: boolean;
   /** Keep trailing zeros (amounts: "1,200.00"). Default: trim ("1200.5"). */
@@ -340,7 +340,7 @@ export function formatRefValue(value: unknown, separator = "、"): string {
   return String(value);
 }
 
-/** "名称 | 编码" (the 灵动 dropdown reference label). */
+/** "名称 | 编码". */
 export function refOptionLabel(ref: Pick<RefValue, "name" | "code"> | null | undefined): string {
   if (!ref) return "";
   return ref.code ? `${ref.name} | ${ref.code}` : ref.name;

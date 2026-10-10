@@ -8,7 +8,7 @@ export interface OptionItem<V extends string | number = string | number> {
   value: V;
   label: ReactNode;
   disabled?: boolean;
-  /** CSS color: renders the option as a colored label (灵动 彩色选项). */
+  /** CSS color: renders the option as a colored label. */
   color?: string | null;
   /** Secondary text under / after the label. */
   description?: ReactNode;

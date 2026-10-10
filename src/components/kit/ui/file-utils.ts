@@ -31,7 +31,7 @@ export function isPdfFile(file: Pick<FileValue, "name" | "type" | "url">): boole
   );
 }
 
-/** Same semantics as the input `accept` attribute (".png,image/*,application/pdf"). */
+/** Same semantics as the input `accept` attribute. */
 export function matchesAccept(file: File, accept?: string): boolean {
   if (!accept?.trim()) return true;
   const name = file.name.toLowerCase();

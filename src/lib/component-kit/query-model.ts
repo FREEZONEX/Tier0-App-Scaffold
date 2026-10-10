@@ -69,8 +69,8 @@ export function isMultiValueCondition(field: FieldDef): boolean {
  * 执行日志的 moduleCode）。它们仍可用于程序化 fixedFilters。
  */
 /**
- * 查询区不渲染的条件：条件本身 visible=false（灵动字典「隐藏」的条件都带这个标记）
- * 或 widget.hidden。widget.visible 是表单显隐（如生产订单「创建人」），查询区照常显示。
+ * 查询区不渲染的条件：条件本身 visible=false（字典「隐藏」的条件都带这个标记）
+ * 或 widget.hidden。widget.visible 是表单显隐（如记录「创建人」），查询区照常显示。
  */
 export function isHiddenSearchCondition(field: FieldDef): boolean {
   return field.visible === false || field.widget?.hidden === true;
@@ -237,7 +237,7 @@ export interface OperatorOption {
   label: string;
 }
 
-/** The nine date operators of the 灵动 view editor, in its order. */
+/** The nine date operators of the view editor, in its order. */
 export const DATE_OPERATORS: readonly OperatorOption[] = [
   { value: "BETWEEN", label: "介于" },
   { value: "DYNAMIC", label: "动态筛选" },

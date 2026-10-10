@@ -4,7 +4,7 @@ import { useKitApi } from "@/components/kit/provider";
 
 
 /**
- * ExcelLogModal — 导入日志 / 导出日志 (143_import_log.png, 144_export_log.png):
+ * ExcelLogModal — 导入日志 / 导出日志:
  * full-screen dialog, 导入时间 / 导出时间 range (default last 30 days) + 查询,
  * table 时间 / 用户 / 结果 / 详情 / 操作 (下载), pagination, 返回.
  */

@@ -1,6 +1,6 @@
 "use client";
 
-/** 行高 (149_row_height.png): 低 / 中 / 高 dropdown; selecting applies and saves at once. */
+/** 行高: 低 / 中 / 高 dropdown; selecting applies and saves at once. */
 import { Check, TextCursor } from "lucide-react";
 import { TextButton } from "@/components/kit/ui/buttons";
 import { DropdownMenu } from "@/components/kit/ui/dropdown-menu";

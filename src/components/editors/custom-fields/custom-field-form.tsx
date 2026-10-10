@@ -4,8 +4,7 @@ import { useKitApi } from "@/components/kit/provider";
 
 
 /**
- * 创建 / 编辑自定义字段 (06 §3; 901_cc_add_field.png, 902_cc_field_types.png, 903_cc_type_*.png,
- * 904/905 引用字段级联, 906 批量编辑选项, 907 单选框, 908 编辑关联引用).
+ * 创建 / 编辑自定义字段.
  *
  * Single column form, labels on the left: * 字段名称, * 字段类型 (创建后不可修改), 字段属性
  * (per type), type specific items (显示精度 / 设置可选范围 + 显示方式 / 上传限制 / 引用字段),

@@ -3,7 +3,7 @@
 /**
  * RowActions — 操作列: the first N visible actions inline (blue text; danger red;
  * disabled gray with reason tooltip), the rest in a ⋯ menu that opens on hover
- * (202_wo_row_more_running.png).
+ *.
  */
 import { Ellipsis } from "lucide-react";
 import { IconButton, TextButton } from "@/components/kit/ui/buttons";

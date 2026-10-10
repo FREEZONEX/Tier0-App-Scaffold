@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * 自定义配置 › 字段列表 (06 §2, 900_cc_workorder.png): 「⊕ 添加字段」+ 字段数量 N/80 +
+ * 自定义配置 › 字段列表: 「⊕ 添加字段」+ 字段数量 N/80 +
  * 输入字段名（前端过滤）; table without pagination — 拖拽柄 + 序号 (drag rows to reorder,
  * saved at once), 字段名称, 字段类型 (colored tag), 是否必填, 提示说明, 创建时间, 创建人,
  * 更新时间, 更新人, 操作 (编辑 / 删除).

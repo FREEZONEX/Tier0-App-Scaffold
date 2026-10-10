@@ -1,8 +1,7 @@
 "use client";
 
 /**
- * DetailTable — 可编辑明细表 (01 §6.5; 126/127 产品明细, 132 列头批量填充,
- * 262 出库单明细, 601 按 BOM 添加): controlled rows; columns from the table
+ * DetailTable — 可编辑明细表: controlled rows; columns from the table
  * section items; primary button 选择 XX (reference picker, multi) or 增行;
  * toolbarExtra slot; 批量修改 (checked rows only) / 批量删除; drag handle
  * reorder; inline editing by field type; 复制 / 删除 per row; column header
@@ -95,7 +94,7 @@ export interface DetailTableProps {
   batchDelete?: boolean;
   /** Replace the default 复制 / 删除 row actions. */
   rowActions?: (row: FormValues, index: number) => RowAction[];
-  /** view mode: still render the `rowActions` column (callers disable the buttons, 查看工单「分配 / 删除」灰显). */
+  /** view mode: still render the `rowActions` column (callers disable the buttons, 查看记录「分配 / 删除」灰显). */
   showActionsInView?: boolean;
   /** Replace the 序号 cell content (the drag handle stays), e.g. tree numbers 1 / 1.1 / 1.2. */
   renderIndex?: (row: FormValues, index: number) => ReactNode;

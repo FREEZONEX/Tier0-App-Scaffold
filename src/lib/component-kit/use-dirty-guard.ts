@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * 未提交修改关闭确认 (灵动 133_close_confirm.png):
+ * 未提交修改关闭确认:
  * 「提示：有未提交的修改，确定关闭吗？」取消 / 确认.
  *
  *   const guard = useDirtyGuard(form, { open });

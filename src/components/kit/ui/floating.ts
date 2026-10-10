@@ -303,9 +303,9 @@ export function isTopLayer(id: string): boolean {
 /** True when `target` is inside the layer `id` or inside a layer nested in it. */
 export function isInsideLayer(target: EventTarget | null, id: string): boolean {
   if (!(target instanceof Element)) return false;
-  const host = target.closest("[data-lingo-layer-path]");
+  const host = target.closest("[data-tier0-layer-path]");
   if (!host) return false;
-  return (host.getAttribute("data-lingo-layer-path") ?? "").split(" ").includes(id);
+  return (host.getAttribute("data-tier0-layer-path") ?? "").split(" ").includes(id);
 }
 
 export interface LayerDismissOptions {

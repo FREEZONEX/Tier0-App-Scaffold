@@ -1,6 +1,6 @@
 /**
- * Public types of the generic metadata page components (components/lingo/meta).
- * Kept in a .ts module so component files only export components.
+ * Public types of the generic metadata page components (components/kit/meta).
+ * Kept in a.ts module so component files only export components.
  */
 import type { ReactNode } from "react";
 import type { ListRow } from "@/lib/component-kit/use-list-controller";

@@ -35,10 +35,10 @@ export interface PrintDialogProps {
 
 const PRINT_CSS = `
 @media print {
-  body > *:not([data-lingo-print-root]) { display: none !important; }
-  [data-lingo-print-root] { display: block !important; position: static !important; }
-  [data-lingo-print-page] { break-after: page; page-break-after: always; }
-  [data-lingo-print-page]:last-child { break-after: auto; page-break-after: auto; }
+  body > *:not([data-tier0-print-root]) { display: none !important; }
+  [data-tier0-print-root] { display: block !important; position: static !important; }
+  [data-tier0-print-page] { break-after: page; page-break-after: always; }
+  [data-tier0-print-page]:last-child { break-after: auto; page-break-after: auto; }
   @page { size: A4; margin: 12mm; }
 }
 `;
@@ -64,17 +64,17 @@ function useQrCodes(values: (string | null)[]): Record<string, string> {
   return codes;
 }
 
-/** 批量打印上限 (灵动: 最多 20 条). */
+/** 批量打印上限. */
 export const PRINT_LIMIT = 20;
 
-/** 灵动原文「最多只能选择20条生产订单！」. */
+/** Build a localized limit message for the configured object. */
 export function printLimitMessage(objectName: string): string {
   return `最多只能选择${PRINT_LIMIT}条${objectName}！`;
 }
 
 function CardPage({ page, qr }: { page: PrintPage; qr?: string }) {
   return (
-    <article data-lingo-print-page="" className="mx-auto w-full max-w-[760px] bg-white p-6 text-[13px] text-black">
+    <article data-tier0-print-page="" className="mx-auto w-full max-w-[760px] bg-white p-6 text-[13px] text-black">
       <header className="relative mb-4 flex min-h-12 items-center justify-center border-b-2 border-black pb-3">
         <h2 className="text-center text-xl font-semibold tracking-wide">{page.title}</h2>
         {qr ? <img src={qr} alt="二维码" className="absolute top-0 right-0 size-16" /> : null}
@@ -141,7 +141,7 @@ function FieldCells({ label, value }: { label: string; value: string }) {
 function LabelPage({ page, qr }: { page: PrintPage; qr?: string }) {
   return (
     <article
-      data-lingo-print-page=""
+      data-tier0-print-page=""
       className="mx-auto flex w-full max-w-[380px] items-stretch gap-3 rounded border border-black bg-white p-3 text-[12px] text-black"
     >
       <div className="min-w-0 flex-1">
@@ -261,7 +261,7 @@ function PrintBody({
         </div>
         {typeof document !== "undefined"
           ? createPortal(
-              <div data-lingo-print-root="" className="hidden">
+              <div data-tier0-print-root="" className="hidden">
                 <PrintPages pages={pages} layout={previewTemplate.layout} />
               </div>,
               document.body,

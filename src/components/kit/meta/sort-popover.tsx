@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * 排序 (146_sort.png / 147_sort_add.png): 「设置排序条件」, rows of drag handle +
+ * 排序: 「设置排序条件」, rows of drag handle +
  * 字段下拉 + A → Z / Z → A + ×, 「＋ 添加排序条件」; the toolbar button shows the
  * condition count. Complete conditions are reported on every change.
  *

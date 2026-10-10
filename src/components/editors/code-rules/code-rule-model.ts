@@ -1,11 +1,11 @@
 /**
- * 编码配置 (08 §1): editable segment rows, preview text and client-side checks mirroring
+ * 编码配置: editable segment rows, preview text and client-side checks mirroring
  * services/system/code-rules.ts.
  */
 import { CODE_RULE_DATE_FORMATS } from "@/lib/component-kit/code-rule-options";
 import type { CodeRuleRecord, CodeRuleSegment, CodeRuleSegmentType } from "@/lib/component-kit/types";
 
-/** 灵动 未见行数上限；只挡住明显异常的配置（与 services/system/code-rules.ts 一致）。 */
+/** 限制异常大的配置，应用可在服务端增加业务校验。 */
 export const MAX_SEGMENTS = 50;
 
 export interface SegmentRow {

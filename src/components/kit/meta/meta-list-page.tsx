@@ -4,7 +4,7 @@ import { useKitApi } from "@/components/kit/provider";
 
 
 /**
- * MetaListPage — the generic 灵动 list page (01 §5): page title + headerExtra,
+ * MetaListPage — the generic list page: page title + headerExtra,
  * 顶部胶囊页签 (topTabs), 视图页签, 二级分组胶囊, 查询区, 工具栏 (创建 / 导入⋮导入日志 /
  * 导出⋮导出日志 / toolbarExtra / 字段配置 / 排序 / 行高), 勾选批量栏, table
  * (勾选、序号、类型图标、主字段链接、按类型渲染、操作列 + ⋯ 悬停菜单), 分页.
@@ -102,7 +102,7 @@ export interface MetaListPageProps {
   /** Called after each successful query (e.g. to show totals elsewhere). */
   onDataLoaded?: (result: QueryResult<ListRow>) => void;
   /**
-   * 树形列表（父子工单）: ▸/▾ before `indentColumn` (default: first column); children are
+   * 树形列表（父子记录）: ▸/▾ before `indentColumn` (default: first column); children are
    * loaded on expand, share columns / cellRenderers / rowActions, can be checked (key = id)
    * and don't count in pagination. Page, query and reloadKey changes collapse everything.
    */

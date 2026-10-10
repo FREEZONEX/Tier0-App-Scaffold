@@ -4,7 +4,7 @@ import { useKitApi } from "@/components/kit/provider";
 
 
 /**
- * ReferenceSelect — 下拉搜索参照 (RELATION_OBJECT + DROPDOWN, 221_wo_create_product_dropdown.png):
+ * ReferenceSelect — 下拉搜索参照:
  * type to search, options「名称 | 编码」, single or multiple. Options load when
  * the dropdown opens and on every (debounced) keystroke from
  * GET /api/meta/reference-options/$objectCode?keyword=&limit=.

@@ -2,7 +2,7 @@
 
 /**
  * DataGrid — the table used by every list page, reference picker and detail
- * table (灵动 Ant-style table).
+ * table.
  *
  * - Columns: key, title, headerIcon, width, fixed left/right (sticky with
  *   computed offsets), align, render, ellipsis + hover tooltip (only when the
@@ -49,7 +49,7 @@ export type DataGridAlign = "left" | "center" | "right";
 export interface DataGridColumn<Row> {
   key: string;
   title: ReactNode;
-  /** Small type icon before the title (灵动 header icons). */
+  /** Small type icon before the title. */
   headerIcon?: ReactNode;
   /** Content after the title, e.g. a batch-fill trigger. */
   headerExtra?: ReactNode;
@@ -126,7 +126,7 @@ export interface DataGridProps<Row> {
    * on phones (< 640px), where the page scrolls naturally.
    */
   fillViewport?: { bottomGap: number; minHeight?: number } | null;
-  /** Tree list (父子工单): lazily expandable rows; child rows are selectable by `rowKey`. */
+  /** Tree list (父子记录): lazily expandable rows; child rows are selectable by `rowKey`. */
   tree?: DataGridTree<Row>;
   /** Keep selection / 序号 columns pinned left (default true). */
   stickyLeading?: boolean;
@@ -450,7 +450,7 @@ export function DataGrid<Row>({
       cells.push({ kind: "data", key: column.key, column, width: widthOf(column), offset: 0, sticky: sideOf(column, "right") });
     }
 
-    // Columns narrower than the table share the free width by their widths (灵动 / antd), so the
+    // Columns narrower than the table share the free width by their widths, so the
     // table fills its container instead of ending in a blank filler column.
     const baseWidth = cells.reduce((sum, cell) => sum + cell.width, 0);
     const flexCells = cells.slice(flexStart, flexEnd).filter((cell) => cell.column && !isStructuralColumn(cell.column));

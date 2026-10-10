@@ -97,7 +97,7 @@ export function FieldValue({ field, value, status = false, rowHeight = "MID", cl
     }
     case "HYPERLINK": {
       const href = String(value);
-      const safe = /^(https?:)?\/\//i.test(href) || href.startsWith("/") ? href : `https://${href}`;
+      const safe = /^(https?:)?\/\//i.test(href) || href.startsWith("/") ? href: `https://${href}`;
       return (
         <a
           href={safe}

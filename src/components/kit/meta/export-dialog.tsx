@@ -4,8 +4,8 @@ import { useKitApi } from "@/components/kit/provider";
 
 
 /**
- * ExportDialog — 导出 (01 §5.6): 导出数据范围 = 全部（当前查询条件）/ 已勾选数据 /
- * 选中页面范围（起始页码 ~ 结束页码）, the 灵动 note「导出时不能操作系统,关闭弹框会导致
+ * ExportDialog — 导出: 导出数据范围 = 全部（当前查询条件）/ 已勾选数据 /
+ * 选中页面范围（起始页码 ~ 结束页码）, the note「导出时不能操作系统,关闭弹框会导致
  * 导出失败」; POST /api/meta/export/$objectCode with the current query + visible
  * columns, then the xlsx downloads and an 导出日志 entry exists for re-download.
  */

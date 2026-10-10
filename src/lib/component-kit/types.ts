@@ -20,7 +20,7 @@ export type FieldType =
   | "ATTACHMENT"
   | "HYPERLINK";
 
-/** Custom-field designer type names (自定义配置 字段类型) → FieldType, in 灵动 order. */
+/** Custom-field designer type names (自定义配置 字段类型) → FieldType, in order. */
 export const CUSTOM_FIELD_TYPES = [
   { key: "TEXT", label: "文本" },
   { key: "NUMBER", label: "数字" },
@@ -61,7 +61,7 @@ export interface SelectOption {
 }
 
 /**
- * Widget properties. Keys follow the 灵动 page-config `widget` JSON so the
+ * Widget properties. Keys follow the page-config `widget` JSON so the
  * dictionary transcribes one-to-one; a few replica-only keys are marked.
  */
 export interface FieldWidget {
@@ -87,7 +87,7 @@ export interface FieldWidget {
   decimalPlaces?: number;
   integerPlaces?: number;
   thousandSeparator?: boolean;
-  /** NUMBER: 展示时去掉尾随 0（灵动订单列表金额列「4,105」而不是「4,105.00」）。 */
+  /** NUMBER: 展示时去掉尾随 0（订单列表金额列「4,105」而不是「4,105.00」）。 */
   trimTrailingZeros?: boolean;
   minValue?: number;
   maxValue?: number;
@@ -142,7 +142,7 @@ export interface ReferenceSpec {
 }
 
 export interface FieldDef {
-  /** Field code from the 灵动 dictionary (Drizzle property name). Custom fields use `${objectCode}${timestamp}`. */
+  /** Field code from the dictionary (Drizzle property name). Custom fields use `${objectCode}${timestamp}`. */
   code: string;
   name: string;
   type: FieldType;
@@ -173,7 +173,7 @@ export interface SectionDef {
   items: FieldDef[];
 }
 
-export type ModuleCode = "workorder" | "baseline" | "wms" | "stockflow" | "customEvent" | "system";
+export type ModuleCode = string;
 
 export interface ObjectCapabilities {
   views?: boolean;
@@ -632,9 +632,9 @@ export interface MeResponse {
 /** GET /api/system/mobile-cards item. */
 export interface MobileCardEntry extends MobileCardConfig {
   objectCode: string;
-  /** 业务模块：工单 / 任务 / 报工 / 报工卡片。 */
+  /** 应用提供的模块名称。 */
   moduleName: string;
-  /** 配置项：工单列表 / 任务列表 / 报工列表 / 详情字段。 */
+  /** 应用提供的配置项名称。 */
   itemName: string;
   description: string;
 }

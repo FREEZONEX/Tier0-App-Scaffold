@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * 字段配置 (145_field_config.png): count N/N, 搜索字段, groups 左固定 / 不固定 /
+ * 字段配置: count N/N, 搜索字段, groups 左固定 / 不固定 /
  * 右固定, drag handle reorder, 固定到左 / 固定到右, 显隐 eye. Every change is
  * reported immediately (the list page saves it as a user preference).
  *

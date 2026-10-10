@@ -6,7 +6,7 @@ import { CUSTOM_FIELD_TYPES, type CustomFieldInput, type CustomFieldRecord, type
 
 export const FIELD_TYPE_LABEL: Record<string, string> = Object.fromEntries(CUSTOM_FIELD_TYPES.map((item) => [item.key, item.label]));
 
-/** Tag colors (灵动 900_cc_workorder.png: 文本蓝、单选框/关联引用绿、图片金、附件橙). */
+/** Tag colors. */
 export const FIELD_TYPE_COLOR: Record<string, string> = {
   TEXT: "#050b14",
   NUMBER: "#0891b2",
@@ -30,7 +30,7 @@ export const DISPLAY_MODE_OPTIONS: { value: "DROPDOWN" | "FLAT"; label: string }
   { value: "FLAT", label: "平铺" },
 ];
 
-/** Preset option colors (灵动 option color picker). */
+/** Preset option colors. */
 export const OPTION_COLORS = [
   "#1f1f1f",
   "#8c8c8c",

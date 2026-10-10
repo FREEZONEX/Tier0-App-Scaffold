@@ -1,7 +1,7 @@
 /**
  * Form rules shared by MetaForm, DetailTable and page code: visibility,
  * read-only state, default values, fill rules and validation messages
- * (灵动 wording: 请输入XX / 请选择XX, 第n行XX必填).
+ *.
  */
 import { isEmptyValue, isRefValue, roundTo, shanghaiToday, toNumber } from "@/lib/component-kit/format";
 import type { FieldDef, FieldWidget, RefValue, SectionDef } from "@/lib/component-kit/types";

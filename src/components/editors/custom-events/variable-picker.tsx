@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * 推送内容变量选择 (01 §10.2; 259_custom_event_var_picker.png): the「＋」 at the right of a
- * 推送内容 input opens a searchable list grouped by 生产工单 / 关联对象 / 系统 (/ 统计数据 for
+ * 推送内容变量选择: the「＋」 at the right of a
+ * 推送内容 input opens a searchable list grouped by 记录 / 关联对象 / 系统 (/ 统计数据 for
  * 定时触发); picking inserts `${对象.字段}` at the caret.
  */
 import { ChevronRight, Plus, Search } from "lucide-react";

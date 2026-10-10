@@ -1,6 +1,6 @@
 /**
  * Shared class recipes for form controls (Input, Select, pickers…).
- * Kept in a .ts module so component files only export components.
+ * Kept in a.ts module so component files only export components.
  */
 import { cn } from "@/lib/utils";
 

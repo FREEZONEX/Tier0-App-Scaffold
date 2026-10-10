@@ -141,10 +141,10 @@ export function Skeleton({ rows = 3, title = true, avatar = false, active = true
   return (
     <div className={cn("flex w-full gap-4", className)} aria-busy="true" aria-live="polite">
       {avatar ? (
-        <div className={cn("size-10 shrink-0 rounded-full", SKELETON_BAR, active && "animate-lingo-shimmer")} />
+        <div className={cn("size-10 shrink-0 rounded-full", SKELETON_BAR, active && "animate-tier0-shimmer")} />
       ) : null}
       <div className="min-w-0 flex-1 space-y-3 pt-1">
-        {title ? <div className={cn("h-4 w-2/5", SKELETON_BAR, active && "animate-lingo-shimmer")} /> : null}
+        {title ? <div className={cn("h-4 w-2/5", SKELETON_BAR, active && "animate-tier0-shimmer")} /> : null}
         {Array.from({ length: rows }, (_, index) => (
           <div
             key={index}
@@ -152,7 +152,7 @@ export function Skeleton({ rows = 3, title = true, avatar = false, active = true
               "h-4",
               index === rows - 1 && rows > 1 ? "w-3/5" : "w-full",
               SKELETON_BAR,
-              active && "animate-lingo-shimmer",
+              active && "animate-tier0-shimmer",
             )}
           />
         ))}
@@ -181,7 +181,7 @@ export function TableSkeleton({ rows = 6, columns = 6, className }: TableSkeleto
           {Array.from({ length: columns }, (_, column) => (
             <div
               key={column}
-              className={cn("h-3.5 flex-1", SKELETON_BAR, "animate-lingo-shimmer")}
+              className={cn("h-3.5 flex-1", SKELETON_BAR, "animate-tier0-shimmer")}
               style={{ maxWidth: `${60 + ((row + column * 3) % 4) * 10}%` }}
             />
           ))}

@@ -4,7 +4,7 @@
  * SearchPanel — 查询区 of generic lists and reference pickers.
  * Collapsed: the first 3 conditions in one row + 查询 / 重置 / 展开;
  * expanded: all conditions, 4 per row, with 查询 / 重置 / 收起 at the end of the last
- * row (灵动 101). 日期区间 takes two slots until the panel is wide enough to show
+ * row. 日期区间 takes two slots until the panel is wide enough to show
  * 「2026-06-17 → 2026-09-17」 in one. Controls follow the field type; Enter in a text box
  * runs the query, other edits wait for 查询. 查询 first commits a half-typed input
  * (e.g. a typed date); 重置 also clears whatever is still typed in the controls.
@@ -45,7 +45,7 @@ function toOptions(field: FieldDef): OptionItem<SelectValue>[] {
   return (field.options ?? []).map((option) => ({ value: option.value, label: option.label, color: option.color ?? undefined }));
 }
 
-/** 灵动 writes「请输入XX」; dictionary placeholders that are just the field name get the prefix. */
+/** writes「请输入XX」; dictionary placeholders that are just the field name get the prefix. */
 function placeholderOf(field: FieldDef, verb: "输入" | "选择"): string {
   const own = field.widget?.placeholder?.trim();
   if (own && own.startsWith("请") && !/忽略将自动生成|不填则自动生成|自动带出/.test(own)) return own;

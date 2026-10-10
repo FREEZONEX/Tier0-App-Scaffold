@@ -5,7 +5,7 @@ import { useKitApi } from "@/components/kit/provider";
 
 /**
  * FieldControl — the editing control of one metadata field, by field type
- * (01 §4): 文本(单行/多行+计数)、数字(小数位/千分位/范围/后缀)、时间(三种精度/区间)、
+ *: 文本(单行/多行+计数)、数字(小数位/千分位/范围/后缀)、时间(三种精度/区间)、
  * 单选(下拉/平铺，彩色选项，允许用户添加选项)、复选、关联对象(人员 / 弹窗参照 /
  * 下拉参照，单选/多选)、关联属性 / 关联引用(只读)、图片、附件、超链接.
  *
@@ -395,7 +395,7 @@ export function FieldControl({
       if (disabled && text) {
         return (
           <a
-            href={/^(https?:)?\/\//i.test(text) ? text : `https://${text}`}
+            href={/^(https?:)?\/\//i.test(text) ? text: `https://${text}`}
             target="_blank"
             rel="noreferrer"
             className={cn("inline-flex min-h-8 max-w-full items-center gap-1 truncate text-brand hover:underline", className)}

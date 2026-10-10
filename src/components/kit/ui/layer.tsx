@@ -31,7 +31,7 @@ export interface FloatingLayerProps
 
 /**
  * FloatingLayer — portal container for dropdowns, popovers and pickers. It
- * records the nesting path (data-lingo-layer-path) so outside-click detection
+ * records the nesting path (data-tier0-layer-path) so outside-click detection
  * treats nested layers as inside their parents.
  */
 export function FloatingLayer({
@@ -67,10 +67,10 @@ export function FloatingLayer({
           event.stopPropagation();
         }}
         ref={floatingRef}
-        data-lingo-layer-path={path.join(" ")}
+        data-tier0-layer-path={path.join(" ")}
         style={style}
         className={cn(
-          animate && "animate-lingo-pop",
+          animate && "animate-tier0-pop",
           placementOriginClass(placement),
           className,
         )}

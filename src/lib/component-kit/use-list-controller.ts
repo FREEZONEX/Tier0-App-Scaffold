@@ -7,7 +7,7 @@ import { useKitApi, type KitApi } from "@/components/kit/provider";
  * State of one generic list (MetaListPage, ReferencePicker): search draft vs.
  * applied conditions, paging, sorts, row height, column prefs, 二级分组 and a
  * cross-page selection. Preference changes are applied locally at once and
- * saved with `PUT /api/meta/prefs/$objectCode` (灵动「即时保存」).
+ * saved with `PUT /api/meta/prefs/$objectCode`.
  *
  * The hook performs no reads; the component renders the query with
  * `useRequest(controller.requestKey, …)` + `<AsyncView>`.

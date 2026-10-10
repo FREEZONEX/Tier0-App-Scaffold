@@ -1103,13 +1103,13 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
   --shadow-popup: var(--tier0-shadow-popup);
   --shadow-primary: var(--tier0-shadow-primary-button);
   --radius-xs: var(--tier0-radius-xs);
-  --animate-lingo-pop: lingo-pop 160ms var(--motion-ease);
-  --animate-lingo-fade: lingo-fade 160ms ease-out;
-  --animate-lingo-drawer-left: lingo-drawer-left 220ms var(--motion-ease);
-  --animate-lingo-shimmer: shimmer 1.6s linear infinite;
+  --animate-tier0-pop: tier0-pop 160ms var(--motion-ease);
+  --animate-tier0-fade: tier0-fade 160ms ease-out;
+  --animate-tier0-drawer-left: tier0-drawer-left 220ms var(--motion-ease);
+  --animate-tier0-shimmer: shimmer 1.6s linear infinite;
 }
 
-@keyframes lingo-pop {
+@keyframes tier0-pop {
   from {
     opacity: 0;
     transform: scale(0.97) translateY(-2px);
@@ -1120,7 +1120,7 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
   }
 }
 
-@keyframes lingo-fade {
+@keyframes tier0-fade {
   from {
     opacity: 0;
   }
@@ -1129,7 +1129,7 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
   }
 }
 
-@keyframes lingo-drawer-left {
+@keyframes tier0-drawer-left {
   from {
     transform: translateX(-100%);
   }

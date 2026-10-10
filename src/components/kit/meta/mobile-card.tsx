@@ -15,9 +15,9 @@ export interface MobileCardProps {
   fields: readonly FieldDef[];
   /** The record; omit for the template preview. */
   record?: Record<string, unknown> | null;
-  /** Fields shown as status tags above the title (工单状态、工期状态). */
+  /** Fields shown as status tags above the title (记录状态、工期状态). */
   statusFields?: readonly string[];
-  /** Buttons / links at the bottom (报工、审批…). */
+  /** Buttons / links at the bottom (查看、编辑…). */
   actions?: ReactNode;
   progress?: number;
   renderComponent?: (key: string, record: Record<string, unknown> | null) => ReactNode;

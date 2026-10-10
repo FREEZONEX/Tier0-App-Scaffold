@@ -81,10 +81,10 @@ export interface MetaFormProps {
   value: FormValues;
   onChange: (next: FormValues, change: FieldChange) => void;
   mode?: FormMode;
-  /** vertical = label on top (灵动 默认); horizontal = label left with colon. */
+  /** vertical = label on top ; horizontal = label left with colon. */
   layout?: "horizontal" | "vertical";
   /**
-   * Max column count; "auto" = 1 / 2 / 3 by container width (default). 4 = 查看/编辑任务、报工
+   * Max column count; "auto" = 1 / 2 / 3 by container width (default). 4 = 宽屏多列表单
    * (1 → 2 → 3 → 4 as the container widens; phones stay at 1).
    */
   columns?: 1 | 2 | 3 | 4 | "auto";

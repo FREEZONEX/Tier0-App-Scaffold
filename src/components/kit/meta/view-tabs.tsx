@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * ViewTabs — 视图页签 (200_work_order_list.png, 232_wo_view_more_all.png):
+ * ViewTabs — 视图页签:
  * [彩色文档图标 视图名 ⋮] × N + ＋. ⋮ = 编辑 / 复制 / 删除 (内置「全部」不可删);
  * ＋ opens the 视图列表 drawer.
  */

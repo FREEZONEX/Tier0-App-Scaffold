@@ -124,7 +124,7 @@ export interface ColorDotLabelProps extends Omit<HTMLAttributes<HTMLSpanElement>
   color?: string | null;
   /** Show the leading dot (default true). */
   dot?: boolean;
-  /** Paint the text in the color too (default true, like 灵动 colored options). */
+  /** Paint the text in the color too. */
   colorText?: boolean;
   children: ReactNode;
 }

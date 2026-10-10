@@ -1,12 +1,12 @@
 /**
  * 自定义事件「条件表达式」：词法 / 语法分析、语法校验与求值（纯函数，前后端共用）。
  *
- * 表达式编辑器（01 §10.3）在前端用 `checkExpression` 实时提示语法错误；服务端保存规则时
+ * 表达式编辑器在前端用 `checkExpression` 实时提示语法错误；服务端保存规则时
  * 再校验一次（含字段是否存在），事件引擎用 `evaluateExpression` 求值。
  *
  * 语法
- * - 字段引用：`${对象.字段}`（如 `${生产工单.优先级}`）、`${字段}`、关联对象 `${对象.关联字段.字段}`
- *   （如 `${生产工单.产品.物料名称}`）、`${系统.系统时间}`、定时触发的 `${统计数据1}`。
+ * - 字段引用：`${对象.字段}`（如 `${记录.优先级}`）、`${字段}`、关联对象 `${对象.关联字段.字段}`
+ *   （如 `${记录.关联对象.名称}`）、`${系统.系统时间}`、定时触发的 `${统计数据1}`。
  * - 字面量：数字 `12` / `3.5`；文本 `"加急"` 或 `'加急'`（反斜杠转义）；日期文本 `"2026-09-17"` /
  *   `"2026-09-17 08:30"` / `"2026-09-17 08:30:00"`（按 Asia/Shanghai）；`true` / `false` / `null`。
  * - 运算符（优先级从低到高）：`||`，`&&`，`==` `!=`，`>` `>=` `<` `<=`，`+` `-`，`*` `/`，一元 `!` `-`；括号 `( )`。
@@ -14,7 +14,7 @@
  * - 支持空格与回车换行；末尾可以带分号 `;`。
  *
  * 比较口径
- * - 单选字段同时按选项值与选项名称比较（`${生产工单.优先级} == "加急"` 与 `== "urgent"` 都成立）；
+ * - 单选字段同时按选项值与选项名称比较（`${记录.优先级} == "加急"` 与 `== "urgent"` 都成立）；
  *   关联对象按 id / 名称 / 编码比较；多值字段（复选、多选人员）任一值满足即成立，`!=` 为全部不满足。
  * - `== null` / `== ""` 判断为空（空文本、空数组也为空）；有一侧为空时大小比较不成立。
  * - 日期与日期文本比较时按文本的精度截断（`${计划结束时间} > "2026-09-17"` = 晚于 9 月 17 日当天）；
@@ -34,7 +34,7 @@ export const STATISTICS_VARIABLE_PREFIX = "统计数据";
 export const EXPRESSION_FUNCTION_NAMES = ["IN", "NOT_IN", "LIKE", "NOT_LIKE"] as const;
 export type ExpressionFunctionName = (typeof EXPRESSION_FUNCTION_NAMES)[number];
 
-/** 常用符号 buttons of the expression editor (01 §10.3, 256_custom_event_expr_editor.png). */
+/** 常用符号 buttons of the expression editor. */
 export const EXPRESSION_SYMBOLS: readonly { text: string; label: string; insert?: string }[] = [
   { text: "+", label: "加号", insert: " + " },
   { text: "-", label: "减号", insert: " - " },
@@ -70,25 +70,25 @@ export const EXPRESSION_FUNCTIONS: readonly {
     name: "IN",
     template: "IN()",
     description: "字段值等于其中任意一个值时成立",
-    example: 'IN(${生产工单.工单状态}, "未开始", "执行中")',
+    example: 'IN(${记录.记录状态}, "未开始", "执行中")',
   },
   {
     name: "NOT_IN",
     template: "NOT_IN()",
     description: "字段值不等于其中任何一个值时成立",
-    example: 'NOT_IN(${生产工单.工单状态}, "已结束", "已取消")',
+    example: 'NOT_IN(${记录.记录状态}, "已结束", "已取消")',
   },
   {
     name: "LIKE",
     template: "LIKE()",
     description: "字段内容包含关键字时成立，可用 % 表示任意字符",
-    example: 'LIKE(${生产工单.产品名称}, "齿轮")',
+    example: 'LIKE(${记录.名称}, "齿轮")',
   },
   {
     name: "NOT_LIKE",
     template: "NOT_LIKE()",
     description: "字段内容不包含关键字时成立",
-    example: 'NOT_LIKE(${生产工单.产品名称}, "样品")',
+    example: 'NOT_LIKE(${记录.名称}, "样品")',
   },
 ];
 
@@ -117,7 +117,7 @@ export type ExpressionNode =
 
 export interface VariableRef {
   path: string[];
-  /** As written, e.g. "${生产工单.优先级}". */
+  /** As written, e.g. "${记录.优先级}". */
   raw: string;
   start: number;
   end: number;

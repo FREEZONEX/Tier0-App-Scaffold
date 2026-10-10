@@ -5,8 +5,7 @@ import { useKitApi } from "@/components/kit/provider";
 
 
 /**
- * 新增 / 编辑 / 查看编码规则 (08 §1.2; 1101_code_rule_view.png, 1102_code_rule_create.png,
- * 1103_code_rule_segment_types.png): full-screen modal —「基础信息」规则编码 (留空自动生成) /
+ * 新增 / 编辑 / 查看编码规则: full-screen modal —「基础信息」规则编码 (留空自动生成) /
  * * 规则名称 / * 业务类型;「编码规则」preview box (CGRKyyyyMMdd000001 + 今日示例), 「⊕ 增行」, segment
  * table (拖拽柄, * 字段类型ⓘ, * 字段值, * 补位方式ⓘ, * 补位符号ⓘ, * 长度, * 是否显示ⓘ, 操作 删除).
  * 取消 / 保存; 查看 shows 返回 only.

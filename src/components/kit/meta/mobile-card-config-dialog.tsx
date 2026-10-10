@@ -283,7 +283,7 @@ function ConfigForm({
                           onDrop={(event) => {
                             event.preventDefault();
                             if (dragIndex === null || item.kind !== "field" || dragIndex >= displayFields.length) return;
-                            // Locked fields (报工卡片「生产人员」) stay first.
+                            // Locked fields (配置中标记为必需的字段) stay first.
                             const lockedCount = displayFields.filter((code) => locked.has(code)).length;
                             const target = Math.min(Math.max(index, lockedCount), displayFields.length - 1);
                             setDisplayFields((current) => moveItem(current, dragIndex, target));

@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * 条件表达式编辑器 (01 §10.3; 256_custom_event_expr_editor.png): title = condition name.
+ * 条件表达式编辑器: title = condition name.
  * Left: 字段树 (对象字段含自定义字段, 关联对象, 系统, 定时触发的统计数据) with 「请输入字段名称查询」;
  * right top: code area with line numbers, placeholder「选择或输入字段，公式编辑支持空格和回车换行」,
  * counter 0/4000 and live 语法校验; right bottom: 常用符号 buttons / 常用函数 IN() NOT_IN() LIKE()

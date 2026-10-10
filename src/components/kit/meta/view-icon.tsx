@@ -1,6 +1,6 @@
 "use client";
 
-/** ViewIcon — the 5 colored document icons of 灵动 views (深色 / 绿 / 蓝 / 橙 / 红). */
+/** ViewIcon — the 5 colored document icons of views (深色 / 绿 / 蓝 / 橙 / 红). */
 import type { ViewIcon as ViewIconName } from "@/lib/component-kit/types";
 import { cn } from "@/lib/utils";
 

@@ -1,7 +1,8 @@
+import { SESSION_EXPIRED_EVENT } from '@/lib/component-kit/api-client';
 import { ComponentKitProvider } from '@/components/kit/provider';
 import { adapter } from './fixtures';
 import {createRootRoute,createRouter,createMemoryHistory,RouterProvider} from '@tanstack/react-router';import {emptyDraft} from '@/components/editors/custom-fields/field-type-meta';
-import React,{useState,useRef}from'react';import{createRoot}from'react-dom/client';import{Plus,Settings,Check,Package,Search,Download}from'lucide-react';import{registry}from'./registry';import{Sample}from'./samples';import{options,fields,rows,sections,views,org,persons,images,config,records}from'./fixtures';import{columnStatesFrom}from'@/lib/component-kit/list-columns';import{Button}from'@/components/ui/button';import{Toaster}from'@/components/toaster';import'./preview.css';
+import React,{useState,useRef}from'react';import{createRoot}from'react-dom/client';import{Plus,Settings,Search,Download}from'lucide-react';import{registry}from'./registry';import{Sample}from'./samples';import{options,fields,rows,sections,views,org,images}from'./fixtures';import{columnStatesFrom}from'@/lib/component-kit/list-columns';import{Button}from'@/components/ui/button';import{Toaster}from'@/components/toaster';import'./preview.css';
 const sample=new URLSearchParams(location.search).get('sample')||'Input';const variants=new Set(["Shell", "ImpactPreviewDialog", "RecommendationAction", "ClientOnly", "AsyncView", "DataTable", "TableViewport", "TableCellText", "TableStatusCell", "RequiredMark", "FieldLabel", "FileUpload", "FieldGroup", "FormGrid", "LineItemSection", "RecordSelect", "MonitorLayout", "ReviewLayout", "StationLayout", "ConfirmDialog", "Dialog", "DialogActions", "Drawer", "FormDialog", "OverlayPortal", "OverlayHeader", "OverlayFooter", "OverlayActionButton", "Toaster", "Button", "Card", "EmptyState", "StatusFilterChips", "PageHeader", "RiskBanner", "StatCard", "StatusBadge"]);
 class Boundary extends React.Component<any,any>{state={e:null};static getDerivedStateFromError(e:any){return{e}}componentDidCatch(e:any){(window as any).__demoError=String(e);parent.postMessage({type:'sample-error',name:sample,error:String(e)},'*')}render(){return this.state.e?<div className="demo-error">此样例仍需适配，请重置样例重试。<br/>{String(this.state.e)}</div>:this.props.children}}
 function SegmentedDemo(){
@@ -58,7 +59,7 @@ case'ProgressBar':body=<><Comp percent={68}/><Comp percent={100} status="success
 case'ProgressRing':body=<div className="demo-row"><Comp percent={68}/><Comp percent={100} status="success"/></div>;break;
 case'Popover':body=<Comp content={<div className="p-4">查看、编辑或停用当前物料。<Button onClick={hit}>编辑</Button></div>}><Button>点击打开气泡</Button></Comp>;break;
 case'DropdownMenu':body=<Comp items={[{key:'edit',label:'编辑物料',onClick:hit},{key:'copy',label:'复制物料',onClick:hit},{key:'delete',label:'删除',danger:true,onClick:hit}]}><Button>操作菜单</Button></Comp>;break;
-case'Tooltip':body=<Comp title="保存后对所有新工单生效"><Button>悬停查看说明</Button></Comp>;break;
+case'Tooltip':body=<Comp title="保存后对所有新记录生效"><Button>悬停查看说明</Button></Comp>;break;
 case'FloatingLayer':body=<><Button onClick={()=>O(!open)}>开关浮层</Button><Comp open={open} layerId="demo-layer" floatingRef={floatRef} placement="bottom-start" style={{position:'absolute',top:90,left:28}}><div className="rounded-md border bg-white p-4 shadow-lg">浮层内容</div></Comp></>;break;
 case'Tabs':body=<Comp items={[{key:'a',label:'基本信息',children:'物料 MAT-1001 · 精密铝合金支架'},{key:'b',label:'生产记录',children:'本月完成 120 件'},{key:'c',label:'操作日志',children:'张明创建了当前记录'}]}/>;break;
 case'CapsuleGroup':body=<Comp items={[{key:'a',label:'全部',count:32},{key:'b',label:'执行中',count:12},{key:'c',label:'已完成',count:20}]}/>;break;
@@ -98,20 +99,18 @@ case'ExcelLogModal':body=<Comp {...common} type="IMPORT"/>;break;
 case'PrintDialog':body=<Comp {...common} ids={['demo-1']}/>;break;
 case'MobileCard':body=<Comp config={{titleFields:['code','name'],indicatorField:'qty',displayFields:['status'],components:[]}} fields={fields} record={rows[0]} actions={<Button onClick={hit}>查看详情</Button>}/>;break;
 case'MobileCardConfigDialog':body=<Comp {...common} cardKey="report"/>;break;
-case'SessionExpiredDialog':body=<><Button onClick={()=>window.dispatchEvent(new CustomEvent('lingo:session-expired'))}>显示会话过期提示</Button><Comp/></>;break;
+case'SessionExpiredDialog':body=<><Button onClick={()=>window.dispatchEvent(new CustomEvent(SESSION_EXPIRED_EVENT))}>显示会话过期提示</Button><Comp/></>;break;
 case'PageContainer':case'PageCard':case'ResponsivePage':case'WorkbenchLayout':case'PageToolbar':body=<Comp title="物料档案"><Button>新增物料</Button>{form}</Comp>;break;
 case'PageHeaderLink':body=<Comp to="/" onClick={(e:any)=>{e.preventDefault();hit()}}>返回物料档案</Comp>;break;
 
 case'RouteError':body=<Comp error={new Error('示例加载错误')} reset={hit}/>;break;
-default:body=<Business name={name} common={common} value={value} V={V} list={list} L={L} hit={hit}/>;
+default:body=<GenericDemo name={name} common={common} value={value} V={V} list={list} L={L} hit={hit}/>;
 }
 return <><div className="sample-body"><div className="demo-stack">{body}</div>{msg&&<p className="demo-status">{msg}</p>}</div><Toaster/></>;
 }
 
-const tasks=[{id:'t1',processName:'下料',progress:100,processStatus:2,planQty:120,goodQty:120,defectQty:0,unfinishedQty:0,workOrderCode:'WO-001',lastReportTime:'2026-09-18T08:00:00Z'},{id:'t2',processName:'装配',progress:68,processStatus:1,planQty:120,goodQty:82,defectQty:2,unfinishedQty:38,workOrderCode:'WO-001',lastReportTime:'2026-09-18T09:00:00Z'}];
-const board={generatedAt:'2026-09-18T09:00:00Z',today:'2026-09-18',kpis:{wipWorkOrderPlanQty:1200,wipWorkOrderCount:24,wipTaskCount:48,wipTaskPlanQty:2800,overdueWorkOrderCount:2,overdueTaskCount:4,todayFinishedWorkOrderCount:6,todayFinishedTaskCount:18,todayOutputQty:860,todayGoodQty:860,todayDefectQty:12,todayDefectRate:1.38},outputTrend:[1,2,3,4,5,6,7].map((i)=>({date:'2026-09-'+(11+i),label:'09-'+(11+i),finishedWorkOrders:i+2,outputQty:90+i*25})),defectTrend:[1,2,3,4,5,6,7].map(i=>({date:'2026-09-'+(11+i),label:'09-'+(11+i),defectQty:10+i,goodQty:100+i*20,defectRate:2+i/10})),personRanking:[{personId:'u1',name:'张明',qty:360},{personId:'u2',name:'李晨',qty:280}],todayReports:[{id:'r1',time:'2026-09-18T09:00:00Z',personName:'张明',workOrderCode:'WO-001',processName:'装配',goodQty:80,defectQty:2,approveStatus:1}],defectDistribution:[{id:'d1',name:'尺寸偏差',qty:8,ratio:66.7},{id:'d2',name:'表面划痕',qty:4,ratio:33.3}],defectDistributionTotal:12,workOrders:[{id:'w1',code:'WO-001',status:1,tasks,productCode:'MAT-1001',productName:'精密铝合金支架',productSpec:'A-10',planQty:120,realityQty:82,completionRate:68,progress:84,overdue:false}],taskProgress:tasks};
 
-function Business({name,common,value,V,list,L,hit}:any){const Comp=registry[name];const [selected,S]=useState<any>([]);const p:any={...common,rows:list,items:list,data:list,options:[],value:selected,onChange:S,persons:[],processes:[],groups:[],fields,columns:fields.map(f=>({key:f.code,title:f.name,width:f.width})),candidates:{routes:[],processes:[]},initialValues:rows[0],target:{mode:'create',id:null},recordId:null,ruleId:null,templateId:null,viewCode:null,onReorder:async()=>{},onCreate:hit,onEdit:hit,onDelete:hit,onViewPersons:hit,onPick:hit,onPatch:(patch:any)=>V({...value,...patch}),row:value,tree:org,canCreate:true,canEdit:true,canDelete:true,save:async(v:any)=>({...v,id:'demo'}),onScopeChange:S,onPersonsChange:S,onCheckedChange:S,scope:'ALL',checked:true,readonly:false};
+function GenericDemo({name,common,value,V,list,hit}:any){const Comp=registry[name];const [selected,S]=useState<any>([]);const p:any={...common,rows:list,items:list,data:list,options:[],value:selected,onChange:S,persons:[],processes:[],groups:[],fields,columns:fields.map(f=>({key:f.code,title:f.name,width:f.width})),candidates:{routes:[],processes:[]},initialValues:rows[0],target:{mode:'create',id:null},recordId:null,ruleId:null,templateId:null,viewCode:null,onReorder:async()=>{},onCreate:hit,onEdit:hit,onDelete:hit,onViewPersons:hit,onPick:hit,onPatch:(patch:any)=>V({...value,...patch}),row:value,tree:org,canCreate:true,canEdit:true,canDelete:true,save:async(v:any)=>({...v,id:'demo'}),onScopeChange:S,onPersonsChange:S,onCheckedChange:S,scope:'ALL',checked:true,readonly:false};
 switch(name){
 
 

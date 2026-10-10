@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * FormDrawer — 右侧宽抽屉表单 (01 §6.1; 210–216, 220, 260, 600): header with
+ * FormDrawer — 右侧宽抽屉表单: header with
  * title, centered 锚点页签 (AnchorTabs over the form sections), 切换布局
  * (label 在上 ↔ label 在左, remembered per browser), 全屏 / 退出全屏 and ×;
  * scrollable body; footer buttons. With `dirty`, closing (×, Esc, overlay,
@@ -33,7 +33,7 @@ export interface FormDrawerProps {
   title: ReactNode;
   /** 锚点页签, usually `sections.map(({ key, label }) => ({ key, label }))`. */
   anchors?: { key: string; label: string }[];
-  /** Initial label layout when nothing is remembered (default vertical, 灵动 默认). */
+  /** Initial label layout when nothing is remembered. */
   defaultLayout?: FormLayout;
   /** localStorage key of the remembered layout. */
   layoutStorageKey?: string;
@@ -50,7 +50,7 @@ export interface FormDrawerProps {
   bodyClassName?: string;
 }
 
-const DEFAULT_LAYOUT_KEY = "lingo:form-layout";
+const DEFAULT_LAYOUT_KEY = "tier0:form-layout";
 /** Gap kept above a section when an anchor scrolls to it. */
 const ANCHOR_OFFSET = 8;
 
