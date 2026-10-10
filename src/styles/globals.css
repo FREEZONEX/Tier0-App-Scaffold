@@ -7,6 +7,9 @@
 /* Tier0 design tokens. Keep this file as the single-app equivalent of the
  * platform theme package referenced by DESIGN.md. */
 :root {
+  --tier0-disabled-bg: #ededee;
+  --tier0-disabled-text: #929296;
+  --tier0-disabled-border: #d4d4d6;
   --tier0-primary: #050b14;
   --tier0-primary-hover: #1c1f1e;
   --tier0-on-primary: #ffffff;
@@ -30,16 +33,14 @@
      shadow-sm instead of background layering. Keep the token: canvas is the
      one knob if this is ever revisited. */
   --tier0-canvas: #ffffff;
-  --tier0-bg-secondary: #fcfcfc;
-  --tier0-bg-tertiary: #f9f9f9;
-  --tier0-bg-accent: #f3f3f3;
+  --tier0-bg-secondary: #ffffff;
+  --tier0-bg-tertiary: #ffffff;
+  --tier0-bg-accent: #ffffff;
   --tier0-surface-muted: #e3e3e3;
   --tier0-border: #dcdcdc;
   --tier0-border-secondary: #e8e8e8;
-  /* Form controls need more definition than hairline dividers: a subtle fill
-     plus a deeper border so a field reads as an editable box on white
-     surfaces even when unfocused. */
-  --tier0-input-bg: #f4f4f5;
+  /* Editable fields use a white fill and a defined border; gray fill is disabled state. */
+  --tier0-input-bg: #ffffff;
   --tier0-input-border: #c2c2c4;
 
   --tier0-success-color: #166534;
@@ -126,14 +127,14 @@
   --popover: #ffffff;
   --popover-foreground: var(--tier0-text-color);
   --surface-raised: #ffffff;
-  --surface-inset: var(--tier0-bg-tertiary);
+  --surface-inset: #ffffff;
 
-  --sidebar: #fcfcfc;
+  --sidebar: #ffffff;
   --sidebar-foreground: var(--tier0-text-color);
   --sidebar-border: #e3e3e3;
   --sidebar-primary: var(--tier0-primary);
   --sidebar-primary-foreground: var(--tier0-on-primary);
-  --sidebar-accent: #f3f3f3;
+  --sidebar-accent: var(--tier0-highlight-bg-accent);
   --sidebar-accent-foreground: var(--tier0-text-color);
   --sidebar-ring: var(--tier0-highlight);
 
@@ -583,7 +584,7 @@ body {
   [role="combobox"][aria-disabled="true"],
   [role="listbox"][aria-disabled="true"],
   [role="menu"][aria-disabled="true"] {
-    background-color: var(--surface-inset) !important;
+    background-color: var(--tier0-disabled-bg) !important;
     color: var(--muted-foreground);
     opacity: 1;
   }
@@ -1035,5 +1036,104 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* Enabled surfaces remain white. Gray is reserved for disabled controls; enabled text entry is white. */
+select:not(:disabled),[role="listbox"]:not([aria-disabled="true"]),[role="menu"]:not([aria-disabled="true"]),[role="combobox"]:not(input):not([aria-disabled="true"]){background-color:var(--card)!important}
+button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select:disabled,[role="button"][aria-disabled="true"],.tier0-control-disabled{background-color:var(--tier0-disabled-bg)!important;color:var(--tier0-disabled-text)!important;border-color:var(--tier0-disabled-border)!important;opacity:1!important;box-shadow:none!important;cursor:not-allowed}
+.tier0-text-field:not(.tier0-control-disabled){background-color:var(--tier0-input-bg)}
+.tier0-text-field:focus-within:not(.tier0-control-disabled){background-color:var(--card)}
+
+/* Generic component utilities; existing Tier0 tokens remain authoritative. */
+:root {
+  --tier0-primary-active: #050b14;
+  --tier0-primary-bg: #e7f9b9;
+  --tier0-primary-bg-hover: #cef368;
+  --tier0-primary-border: #b2ed1d;
+  --tier0-text-disabled: #bfbfbf;
+  --tier0-canvas-gradient: #ffffff;
+  --tier0-fill-hover: var(--tier0-highlight-bg-accent);
+  --tier0-fill-active: rgb(0 0 0 / 0.07);
+  --tier0-row-hover: #f3f7ea;
+  --tier0-row-selected: #e7f9b9;
+  --tier0-input-disabled-bg: #f5f5f5;
+  --tier0-success-deep: #166534;
+  --tier0-success-border: #b7eb8f;
+  --tier0-error-deep: #b91c1c;
+  --tier0-error-border: #ffa39e;
+  --tier0-warning-deep: #9a3412;
+  --tier0-warning-border: #ffd591;
+  --tier0-radius-2xl: 16px;
+  --tier0-control-height-lg: 44px;
+  --tier0-shadow-card: 0 1px 2px 0 rgb(16 24 40 / 0.04), 0 2px 10px -2px rgb(16 24 40 / 0.05);
+  --tier0-shadow-popup: var(--shadow-md);
+  --tier0-shadow-primary-button: 0 2px 0 rgb(5 145 255 / 0.1);
+}
+
+@theme inline {
+  --color-brand: var(--tier0-primary);
+  --color-brand-hover: var(--tier0-primary-hover);
+  --color-brand-active: var(--tier0-primary-active);
+  --color-brand-soft: var(--tier0-primary-bg);
+  --color-brand-soft-hover: var(--tier0-primary-bg-hover);
+  --color-brand-border: var(--tier0-primary-border);
+  --color-text-secondary: var(--tier0-text-secondary);
+  --color-text-tertiary: var(--tier0-text-tertiary);
+  --color-text-placeholder: var(--tier0-text-placeholder);
+  --color-canvas: var(--tier0-canvas);
+  --color-fill-hover: var(--tier0-fill-hover);
+  --color-fill-active: var(--tier0-fill-active);
+  --color-row-hover: var(--tier0-row-hover);
+  --color-row-selected: var(--tier0-row-selected);
+  --color-input-disabled: var(--tier0-input-disabled-bg);
+  --color-success: var(--tier0-success-color);
+  --color-success-deep: var(--tier0-success-deep);
+  --color-success-soft: var(--tier0-success-tertiary);
+  --color-success-border: var(--tier0-success-border);
+  --color-warning: var(--tier0-warning-color);
+  --color-warning-deep: var(--tier0-warning-deep);
+  --color-warning-soft: var(--tier0-warning-tertiary);
+  --color-warning-border: var(--tier0-warning-border);
+  --color-danger: var(--tier0-error-color);
+  --color-danger-deep: var(--tier0-error-deep);
+  --color-danger-soft: var(--tier0-error-tertiary);
+  --color-danger-border: var(--tier0-error-border);
+  --shadow-card: var(--tier0-shadow-card);
+  --shadow-popup: var(--tier0-shadow-popup);
+  --shadow-primary: var(--tier0-shadow-primary-button);
+  --radius-xs: var(--tier0-radius-xs);
+  --animate-tier0-pop: tier0-pop 160ms var(--motion-ease);
+  --animate-tier0-fade: tier0-fade 160ms ease-out;
+  --animate-tier0-drawer-left: tier0-drawer-left 220ms var(--motion-ease);
+  --animate-tier0-shimmer: shimmer 1.6s linear infinite;
+}
+
+@keyframes tier0-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes tier0-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes tier0-drawer-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: none;
   }
 }

@@ -1,12 +1,14 @@
 import { useEffect, useRef, type RefObject } from "react";
 
-export type OverlaySize = "sm" | "md" | "lg" | "xl";
+export type OverlaySize = "sm" | "md" | "lg" | "xl" | "2xl" | "full";
 
 const widthBySize: Record<OverlaySize, string> = {
   sm: "max-w-md",
   md: "max-w-xl",
   lg: "max-w-3xl",
   xl: "max-w-5xl",
+  "2xl": "max-w-7xl",
+  full: "max-w-none",
 };
 
 export function overlayWidthClass(size: OverlaySize) {

@@ -1,0 +1,1297 @@
+[
+  {
+    "name": "Icon",
+    "label": "图标",
+    "category": "通用",
+    "layer": "base",
+    "detail": "表达对象、状态或操作含义的图形。统一尺寸、颜色和语义名称；图标本身不承担按钮行为。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "FieldTypeIcon",
+        "label": "字段类型图标",
+        "engine": "library"
+      },
+      {
+        "name": "ViewIcon",
+        "label": "视图图标",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "Text",
+    "label": "文字",
+    "category": "通用",
+    "layer": "base",
+    "detail": "呈现文字内容，支持高亮、截断和完整内容提示。执行操作交给按钮，页面跳转交给链接。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "HighlightText",
+        "label": "关键词高亮",
+        "engine": "library"
+      },
+      {
+        "name": "EllipsisText",
+        "label": "省略文本",
+        "engine": "library"
+      },
+      {
+        "name": "TableCellText",
+        "label": "文本单元格",
+        "engine": "library"
+      },
+      {
+        "name": "TableCellText",
+        "label": "基础用法 · 文本单元格",
+        "engine": "original"
+      }
+    ]
+  },
+  {
+    "name": "Link",
+    "label": "链接",
+    "category": "通用",
+    "layer": "base",
+    "detail": "导航到页面、外部地址或单据。支持图标、文字、新窗口和不可跳转状态；创建、提交等操作使用按钮。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "PageHeaderLink",
+        "label": "页头链接",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "Button",
+    "label": "按钮",
+    "category": "通用",
+    "layer": "base",
+    "detail": "触发操作或提交，支持主次、图标、文字、加载和禁用等样式。图标按钮和文字按钮是外观，不替代独立的图标、文字或链接。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "Button",
+        "label": "按钮",
+        "engine": "library"
+      },
+      {
+        "name": "IconButton",
+        "label": "图标按钮",
+        "engine": "library"
+      },
+      {
+        "name": "TextButton",
+        "label": "文字按钮",
+        "engine": "library"
+      },
+      {
+        "name": "Button",
+        "label": "基础用法 · 按钮",
+        "engine": "original"
+      }
+    ]
+  },
+  {
+    "name": "Layout",
+    "label": "布局",
+    "category": "布局",
+    "layer": "base",
+    "detail": "划分页面区域与响应式布局；业务导航、站点壳和整页模板另外陈列。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "ResponsivePage",
+        "label": "响应式页面",
+        "engine": "library"
+      },
+      {
+        "name": "WorkbenchLayout",
+        "label": "工作台布局",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "Dropdown",
+    "label": "下拉菜单",
+    "category": "导航",
+    "layer": "base",
+    "detail": "触发式操作菜单；分裂按钮是主动作与菜单的组合用法，不等同于站点导航 Menu。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "DropdownMenu",
+        "label": "下拉菜单",
+        "engine": "library"
+      },
+      {
+        "name": "SplitButton",
+        "label": "分裂按钮",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "Pagination",
+    "label": "分页",
+    "category": "导航",
+    "layer": "base",
+    "detail": "页码、页容量、总数与跳页。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "Pagination",
+        "label": "分页",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "Tabs",
+    "label": "标签页",
+    "category": "导航",
+    "layer": "base",
+    "detail": "切换内容面板。移动端路由导航、保存查询视图均不直接归 Tabs。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "Tabs",
+        "label": "页签",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "Anchor",
+    "label": "锚点",
+    "category": "导航",
+    "layer": "base",
+    "detail": "定位同一页面内分区并跟随滚动，不承担内容切换或路由跳转。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "AnchorTabs",
+        "label": "锚点导航",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "Input",
+    "label": "输入框",
+    "category": "数据录入",
+    "layer": "base",
+    "detail": "单行、多行与搜索输入用法。MobileSearchBar 是输入、清空和查询回调组合，可作为 Input.Search 场景，不单独建业务组件。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "Input",
+        "label": "文本输入",
+        "engine": "library"
+      },
+      {
+        "name": "TextArea",
+        "label": "多行文本",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "InputNumber",
+    "label": "数字输入",
+    "category": "数据录入",
+    "layer": "base",
+    "detail": "输入数值，支持精度、步进、上下限和格式化。数量与金额通过配置区分，区间由两个数字输入组合。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "NumberInput",
+        "label": "数字输入",
+        "engine": "library"
+      },
+      {
+        "name": "NumberRangeInput",
+        "label": "数值区间",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "Select",
+    "label": "选择器",
+    "category": "数据录入",
+    "layer": "base",
+    "detail": "从选项中单选或多选，支持搜索、远程加载、清空与自定义显示。弹窗表格选择和组织人员选择使用专门的组合组件。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "Select",
+        "label": "下拉选择",
+        "engine": "library"
+      },
+      {
+        "name": "ReferenceSelect",
+        "label": "参照下拉选择",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "Cascader",
+    "label": "级联选择",
+    "category": "数据录入",
+    "layer": "base",
+    "detail": "按层级逐级浏览并选择一个路径，支持路径回显、禁用和校验提示。节点数据与可选层级由使用场景提供。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "ReferenceCascader",
+        "label": "参照级联选择",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "Checkbox",
+    "label": "多选框",
+    "category": "数据录入",
+    "layer": "base",
+    "detail": "单个、分组和半选；Indicator 是内部可视构件，不新增一个公共组件。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "Checkbox",
+        "label": "复选框",
+        "engine": "library"
+      },
+      {
+        "name": "CheckboxGroup",
+        "label": "复选组",
+        "engine": "library"
+      },
+      {
+        "name": "CheckboxIndicator",
+        "label": "勾选指示器",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "Radio",
+    "label": "单选框",
+    "category": "数据录入",
+    "layer": "base",
+    "detail": "单选及按钮式选项。路线类型更改后清空关联字段是业务联动，不写入基础 Radio。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "RadioGroup",
+        "label": "单选组",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "Switch",
+    "label": "开关",
+    "category": "数据录入",
+    "layer": "base",
+    "detail": "布尔值切换、加载与禁用。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "Switch",
+        "label": "开关",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "DatePicker",
+    "label": "日期选择",
+    "category": "数据录入",
+    "layer": "base",
+    "detail": "选择日期、日期时间或范围，支持清空、快捷范围和不可选日期。日历面板和时间列属于内部交互。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "DatePicker",
+        "label": "日期时间选择",
+        "engine": "library"
+      },
+      {
+        "name": "DateRangePicker",
+        "label": "日期范围",
+        "engine": "library"
+      },
+      {
+        "name": "CalendarPanel",
+        "label": "日历面板",
+        "engine": "library"
+      },
+      {
+        "name": "TimeColumns",
+        "label": "时间滚轮",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "Form",
+    "label": "表单",
+    "category": "数据录入",
+    "layer": "base",
+    "detail": "统一字段布局、分区、校验、只读与提交。快速创建和档案编辑通过配置复用；弹窗与抽屉是承载方式。生产、库存、工价等专有规则保留在业务组件中。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "MetaForm",
+        "label": "动态表单",
+        "engine": "library"
+      },
+      {
+        "name": "FieldControl",
+        "label": "动态字段控件",
+        "engine": "library"
+      },
+      {
+        "name": "FieldGroup",
+        "label": "字段组",
+        "engine": "library"
+      },
+      {
+        "name": "FormGrid",
+        "label": "表单网格",
+        "engine": "library"
+      },
+      {
+        "name": "FieldLabel",
+        "label": "字段标签",
+        "engine": "library"
+      },
+      {
+        "name": "RequiredMark",
+        "label": "必填标记",
+        "engine": "library"
+      },
+      {
+        "name": "FormDialog",
+        "label": "表单对话框",
+        "engine": "library"
+      },
+      {
+        "name": "FieldGroup",
+        "label": "基础用法 · 字段组",
+        "engine": "original"
+      },
+      {
+        "name": "FormGrid",
+        "label": "基础用法 · 表单网格",
+        "engine": "original"
+      },
+      {
+        "name": "FieldLabel",
+        "label": "基础用法 · 字段标签",
+        "engine": "original"
+      },
+      {
+        "name": "RequiredMark",
+        "label": "基础用法 · 必填标记",
+        "engine": "original"
+      },
+      {
+        "name": "FormDialog",
+        "label": "基础用法 · 表单对话框",
+        "engine": "original"
+      }
+    ]
+  },
+  {
+    "name": "Upload",
+    "label": "上传",
+    "category": "数据录入",
+    "layer": "base",
+    "detail": "文件与图片选择、校验、上传状态和移除。列表模式可变，预览调用 Image/文件预览；本地 Data URL 与远端上传适配必须区分。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "ImageUpload",
+        "label": "图片选择",
+        "engine": "library"
+      },
+      {
+        "name": "AttachmentUpload",
+        "label": "附件选择",
+        "engine": "library"
+      },
+      {
+        "name": "FileUpload",
+        "label": "文件选择",
+        "engine": "library"
+      },
+      {
+        "name": "FileUpload",
+        "label": "基础用法 · 文件选择",
+        "engine": "original"
+      }
+    ]
+  },
+  {
+    "name": "Avatar",
+    "label": "头像",
+    "category": "数据展示",
+    "layer": "base",
+    "detail": "人物/对象头像，图片或文字回退、尺寸与形状。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "Avatar",
+        "label": "头像",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "Badge",
+    "label": "徽标",
+    "category": "数据展示",
+    "layer": "base",
+    "detail": "附着计数、圆点与溢出展示，不并入 Tag。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "Badge",
+        "label": "徽标",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "Card",
+    "label": "卡片",
+    "category": "数据展示",
+    "layer": "base",
+    "detail": "内容分组容器：标题、内容、边框、内边距和动作区域；字段驱动的记录卡与生产大屏是上层组合。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "Card",
+        "label": "内容卡片",
+        "engine": "library"
+      },
+      {
+        "name": "PageCard",
+        "label": "页面卡片",
+        "engine": "library"
+      },
+      {
+        "name": "Card",
+        "label": "基础用法 · 内容卡片",
+        "engine": "original"
+      }
+    ]
+  },
+  {
+    "name": "Collapse",
+    "label": "折叠面板",
+    "category": "数据展示",
+    "layer": "base",
+    "detail": "分区展开与收起。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "CollapseSection",
+        "label": "折叠分区",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "Empty",
+    "label": "空状态",
+    "category": "数据展示",
+    "layer": "base",
+    "detail": "空数据提示和引导动作；失败结果用 Result。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "Empty",
+        "label": "空状态",
+        "engine": "library"
+      },
+      {
+        "name": "EmptyState",
+        "label": "空态",
+        "engine": "library"
+      },
+      {
+        "name": "EmptyState",
+        "label": "基础用法 · 空态",
+        "engine": "original"
+      }
+    ]
+  },
+  {
+    "name": "Image",
+    "label": "图片",
+    "category": "数据展示",
+    "layer": "base",
+    "detail": "缩略图、图片预览及预览组。图片上传仍由 Upload 负责。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "ImageThumbs",
+        "label": "图片缩略图",
+        "engine": "library"
+      },
+      {
+        "name": "ImagePreview",
+        "label": "图片预览",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "Popover",
+    "label": "气泡卡片",
+    "category": "数据展示",
+    "layer": "base",
+    "detail": "展示可交互或复杂内容的浮层；定位与层级控制是内部实现。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "Popover",
+        "label": "气泡浮层",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "Segmented",
+    "label": "分段控制器",
+    "category": "数据展示",
+    "layer": "base",
+    "detail": "受控选项切换、胶囊外观与状态筛选。不是页签面板或业务视图管理器。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "Segmented",
+        "label": "分段选择",
+        "engine": "library"
+      },
+      {
+        "name": "CapsuleGroup",
+        "label": "胶囊分组",
+        "engine": "library"
+      },
+      {
+        "name": "StatusFilterChips",
+        "label": "状态筛选",
+        "engine": "library"
+      },
+      {
+        "name": "StatusFilterChips",
+        "label": "基础用法 · 状态筛选",
+        "engine": "original"
+      }
+    ]
+  },
+  {
+    "name": "Statistic",
+    "label": "统计数值",
+    "category": "数据展示",
+    "layer": "base",
+    "detail": "指标数值、单位和变化提示；数据计算与业务口径由调用方提供。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "StatCard",
+        "label": "指标卡",
+        "engine": "library"
+      },
+      {
+        "name": "StatCard",
+        "label": "基础用法 · 指标卡",
+        "engine": "original"
+      }
+    ]
+  },
+  {
+    "name": "Table",
+    "label": "表格",
+    "category": "数据展示",
+    "layer": "base",
+    "detail": "列、树形行、选择、固定、滚动、行操作、行高和列设置；部门树是数据适配示例。表格辅助构件归同一能力，不逐个升格为组件。批量编辑交互另列扩展。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "DataGrid",
+        "label": "数据网格",
+        "engine": "library"
+      },
+      {
+        "name": "DataTable",
+        "label": "数据表外壳",
+        "engine": "library"
+      },
+      {
+        "name": "TableViewport",
+        "label": "表格滚动容器",
+        "engine": "library"
+      },
+      {
+        "name": "TableStatusCell",
+        "label": "状态单元格",
+        "engine": "library"
+      },
+      {
+        "name": "ColumnConfigList",
+        "label": "列配置列表",
+        "engine": "library"
+      },
+      {
+        "name": "FieldConfigPopover",
+        "label": "字段配置浮层",
+        "engine": "library"
+      },
+      {
+        "name": "RowHeightMenu",
+        "label": "行高菜单",
+        "engine": "library"
+      },
+      {
+        "name": "RowActions",
+        "label": "行操作",
+        "engine": "library"
+      },
+      {
+        "name": "DataTable",
+        "label": "基础用法 · 数据表外壳",
+        "engine": "original"
+      },
+      {
+        "name": "TableViewport",
+        "label": "基础用法 · 表格滚动容器",
+        "engine": "original"
+      },
+      {
+        "name": "TableStatusCell",
+        "label": "基础用法 · 状态单元格",
+        "engine": "original"
+      }
+    ]
+  },
+  {
+    "name": "Tag",
+    "label": "标签",
+    "category": "数据展示",
+    "layer": "base",
+    "detail": "展示分类或状态，支持颜色、圆点和不同强调程度。附着在其他对象上的数量提醒使用徽标。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "Tag",
+        "label": "标签",
+        "engine": "library"
+      },
+      {
+        "name": "StatusTag",
+        "label": "状态标签",
+        "engine": "library"
+      },
+      {
+        "name": "ColorDotLabel",
+        "label": "色点标签",
+        "engine": "library"
+      },
+      {
+        "name": "StatusBadge",
+        "label": "状态标签",
+        "engine": "library"
+      },
+      {
+        "name": "StatusBadge",
+        "label": "基础用法 · 状态标签",
+        "engine": "original"
+      }
+    ]
+  },
+  {
+    "name": "Tooltip",
+    "label": "文字提示",
+    "category": "数据展示",
+    "layer": "base",
+    "detail": "提供简短悬浮提示；文本省略本身归 Text。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "Tooltip",
+        "label": "提示气泡",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "Tree",
+    "label": "树",
+    "category": "数据展示",
+    "layer": "base",
+    "detail": "层级展示、展开、选择和勾选；不把它等同于带输入框的 TreeSelect。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "TreeList",
+        "label": "树形列表",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "Alert",
+    "label": "警告提示",
+    "category": "反馈",
+    "layer": "base",
+    "detail": "持续可见的风险提示区；不与瞬时消息、空状态混合。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "RiskBanner",
+        "label": "风险横幅",
+        "engine": "library"
+      },
+      {
+        "name": "RiskBanner",
+        "label": "基础用法 · 风险横幅",
+        "engine": "original"
+      }
+    ]
+  },
+  {
+    "name": "Drawer",
+    "label": "抽屉",
+    "category": "反馈",
+    "layer": "base",
+    "detail": "侧边容器及关闭流程；表单脏状态通过上层接入，不以业务名称另建抽屉。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "Drawer",
+        "label": "侧边抽屉",
+        "engine": "library"
+      },
+      {
+        "name": "FormDrawer",
+        "label": "表单抽屉",
+        "engine": "library"
+      },
+      {
+        "name": "Drawer",
+        "label": "基础用法 · 侧边抽屉",
+        "engine": "original"
+      }
+    ]
+  },
+  {
+    "name": "Message",
+    "label": "全局消息",
+    "category": "反馈",
+    "layer": "base",
+    "detail": "短暂显示操作成功、失败或处理中反馈，不阻断当前任务。与持续显示的警告提示、需要用户决策的对话框区分。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "Toaster",
+        "label": "消息提示宿主",
+        "engine": "library"
+      },
+      {
+        "name": "Toaster",
+        "label": "基础用法 · 消息提示宿主",
+        "engine": "original"
+      }
+    ]
+  },
+  {
+    "name": "Modal",
+    "label": "对话框",
+    "category": "反馈",
+    "layer": "base",
+    "detail": "普通、确认、全屏对话框；会话失效是内容与重新登录动作示例。ConfirmDialog 是模态确认，不应映射为锚定控件的 Popconfirm。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "Dialog",
+        "label": "通用对话框",
+        "engine": "library"
+      },
+      {
+        "name": "ConfirmDialog",
+        "label": "确认对话框",
+        "engine": "library"
+      },
+      {
+        "name": "FullscreenModal",
+        "label": "全屏弹窗",
+        "engine": "library"
+      },
+      {
+        "name": "SessionExpiredDialog",
+        "label": "会话过期提示",
+        "engine": "library"
+      },
+      {
+        "name": "Dialog",
+        "label": "基础用法 · 通用对话框",
+        "engine": "original"
+      },
+      {
+        "name": "ConfirmDialog",
+        "label": "基础用法 · 确认对话框",
+        "engine": "original"
+      }
+    ]
+  },
+  {
+    "name": "Progress",
+    "label": "进度条",
+    "category": "反馈",
+    "layer": "base",
+    "detail": "百分比的线形与环形显示。工序链的数量语义另列业务组合。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "ProgressBar",
+        "label": "进度条",
+        "engine": "library"
+      },
+      {
+        "name": "ProgressRing",
+        "label": "进度环",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "Result",
+    "label": "结果页",
+    "category": "反馈",
+    "layer": "base",
+    "detail": "页面失败结果和重试入口，不等同于 Empty。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "RouteError",
+        "label": "路由错误页",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "Skeleton",
+    "label": "骨架屏",
+    "category": "反馈",
+    "layer": "base",
+    "detail": "内容与表格形状的加载占位。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "Skeleton",
+        "label": "骨架屏",
+        "engine": "library"
+      },
+      {
+        "name": "TableSkeleton",
+        "label": "表格骨架",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "Spin",
+    "label": "加载中",
+    "category": "反馈",
+    "layer": "base",
+    "detail": "加载等待指示与遮罩。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "Spin",
+        "label": "加载指示",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "EditableTable",
+    "label": "可编辑明细表",
+    "category": "通用扩展",
+    "layer": "extension",
+    "detail": "行增删复制、批量填充、拖动、汇总与校验；批量建产品为保存适配示例。不能把所有业务明细计算吸收到本组件。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "DetailTable",
+        "label": "可编辑明细表",
+        "engine": "library"
+      },
+      {
+        "name": "LineItemSection",
+        "label": "明细分区",
+        "engine": "library"
+      },
+      {
+        "name": "LineItemSection",
+        "label": "基础用法 · 明细分区",
+        "engine": "original"
+      }
+    ]
+  },
+  {
+    "name": "RecordPicker",
+    "label": "记录选择弹窗",
+    "category": "通用扩展",
+    "layer": "extension",
+    "detail": "查询、分页、跨页保留选中与确认回填。物料/工序是数据适配；下拉 ReferenceSelect 独立归 Select，组织穿梭另列组织选择。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "ReferencePicker",
+        "label": "对象参照弹窗",
+        "engine": "library"
+      },
+      {
+        "name": "ReferenceInput",
+        "label": "参照输入",
+        "engine": "library"
+      },
+      {
+        "name": "RecordSelect",
+        "label": "记录选择",
+        "engine": "library"
+      },
+      {
+        "name": "RecordSelect",
+        "label": "基础用法 · 记录选择",
+        "engine": "original"
+      }
+    ]
+  },
+  {
+    "name": "QueryBuilder",
+    "label": "查询条件构建器",
+    "category": "通用扩展",
+    "layer": "extension",
+    "detail": "动态字段、操作符、条件值与排序定义；简单搜索表单可直接用 Form。规则模型是本扩展的可复用价值。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "SearchPanel",
+        "label": "查询面板",
+        "engine": "library"
+      },
+      {
+        "name": "SearchFieldControl",
+        "label": "查询字段控件",
+        "engine": "library"
+      },
+      {
+        "name": "FilterConditionList",
+        "label": "筛选条件列表",
+        "engine": "library"
+      },
+      {
+        "name": "FilterValueEditor",
+        "label": "筛选值编辑",
+        "engine": "library"
+      },
+      {
+        "name": "SortConditionList",
+        "label": "排序条件列表",
+        "engine": "library"
+      },
+      {
+        "name": "SortPopover",
+        "label": "排序配置浮层",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "DataView",
+    "label": "数据列表视图",
+    "category": "通用扩展",
+    "layer": "extension",
+    "detail": "组合查询、工具栏、分页与表格，报表列和聚合由业务提供；不是新增另一种基础 Table。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "MetaListPage",
+        "label": "元数据列表页",
+        "engine": "library"
+      },
+      {
+        "name": "OperationalList",
+        "label": "业务列表",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "ViewManager",
+    "label": "保存视图管理",
+    "category": "通用扩展",
+    "layer": "extension",
+    "detail": "保存、命名、排序和编辑查询视图；权限范围调用组织范围适配，Tabs 只负责外观切换。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "ViewTabs",
+        "label": "视图页签",
+        "engine": "library"
+      },
+      {
+        "name": "ViewEditorDrawer",
+        "label": "视图编辑抽屉",
+        "engine": "library"
+      },
+      {
+        "name": "ViewListDrawer",
+        "label": "视图管理抽屉",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "RecordCard",
+    "label": "配置记录卡片",
+    "category": "通用扩展",
+    "layer": "extension",
+    "detail": "按字段配置渲染标题、指标、正文与动作；配置器是同一扩展的编辑入口，基础 Card 仅提供容器。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "MobileCard",
+        "label": "移动端卡片",
+        "engine": "library"
+      },
+      {
+        "name": "MobileCardConfigDialog",
+        "label": "移动卡片配置",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "FieldRenderer",
+    "label": "字段值渲染",
+    "category": "通用扩展",
+    "layer": "extension",
+    "detail": "按字段类型展示数字、日期、标签、关联记录、图片与文件。只负责单个字段的显示，不负责整页详情布局。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "FieldValue",
+        "label": "字段值展示",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "ImportExport",
+    "label": "表格导入与导出",
+    "category": "通用扩展",
+    "layer": "extension",
+    "detail": "文件模板、字段校验、结果和日志；导入与导出是两个独立流程入口，共享文件任务与日志模型，均非基础 Upload 功能。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "ImportDialog",
+        "label": "导入对话框",
+        "engine": "library"
+      },
+      {
+        "name": "ExportDialog",
+        "label": "导出对话框",
+        "engine": "library"
+      },
+      {
+        "name": "ExcelLogModal",
+        "label": "导入导出日志",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "PrintTemplate",
+    "label": "打印模板",
+    "category": "通用扩展",
+    "layer": "extension",
+    "detail": "模板、字段编排、预览与打印；字段顺序选择为附属构件。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "PrintDialog",
+        "label": "打印对话框",
+        "engine": "library"
+      },
+      {
+        "name": "PrintTemplateEditor",
+        "label": "打印模板编辑",
+        "engine": "library"
+      },
+      {
+        "name": "PrintTemplatePreview",
+        "label": "打印模板预览",
+        "engine": "library"
+      },
+      {
+        "name": "FieldOrderPicker",
+        "label": "打印字段排序",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "FieldDesigner",
+    "label": "字段配置器",
+    "category": "通用扩展",
+    "layer": "extension",
+    "detail": "字段类型、必填、默认值与选项编辑；级联选择已独立提取 Cascader，再由本配置器复用。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "CustomFieldForm",
+        "label": "自定义字段表单",
+        "engine": "library"
+      },
+      {
+        "name": "CustomFieldTable",
+        "label": "自定义字段表格",
+        "engine": "library"
+      },
+      {
+        "name": "OptionListEditor",
+        "label": "选项列表编辑",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "ExpressionEditor",
+    "label": "表达式编辑器",
+    "category": "通用扩展",
+    "layer": "extension",
+    "detail": "变量插入、光标编辑、函数与校验；VariablePicker 是内部变量浏览器。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "ExpressionEditorDialog",
+        "label": "条件表达式编辑",
+        "engine": "library"
+      },
+      {
+        "name": "VariablePicker",
+        "label": "变量选择",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "CodeRuleEditor",
+    "label": "编码规则编辑器",
+    "category": "通用扩展",
+    "layer": "extension",
+    "detail": "日期、流水号和补位规则片段的顺序与预览。规则作用域由业务适配。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "CodeRuleEditor",
+        "label": "编码规则编辑",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "FilePreview",
+    "label": "文件预览",
+    "category": "通用扩展",
+    "layer": "extension",
+    "detail": "非图片文档预览与下载回退；不将该能力虚构为 AntD Image 的全部文件支持。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "FilePreview",
+        "label": "文件预览",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "Chart",
+    "label": "柱线组合图",
+    "category": "通用扩展",
+    "layer": "extension",
+    "detail": "双轴、图例与提示。图表不是 antd 核心组件，可单列图表扩展。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "DualAxisChart",
+        "label": "双轴柱线图",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "AsyncView",
+    "label": "异步状态容器",
+    "category": "通用扩展",
+    "layer": "extension",
+    "detail": "组合加载、错误、重试和内容状态；内部复用 Spin、Skeleton、Result、Empty。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "AsyncView",
+        "label": "异步状态",
+        "engine": "library"
+      },
+      {
+        "name": "AsyncView",
+        "label": "基础用法 · 异步状态",
+        "engine": "original"
+      }
+    ]
+  },
+  {
+    "name": "ImpactAction",
+    "label": "影响预览动作",
+    "category": "通用扩展",
+    "layer": "extension",
+    "detail": "执行前说明依据、展示前后变化并确认；数据和执行回调由调用方提供，未发现必须绑定某个行业的规则。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "ImpactPreviewDialog",
+        "label": "影响预览",
+        "engine": "library"
+      },
+      {
+        "name": "RecommendationAction",
+        "label": "建议动作入口",
+        "engine": "library"
+      },
+      {
+        "name": "ImpactPreviewDialog",
+        "label": "基础用法 · 影响预览",
+        "engine": "original"
+      },
+      {
+        "name": "RecommendationAction",
+        "label": "基础用法 · 建议动作入口",
+        "engine": "original"
+      }
+    ]
+  }
+]
