@@ -11,12 +11,14 @@ import { useOverlayLifecycle } from "@/components/overlays/overlay-lifecycle";
 import { cn } from "@/lib/utils";
 
 export type DrawerSide = "right" | "left";
-export type DrawerSize = "sm" | "md" | "lg";
+export type DrawerSize = "sm" | "md" | "lg" | "xl" | "2xl";
 
 const widthBySize: Record<DrawerSize, string> = {
   sm: "sm:max-w-md",
   md: "sm:max-w-xl",
   lg: "sm:max-w-2xl",
+  xl: "sm:max-w-5xl",
+  "2xl": "sm:max-w-7xl",
 };
 
 export interface DrawerProps extends OverlayFrameProps {

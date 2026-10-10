@@ -50,6 +50,7 @@ export function Dialog({
       <div
         className={cn(
           "fixed inset-0 z-50 flex min-h-dvh items-center justify-center bg-primary/35 p-3 sm:p-6",
+          size === "full" && "p-0 sm:p-0",
           overlayClassName,
         )}
         onMouseDown={(event) => {
@@ -66,6 +67,7 @@ export function Dialog({
           className={cn(
             "flex max-h-[calc(100dvh-1.5rem)] w-full flex-col overflow-hidden rounded-lg border border-border bg-card text-card-foreground shadow-xl sm:max-h-[calc(100dvh-3rem)]",
             overlayWidthClass(size),
+            size === "full" && "h-dvh max-h-dvh rounded-none sm:max-h-dvh",
             className,
           )}
         >

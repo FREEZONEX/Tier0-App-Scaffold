@@ -1,4 +1,4 @@
-import { forwardRef, type ButtonHTMLAttributes } from "react";
+import { forwardRef, type ReactNode, type ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -17,11 +17,15 @@ export type ButtonVariant =
   | "primary"
   | "secondary"
   | "outline"
-  | "ghost";
+  | "ghost"
+  | "danger"
+  | "link";
 
-export type ButtonSize = "sm" | "md";
+export type ButtonSize = "sm" | "md" | "lg";
 
 const variantClasses: Record<ButtonVariant, string> = {
+  danger: "bg-destructive text-white border border-transparent hover:brightness-95",
+  link: "bg-transparent text-primary border border-transparent underline-offset-4 hover:underline",
   highlight:
     "bg-highlight-bg-primary text-accent-foreground border border-transparent hover:brightness-95",
   primary:
@@ -35,6 +39,7 @@ const variantClasses: Record<ButtonVariant, string> = {
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
+  lg: "h-11 px-5 text-base",
   sm: "h-9 px-3 text-sm",
   md: "h-10 px-4 text-sm",
 };
@@ -42,27 +47,36 @@ const sizeClasses: Record<ButtonSize, string> = {
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
+  icon?: ReactNode;
+  loading?: boolean;
+  block?: boolean;
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   function Button(
-    { variant = "primary", size = "md", type = "button", className, ...props },
+    { variant = "primary", size = "md", type = "button", className, icon, loading = false, block = false, disabled, children, ...props },
     ref,
   ) {
     return (
       <button
         ref={ref}
         type={type}
+        disabled={disabled || loading}
+        aria-busy={loading || undefined}
         className={cn(
           "inline-flex shrink-0 items-center justify-center gap-2 rounded-md font-medium leading-none transition-colors duration-150",
           "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
           "disabled:pointer-events-none disabled:opacity-55",
           variantClasses[variant],
           sizeClasses[size],
+          block && "w-full",
           className,
         )}
         {...props}
-      />
+      >
+        {loading ? <span aria-hidden="true" className="size-4 animate-spin rounded-full border-2 border-current border-r-transparent" /> : icon}
+        {children}
+      </button>
     );
   },
 );

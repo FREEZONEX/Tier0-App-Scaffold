@@ -1,0 +1,5 @@
+@import '../src/styles/globals.css';
+@source './';
+@source '../src';
+body{margin:0;background:white!important;color:var(--tier0-text-color);min-height:100vh} .sample-body{padding:28px;display:flex;flex-direction:column;gap:18px}.caption{font-size:12px;color:#718096}.gallery-placeholder [data-template-preview-placeholder]{display:block!important}.demo-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.demo-stack{display:flex;flex-direction:column;gap:16px;max-width:100%}.demo-error{padding:24px;color:#9a3412;background:#fff7ed;font:14px system-ui}.demo-note{padding:8px 12px;font:12px system-ui;background:#f0f5ff;color:#43608b}.demo-status{font:12px system-ui;color:#607086;margin-top:12px}
+.demo-stack{min-width:0}.demo-stack>*{min-width:0} .sample-body{padding:24px}

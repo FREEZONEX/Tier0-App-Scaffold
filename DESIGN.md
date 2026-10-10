@@ -329,3 +329,7 @@ from the results it filters; give it a ceiling — `max-w-xs` is a good default 
 and let the empty space carry the layout. The build catches known unbounded
 control-growth patterns; it does not verify rendered mobile usability. See the
 static-check and viewport-review boundaries in [AGENTS.md](AGENTS.md).
+
+## 通用组件扩充
+
+组件类型与主题独立管理。新增组件沿用本文件及 `src/styles/globals.css` 的主题；启用状态输入框使用白底，浅灰填充保留给禁用状态，不用灰底表示普通可操作控件。参见 [通用组件接入](docs/component-kit.md)。

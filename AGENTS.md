@@ -483,3 +483,13 @@ malformed.
 - App identity, locale, platform metadata, navigation, responsive behavior,
   and visible copy form one coherent product.
 - `npm run build` and route smoke pass before completion is reported.
+
+## Generic component kit
+
+Before generating forms, tables or reusable editors, consult
+[docs/component-kit.md](docs/component-kit.md) and reuse `src/components/kit`.
+Keep business objects, services and roles in the application. Data-backed kit
+components require an application-scoped `ComponentKitProvider`; logical resource
+paths do not imply backend endpoints exist. Never import `gallery/fixtures.ts`
+into an app. Preserve existing auth/permission guards and the scaffold theme;
+enabled inputs use white surfaces, with gray fill reserved for disabled controls.

@@ -1,0 +1,77 @@
+import { useState, useRef, type ReactNode } from 'react';
+import { createRootRoute, createRoute, createRouter, createMemoryHistory, RouterProvider, useRouterState } from '@tanstack/react-router';
+import { Package, Activity } from 'lucide-react';
+import { toast } from 'sonner';
+import { Button, Card, PageHeader, StatusBadge, StatusFilterChips, RiskBanner, EmptyState, StatCard, RouteErrorBoundary } from '@/components/ui';
+import { FieldGroup, FieldLabel, RequiredMark, FormGrid, LineItemSection, RecordSelect, FileUpload } from '@/components/forms';
+import { DataTable, TableViewport, TableCellText, TableStatusCell, AsyncView } from '@/components/data';
+import { Dialog, DialogActions } from '@/components/overlays/dialog';
+import { FormDialog } from '@/components/overlays/form-dialog';
+import { ConfirmDialog } from '@/components/overlays/confirm-dialog';
+import { Drawer } from '@/components/overlays/drawer';
+import { OverlayPortal, OverlayHeader, OverlayFooter, OverlayActionButton } from '@/components/overlays/overlay-frame';
+import { RecommendationAction, ImpactPreviewDialog } from '@/components/actions';
+import { Shell } from '@/components/Shell';
+import { StationLayout } from '@/components/layouts/StationLayout';
+import { ReviewLayout } from '@/components/layouts/ReviewLayout';
+import { MonitorLayout } from '@/components/layouts/MonitorLayout';
+import { ClientOnly } from '@/components/client-only';
+import { Toaster } from '@/components/toaster';
+import { TemplatePreviewPlaceholder } from '@/components/TemplatePreviewPlaceholder';
+const user={id:'sample',username:'sample',displayName:'示例操作员',primaryRole:'',roles:[]};
+const rows=[{id:'WO-001',name:'装配线巡检',status:'待处理'},{id:'WO-002',name:'温度传感器检查',status:'执行中'}];
+const impacts=[{id:'1',label:'巡检任务 WO-001',before:'未分派',after:'示例操作员',description:'仅演示，不会修改业务数据'}];
+const labels={basisTitle:'建议依据',impactTitle:'影响范围',impactDescription:'确认受影响的示例记录',reasonTitle:'原因',beforeLabel:'变更前',afterLabel:'变更后'};
+function Table(){return <DataTable><thead><tr><th>任务编号</th><th>任务</th><th>状态</th></tr></thead><tbody>{rows.map((r,i)=><tr key={r.id}><td className="font-mono">{r.id}</td><td><TableCellText>{r.name}</TableCellText></td><TableStatusCell><StatusBadge tone={i?'running':'paused'}>{r.status}</StatusBadge></TableStatusCell></tr>)}</tbody></DataTable>}
+function ShellContent(){const path=useRouterState({select:s=>s.location.pathname});return <Shell user={user} modules={[{key:'tasks',label:'任务队列',href:'/',icon:Package},{key:'assets',label:'设备台账',href:'/assets',icon:Activity}]}><div className="page-shell space-y-6"><PageHeader title={path==='/assets'?'设备台账':'任务队列'}/><Table/></div></Shell>}
+const rootRoute=createRootRoute({component:ShellContent});
+const shellRouter=createRouter({routeTree:rootRoute.addChildren([createRoute({getParentRoute:()=>rootRoute,path:'/',component:()=>null}),createRoute({getParentRoute:()=>rootRoute,path:'/assets',component:()=>null})]),history:createMemoryHistory({initialEntries:['/']})});
+export function Sample({name}:{name:string}){
+ const [value,setValue]=useState('');const [filter,setFilter]=useState('all');const [open,setOpen]=useState(false);const [count,setCount]=useState(0);const [files,setFiles]=useState<File[]>([]);const [mode,setMode]=useState('ready');const ref=useRef<HTMLButtonElement>(null);
+ const done=()=>{setCount(c=>c+1);setOpen(false)};
+ const input=<input className="w-full max-w-sm" aria-label="任务名称" value={value} onChange={e=>setValue(e.target.value)} placeholder="输入任务名称"/>;
+ const field=<FieldGroup label="任务名称" required htmlFor="task-name" helperText="输入后可观察示例状态"><input id="task-name" required className="w-full max-w-sm" value={value} onChange={e=>setValue(e.target.value)} placeholder="输入任务名称"/></FieldGroup>;
+ const footer=<><Button variant="outline" onClick={()=>setOpen(false)}>取消</Button><Button onClick={done}>确认</Button></>;
+ let body:ReactNode;
+ switch(name){
+ case 'Button':body=<><div className="flex flex-wrap gap-3">{(['primary','highlight','secondary','outline','ghost'] as const).map(v=><Button key={v} variant={v} onClick={()=>setValue(v)}>{v}</Button>)}<Button disabled>禁用</Button><Button size="sm" onClick={()=>setValue('sm')}>小尺寸</Button></div><p className="caption">已点击：{value||'—'}</p></>;break;
+ case 'Card':body=<Card title="任务信息" accent="running" actions={<Button size="sm" variant="ghost" onClick={()=>setCount(c=>c+1)}>更新</Button>} footer={`更新次数：${count}`}><p>巡检任务 WO-001</p><StatusBadge tone="running">执行中</StatusBadge></Card>;break;
+ case 'PageHeader':body=<PageHeader eyebrow="现场作业" title="巡检任务" actions={<Button onClick={()=>setCount(c=>c+1)}>新建任务 {count||''}</Button>}/>;break;
+ case 'StatusBadge':body=<div className="flex flex-wrap gap-3">{(['running','idle','paused','error','info'] as const).map((t,i)=><StatusBadge key={t} tone={t}>{['执行中','未开始','待确认','异常','信息'][i]}</StatusBadge>)}</div>;break;
+ case 'StatusFilterChips':body=<><StatusFilterChips items={[{key:'all',label:'全部',count:2},{key:'pending',label:'待处理',count:1},{key:'running',label:'执行中',count:1}]} value={filter} onChange={setFilter}/><p>当前选择：{filter}</p></>;break;
+ case 'RiskBanner':body=<>{(['info','warning','error'] as const).map(s=><RiskBanner key={s} severity={s} action={<Button size="sm" variant="ghost" onClick={()=>setValue(s)}>查看</Button>}>{s==='info'?'有一条新记录':s==='warning'?'一项检查即将到期':'温度超出范围'}</RiskBanner>)}<p className="caption">已查看：{value||'—'}</p></>;break;
+ case 'EmptyState':body=count?<Table/>:<EmptyState title="暂无任务" description="创建一条示例记录" icon={<Package/>} action={<Button onClick={done}>创建示例</Button>}/>;break;
+ case 'StatCard':body=<div className="grid grid-cols-2 gap-3"><StatCard label="今日完成" value={24} unit="项" tone="running" trend={{direction:'up',label:'+4',intent:'positive'}} icon={<Activity/>}/><StatCard label="异常记录" value={2} unit="项" tone="error" footer="样例数据"/></div>;break;
+ case 'FieldGroup':body=<>{field}<FieldGroup label="检查结果" error="请输入检查结果"><input aria-label="检查结果" aria-invalid="true" className="w-full max-w-sm"/></FieldGroup></>;break;
+ case 'FieldLabel':body=<><FieldLabel htmlFor="label-input" required>设备名称</FieldLabel><input id="label-input" className="w-full max-w-sm" placeholder="点击标签可聚焦"/></>;break;
+ case 'RequiredMark':body=<p>设备编号 <RequiredMark/> <span className="caption">仅必填标记，不提供校验</span></p>;break;
+ case 'FormGrid':body=<FormGrid>{field}<FieldGroup label="备注"><input className="w-full max-w-sm" aria-label="备注" placeholder="补充说明"/></FieldGroup></FormGrid>;break;
+ case 'LineItemSection':body=<LineItemSection title="检查明细" actions={<Button size="sm" onClick={()=>setCount(c=>c+1)}>添加示例行</Button>}><div className="p-4">{Array.from({length:count+1},(_,i)=><p key={i}>检查项 {i+1}：设备外观</p>)}</div></LineItemSection>;break;
+ case 'RecordSelect':body=<><RecordSelect value={value} onChange={e=>setValue(e.target.value)} placeholder="选择设备" metaLabels={{status:'状态',location:'位置'}} options={[{value:'A',label:'设备 A',status:'运行',location:'一号线'},{value:'B',label:'设备 B',status:'停机',location:'二号线'}]}/><p className="caption">已选择：{value||'—'}</p></>;break;
+ case 'FileUpload':body=<><FileUpload files={files} onFilesChange={setFiles} maxFiles={3} maxSizeBytes={2000000} labels={{dropPrompt:'拖入文件',browse:'选择文件',selectedFiles:'已选文件',removeFile:'移除',rejectedFiles:'文件超出数量或大小限制'}} hint="最多 3 个文件，每个不超过 2 MB；仅本地选择，不上传"/><p className="caption">已选择 {files.length} 个文件</p></>;break;
+ case 'DataTable':case 'TableStatusCell':body=<Table/>;break;
+ case 'TableViewport':body=<TableViewport><Table/></TableViewport>;break;
+ case 'TableCellText':body=<div className="max-w-xs"><TableCellText clamp>{'设备检查记录需要保留完整的信息说明。'.repeat(12)}</TableCellText><p className="caption mt-3">两行截断示例</p></div>;break;
+ case 'AsyncView':body=<><div className="flex flex-wrap gap-2">{['ready','loading','empty','error'].map(s=><Button key={s} size="sm" variant={mode===s?'primary':'outline'} onClick={()=>setMode(s)}>{s}</Button>)}</div><AsyncView result={{data:mode==='ready'?rows:mode==='empty'?[]:undefined,error:mode==='error'?new Error('示例加载失败'):null,isLoading:mode==='loading',refresh:()=>setMode('ready')}}>{()=> <Table/>}</AsyncView></>;break;
+ case 'Dialog':case 'DialogActions':body=<><Button onClick={()=>setOpen(true)}>打开对话框</Button><Dialog open={open} onOpenChange={setOpen} title="任务详情" footer={<DialogActions>{footer}</DialogActions>}><p>这是由脚手架 Dialog 渲染的对话框。</p>{field}</Dialog></>;break;
+ case 'FormDialog':body=<><Button onClick={()=>setOpen(true)}>新建任务</Button><FormDialog open={open} onOpenChange={setOpen} title="新建任务" submitLabel="保存" cancelLabel="取消" onSubmit={e=>{e.preventDefault();done()}}>{field}</FormDialog><p className="caption">已保存 {count} 次：{value||'—'}</p></>;break;
+ case 'ConfirmDialog':body=<><Button onClick={()=>setOpen(true)}>停用示例设备</Button><ConfirmDialog open={open} onOpenChange={setOpen} title="停用设备？" description="只更新当前样例计数，不修改真实设备。" destructive confirmLabel="停用" cancelLabel="取消" onConfirm={done}/><p className="caption">已确认 {count} 次</p></>;break;
+ case 'Drawer':body=<><Button onClick={()=>setOpen(true)}>打开详情抽屉</Button><Drawer open={open} onOpenChange={setOpen} title="设备详情" footer={footer}>{field}<Table/></Drawer></>;break;
+ case 'OverlayPortal':body=<><Button onClick={()=>setOpen(true)}>挂载 Portal</Button><OverlayPortal open={open}><div className="fixed bottom-4 right-4 rounded-lg border border-border bg-card p-4 shadow-sm"><p>此内容直接挂载到 document.body</p><Button onClick={()=>setOpen(false)}>关闭</Button></div></OverlayPortal></>;break;
+ case 'OverlayHeader':body=<>{value==='closed'?<Button onClick={()=>setValue('')}>重新显示</Button>:<OverlayHeader title="详情标题" description="标题、描述与关闭按钮" titleId="header-title" descriptionId="header-desc" closeButtonRef={ref} onClose={()=>setValue('closed')}/>}</>;break;
+ case 'OverlayFooter':body=<><OverlayFooter>{footer}</OverlayFooter><p className="caption">已确认 {count} 次</p></>;break;
+ case 'OverlayActionButton':body=<><div className="flex flex-wrap gap-3"><OverlayActionButton action={{label:'确认',variant:'primary',onClick:done}}/><OverlayActionButton action={{label:'删除',variant:'destructive',onClick:done}}/><OverlayActionButton action={{label:'提交',loading:true}}/></div><p className="caption">已点击 {count} 次</p></>;break;
+ case 'RecommendationAction':body=<><RecommendationAction label="查看分派建议" title="分派预览" basis="按示例工作量推荐" impacts={impacts} labels={labels} confirmLabel="确认分派" cancelLabel="取消" onConfirm={()=>setCount(c=>c+1)}/><p className="caption">已执行 {count} 次</p></>;break;
+ case 'ImpactPreviewDialog':body=<><Button onClick={()=>setOpen(true)}>查看影响范围</Button><ImpactPreviewDialog open={open} onOpenChange={setOpen} title="分派预览" impacts={impacts} labels={labels} confirmLabel="确认" cancelLabel="取消" onConfirm={done}/><p className="caption">已执行 {count} 次</p></>;break;
+ case 'Shell':return <RouterProvider router={shellRouter}/>;
+ case 'StationLayout':return <StationLayout user={user}><div className="p-5 space-y-4"><PageHeader title="当前检查任务"/>{field}<Button onClick={done}>完成检查 {count||''}</Button></div></StationLayout>;
+ case 'ReviewLayout':return <ReviewLayout user={user}><div className="p-5 space-y-4"><PageHeader title="待审核记录"/><Table/><Button onClick={done}>确认审核 {count||''}</Button></div></ReviewLayout>;
+ case 'MonitorLayout':return <MonitorLayout title="一号线监控" subtitle="固定样例数据"><div className="grid grid-cols-2 gap-4 p-5"><StatCard label="运行设备" value="12"/><StatCard label="待处理异常" value="2" tone="error"/></div></MonitorLayout>;
+ case 'ClientOnly':body=<ClientOnly fallback={<p>等待客户端挂载</p>}><p>客户端已挂载，可交互。</p><Button onClick={done}>计数 {count}</Button></ClientOnly>;break;
+ case 'Toaster':body=<><Button onClick={()=>toast.success('示例操作已完成')}>显示消息提示</Button><Toaster/></>;break;
+ case 'RouteErrorBoundary':body=<><p>此组件按设计不渲染可见错误界面。点击后会挂载隐藏错误标记并发送 Preview 消息。</p><Button onClick={done}>触发示例错误</Button>{count>0&&<RouteErrorBoundary error={new Error('Gallery sample error')} scope="gallery-example"/>}<p className="caption">触发次数：{count}。本页不是 Builder 错误卡片宿主。</p></>;break;
+ case 'TemplatePreviewPlaceholder':body=<><p className="caption">原组件默认隐藏；开关只在本样例中开启展示。</p><Button onClick={()=>setOpen(!open)}>{open?'隐藏':'显示'}占位预览</Button>{open&&<div className="gallery-placeholder"><TemplatePreviewPlaceholder/></div>}</>;break;
+ default:body=<p>未配置样例：{name}</p>;
+ }
+ return <div className="sample-body space-y-4" data-sample={name}>{body}</div>;
+}
