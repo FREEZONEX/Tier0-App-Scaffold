@@ -927,7 +927,7 @@
   {
     "name": "EditableTable",
     "label": "可编辑明细表",
-    "category": "通用扩展",
+    "category": "数据展示",
     "layer": "extension",
     "detail": "行增删复制、批量填充、拖动、汇总与校验；批量建产品为保存适配示例。不能把所有业务明细计算吸收到本组件。",
     "reason": "",
@@ -952,7 +952,7 @@
   {
     "name": "RecordPicker",
     "label": "记录选择弹窗",
-    "category": "通用扩展",
+    "category": "数据录入",
     "layer": "extension",
     "detail": "查询、分页、跨页保留选中与确认回填。物料/工序是数据适配；下拉 ReferenceSelect 独立归 Select，组织穿梭另列组织选择。",
     "reason": "",
@@ -982,7 +982,7 @@
   {
     "name": "QueryBuilder",
     "label": "查询条件构建器",
-    "category": "通用扩展",
+    "category": "数据录入",
     "layer": "extension",
     "detail": "动态字段、操作符、条件值与排序定义；简单搜索表单可直接用 Form。规则模型是本扩展的可复用价值。",
     "reason": "",
@@ -1022,7 +1022,7 @@
   {
     "name": "DataView",
     "label": "数据列表视图",
-    "category": "通用扩展",
+    "category": "数据展示",
     "layer": "extension",
     "detail": "组合查询、工具栏、分页与表格，报表列和聚合由业务提供；不是新增另一种基础 Table。",
     "reason": "",
@@ -1042,7 +1042,7 @@
   {
     "name": "ViewManager",
     "label": "保存视图管理",
-    "category": "通用扩展",
+    "category": "数据展示",
     "layer": "extension",
     "detail": "保存、命名、排序和编辑查询视图；权限范围调用组织范围适配，Tabs 只负责外观切换。",
     "reason": "",
@@ -1067,7 +1067,7 @@
   {
     "name": "RecordCard",
     "label": "配置记录卡片",
-    "category": "通用扩展",
+    "category": "数据展示",
     "layer": "extension",
     "detail": "按字段配置渲染标题、指标、正文与动作；配置器是同一扩展的编辑入口，基础 Card 仅提供容器。",
     "reason": "",
@@ -1087,7 +1087,7 @@
   {
     "name": "FieldRenderer",
     "label": "字段值渲染",
-    "category": "通用扩展",
+    "category": "数据展示",
     "layer": "extension",
     "detail": "按字段类型展示数字、日期、标签、关联记录、图片与文件。只负责单个字段的显示，不负责整页详情布局。",
     "reason": "",
@@ -1102,7 +1102,7 @@
   {
     "name": "ImportExport",
     "label": "表格导入与导出",
-    "category": "通用扩展",
+    "category": "数据录入",
     "layer": "extension",
     "detail": "文件模板、字段校验、结果和日志；导入与导出是两个独立流程入口，共享文件任务与日志模型，均非基础 Upload 功能。",
     "reason": "",
@@ -1127,7 +1127,7 @@
   {
     "name": "PrintTemplate",
     "label": "打印模板",
-    "category": "通用扩展",
+    "category": "数据展示",
     "layer": "extension",
     "detail": "模板、字段编排、预览与打印；字段顺序选择为附属构件。",
     "reason": "",
@@ -1157,7 +1157,7 @@
   {
     "name": "FieldDesigner",
     "label": "字段配置器",
-    "category": "通用扩展",
+    "category": "数据录入",
     "layer": "extension",
     "detail": "字段类型、必填、默认值与选项编辑；级联选择已独立提取 Cascader，再由本配置器复用。",
     "reason": "",
@@ -1182,7 +1182,7 @@
   {
     "name": "ExpressionEditor",
     "label": "表达式编辑器",
-    "category": "通用扩展",
+    "category": "数据录入",
     "layer": "extension",
     "detail": "变量插入、光标编辑、函数与校验；VariablePicker 是内部变量浏览器。",
     "reason": "",
@@ -1202,7 +1202,7 @@
   {
     "name": "CodeRuleEditor",
     "label": "编码规则编辑器",
-    "category": "通用扩展",
+    "category": "数据录入",
     "layer": "extension",
     "detail": "日期、流水号和补位规则片段的顺序与预览。规则作用域由业务适配。",
     "reason": "",
@@ -1217,7 +1217,7 @@
   {
     "name": "FilePreview",
     "label": "文件预览",
-    "category": "通用扩展",
+    "category": "数据展示",
     "layer": "extension",
     "detail": "非图片文档预览与下载回退；不将该能力虚构为 AntD Image 的全部文件支持。",
     "reason": "",
@@ -1232,7 +1232,7 @@
   {
     "name": "Chart",
     "label": "柱线组合图",
-    "category": "通用扩展",
+    "category": "数据展示",
     "layer": "extension",
     "detail": "双轴、图例与提示。图表不是 antd 核心组件，可单列图表扩展。",
     "reason": "",
@@ -1247,7 +1247,7 @@
   {
     "name": "AsyncView",
     "label": "异步状态容器",
-    "category": "通用扩展",
+    "category": "反馈",
     "layer": "extension",
     "detail": "组合加载、错误、重试和内容状态；内部复用 Spin、Skeleton、Result、Empty。",
     "reason": "",
@@ -1267,7 +1267,7 @@
   {
     "name": "ImpactAction",
     "label": "影响预览动作",
-    "category": "通用扩展",
+    "category": "反馈",
     "layer": "extension",
     "detail": "执行前说明依据、展示前后变化并确认；数据和执行回调由调用方提供，未发现必须绑定某个行业的规则。",
     "reason": "",
