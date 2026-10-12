@@ -55,7 +55,7 @@ export interface DataGridColumn<Row> {
   headerExtra?: ReactNode;
   /** ⓘ hint after the title (field widget tooltip). */
   headerTip?: string;
-  /** Red required mark before the title (editable detail tables). */
+  /** Red required mark after the title (editable detail tables). */
   required?: boolean;
   /** Pixel width (default 150). */
   width?: number;
@@ -696,8 +696,8 @@ export function DataGrid<Row>({
                             {column.headerIcon}
                           </span>
                         ) : null}
-                        {column.required ? <RequiredMark className="-mr-1 shrink-0" /> : null}
                         <span className="truncate">{column.title}</span>
+                        {column.required ? <RequiredMark className="shrink-0" /> : null}
                         {column.headerTip ? (
                           <Tooltip title={column.headerTip}>
                             <span className="inline-flex shrink-0 items-center text-text-placeholder [&>svg]:size-3.5" aria-label={column.headerTip}>

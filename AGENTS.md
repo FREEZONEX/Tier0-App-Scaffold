@@ -271,6 +271,12 @@ shrinkable; keep page-specific vertical rhythm such as `space-y-6` on the same
 element. Do not add a second outer `px-*` / `py-*` layer. Station, review, and
 monitor layouts own their spacing separately and do not use `page-shell`.
 
+Required fields use `FieldGroup required` or `FieldLabel required` with plain
+title text. Show exactly one red asterisk to the right of the title, never
+below the control. Do not hand-write stars, reverse label direction, or put
+controls inside `FieldLabel`. Keep `required` / `aria-required` and validation
+on the control separately; the marker is visual only.
+
 Keep forms controlled and stable: do not key fields from their current value or
 declare field components inside a form render. Validate inputs and show
 success/error through `toast()`.

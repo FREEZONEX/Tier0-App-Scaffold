@@ -56,3 +56,33 @@ test('code-rule field validation uses supplied catalogs, independent of business
  assert.ok(validateCodeRuleDraft(draft).rows);
  assert.equal(validateCodeRuleDraft(draft,{CUSTOM:[{key:'serial',label:'序列'}]}).rows,undefined);
 });
+
+test('required field titles render one trailing marker and preserve control validation', async () => {
+ const { FieldGroup } = await import('../src/components/forms/form-layout');
+ for (const tag of ['input', 'select', 'textarea']) {
+  const props = {
+   label: '设备名称', htmlFor: 'equipment', required: true,
+   children: createElement(tag, { id: 'equipment', required: true }),
+  };
+  const html = renderToString(createElement(FieldGroup, props));
+  assert.equal((html.match(/data-required-marker="true"/g) ?? []).length, 1);
+  assert.match(html, /设备名称<\/span><span[^>]*>\*<\/span><\/label>/);
+  assert.match(html, new RegExp(`<${tag}[^>]*required=""`));
+  assert.ok(html.indexOf('</label>') < html.indexOf(`<${tag}`));
+ }
+ const optionalProps = { label: '备注', children: createElement('input') };
+ const optional = renderToString(createElement(FieldGroup, optionalProps));
+ assert.doesNotMatch(optional, /data-required-marker/);
+});
+
+test('metadata forms keep the required marker after the title in both layouts', async () => {
+ const { MetaForm } = await import('../src/components/kit/meta/meta-form');
+ for (const layout of ['vertical', 'horizontal'] as const) {
+  const html = renderToString(createElement(MetaForm, {
+   sections, value: {name: ''}, onChange: () => {}, layout,
+  }));
+  assert.equal((html.match(/data-required-marker="true"/g) ?? []).length, 1);
+  assert.doesNotMatch(html, /flex-row-reverse/);
+  assert.ok(html.indexOf('名称') < html.indexOf('data-required-marker'));
+ }
+});
