@@ -231,7 +231,7 @@ export function CapsuleGroup<K extends string | number = string>({
 
 export interface AnchorTabsProps {
   items: { key: string; label: ReactNode }[];
-  /** Scroll container whose sections carry data-anchor-key="<key>". */
+  /** Scroll container whose sections carry data-anchor-key="<key>". Keep the navigation outside this container (or sticky with a matching offset). Sections must size to their content. */
   containerRef: RefObject<HTMLElement | null>;
   activeKey?: string;
   onChange?: (key: string) => void;
@@ -276,13 +276,13 @@ export function AnchorTabs({
 
     function handleScroll() {
       if (!container || lockRef.current !== null) return;
-      const top = container.getBoundingClientRect().top + offset + 12;
+      const top = container.getBoundingClientRect().top + container.clientTop + offset + 12;
       let current = keys[0];
       for (const key of keys) {
         const section = findSection(container, key);
         if (section && section.getBoundingClientRect().top <= top) current = key;
       }
-      if (container.scrollTop + container.clientHeight >= container.scrollHeight - 2) {
+      if (container.scrollHeight > container.clientHeight + 2 && container.scrollTop + container.clientHeight >= container.scrollHeight - 2) {
         current = keys[keys.length - 1];
       }
       if (current && current !== activeRef.current) {
@@ -308,7 +308,7 @@ export function AnchorTabs({
     if (!container) return;
     const section = findSection(container, key);
     if (!section) return;
-    const delta = section.getBoundingClientRect().top - container.getBoundingClientRect().top - offset;
+    const delta = section.getBoundingClientRect().top - container.getBoundingClientRect().top - container.clientTop - offset;
     if (lockRef.current !== null) window.clearTimeout(lockRef.current);
     lockRef.current = window.setTimeout(() => {
       lockRef.current = null;
@@ -332,13 +332,17 @@ export function AnchorTabs({
               role="tab"
               data-tab-index={index}
               aria-selected={selected}
+              tabIndex={selected ? 0 : -1}
               className={cn(
                 "relative inline-flex shrink-0 items-center whitespace-nowrap outline-none transition-colors duration-150 focus-visible:text-brand",
                 size === "sm" ? "py-2 text-sm" : "py-3 text-sm",
                 selected ? "font-medium text-brand" : "text-foreground hover:text-brand-hover",
               )}
               onClick={() => jump(item.key)}
-              onKeyDown={(event) => focusSibling(event, (next) => jump(items[next].key), items.length, index)}
+              onKeyDown={(event) => focusSibling(event, (next) => {
+                jump(items[next].key);
+                listRef.current?.querySelector<HTMLElement>(`[data-tab-index="${next}"]`)?.focus({ preventScroll: true });
+              }, items.length, index)}
             >
               {item.label}
             </button>
