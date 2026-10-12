@@ -5,3 +5,7 @@ body{margin:0}.sample-body{padding:24px;min-width:0}.sample-body>*{min-width:0}.
 .nav-count{float:right;opacity:.55;font-size:11px}.scenario-toolbar{padding:12px 24px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--tier0-border);font-size:13px}.scenario-toolbar .scenario-select{max-width:440px;min-width:0}.scenario-toolbar > span{font-size:12px;color:var(--tier0-text-tertiary)}.sample-scope{font-size:12px;color:var(--tier0-text-tertiary)}.detail-stage iframe{height:560px}.gallery-toolbar input{max-width:100%;min-width:0}.gallery-toolbar{flex-wrap:wrap}.detail-header{gap:12px;flex-wrap:wrap}@media(max-width:650px){.scenario-toolbar{flex-wrap:wrap;padding:12px}.scenario-toolbar .scenario-select{max-width:100%;width:100%}.scenario-toolbar > span{display:none}.detail-controls{flex-wrap:wrap}.detail-description{padding:16px}}
 
 .scenario-select{width:440px;max-width:100%}
+
+/* Overview uses lightweight cards; interactive examples mount only in detail. */
+.component-summary{height:76px;display:flex;align-items:center;justify-content:center;background:#fafbf8;color:#719522;font-size:28px;font-weight:600;border-bottom:1px solid var(--tier0-border)}
+.nav-components{padding:4px 0 10px 12px;border-left:1px solid var(--tier0-border);margin-left:10px}.nav-components button{font-size:12px!important;padding:7px 10px!important}.nav-components small{display:block;font-size:10px;opacity:.55}.gallery-nav{overflow-y:auto}.component-card .card-info p{min-height:0}

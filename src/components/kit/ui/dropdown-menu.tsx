@@ -88,10 +88,10 @@ export function DropdownMenu({
   });
 
   useEffect(() => {
-    if (!visible || !focusFirstRef.current) return;
+    if (!visible || position.style.visibility === "hidden" || !focusFirstRef.current) return;
     focusFirstRef.current = false;
     enabledItems(floatingRef.current)[0]?.focus();
-  }, [visible]);
+  }, [visible, position.style.visibility]);
 
   function focusTrigger() {
     anchorRef.current
@@ -102,6 +102,7 @@ export function DropdownMenu({
   function activate(item: MenuItem) {
     if (item.disabled || item.type === "divider" || item.type === "group") return;
     setOpen(false);
+    focusTrigger();
     item.onClick?.();
     onSelect?.(item.key);
   }
@@ -133,7 +134,7 @@ export function DropdownMenu({
         aria-haspopup="menu"
         aria-expanded={visible}
         aria-controls={visible ? menuId : undefined}
-        className={cn("inline-flex max-w-full", anchorClassName)}
+        className={cn("inline-flex w-fit max-w-full self-start", anchorClassName)}
         onClick={
           disabled
             ? undefined

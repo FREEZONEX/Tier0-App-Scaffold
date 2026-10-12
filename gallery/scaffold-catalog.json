@@ -1,0 +1,1108 @@
+{
+  "sourceCommit": "f7c2adb32071b8222c58910bea23556cbb3aa2fd",
+  "items": [
+    {
+      "id": "Button",
+      "label": "按钮",
+      "category": "通用",
+      "examples": [
+        {
+          "name": "Button",
+          "source": "src/components/ui/button.tsx",
+          "importPath": "@/components/ui/button"
+        },
+        {
+          "name": "IconButton",
+          "source": "src/components/kit/ui/buttons.tsx",
+          "importPath": "@/components/kit/ui/buttons"
+        },
+        {
+          "name": "TextButton",
+          "source": "src/components/kit/ui/buttons.tsx",
+          "importPath": "@/components/kit/ui/buttons"
+        },
+        {
+          "name": "SplitButton",
+          "source": "src/components/kit/ui/buttons.tsx",
+          "importPath": "@/components/kit/ui/buttons"
+        }
+      ]
+    },
+    {
+      "id": "HighlightText",
+      "label": "高亮文本",
+      "category": "通用",
+      "examples": [
+        {
+          "name": "HighlightText",
+          "source": "src/components/kit/ui/text.tsx",
+          "importPath": "@/components/kit/ui/text"
+        }
+      ]
+    },
+    {
+      "id": "EllipsisText",
+      "label": "省略文本",
+      "category": "通用",
+      "examples": [
+        {
+          "name": "EllipsisText",
+          "source": "src/components/kit/ui/tooltip.tsx",
+          "importPath": "@/components/kit/ui/tooltip"
+        }
+      ]
+    },
+    {
+      "id": "FieldTypeIcon",
+      "label": "字段图标",
+      "category": "通用",
+      "examples": [
+        {
+          "name": "FieldTypeIcon",
+          "source": "src/components/kit/ui/field-type-icon.tsx",
+          "importPath": "@/components/kit/ui/field-type-icon"
+        }
+      ]
+    },
+    {
+      "id": "FormGrid",
+      "label": "表单布局",
+      "category": "布局",
+      "examples": [
+        {
+          "name": "FormGrid",
+          "source": "src/components/forms/form-layout.tsx",
+          "importPath": "@/components/forms/form-layout"
+        },
+        {
+          "name": "FieldGroup",
+          "source": "src/components/forms/form-layout.tsx",
+          "importPath": "@/components/forms/form-layout"
+        },
+        {
+          "name": "LineItemSection",
+          "source": "src/components/forms/form-layout.tsx",
+          "importPath": "@/components/forms/form-layout"
+        }
+      ]
+    },
+    {
+      "id": "PageContainer",
+      "label": "页面容器",
+      "category": "布局",
+      "examples": [
+        {
+          "name": "PageContainer",
+          "source": "src/components/kit/shell/page-layout.tsx",
+          "importPath": "@/components/kit/shell/page-layout"
+        },
+        {
+          "name": "PageCard",
+          "source": "src/components/kit/shell/page-layout.tsx",
+          "importPath": "@/components/kit/shell/page-layout"
+        },
+        {
+          "name": "ResponsivePage",
+          "source": "src/components/ui/responsive-page.tsx",
+          "importPath": "@/components/ui/responsive-page"
+        }
+      ]
+    },
+    {
+      "id": "PageHeader",
+      "label": "页头与工具栏",
+      "category": "布局",
+      "examples": [
+        {
+          "name": "PageHeader",
+          "source": "src/components/ui/page-header.tsx",
+          "importPath": "@/components/ui/page-header"
+        },
+        {
+          "name": "PageToolbar",
+          "source": "src/components/ui/responsive-page.tsx",
+          "importPath": "@/components/ui/responsive-page"
+        }
+      ]
+    },
+    {
+      "id": "TableViewport",
+      "label": "表格滚动容器",
+      "category": "布局",
+      "examples": [
+        {
+          "name": "TableViewport",
+          "source": "src/components/data/table-layout.tsx",
+          "importPath": "@/components/data/table-layout"
+        }
+      ]
+    },
+    {
+      "id": "AnchorTabs",
+      "label": "锚点导航",
+      "category": "导航",
+      "examples": [
+        {
+          "name": "AnchorTabs",
+          "source": "src/components/kit/ui/tabs.tsx",
+          "importPath": "@/components/kit/ui/tabs"
+        }
+      ]
+    },
+    {
+      "id": "DropdownMenu",
+      "label": "下拉菜单",
+      "category": "导航",
+      "examples": [
+        {
+          "name": "DropdownMenu",
+          "source": "src/components/kit/ui/dropdown-menu.tsx",
+          "importPath": "@/components/kit/ui/dropdown-menu"
+        }
+      ]
+    },
+    {
+      "id": "Pagination",
+      "label": "分页",
+      "category": "导航",
+      "examples": [
+        {
+          "name": "Pagination",
+          "source": "src/components/kit/ui/pagination.tsx",
+          "importPath": "@/components/kit/ui/pagination"
+        }
+      ]
+    },
+    {
+      "id": "Tabs",
+      "label": "标签页",
+      "category": "导航",
+      "examples": [
+        {
+          "name": "Tabs",
+          "source": "src/components/kit/ui/tabs.tsx",
+          "importPath": "@/components/kit/ui/tabs"
+        },
+        {
+          "name": "CapsuleGroup",
+          "source": "src/components/kit/ui/tabs.tsx",
+          "importPath": "@/components/kit/ui/tabs"
+        }
+      ]
+    },
+    {
+      "id": "PageHeaderLink",
+      "label": "页头链接",
+      "category": "导航",
+      "examples": [
+        {
+          "name": "PageHeaderLink",
+          "source": "src/components/kit/shell/page-layout.tsx",
+          "importPath": "@/components/kit/shell/page-layout"
+        }
+      ]
+    },
+    {
+      "id": "Input",
+      "label": "输入框",
+      "category": "数据录入",
+      "examples": [
+        {
+          "name": "Input",
+          "source": "src/components/kit/ui/input.tsx",
+          "importPath": "@/components/kit/ui/input"
+        },
+        {
+          "name": "TextArea",
+          "source": "src/components/kit/ui/input.tsx",
+          "importPath": "@/components/kit/ui/input"
+        }
+      ]
+    },
+    {
+      "id": "NumberInput",
+      "label": "数字输入",
+      "category": "数据录入",
+      "examples": [
+        {
+          "name": "NumberInput",
+          "source": "src/components/kit/ui/number-input.tsx",
+          "importPath": "@/components/kit/ui/number-input"
+        },
+        {
+          "name": "NumberRangeInput",
+          "source": "src/components/kit/ui/number-input.tsx",
+          "importPath": "@/components/kit/ui/number-input"
+        }
+      ]
+    },
+    {
+      "id": "Select",
+      "label": "选择器",
+      "category": "数据录入",
+      "examples": [
+        {
+          "name": "Select",
+          "source": "src/components/kit/ui/select.tsx",
+          "importPath": "@/components/kit/ui/select"
+        }
+      ]
+    },
+    {
+      "id": "DatePicker",
+      "label": "日期选择",
+      "category": "数据录入",
+      "examples": [
+        {
+          "name": "DatePicker",
+          "source": "src/components/kit/ui/date-picker.tsx",
+          "importPath": "@/components/kit/ui/date-picker"
+        },
+        {
+          "name": "DateRangePicker",
+          "source": "src/components/kit/ui/date-picker.tsx",
+          "importPath": "@/components/kit/ui/date-picker"
+        }
+      ]
+    },
+    {
+      "id": "Checkbox",
+      "label": "复选框",
+      "category": "数据录入",
+      "examples": [
+        {
+          "name": "Checkbox",
+          "source": "src/components/kit/ui/checkbox.tsx",
+          "importPath": "@/components/kit/ui/checkbox"
+        },
+        {
+          "name": "CheckboxGroup",
+          "source": "src/components/kit/ui/checkbox.tsx",
+          "importPath": "@/components/kit/ui/checkbox"
+        }
+      ]
+    },
+    {
+      "id": "RadioGroup",
+      "label": "单选框",
+      "category": "数据录入",
+      "examples": [
+        {
+          "name": "RadioGroup",
+          "source": "src/components/kit/ui/radio.tsx",
+          "importPath": "@/components/kit/ui/radio"
+        }
+      ]
+    },
+    {
+      "id": "Switch",
+      "label": "开关",
+      "category": "数据录入",
+      "examples": [
+        {
+          "name": "Switch",
+          "source": "src/components/kit/ui/switch.tsx",
+          "importPath": "@/components/kit/ui/switch"
+        }
+      ]
+    },
+    {
+      "id": "FileUpload",
+      "label": "文件上传",
+      "category": "数据录入",
+      "examples": [
+        {
+          "name": "FileUpload",
+          "source": "src/components/forms/file-upload.tsx",
+          "importPath": "@/components/forms/file-upload"
+        },
+        {
+          "name": "ImageUpload",
+          "source": "src/components/kit/ui/upload.tsx",
+          "importPath": "@/components/kit/ui/upload"
+        },
+        {
+          "name": "AttachmentUpload",
+          "source": "src/components/kit/ui/upload.tsx",
+          "importPath": "@/components/kit/ui/upload"
+        }
+      ]
+    },
+    {
+      "id": "RecordSelect",
+      "label": "记录下拉",
+      "category": "数据录入",
+      "examples": [
+        {
+          "name": "RecordSelect",
+          "source": "src/components/forms/record-select.tsx",
+          "importPath": "@/components/forms/record-select"
+        }
+      ]
+    },
+    {
+      "id": "ReferenceInput",
+      "label": "参照输入",
+      "category": "数据录入",
+      "examples": [
+        {
+          "name": "ReferenceInput",
+          "source": "src/components/kit/meta/reference-input.tsx",
+          "importPath": "@/components/kit/meta/reference-input"
+        },
+        {
+          "name": "ReferenceSelect",
+          "source": "src/components/kit/meta/reference-select.tsx",
+          "importPath": "@/components/kit/meta/reference-select"
+        },
+        {
+          "name": "PersonInput",
+          "source": "src/components/kit/meta/reference-input.tsx",
+          "importPath": "@/components/kit/meta/reference-input"
+        }
+      ]
+    },
+    {
+      "id": "FieldControl",
+      "label": "表单字段",
+      "category": "数据录入",
+      "examples": [
+        {
+          "name": "FieldControl",
+          "source": "src/components/kit/meta/field-control.tsx",
+          "importPath": "@/components/kit/meta/field-control"
+        },
+        {
+          "name": "FieldLabel",
+          "source": "src/components/forms/field-label.tsx",
+          "importPath": "@/components/forms/field-label"
+        },
+        {
+          "name": "RequiredMark",
+          "source": "src/components/forms/field-label.tsx",
+          "importPath": "@/components/forms/field-label"
+        }
+      ]
+    },
+    {
+      "id": "ReferenceCascader",
+      "label": "级联参照",
+      "category": "数据录入",
+      "examples": [
+        {
+          "name": "ReferenceCascader",
+          "source": "src/components/editors/custom-fields/reference-cascader.tsx",
+          "importPath": "@/components/editors/custom-fields/reference-cascader"
+        }
+      ]
+    },
+    {
+      "id": "Avatar",
+      "label": "头像",
+      "category": "数据展示",
+      "examples": [
+        {
+          "name": "Avatar",
+          "source": "src/components/kit/ui/avatar.tsx",
+          "importPath": "@/components/kit/ui/avatar"
+        }
+      ]
+    },
+    {
+      "id": "Badge",
+      "label": "徽标",
+      "category": "数据展示",
+      "examples": [
+        {
+          "name": "Badge",
+          "source": "src/components/kit/ui/avatar.tsx",
+          "importPath": "@/components/kit/ui/avatar"
+        }
+      ]
+    },
+    {
+      "id": "Card",
+      "label": "卡片",
+      "category": "数据展示",
+      "examples": [
+        {
+          "name": "Card",
+          "source": "src/components/ui/card.tsx",
+          "importPath": "@/components/ui/card"
+        }
+      ]
+    },
+    {
+      "id": "CollapseSection",
+      "label": "折叠分区",
+      "category": "数据展示",
+      "examples": [
+        {
+          "name": "CollapseSection",
+          "source": "src/components/kit/ui/collapse-section.tsx",
+          "importPath": "@/components/kit/ui/collapse-section"
+        }
+      ]
+    },
+    {
+      "id": "Empty",
+      "label": "空状态",
+      "category": "数据展示",
+      "examples": [
+        {
+          "name": "Empty",
+          "source": "src/components/kit/ui/feedback.tsx",
+          "importPath": "@/components/kit/ui/feedback"
+        },
+        {
+          "name": "EmptyState",
+          "source": "src/components/ui/empty-state.tsx",
+          "importPath": "@/components/ui/empty-state"
+        }
+      ]
+    },
+    {
+      "id": "ImagePreview",
+      "label": "图片与文件预览",
+      "category": "数据展示",
+      "examples": [
+        {
+          "name": "ImagePreview",
+          "source": "src/components/kit/ui/preview.tsx",
+          "importPath": "@/components/kit/ui/preview"
+        },
+        {
+          "name": "FilePreview",
+          "source": "src/components/kit/ui/preview.tsx",
+          "importPath": "@/components/kit/ui/preview"
+        },
+        {
+          "name": "ImageThumbs",
+          "source": "src/components/kit/ui/upload.tsx",
+          "importPath": "@/components/kit/ui/upload"
+        }
+      ]
+    },
+    {
+      "id": "Popover",
+      "label": "气泡卡片",
+      "category": "数据展示",
+      "examples": [
+        {
+          "name": "Popover",
+          "source": "src/components/kit/ui/popover.tsx",
+          "importPath": "@/components/kit/ui/popover"
+        }
+      ]
+    },
+    {
+      "id": "Segmented",
+      "label": "分段控制器",
+      "category": "数据展示",
+      "examples": [
+        {
+          "name": "Segmented",
+          "source": "src/components/kit/ui/segmented.tsx",
+          "importPath": "@/components/kit/ui/segmented"
+        }
+      ]
+    },
+    {
+      "id": "StatCard",
+      "label": "统计卡片",
+      "category": "数据展示",
+      "examples": [
+        {
+          "name": "StatCard",
+          "source": "src/components/ui/stat-card.tsx",
+          "importPath": "@/components/ui/stat-card"
+        }
+      ]
+    },
+    {
+      "id": "DataGrid",
+      "label": "数据表格",
+      "category": "数据展示",
+      "examples": [
+        {
+          "name": "DataGrid",
+          "source": "src/components/kit/ui/data-grid.tsx",
+          "importPath": "@/components/kit/ui/data-grid"
+        },
+        {
+          "name": "DataTable",
+          "source": "src/components/data/table-layout.tsx",
+          "importPath": "@/components/data/table-layout"
+        }
+      ]
+    },
+    {
+      "id": "Tag",
+      "label": "标签与状态",
+      "category": "数据展示",
+      "examples": [
+        {
+          "name": "Tag",
+          "source": "src/components/kit/ui/tag.tsx",
+          "importPath": "@/components/kit/ui/tag"
+        },
+        {
+          "name": "StatusTag",
+          "source": "src/components/kit/ui/tag.tsx",
+          "importPath": "@/components/kit/ui/tag"
+        },
+        {
+          "name": "StatusBadge",
+          "source": "src/components/ui/status-badge.tsx",
+          "importPath": "@/components/ui/status-badge"
+        },
+        {
+          "name": "ColorDotLabel",
+          "source": "src/components/kit/ui/tag.tsx",
+          "importPath": "@/components/kit/ui/tag"
+        }
+      ]
+    },
+    {
+      "id": "Tooltip",
+      "label": "文字提示",
+      "category": "数据展示",
+      "examples": [
+        {
+          "name": "Tooltip",
+          "source": "src/components/kit/ui/tooltip.tsx",
+          "importPath": "@/components/kit/ui/tooltip"
+        }
+      ]
+    },
+    {
+      "id": "TreeList",
+      "label": "树列表",
+      "category": "数据展示",
+      "examples": [
+        {
+          "name": "TreeList",
+          "source": "src/components/kit/ui/tree-list.tsx",
+          "importPath": "@/components/kit/ui/tree-list"
+        }
+      ]
+    },
+    {
+      "id": "FieldValue",
+      "label": "字段值",
+      "category": "数据展示",
+      "examples": [
+        {
+          "name": "FieldValue",
+          "source": "src/components/kit/meta/field-value.tsx",
+          "importPath": "@/components/kit/meta/field-value"
+        }
+      ]
+    },
+    {
+      "id": "RiskBanner",
+      "label": "风险提示",
+      "category": "反馈",
+      "examples": [
+        {
+          "name": "RiskBanner",
+          "source": "src/components/ui/risk-banner.tsx",
+          "importPath": "@/components/ui/risk-banner"
+        }
+      ]
+    },
+    {
+      "id": "Drawer",
+      "label": "抽屉",
+      "category": "反馈",
+      "examples": [
+        {
+          "name": "Drawer",
+          "source": "src/components/overlays/drawer.tsx",
+          "importPath": "@/components/overlays/drawer"
+        }
+      ]
+    },
+    {
+      "id": "Dialog",
+      "label": "对话框",
+      "category": "反馈",
+      "examples": [
+        {
+          "name": "Dialog",
+          "source": "src/components/overlays/dialog.tsx",
+          "importPath": "@/components/overlays/dialog"
+        },
+        {
+          "name": "ConfirmDialog",
+          "source": "src/components/overlays/confirm-dialog.tsx",
+          "importPath": "@/components/overlays/confirm-dialog"
+        },
+        {
+          "name": "FormDialog",
+          "source": "src/components/overlays/form-dialog.tsx",
+          "importPath": "@/components/overlays/form-dialog"
+        },
+        {
+          "name": "FullscreenModal",
+          "source": "src/components/kit/meta/fullscreen-modal.tsx",
+          "importPath": "@/components/kit/meta/fullscreen-modal"
+        }
+      ]
+    },
+    {
+      "id": "Toaster",
+      "label": "消息提示",
+      "category": "反馈",
+      "examples": [
+        {
+          "name": "Toaster",
+          "source": "src/components/toaster.tsx",
+          "importPath": "@/components/toaster"
+        }
+      ]
+    },
+    {
+      "id": "ProgressBar",
+      "label": "进度",
+      "category": "反馈",
+      "examples": [
+        {
+          "name": "ProgressBar",
+          "source": "src/components/kit/ui/feedback.tsx",
+          "importPath": "@/components/kit/ui/feedback"
+        },
+        {
+          "name": "ProgressRing",
+          "source": "src/components/kit/ui/feedback.tsx",
+          "importPath": "@/components/kit/ui/feedback"
+        }
+      ]
+    },
+    {
+      "id": "Skeleton",
+      "label": "骨架屏",
+      "category": "反馈",
+      "examples": [
+        {
+          "name": "Skeleton",
+          "source": "src/components/kit/ui/feedback.tsx",
+          "importPath": "@/components/kit/ui/feedback"
+        },
+        {
+          "name": "TableSkeleton",
+          "source": "src/components/kit/ui/feedback.tsx",
+          "importPath": "@/components/kit/ui/feedback"
+        }
+      ]
+    },
+    {
+      "id": "Spin",
+      "label": "加载状态",
+      "category": "反馈",
+      "examples": [
+        {
+          "name": "Spin",
+          "source": "src/components/kit/ui/feedback.tsx",
+          "importPath": "@/components/kit/ui/feedback"
+        },
+        {
+          "name": "AsyncView",
+          "source": "src/components/data/async-view.tsx",
+          "importPath": "@/components/data/async-view"
+        }
+      ]
+    },
+    {
+      "id": "MetaForm",
+      "label": "元数据表单",
+      "category": "重型组件",
+      "examples": [
+        {
+          "name": "MetaForm",
+          "source": "src/components/kit/meta/meta-form.tsx",
+          "importPath": "@/components/kit/meta/meta-form"
+        }
+      ]
+    },
+    {
+      "id": "DetailTable",
+      "label": "可编辑明细表",
+      "category": "重型组件",
+      "examples": [
+        {
+          "name": "DetailTable",
+          "source": "src/components/kit/meta/detail-table.tsx",
+          "importPath": "@/components/kit/meta/detail-table"
+        }
+      ]
+    },
+    {
+      "id": "MetaListPage",
+      "label": "元数据列表页",
+      "category": "重型组件",
+      "examples": [
+        {
+          "name": "MetaListPage",
+          "source": "src/components/kit/meta/meta-list-page.tsx",
+          "importPath": "@/components/kit/meta/meta-list-page"
+        }
+      ]
+    },
+    {
+      "id": "ReferencePicker",
+      "label": "参照选择弹窗",
+      "category": "重型组件",
+      "examples": [
+        {
+          "name": "ReferencePicker",
+          "source": "src/components/kit/meta/reference-picker.tsx",
+          "importPath": "@/components/kit/meta/reference-picker"
+        },
+        {
+          "name": "PersonPicker",
+          "source": "src/components/kit/meta/person-picker.tsx",
+          "importPath": "@/components/kit/meta/person-picker"
+        }
+      ]
+    },
+    {
+      "id": "SearchPanel",
+      "label": "查询条件",
+      "category": "重型组件",
+      "examples": [
+        {
+          "name": "SearchPanel",
+          "source": "src/components/kit/meta/search-panel.tsx",
+          "importPath": "@/components/kit/meta/search-panel"
+        },
+        {
+          "name": "FilterConditionList",
+          "source": "src/components/kit/meta/filter-condition-list.tsx",
+          "importPath": "@/components/kit/meta/filter-condition-list"
+        },
+        {
+          "name": "SortConditionList",
+          "source": "src/components/kit/meta/sort-popover.tsx",
+          "importPath": "@/components/kit/meta/sort-popover"
+        }
+      ]
+    },
+    {
+      "id": "CustomFieldForm",
+      "label": "字段配置",
+      "category": "重型组件",
+      "examples": [
+        {
+          "name": "CustomFieldForm",
+          "source": "src/components/editors/custom-fields/custom-field-form.tsx",
+          "importPath": "@/components/editors/custom-fields/custom-field-form"
+        },
+        {
+          "name": "CustomFieldTable",
+          "source": "src/components/editors/custom-fields/custom-field-table.tsx",
+          "importPath": "@/components/editors/custom-fields/custom-field-table"
+        },
+        {
+          "name": "OptionListEditor",
+          "source": "src/components/editors/custom-fields/option-list-editor.tsx",
+          "importPath": "@/components/editors/custom-fields/option-list-editor"
+        }
+      ]
+    },
+    {
+      "id": "ExpressionEditorDialog",
+      "label": "表达式编辑",
+      "category": "重型组件",
+      "examples": [
+        {
+          "name": "ExpressionEditorDialog",
+          "source": "src/components/editors/custom-events/expression-editor-dialog.tsx",
+          "importPath": "@/components/editors/custom-events/expression-editor-dialog"
+        },
+        {
+          "name": "VariablePicker",
+          "source": "src/components/editors/custom-events/variable-picker.tsx",
+          "importPath": "@/components/editors/custom-events/variable-picker"
+        }
+      ]
+    },
+    {
+      "id": "CodeRuleEditor",
+      "label": "编码规则编辑",
+      "category": "重型组件",
+      "examples": [
+        {
+          "name": "CodeRuleEditor",
+          "source": "src/components/editors/code-rules/code-rule-editor.tsx",
+          "importPath": "@/components/editors/code-rules/code-rule-editor"
+        }
+      ]
+    },
+    {
+      "id": "PrintTemplateEditor",
+      "label": "打印模板",
+      "category": "重型组件",
+      "examples": [
+        {
+          "name": "PrintTemplateEditor",
+          "source": "src/components/editors/print-templates/print-template-editor.tsx",
+          "importPath": "@/components/editors/print-templates/print-template-editor"
+        },
+        {
+          "name": "PrintTemplatePreview",
+          "source": "src/components/editors/print-templates/print-template-preview.tsx",
+          "importPath": "@/components/editors/print-templates/print-template-preview"
+        }
+      ]
+    },
+    {
+      "id": "ImportDialog",
+      "label": "导入导出",
+      "category": "重型组件",
+      "examples": [
+        {
+          "name": "ImportDialog",
+          "source": "src/components/kit/meta/import-dialog.tsx",
+          "importPath": "@/components/kit/meta/import-dialog"
+        },
+        {
+          "name": "ExportDialog",
+          "source": "src/components/kit/meta/export-dialog.tsx",
+          "importPath": "@/components/kit/meta/export-dialog"
+        },
+        {
+          "name": "ExcelLogModal",
+          "source": "src/components/kit/meta/excel-log-modal.tsx",
+          "importPath": "@/components/kit/meta/excel-log-modal"
+        }
+      ]
+    },
+    {
+      "id": "ViewTabs",
+      "label": "视图管理",
+      "category": "重型组件",
+      "examples": [
+        {
+          "name": "ViewTabs",
+          "source": "src/components/kit/meta/view-tabs.tsx",
+          "importPath": "@/components/kit/meta/view-tabs"
+        },
+        {
+          "name": "ViewEditorDrawer",
+          "source": "src/components/kit/meta/view-editor-drawer.tsx",
+          "importPath": "@/components/kit/meta/view-editor-drawer"
+        },
+        {
+          "name": "ViewListDrawer",
+          "source": "src/components/kit/meta/view-list-drawer.tsx",
+          "importPath": "@/components/kit/meta/view-list-drawer"
+        }
+      ]
+    },
+    {
+      "id": "MobileCard",
+      "label": "记录卡片",
+      "category": "重型组件",
+      "examples": [
+        {
+          "name": "MobileCard",
+          "source": "src/components/kit/meta/mobile-card.tsx",
+          "importPath": "@/components/kit/meta/mobile-card"
+        },
+        {
+          "name": "MobileCardConfigDialog",
+          "source": "src/components/kit/meta/mobile-card-config-dialog.tsx",
+          "importPath": "@/components/kit/meta/mobile-card-config-dialog"
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "name": "Shell",
+      "source": "@/components/Shell",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "ImpactPreviewDialog",
+      "source": "@/components/actions/recommendation-action",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "RecommendationAction",
+      "source": "@/components/actions/recommendation-action",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "ClientOnly",
+      "source": "@/components/client-only",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "TableCellText",
+      "source": "@/components/data/table-layout",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "TableStatusCell",
+      "source": "@/components/data/table-layout",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "MonitorLayout",
+      "source": "@/components/layouts/MonitorLayout",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "ReviewLayout",
+      "source": "@/components/layouts/ReviewLayout",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "StationLayout",
+      "source": "@/components/layouts/StationLayout",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "ColumnConfigList",
+      "source": "@/components/kit/meta/field-config-popover",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "FieldConfigPopover",
+      "source": "@/components/kit/meta/field-config-popover",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "FilterValueEditor",
+      "source": "@/components/kit/meta/filter-condition-list",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "FormDrawer",
+      "source": "@/components/kit/meta/form-drawer",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "PrintDialog",
+      "source": "@/components/kit/meta/print-dialog",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "RowActions",
+      "source": "@/components/kit/meta/row-actions",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "RowHeightMenu",
+      "source": "@/components/kit/meta/row-height-menu",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "SearchFieldControl",
+      "source": "@/components/kit/meta/search-panel",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "SessionExpiredDialog",
+      "source": "@/components/kit/meta/session-expired-dialog",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "SortPopover",
+      "source": "@/components/kit/meta/sort-popover",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "ViewIcon",
+      "source": "@/components/kit/meta/view-icon",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "ViewScopeSelect",
+      "source": "@/components/kit/meta/view-scope-select",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "CalendarPanel",
+      "source": "@/components/kit/ui/calendar",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "TimeColumns",
+      "source": "@/components/kit/ui/calendar",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "CheckboxIndicator",
+      "source": "@/components/kit/ui/checkbox",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "FloatingLayer",
+      "source": "@/components/kit/ui/layer",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "DialogActions",
+      "source": "@/components/overlays/dialog",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "OverlayPortal",
+      "source": "@/components/overlays/overlay-frame",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "OverlayHeader",
+      "source": "@/components/overlays/overlay-frame",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "OverlayFooter",
+      "source": "@/components/overlays/overlay-frame",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "OverlayActionButton",
+      "source": "@/components/overlays/overlay-frame",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "DualAxisChart",
+      "source": "@/components/charts/board-charts",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "ProgressRingChain",
+      "source": "@/components/charts/board-charts",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "FieldOrderPicker",
+      "source": "@/components/editors/print-templates/field-order-picker",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "StatusFilterChips",
+      "source": "@/components/ui/filter-chips",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "OperationalList",
+      "source": "@/components/ui/operational-list",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "RouteError",
+      "source": "@/components/ui/route-error",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "WorkbenchLayout",
+      "source": "@/components/ui/workbench-layout",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    }
+  ]
+}
