@@ -1,3 +1,4 @@
+import type {ViewEditorOptions, ViewDef} from '@/lib/component-kit/types';
 import type {ComponentKitAdapter} from '@/components/kit/provider';
 export const options=[{value:'a',label:'装配车间',color:'#050b14'},{value:'b',label:'质检车间',color:'#166534'},{value:'c',label:'包装车间',disabled:true}];
 export const fields:any[]=[{code:'code',name:'记录编码',type:'TEXT',widget:{required:true},width:140},{code:'name',name:'记录名称',type:'TEXT',widget:{required:true},width:180},{code:'qty',name:'计划数量',type:'NUMBER',widget:{minValue:0},width:140},{code:'status',name:'生产状态',type:'SINGLE_SELECT',options:[{value:'a',label:'执行中',color:'#050b14'},{value:'b',label:'已完成',color:'#166534'}],widget:{},width:140}];
@@ -28,8 +29,13 @@ export const adapter: ComponentKitAdapter = {
  if(p.includes('/meta/query/')) return {list:records(),total:3,page:{current:1,pageSize:10},groups:[],summary:{qty:400}};
  if(p.includes('/reference-options/')) return {list:rows.map(r=>({id:r.id,name:r.name,code:r.code,label:r.name,value:r.id}))};
  if(p.includes('/reference-tree/')) return fields.map(f=>({key:f.code,label:f.name,value:f.code,children:[]}));
- if(p.includes('/meta/view-options/')) return {objectCode:'product',objectName:'记录',fields,columnCandidates:fields,filterCandidates:fields,sortCandidates:fields,groupCandidates:fields};
- if(p.includes('/meta/views/')) return method==='GET'?views:{...views[1],...(body as object)};
+ if(p.includes('/meta/view-options/')) return {columnCandidates:fields,filterCandidates:fields,sortCandidates:fields,groupingCandidates:fields.filter(field=>field.type==='SINGLE_SELECT')} satisfies ViewEditorOptions;
+ if(p.includes('/meta/views/')) {
+   if(method==='GET') return views.map(view=>({...view}));
+   if(method==='POST') {const view={...views[1],...(body as Partial<ViewDef>),code:`preview-view-${views.length}`,builtIn:false};views.push(view);return view;}
+   if(method==='PUT') {const code=p.split('/').pop();const index=views.findIndex(view=>view.code===code);if(index<0)throw new Error('视图不存在');views[index]={...views[index],...(body as Partial<ViewDef>)};return views[index];}
+   return {...views[1],...(body as object)};
+ }
  if(p.includes('/org/tree')) return org;
  if(p.includes('/org/persons')) return {list:persons};
  if(p.includes('/print-template-options/')) return {objectCode:'product',headerFields:fields,detailSections:[]};

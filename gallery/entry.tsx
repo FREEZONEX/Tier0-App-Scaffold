@@ -1,3 +1,4 @@
+import { ViewEditorExample } from './scenarios/view-editor';
 import { AnchorNavigationExample, DropdownLayoutExample } from './scenarios/layout-controls';
 import { SESSION_EXPIRED_EVENT } from '@/lib/component-kit/api-client';
 import { ComponentKitProvider } from '@/components/kit/provider';
@@ -89,7 +90,7 @@ case'ViewTabs':body=<Comp views={views} activeCode={v==='a'?'all':v} onSwitch={S
 case'ViewIcon':body=<div className="demo-row">{['dark','blue','green','orange','red'].map(icon=><Comp key={icon} icon={icon}/>)}</div>;break;
 case'ViewScopeSelect':body=<Comp value={typeof v==='object'?v:{all:true}} onChange={S}/>;break;
 case'ViewListDrawer':body=<Comp {...common} activeCode="all" onCreate={hit} onEdit={hit} onCopy={hit} onDelete={hit} onChanged={hit}/>;break;
-case'ViewEditorDrawer':body=<Comp {...common} viewCode={null}/>;break;
+case'ViewEditorDrawer':body=<ViewEditorExample/>;break;
 case'FormDrawer':case'FullscreenModal':body=<><Button onClick={()=>O(true)}>打开表单</Button><Comp {...common} anchors={[{key:'base',label:'基本信息'}]} footer={<Button onClick={done}>保存演示</Button>}>{form}</Comp></>;break;
 case'MetaListPage':body=<Comp objectCode="product" title="物料档案" onCreate={hit} onOpenRecord={hit} importable exportable rowActions={()=>[{key:'edit',label:'编辑',onClick:hit}]} />;break;
 case'ReferenceInput':case'PersonInput':case'ReferenceSelect':body=<Comp {...common} value={typeof v==='object'?v:{id:'demo-1',name:'精密铝合金支架',code:'MAT-1001'}}/>;break;
