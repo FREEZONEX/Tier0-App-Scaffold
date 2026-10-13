@@ -56,8 +56,7 @@ async function runBootstrap(
   await db.transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${lockKey}))`);
 
-    // The app schema (DB_SCHEMA) is provisioned by the platform and must exist
-    // before bootstrap runs; a missing schema fails loudly here on purpose.
+    await requireRuntimeSchema(tx, schemaName ?? "public");
 
     for (const table of tables) {
       for (const prepareSql of table.prepare ?? []) {
@@ -75,6 +74,18 @@ async function runBootstrap(
       }
     }
   });
+}
+
+async function requireRuntimeSchema(tx: BootstrapTx, schemaName: string) {
+  const result = await tx.execute(
+    sql`select exists (select 1 from pg_catalog.pg_namespace where nspname = ${schemaName}) as schema_exists`,
+  );
+  const [row] = rowsOf(result) as Array<{ schema_exists?: unknown }>;
+  if (row?.schema_exists !== true && row?.schema_exists !== "true") {
+    throw new Error(
+      `PostgreSQL schema "${schemaName}" does not exist; provision it before application bootstrap`,
+    );
+  }
 }
 
 async function hasRows(tx: BootstrapTx, table: PgTable) {

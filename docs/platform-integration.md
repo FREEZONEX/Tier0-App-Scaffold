@@ -306,6 +306,13 @@ One session equals one app. `DB_SCHEMA` is the schema the platform assigns to
 the app and `APP_ID` is the app's platform UUID; both are injected, and neither
 is derived from the other by the app.
 
+The platform provisions `DB_SCHEMA` before the App starts. `bootstrapModule(...)`
+verifies that the schema exists, then creates module tables, indexes, and seed
+data within it; it never creates a schema or requires database-level `CREATE`.
+For standalone deployment, an administrator or migration must provision the
+schema before starting the App. A missing schema fails bootstrap explicitly,
+including modules with no tables, and a later call can retry after provisioning.
+
 ### Platform Responsibilities
 
 **When creating a project:**
