@@ -111,47 +111,42 @@ workflow; these scaffold instructions do not implement platform enforcement.
 
 ## Environment Variables
 
-There is no explicit mode switch. If a variable is missing, the app uses its
-local/default behavior. If the variable is present, the corresponding platform
-capability is enabled.
+The App Data target architecture uses Enterprise APIs, not injected PostgreSQL
+credentials. This is a documentation contract; the current SQL template and
+deployment pipeline still need the [maintainer migration](scaffold-api-migration.md).
+Do not claim automatic API configuration or remove existing databases.
 
-### Required
+### Proposed App Data Configuration (server-only)
 
-| Variable | Description |
+| Variable | Meaning |
 |---|---|
-| `DATABASE_URL` | PostgreSQL connection string. The database name should match the project id. |
+| `TIER0_APP_API_BASE` | Explicit trusted Enterprise base ending in `/openapi/v2` |
+| `TIER0_APP_API_KEY` | Restricted App data Key used by the server-only client |
 
-### Optional
+Deployment must provision and inject these values explicitly. Missing values
+fail clearly; no SQL/mock fallback. Do not expose them via `VITE_*`, build-time
+constants, logs or user settings. Do not assume the SDK key has App data grants.
 
-| Variable | Description |
+### Existing Platform Runtime and SDK Variables
+
+| Variable | Behavior |
 |---|---|
-| `DIRECT_DATABASE_URL` | Direct DB connection that bypasses the pool. Preferred by `db:push` and `seed.ts`. |
+| `APP_ID` | Platform App UUID, read at runtime with `resolveAppId()`; local fallback `local-app` is only a placeholder |
+| `VITE_BASE_PATH` | Applied by `apiUrl()`, router and Vite base |
+| `NEXT_PUBLIC_BASE_PATH` | Legacy base-path fallback |
+| `TIER0_API_HOST` | SDK OpenAPI service host |
+| `TIER0_API_KEY` | SDK credential for supported OpenAPI/MQTT capabilities; distinct from App Data authorization |
+| `TIER0_MQTT_HOST` | SDK MQTT WebSocket host |
+| `TIER0_MQTT_PORT` | SDK MQTT WebSocket port, default `8084` |
 
-### Platform-Injected
+`APP_ID` identifies the platform's name/icon/Open target and changes on import
+into another project. Never hard-code it. The UNS App metadata identity and its
+Collection grants are resolved through the data Key's `apps/context`; there is
+no implicit equality with the deployment UUID.
 
-These variables are platform-driven. Local development does not need them.
-
-| Variable | Behavior when unset | Behavior when set |
-|---|---|---|
-| `DB_SCHEMA` | Uses the `public` schema | Binds `appSchema`, runtime queries and `drizzle-kit push` to the specified schema |
-| `DB_SYNC_ALLOW_DESTRUCTIVE` | `db:push` fails on any DROP/TRUNCATE | `1` lets `db:push` apply destructive statements; only after a verified backup |
-| `APP_ID` | `local-app` (local-development placeholder only) | Platform-injected agent-platform App UUID (36 chars); echoed by `/api/manifest` and used wherever the app identifies itself to the platform (e.g. notification `sender.id`) |
-| `VITE_BASE_PATH` | No URL prefix | Applied by `apiUrl()` and Vite `base` |
-| `NEXT_PUBLIC_BASE_PATH` | Legacy fallback only | Read by `apiUrl()` if `VITE_BASE_PATH` is missing |
-| `TIER0_API_HOST` | — | Tier0 OpenAPI host injected by the platform |
-| `TIER0_API_KEY` | — | Tier0 API credential injected by the platform; shared by OpenAPI and MQTT |
-| `TIER0_MQTT_HOST` | — | Tier0 MQTT WebSocket broker host injected by the platform |
-| `TIER0_MQTT_PORT` | Defaults to `8084` | Tier0 MQTT WebSocket port injected by the platform |
-
-`APP_ID` is platform-owned: the agent-platform App UUID the platform can
-resolve back to the app's name, icon and Open button. Read it at runtime
-through `resolveAppId()` (`src/lib/app-id.ts`) — never hard-code the value at
-generation time, because an app imported into another project gets a new UUID
-and a hard-coded value keeps pointing at the source app. Without injection it
-resolves to `local-app`, a placeholder that must never be treated as the app's
-identity; Preview and deployed runs always carry the platform value. Tier0 SDK
-variables are injected by the platform during deployment. Do not place them in
-`.env.example`, and do not generate application UI for end users to edit them.
+SDK variables retain their existing platform injection contract. Do not add
+them to `.env.example` or business UI. App Data configuration is a separate
+pending deployment integration, not a reason to alter SDK credentials.
 
 ### Agent-registered visual assets
 
@@ -294,127 +289,81 @@ app only consumes the forwarded identity and role set.
 
 ## Platform Resource Model
 
+The API App model separates deployment identity from data authorization:
+
 ```text
-Project (proj-abc123)
-  └─ Database: proj-abc123
-       ├─ schema: session-001  <- app 1
-       ├─ schema: session-002  <- app 2
-       └─ schema: session-003  <- app 3
+Platform App deployment (APP_ID) → Gateway → App server
+                                             ↓ private App data Key
+UNS App metadata + Collection grants ← apps/context
+         ↓ permitted aliases
+Collections → Records / Samples
+Optional Topics expose data in Namespace; Source/Stream handle ingestion.
 ```
 
-One session equals one app. `DB_SCHEMA` is the schema the platform assigns to
-the app and `APP_ID` is the app's platform UUID; both are injected, and neither
-is derived from the other by the app.
+Workspace/table isolation is the platform's responsibility. App code neither
+creates a database/schema nor depends on physical `uns_*` tables. `kind=app`
+is data-access metadata, not an image, container or deployment history.
 
-### Platform Responsibilities
+### Provisioning and Runtime Responsibilities
 
-**When creating a project:**
+1. An authorized Agent/operator checks the API catalog and creates the required
+   Collection schemas and App grants through management APIs. Topic/Source/Stream
+   provisioning is only needed for the product's actual integration workflow.
+2. Issue a restricted data Key; never ship the management credential to the App.
+   Rebinding an imported App requires target-environment grants and credentials.
+3. Resolve `apps/context` at runtime, use aliases and validate required grants.
+   App Keys must not create their own metadata or broaden their scope.
+4. The App server owns user-specific access, lifecycle rules and query/change
+   composition. The platform API enforces collection access and DB consistency.
 
-```sql
-CREATE DATABASE "proj-abc123";
-```
+See [the API specification](app-api-development.md) for endpoints, transactions,
+query snapshots, retry semantics and verification. No arbitrary SQL endpoint or
+implicit per-App database is required by this model.
 
-**When creating a session:**
+### Gateway and Deployment
 
-```sql
-CREATE SCHEMA IF NOT EXISTS "session-xyz789";
-```
+For deployed Apps the Gateway forwards trusted user identity,
+`X-Tier0-Runtime: deployed`, the complete `X-Tier0-Business-Roles` set and an
+optional `X-Tier0-Active-Role` display label. Preview uses
+`X-Tier0-Runtime: preview` plus `X-Tier0-Preview-Role`. Preserve the authentication,
+role-union and CSRF behavior above; a data Key does not replace user identity.
 
-**Environment injection:**
+After runtime migration, API App startup requires explicit data API configuration
+and pre-provisioned grants, followed by the existing build/Node server pipeline.
+It must not execute `drizzle-kit push`, create SQL tables or require a database
+password. This branch does not implement that deployment change: maintainers
+must update template hooks and the platform provision/migration stages together.
+Do not run the old SQL setup to conceal a missing API integration.
 
-```env
-DATABASE_URL="postgresql://appbuilder:appbuilder@db-host:5432/proj-abc123"
-DB_SCHEMA="session-xyz789"
-APP_ID="session-xyz789"
-VITE_BASE_PATH="/session-xyz789"
-TIER0_API_HOST="<platform-injected>"
-TIER0_API_KEY="<platform-injected>"
-TIER0_MQTT_HOST="<platform-injected>"
-TIER0_MQTT_PORT="8084"
-# Optional legacy fallback:
-# NEXT_PUBLIC_BASE_PATH="/session-xyz789"
-```
+### Schema Evolution
 
-**Gateway routing:**
+Business contracts use Zod plus platform-supported record/sample JSON Schema.
+Update Collection definitions through authorized management APIs after checking
+existing records and compatibility. An App runtime Key cannot migrate metadata.
+Backfills use approved API batches with pagination, stable idempotency and
+verification; renaming a field does not automatically rewrite existing JSON.
+Do not drop source data or recreate collections to make a schema edit pass.
 
-For matched requests, the gateway must inject user headers in either JSON or
-separate-header format and then proxy the request to the app.
+### Where Configuration Is Read
 
-For deployed apps, the gateway must inject `X-Tier0-Runtime: deployed`,
-`X-Tier0-Business-Roles` with every assigned app role, and optionally
-`X-Tier0-Active-Role` as the primary display role. Preview uses
-`X-Tier0-Runtime: preview` plus one `X-Tier0-Preview-Role`.
-
-### App Container Startup
-
-Once the platform has prepared the database, schema, and env vars, it can start
-the app:
-
-```bash
-npm install
-npm run db:push         # sync tables under DB_SCHEMA through scripts/db-sync-guard.mjs (non-zero exit on any destructive plan)
-npx tsx src/db/seed.ts  # seed DB_SCHEMA on first use
-npm run build           # outputs dist/{client,server}
-node server.mjs         # equivalent to npm start, listens on PORT (default 3000)
-```
-
----
-
-## Schema Declaration and Migration Safety
-
-One app owns exactly one PostgreSQL schema (`DB_SCHEMA`). When the platform
-deploys or replaces an app it runs `npx drizzle-kit push --force` in a
-migration container with `DB_SCHEMA` and `DATABASE_URL` injected, reading
-`drizzle.config.ts` and `src/db/schema.ts` directly. drizzle-kit diffs only
-tables whose declared schema is inside `schemaFilter`; anything it finds in
-`DB_SCHEMA` that is not declared there is dropped, and `--force` skips the
-confirmation. The scaffold therefore makes the declaration shape itself the
-safety guarantee:
-
-- `src/db/schema.ts` exports one `appSchema = pgSchema(DB_SCHEMA || "public")`
-  and declares every table and enum through `appSchema.table(...)` /
-  `appSchema.enum(...)`. Local, preview and deployed environments share that
-  single definition; a bare `pgTable(...)` fails the build.
-- Table declarations live only in `src/db/schema.ts`, the one file
-  `drizzle.config.ts` reads. A declaration in any other file is invisible to
-  push and its table would be dropped; the build rejects it.
-- `bootstrapModule(...)` accepts declared table objects, not names. A runtime
-  table cannot exist without a declaration, so push never sees it as garbage.
-- `drizzle.config.ts` keeps `schemaFilter: [DB_SCHEMA]` so a sync never reads
-  or writes another app's schema.
-
-These are enforced by `src/lib/db-schema-contracts.test.mjs` in `postbuild`.
-
-For developers and CI, `npm run db:push` runs `scripts/db-sync-guard.mjs`
-instead of raw push: it verifies the binding, prints the plan, and exits
-non-zero before applying anything if the plan contains `DROP TABLE`,
-`DROP SCHEMA`, `DROP COLUMN`, `TRUNCATE` or a drizzle-reported data-loss
-statement, unless `DB_SYNC_ALLOW_DESTRUCTIVE=1`. `npm run db:push:check` is
-the dry run. Raw `drizzle-kit push` exits 0 even when it drops tables or
-throws, so its exit code must never be treated as a success signal.
-
-## Where Each Variable Is Read
-
-| Variable | Read from |
+| Variable | Consumer |
 |---|---|
-| `DATABASE_URL` | `db/index.ts`, `drizzle.config.ts`, `db/seed.ts` |
-| `DIRECT_DATABASE_URL` | `drizzle.config.ts`, `db/seed.ts` |
-| `DB_SCHEMA` | `db/schema.ts` (`appSchema`), `db/index.ts` (`search_path`), `drizzle.config.ts` (`schemaFilter`), `db/seed.ts`, `services/bootstrap.ts`, `scripts/db-sync-guard.mjs` |
-| `DB_SYNC_ALLOW_DESTRUCTIVE` | `scripts/db-sync-guard.mjs` |
-| `APP_ID` | `lib/app-id.ts` (`resolveAppId`), used by `routes/api/manifest.ts` and by application code wherever it identifies itself to the platform (e.g. SDK notification `sender.id`); always read at runtime |
-| `VITE_BASE_PATH` | `vite.config.ts` (`base`), `router.tsx` (`basepath`), `lib/utils.ts` (`apiUrl` primary source) |
-| `NEXT_PUBLIC_BASE_PATH` | `lib/utils.ts`, and as a fallback in `vite.config.ts` / `router.tsx` |
-| `TIER0_API_HOST` | Injected by the platform; read by `@tier0/sdk/openapi` at runtime |
-| `TIER0_API_KEY` | Injected by the platform; read by `@tier0/sdk/openapi` and `@tier0/sdk/mq` |
-| `TIER0_MQTT_HOST` | Injected by the platform; read by `@tier0/sdk/mq` |
-| `TIER0_MQTT_PORT` | Injected by the platform; read by `@tier0/sdk/mq` |
+| `TIER0_APP_API_BASE`, `TIER0_APP_API_KEY` | Proposed server-only App Data initializer, to be implemented during template migration |
+| `APP_ID` | Existing `src/lib/app-id.ts`, manifest and platform identity calls |
+| `VITE_BASE_PATH`, `NEXT_PUBLIC_BASE_PATH` | Existing Vite/router configuration and `apiUrl()` |
+| `TIER0_API_HOST`, `TIER0_API_KEY` | Existing SDK server-side helpers |
+| `TIER0_MQTT_HOST`, `TIER0_MQTT_PORT` | Existing SDK MQTT runtime |
+
+Legacy `DATABASE_URL`, `DIRECT_DATABASE_URL`, `DB_SCHEMA` and DB sync controls
+still have consumers in the current source tree. They are listed in the
+[migration checklist](scaffold-api-migration.md), not an API App requirement.
 
 ## Scaffold Version Marker
 
 `package.json` carries a top-level `tier0Scaffold` field:
 
 ```json
-"tier0Scaffold": { "version": 14, "ref": "e4f1c2a" }
+{ "tier0Scaffold": { "version": 14, "ref": "e4f1c2a" } }
 ```
 
 | Field | Format | Meaning |
@@ -440,11 +389,14 @@ it by hand.
 
 ## Scenario Matrix
 
-| Scenario | `DATABASE_URL` | `DB_SCHEMA` | `APP_ID` | Base path |
-|---|---|---|---|---|
-| Local development | ✅ | optional | optional | optional |
-| Platform preview session | ✅ | ✅ | ✅ | depends on runtime |
-| Production behind gateway | ✅ | ✅ | ✅ | depends on gateway |
+This matrix is the target after runtime migration, not a claim of automatic
+configuration in this documentation branch.
 
-`optional` means the scaffold can fall back to defaults when the platform does
-not provide a value.
+| Scenario | App data API/Key | Data provisioning | Gateway identity | Base path |
+|---|---|---|---|---|
+| Local integration test | Explicit restricted test Key | Isolated approved collections | Trusted test harness; no production bypass | Optional |
+| Platform preview | Explicit runtime injection | Preview grants and aliases | Preview user and selected role | Runtime-dependent |
+| Production | Private runtime secret | Target-environment App grants | Deployed user and complete role set | Gateway-dependent |
+
+Missing data authorization is an actionable configuration error. It must not
+enable local storage, fake users or an unrestricted management credential.

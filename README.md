@@ -1,19 +1,25 @@
-# MonoApp Scaffold
+# Tier0 App Scaffold
 
-A scaffold built on **TanStack Start 1.x** + Drizzle ORM + TailwindCSS 4 for
-building shop-floor MES applications on the Tier0 platform. The goal is to
-give agents a light but complete starting point: authentication, database
-connectivity, platform deployment, build outputs, and layout contracts are
-pre-wired, while business pages and app-local components are generated for the
-target application instead of being constrained by a fixed template library.
+A **TanStack Start 1.x** + React + TailwindCSS 4 scaffold for Tier0 business
+applications. Retain the UI, Gateway identity, roles, routes and deployment
+shell; new Apps persist business data through **Enterprise OpenAPI v2**.
+
+Start with the [API-only App development guide](docs/app-api-development.md)
+and [CRM lessons and acceptance cases](docs/crm-api-lessons.md).
+
+**This branch delivers the development specification, not a completed runtime
+migration.** The template still contains Drizzle dependencies, bootstrap and
+SQL-oriented build/deployment checks. The [migration checklist](docs/scaffold-api-migration.md)
+identifies what maintainers must change before publishing an API-ready template.
+No CRM application, preview credentials or business fixtures are included.
 
 ## Tech Stack
 
 | Layer | Technology |
 |---|---|
 | Framework | TanStack Start 1.x (Vite 8/Rolldown + TanStack Router, React 19 SSR) |
-| ORM | Drizzle ORM + node-postgres |
-| Validation | Zod (`drizzle-zod` derives schemas and types) |
+| Business persistence target | Enterprise OpenAPI v2, server-only App Data client; runtime migration pending |
+| Validation | Zod inputs/types and platform-supported JSON Schema |
 | Styling | TailwindCSS 4 (Vite plugin, no PostCSS) + Tier0 design tokens |
 | UI | Lightweight layout contracts + Tailwind utilities + Tier0 tokens; no prebuilt business component library |
 | Charts | Recharts 3 (must be wrapped in `<ResponsiveContainer>`) |
@@ -24,41 +30,42 @@ target application instead of being constrained by a fixed template library.
 | Toasts | Sonner (`Toaster` is mounted in `__root.tsx`) |
 | Motion | `motion` imported from `@/lib/motion`, never directly from `motion/react` |
 
-## Quick Start
+## API App Workflow
 
-```bash
-npm install
-# Configure DATABASE_URL in .env
-npm run db:push           # Optional: pre-sync schema locally through the sync guard; services can also bootstrap at runtime
-npx tsx src/db/seed.ts    # Optional: explicit seed / fixture reset
-npm run dev               # -> http://localhost:5173
-```
+1. Read [AGENTS.md](AGENTS.md) and the [API guide](docs/app-api-development.md).
+2. Check the target Enterprise catalog, provision Collections and an App data
+   identity through management APIs, then issue a restricted App data Key.
+3. Complete the template migration checklist before using this branch as a
+   runnable API-only starter. Do not run the old `db:push`/seed workflow for it.
+4. Implement business schemas, permissions, services, server routes and UI;
+   test real API persistence, conflict recovery, aggregation and role isolation.
 
-> When the agent runs inside the Executor Pod, do **not** run `npm install`
-> manually. The platform manages installs automatically, and manual installs
-> can conflict with the shared volume. See [AGENTS.md](AGENTS.md).
+Managed preview owns dependency installation and startup; use its preview tools.
+In an unmanaged checkout, the existing `npm install` / `npm run dev` commands
+start the template shell but do not perform the API migration or provision data.
+See [platform integration](docs/platform-integration.md) for runtime contracts.
 
 ## Environment Variables
 
-There is no explicit mode switch. If a variable is missing, the scaffold falls
-back to local defaults. If the variable is set, the corresponding capability is
-enabled.
+Missing App Data configuration is an error, not permission to use a local DB.
+The following App Data names are a **proposed private server contract**; this
+documentation does not implement automatic injection or a client loader.
 
-| Variable | Required | When unset | When set |
-|---|:---:|---|---|
-| `DATABASE_URL` | ✅ | — | Connects to PostgreSQL |
-| `DIRECT_DATABASE_URL` | | — | Direct database connection for `db:push` and `seed.ts` |
-| `DB_SCHEMA` | | Uses `public` | Binds `appSchema` in `src/db/schema.ts`, the runtime `search_path` and `drizzle-kit push` to the specified schema |
-| `DB_SYNC_ALLOW_DESTRUCTIVE` | | `db:push` refuses DROP/TRUNCATE plans | Set to `1` to let `db:push` apply destructive statements (back up first) |
-| `APP_ID` | | `local-app` (local-development placeholder only) | Platform-injected agent-platform App UUID (36 chars); echoed by `/api/manifest` and used wherever the app identifies itself to the platform (e.g. notification `sender.id`). Not an app name or business identity |
-| `VITE_BASE_PATH` | | No URL prefix | Applied to Vite `base`, router `basepath`, and `apiUrl()` |
-| `NEXT_PUBLIC_BASE_PATH` | | Legacy fallback only | Used by `apiUrl()` when `VITE_BASE_PATH` is absent |
+| Variable | Contract |
+|---|---|
+| `TIER0_APP_API_BASE` | Explicit trusted Enterprise base ending in `/openapi/v2` |
+| `TIER0_APP_API_KEY` | Restricted App data Key, server-only; never a `VITE_*` value |
+| `APP_ID` | Existing platform-injected runtime App UUID; read with `resolveAppId()`. Not automatically the UNS App data identity |
+| `VITE_BASE_PATH` | Existing Vite, router and `apiUrl()` deployment prefix |
+| `NEXT_PUBLIC_BASE_PATH` | Existing legacy base-path fallback only |
 
-Tier0 SDK auth and connection variables are injected by the platform at deploy
-time. Do not write them into `.env.example`, and do not expose UI in the
-scaffold or generated apps for users to configure SDK auth, API keys, tokens,
-OpenAPI hosts, MQTT hosts, or workspace bindings. Those values belong to the
-SDK, the platform gateway, or the runtime environment.
+Resolve data aliases/grants from `apps/context` using the App data Key. Do not
+hard-code preview collection IDs or copy keys to another environment. Legacy
+`DATABASE_URL` / `DB_SCHEMA` files remain only until maintainer migration.
+
+The existing SDK variables below remain a separate contract for supported SDK
+capabilities. Do not substitute an App data Key for the SDK key or expose data
+credentials in settings, `.env.example`, logs or browser bundles.
 
 ### Variables Injected for the SDK
 
@@ -89,7 +96,10 @@ ssr: {
 SDK calls are loaded on the server through the lazy helper in
 `src/lib/tier0.ts`. Generated apps should not top-level import SDK submodules,
 should not move the SDK into `ssr.noExternal`, and should not bypass the SDK
-with fallback MQTT clients or hand-written fetch wrappers.
+with fallback MQTT clients or hand-written replacements for supported SDK calls.
+App Data v2 is a separate contract: use the pinned source client documented in
+the API guide until an official package implements it. The `pg` SSR entry above
+describes existing template code, not a dependency to add to API Apps.
 
 For deployment details, see
 [docs/platform-integration.md](docs/platform-integration.md).
@@ -115,14 +125,14 @@ src/
       manifest.ts             <- Role manifest (do not modify)
       auth/
         me.ts                 <- Current Gateway-resolved user snapshot (do not modify)
-  services/                   <- Domain layer: business rules, state machines, multi-step transactions
+  services/                   <- Domain layer: business rules, state machines, API change batches
   components/
     Shell.tsx                 <- Left navigation shell; update defaultModules here
     layouts/                  <- StationLayout, ReviewLayout, MonitorLayout, and similar shell contracts
     toaster.tsx               <- Sonner mount point
     client-only.tsx           <- Hydration boundary for SSR-incompatible libraries
     <domain>/                 <- App-local components generated per business need
-  db/{index,schema,seed}.ts   <- Data layer: Drizzle client, table definitions, seed script
+  db/{index,schema,seed}.ts   <- Legacy SQL implementation; pending maintainer migration, do not extend
   lib/                        <- Cross-cutting utilities, not domain logic
     auth.ts                   <- getCurrentUser() / requireAuth() (do not modify)
     gateway.ts                <- Gateway header parsing (do not modify)
@@ -284,58 +294,50 @@ experience.
 
 ## Add an API Endpoint
 
-**Step 1: Write the service** in `src/services/work-orders.ts`. This is where
-business logic, state machines, and transactions belong. The `db` client may
-only appear in `services/` and `db/seed.ts`. Each implemented module should
-define runtime `bootstrapModule(...)` behavior near the top of the service so
-preview and new tenant schemas can create tables, indexes, and baseline data on
-first use. Shared bootstrap helpers create all module tables/indexes
-first and seed afterward; do not hand-roll local create/seed ordering in each
-service.
+**Step 1: Define a business command and input schema.** Register the required
+roles and actions; identify which Collection aliases and record/sample grants
+it needs. Management provisioning is separate from runtime requests.
 
-**Step 2: Write the route** in `src/routes/api/work-orders.ts`. Keep it thin:
-`requireAuth()` -> `schema.parse()` -> service call -> `Response.json(...)`,
-wrapped in `withErrors(...)`. Throw `HttpError` for client-facing failures or
-let Zod issues bubble naturally.
+**Step 2: Write the service** in `src/services/`. Check ownership and lifecycle
+rules using the authenticated actor, then build a constrained query or one
+atomic API change batch. Carry revision/conditions and stable idempotency data.
+No SQL connection or runtime table bootstrap belongs here.
 
-For a full state-machine example with multi-step `db.transaction(...)` logic
-and Zod validation, see
-[AGENTS.md §Build Order — Step 3](AGENTS.md#step-3-services--server-routes).
+**Step 3: Write the route** in `src/routes/api/`. Keep it thin:
+`requireAuth()` → Zod parse → service → response, wrapped in `withErrors()`.
+Never expose a generic proxy that accepts browser-supplied Keys or arbitrary
+collection operations. Return useful conflict and unknown-result states.
 
-In pages, load with `requestJson<T>("/api/work-orders", { signal })` (it applies
-`apiUrl()`). Do not hardcode `/api/...` without `apiUrl()` or deployments with a
-base path will break. A non-2xx response is written to `console.error` with the
-server `cause` and then thrown, so the Builder preview console can show why a
-load failed; never catch and drop it.
+**Step 4: Wire the UI.** Load with `requestJson<T>("/api/work-orders", { signal })`
+(it applies `apiUrl()`). Never hardcode an unprefixed API URL or catch and drop
+errors. Re-read successful changes; retain drafts and offer recovery on conflict.
 
-## Three-Layer Architecture
+See the [transaction and query examples](docs/app-api-development.md) and
+[five distinct CRM acceptance cases](docs/crm-api-lessons.md).
+
+## Application Boundaries
 
 ```text
-Browser
-  |
-  |  requestJson("/api/...")   (apiUrl() + console.error on failure)
-  v
-src/routes/api/**.ts          <- Interface layer: requireAuth -> Zod.parse -> service -> Response.json
-  |                               Wrapped by withErrors for {status,message} / Zod issue mapping
-  v
-src/services/**.ts            <- Domain layer: business logic, state machines, multi-step transactions
-  |                               Pure TypeScript, no HTTP concepts
-  v
-src/db/{index,schema}.ts      <- Data layer: Drizzle client + table definitions
-  v
-PostgreSQL
+Browser → requestJson/apiUrl → App server route → business service
+                              auth + Zod          roles + ownership + lifecycle
+                                                       ↓
+                                              server-only App Data client
+                                                       ↓
+                                              Enterprise OpenAPI v2
+                                                       ↓
+                                              platform transaction / storage
 ```
 
-Hard rules:
-
-- `db` may only be imported from `src/services/**` and `src/db/seed.ts`
-- `Request`, `Response`, and `Headers` belong only in routes, `src/start.ts`,
-  and `src/lib/{auth,gateway,route-handlers}.ts`
-- Multi-step writes (2+ DB operations) must run inside
-  `db.transaction(async tx => ...)`
-- Service entry points should `await` their module runtime bootstrap first
-- Server cookie/header helpers such as `getCookie` or `getRequest` belong only
-  in server route handlers, `createServerFn` bodies, or `src/start.ts`
+- App services construct business operations; platform APIs own database
+  transactions, revisions, schema validation and authorized collection access.
+- Multiple independent API writes are not an atomic transaction. Use one
+  `changes/apply` batch for changes that must commit together.
+- App Keys do not identify the end user. App services enforce per-user rules
+  on reads, writes, exports and relational queries.
+- Server cookies/header helpers belong only in server handlers,
+  `createServerFn` bodies or middleware. Keep Keys out of SSR/client imports.
+- Use relational query plans and server pagination, not all-record downloads
+  and unbounded in-memory joins. Physical table/schema names are not App APIs.
 
 ## Authentication (SSO)
 
@@ -402,10 +404,12 @@ npm run build        # Vite 8/Rolldown build -> dist/{client,server}
 npm run build:check  # build + typecheck + lint
 npm run start        # node server.mjs
 npm run lint         # eslint
-npm run db:push      # push schema
-npm run db:seed      # seed baseline data
-npm run db:studio    # Drizzle Studio
 ```
+
+The package still contains legacy DB scripts and SQL-oriented build checks.
+They are tracked migration work, not API App instructions; do not disable them
+to report a false passing runtime. Docs-only changes use link/example checks,
+`git diff --check` and the strict scaffold version check instead of an App build.
 
 ## Build Output
 
@@ -423,7 +427,7 @@ see `artifact.toml`.
 `package.json.tier0Scaffold` is the scaffold's version marker:
 
 ```json
-"tier0Scaffold": { "version": 14, "ref": "e4f1c2a" }
+{ "tier0Scaffold": { "version": 14, "ref": "e4f1c2a" } }
 ```
 
 `version` is a positive integer that the platform compares by strict equality
@@ -464,15 +468,15 @@ so a version can be traced back to its commit from the tag.
 
 ## Notes for Agents
 
-The full build instructions live in [AGENTS.md](AGENTS.md). For greenfield
-work, agents follow this order:
+The full rules live in [AGENTS.md](AGENTS.md). For new App work:
 
-1. **Schema** (`src/db/schema.ts`)
-2. **Auth Config** (`permissions.ts`)
-3. **Services + Runtime Bootstrap** (`src/services/**`)
-4. **Server Routes / API** (`src/routes/api/**`)
-5. **Frontend** (choose `_app`, `station`, `review`, or a custom layout as needed)
-6. **Build** (`npm run build`)
+1. **Business lifecycle and data contract**: Zod + supported JSON Schema.
+2. **Identity and grants**: roles, API capabilities, provisioning and App Key.
+3. **Services**: API queries, business invariants, atomic batches and retries.
+4. **Server routes**: auth, input validation, constrained business commands.
+5. **Frontend**: workflow-appropriate layout and complete operation feedback.
+6. **Verification**: real persistence, permission isolation, concurrency,
+   relational results, samples, build and route/browser checks.
 
 On an existing project, respond directly to the requested change instead of
 restarting the full build order.

@@ -1,9 +1,15 @@
 # Tier0 Industrial App Scaffold
 
 This repository is a TanStack Start 1.x application scaffold (Vite 8,
-TanStack Router, React 19, Drizzle, Zod, and TailwindCSS 4). It is not Next.js:
+TanStack Router, React 19, Zod, and TailwindCSS 4). It is not Next.js:
 do not use `next/*`, App Router conventions, `next/headers`, or Next metadata.
 Do not re-initialize the project.
+
+New App business data must use Enterprise OpenAPI v2, not Drizzle or direct
+database access. First read [the App API development contract](docs/app-api-development.md).
+This branch updates the rules only: SQL dependencies and gates still exist.
+Follow [the migration checklist](docs/scaffold-api-migration.md) before claiming
+the template is API-ready; do not fabricate a database or weaken locked gates.
 
 Build a usable industrial application, not a demo. Prefer a small number of
 complete workflows over a wide read-only shell.
@@ -67,6 +73,9 @@ recurs three times, stop patching and report the blocker.
   guidance.
 - `docs/platform-integration.md` and `docs/role-registration.md`: platform
   runtime and role contracts.
+- `docs/app-api-development.md`: API-only persistence, provisioning, transactions,
+  queries and permission boundaries; `docs/crm-api-lessons.md`: CRM-derived cases.
+- `docs/scaffold-api-migration.md`: outstanding template/runtime migration work.
 
 Platform-injected Builder guidance may own orchestration, UI generation,
 responsive review, locale/copy, industrial patterns, and Tier0 SDK workflows.
@@ -88,8 +97,8 @@ src/
     monitor.tsx                passive fixed-board layout
     login.tsx                  hidden platform-auth error bridge
     api/**                     thin HTTP wrappers
-  services/**                  domain logic, state machines, transactions
-  db/                          Drizzle client, schema, optional bulk seed
+  services/**                  domain logic, state machines, API change batches
+  db/                          legacy SQL files; pending maintainer migration, do not extend
   components/
     ui/                        visual primitives
     forms/                     safe form composition
@@ -109,62 +118,58 @@ policy unless the user explicitly asks for platform/runtime work.
 
 ## Architecture and Domain Rules
 
-Use three layers:
+Use three App layers, with persistence owned by the platform:
 
-1. `src/routes/api/**`: authenticate, parse with Zod, call a service, return a
-   response through `withErrors`.
-2. `src/services/**`: business invariants, lifecycle transitions,
-   transactions, and audit side effects.
-3. `src/db/**`: schema, inferred types, and database client.
+1. `src/routes/api/**`: authenticate, parse with Zod, call a service and return
+   through `withErrors`.
+2. `src/services/**`: ownership checks, business invariants, lifecycle transitions,
+   query plans and atomic change batches. No HTTP request/response objects.
+3. A server-only App Data client: authenticated Enterprise OpenAPI v2 calls,
+   timeouts and structured errors. The source client and version provenance are
+   described in `docs/app-api-development.md`; do not invent an npm package.
 
 Hard invariants:
 
-- Import `db` only from `src/services/**` and `src/db/seed.ts`; ESLint enforces
-  the boundary.
-- Keep `Request`, `Response`, and `Headers` out of services. Services return
-  typed values and throw `HttpError` for caller-facing failures.
-- Put every multi-step write in `db.transaction(async (tx) => ...)`, and use
-  `tx` throughout the transaction.
-- Define lifecycle transitions once in the owning service. Reject illegal
-  transitions with a conflict/error instead of silently rewriting state.
-- Use explicit Drizzle queries such as
-  `select().from(table).where(...).limit(1)`, not relational
-  `db.query.*.findFirst()` / `tx.query.*.findFirst()`.
-- Normalize genuine raw-SQL results with `rowsOf()` before array operations.
-- Derive validation/types from the Drizzle schema with
-  `createInsertSchema`, `createUpdateSchema`, `$inferSelect`, and
-  `$inferInsert` rather than duplicating shapes by hand.
-- Tables that represent mutable business records include `...timestamps`.
+- All business records, samples, audit entries, imports and persistent command
+  receipts go through the API. No `db` imports, SQL, database drivers or local
+  file/localStorage persistence for business data in new App code.
+- Define Zod inputs and platform-supported JSON Schemas explicitly. Preserve
+  IDs as strings and money as safe integer minor units. Do not derive new App
+  types from Drizzle tables.
+- App data Keys stay server-only. Use App aliases resolved by `apps/context`;
+  do not accept arbitrary API URLs, credentials or collection IDs from clients.
+- A Key scopes the App, not the browser user. Authenticate and authorize each
+  business action and constrain lists, details, exports and aggregates on the
+  server. Preserve Gateway roles and CSRF protection.
+- Multi-record business writes use one `changes/apply` atomic batch. App code
+  constructs the batch; the platform opens and commits/rolls back the database
+  transaction. Several independent HTTP calls are not one transaction.
+- Carry `expectedRevision` or transaction-time conditions for concurrent changes.
+  Re-read and revalidate business rules after conflict; never blindly replace
+  a stale revision. Define each lifecycle transition in its owning service.
+- Fix IDs, timestamps and payload for each idempotent user intent. Treat a lost
+  response as unknown, not rollback; recover from a persistent API receipt when
+  cross-process retry is required. External side effects are not DB-atomic.
+- Use server pagination and supported relational query plans for aggregation.
+  Do not load an arbitrary capped snapshot and silently present it as complete.
 
-### First-Load Database Safety
+### Provisioning and First Load
 
-Call and await `bootstrapModule(...)` at each service entrypoint before querying
-its module tables. The helper shares in-flight/completed work and clears its
-cache on failure so a later call can retry. Do not permanently cache the first
-returned Promise in a module-level constant or start bootstrap at import time.
+Before generation, inspect the target API catalog and required capabilities.
+An authorized Agent/operator provisions Collections, supported schemas, optional
+Topics, App grants and a restricted App data Key through management APIs.
+Keep management credentials outside the App runtime. Collection creation and
+Key issuance are not ordinary page-load behavior.
 
-- Bootstrap tables and indexes before seed callbacks; keep foreign-key order
-  explicit. The schema itself is platform-provisioned; never create it.
-- Use `create ... if not exists` and idempotent typed Drizzle seed writes.
-- Seed dates use `seedDate()` / `seedTimestamp()` from
-  `@/services/seed-utils`.
-- Parent/child seeds use declared IDs or `requireSeedRef()` /
-  `requireSeedValue()`; never pass a missing required foreign key that Drizzle
-  can turn into SQL `default`.
-- Use raw SQL only for schema/bootstrap setup and read-only helpers, not seed
-  inserts/updates/deletes.
-- Runtime startup must not depend on a prior `db:push` or execution of
-  `src/db/seed.ts`. The latter is for explicit bulk/reset fixtures and uses
-  relative imports only.
-- Declare every table and enum in `src/db/schema.ts` through
-  `appSchema.table(...)` / `appSchema.enum(...)`, never bare `pgTable` /
-  `pgEnum` and never in another file. The platform deploys with
-  `drizzle-kit push --force` scoped to `DB_SCHEMA`; a declaration outside
-  `appSchema` is invisible to it and every table in the schema gets dropped.
-- `bootstrapModule(...)` entries pass the declared table object (`table:
-  workOrders`), so a runtime table always has a declaration push can see.
-- Locally sync with `npm run db:push`; it refuses DROP/TRUNCATE plans unless
-  `DB_SYNC_ALLOW_DESTRUCTIVE=1`.
+At runtime resolve the App context and aliases; fail clearly for missing env,
+permissions or unsupported capabilities. Never fall back to SQL, fake records
+or a broader legacy endpoint. Demo fixtures require explicit approval and use
+the API; do not seed on every service call.
+
+The existing SQL bootstrap/build hooks are migration debt, not instructions to
+run `db:push` for API Apps. A scaffold maintainer must replace them with API
+boundary checks and real persistence tests before rollout. Generated Apps must
+not edit locked checks just to make the new architecture pass.
 
 ## Routing and Server Boundaries
 
@@ -357,8 +362,11 @@ Use TailwindCSS 4 through `src/styles/globals.css`; do not add
 
 ## Tier0 SDK
 
-Use the installed `@tier0/sdk` when requirements involve Tier0 OpenAPI, UNS,
-Flow, files, MQTT/MQ/WebSocket, or device commands. Call lazy helpers from
+Use the installed `@tier0/sdk` for its supported platform capabilities such as
+notifications, Flow, files, MQTT/MQ/WebSocket and device commands. App Data v2
+record/sample access uses the separate server-only client described in
+`docs/app-api-development.md`; do not assume the SDK implements that contract.
+Call lazy helpers from
 `@/lib/tier0` inside the concrete server action; do not top-level import or
 invoke SDK submodules on SSR startup paths. Keep `vite.config.ts`
 `ssr.external: ["pg", "@tier0/sdk", "mqtt"]`.
@@ -437,8 +445,10 @@ scaffold/default branding from the finished app.
 
 ## Build, Gates, and Deployment
 
-Run `npm run build` for completion. Its postbuild verifies the client/SSR
-bundle, gate integrity, TypeScript, ESLint, contracts, runtime safety, and
+For documentation-only maintenance, check links, examples, diff whitespace and
+the version marker; do not claim runtime migration or App verification.
+For App runtime changes, run `npm run build` for completion. Its postbuild
+verifies the client/SSR bundle, gate integrity, TypeScript, ESLint, contracts, runtime safety, and
 first-load behavior. UI advisories are review prompts rather than failures.
 Do not bypass completion with `vite build` alone.
 
@@ -456,9 +466,11 @@ Contract files have two classes:
 unchanged unless the task is deployment work.
 
 Environment contracts are documented in `docs/platform-integration.md`.
-Important names are `DATABASE_URL`, `DIRECT_DATABASE_URL`, `DB_SCHEMA`,
-`DB_SYNC_ALLOW_DESTRUCTIVE`, `APP_ID`, and `VITE_BASE_PATH`
-(`NEXT_PUBLIC_BASE_PATH` is legacy only).
+The proposed private App Data variables are `TIER0_APP_API_BASE` and
+`TIER0_APP_API_KEY`; deployment must explicitly supply them, they are not yet
+automatically injected by this scaffold. Preserve `APP_ID`, `VITE_BASE_PATH`
+and the separate SDK contract (`NEXT_PUBLIC_BASE_PATH` is legacy only).
+Remaining SQL environment assumptions are tracked in the migration checklist.
 
 ## Scaffold Version
 
@@ -482,7 +494,7 @@ malformed.
 - Every exposed action is reachable, permissioned, validated, persisted, and
   reports success/error; dangerous actions confirm impact.
 - Service boundaries, transactions, state transitions, audit effects, and
-  first-load bootstrap invariants hold.
+  API provisioning, atomicity, revision and retry invariants hold.
 - Role matrix, metadata, `roles.json`, navigation, UI actions, and API guards
   agree; multiple roles grant the permission union.
 - Loading, error/retry, empty, and populated states are visible and usable.
