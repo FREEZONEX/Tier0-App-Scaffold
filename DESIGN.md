@@ -167,9 +167,8 @@ components:
     textColor: "{colors.ink}"
     borderColor: "{colors.input-border}"
     focusColor: "{colors.highlight}"
-    # Form controls use a subtle fill + deeper border (not the hairline color)
-    # so a field reads as an editable box on white surfaces even unfocused.
-    # On focus the fill brightens to the surface color alongside the ring.
+    # Enabled controls use white fill and a visible border; focus adds a ring.
+    # Gray fill is reserved for disabled controls.
     typography: "{typography.body}"
     rounded: "{rounded.md}"
     minHeight: "var(--tier0-control-height-md)"

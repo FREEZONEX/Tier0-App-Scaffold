@@ -2,7 +2,7 @@
 
 本规范总结 CRM 实践，适用于后续由 Agent 生成的业务 App。沿用 Scaffold 的 TanStack Start、界面组件、Gateway 身份与角色机制，数据层改为 Enterprise OpenAPI v2。**不再用 Drizzle、数据库驱动或 App 自建 SQL 表保存业务数据。**
 
-这次交付是开发规范，不是模板运行链路迁移。当前仓库仍有 SQL 依赖和构建门禁；实现与规范的差距见 [迁移清单](scaffold-api-migration.md)。不得把文档分支宣称为已完成 API 模板上线。
+模板实现状态见 [迁移清单](scaffold-api-migration.md)。
 
 ## 1. 一条调用链，三个职责
 
@@ -89,6 +89,8 @@ specs/spec.md                  业务需求及验收标准
 
 保留现有 Gateway、CSRF、角色并集、`apiUrl()`/`requestJson()` 和组件规范。CRM 本地预览使用过单独的登录桥接和 members 集合，**不要因此在 Scaffold 中另建账号、密码、Cookie 或默认管理员**。
 
+后续修改集合 Schema 也通过管理 API：先检查已有数据兼容性，再安排受控 API 回填。改字段名不会自动改写已有 JSON；不要通过删除集合或重建数据解决不兼容。
+
 ## 4. 凭据和服务端客户端
 
 | 凭据 | 使用者 | 允许范围 |
@@ -106,7 +108,7 @@ App Key 不能创建 Source、Stream、Collection 或扩权；最终授权受 Ap
 | `TIER0_APP_API_BASE` | 可信 Enterprise 地址，以 `/openapi/v2` 结尾 |
 | `TIER0_APP_API_KEY` | 当前 App 的专用数据 Key，仅服务端可读 |
 
-CRM 实验代码曾用 `TIER0_API_BASE` / `TIER0_APP_KEY`，迁移时做一次明确重命名，不维护多套隐式回退。现有 `TIER0_API_KEY` / `@tier0/sdk` 的通知、文件、MQTT 凭据是另一个契约；不要将 App 数据 Key 当作通用 SDK Key，尤其不要通过 `VITE_*` 传给浏览器。
+现有 `TIER0_API_KEY` / `@tier0/sdk` 的通知、文件、MQTT 凭据是另一个契约；不要将 App 数据 Key 当作通用 SDK Key，尤其不要通过 `VITE_*` 传给浏览器。
 
 现有 App Data 客户端是 Enterprise 仓库的 `packages/app-data-client/src/index.ts` 源码，**尚未发布为 npm 包**。固定已验证提交后放到服务端目录，由构建器打包并记录来源。不要编造 npm 包名，也不要从 App 用 `../../../Enterprise/...` 跨仓库导入。客户端应保留超时、禁止凭据重定向、结构化错误和幂等语义。
 
@@ -134,7 +136,7 @@ const page = await customers.list({page: 1, size: 50, filters: authorizedFilters
 | `apps/keys/create`、`apps/keys/revoke` | 管理者签发/撤销 App 数据 Key |
 | `records/query` | 过滤分页；多查询；显式 relational 关联/投影/聚合 |
 | `samples/query` | `mode: latest/history`，按集合、记录、时间查询 |
-| `changes/apply` | 原子变更；传 `dryRun: true` 做校验，不存在独立的 `changes/validate` 入口；校验成功不等于已提交，也不预占后续写入的锁 |
+| `changes/apply` | 原子变更；传 `dryRun: true` 做校验；校验不提交，也不预占后续写入的锁 |
 | `jobs/query` | 查询异步批次终态；App 仅能查询该 Key 创建且当前仍有权限的作业 |
 
 写请求关注 `data.status`：`validated` 是通过校验，`accepted` 是入队，`committed` 才是已提交。HTTP 200 不是唯一成功判据；异步请求要跟踪作业至 `succeeded`，不能收到 accepted 就显示保存完成。

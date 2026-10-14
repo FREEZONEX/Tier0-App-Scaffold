@@ -2,7 +2,7 @@
 
 ## 本分支交付范围
 
-本分支更新 AGENTS.md、README、平台接入说明及 API/CRM 开发规范。它**没有**删除 Drizzle 依赖、重写模板构建门禁、接入 App Data 客户端或修改平台部署服务。版本标记按 Scaffold 维护规则更新，只表示继承的规则变了，不代表 API 模板已可直接发布。
+当前已完成 API-only 规范，尚未迁移模板运行链路。Drizzle 依赖、SQL 构建门禁、App Data 客户端和部署注入按下表逐项完成后，才能发布 API 模板。规范版本标记不表示运行时迁移完成。
 
 新 App 的目标架构是 API-only，不能继续扩展 SQL 路径；现有 SQL App 也不能通过更新文档自动迁移。不得删除原库或把旧数据迁移视为本次授权。
 
@@ -20,14 +20,11 @@
 
 表中的位置是待改清单，不是已完成声明。App 生成 Agent 不应擅自修改锁定的模板测试或 `gate-integrity.json`；由 Scaffold 维护者在正式运行链路迁移中一起更新，并提交等价的新保护。
 
-## 容易混淆的边界
+## 迁移验收
 
-- `.env.example`、`artifact.toml` 及 `package.json` 目前仍可能提到数据库；本分支的文档不触发这些操作。不要按旧命令运行 db:push 或清理数据库。
-- `TIER0_APP_API_BASE` / `TIER0_APP_API_KEY` 是本规范建议的私有服务端配置，不是已完成的平台自动注入机制。
-- `TIER0_API_KEY` 的 SDK 通知/MQTT 契约继续有效，但不是 App 数据授权的替代品；不要为迁移改动其权限或把数据 Key 填进去。
-- App 元数据、Launchpad 运行身份、部署包属于不同对象，需显式绑定。导入新工作区不得复用来源环境的 Key 或硬编码 collectionId。
-- 若现有构建门禁仍要求 Drizzle，不伪造表、无意义 bootstrap 或本地 mock；报告具体迁移缺口。文档校验不能声称 App 构建或生产部署已通过。
+配置变量及 Key 边界以 [平台接入说明](platform-integration.md) 为准，业务数据与
+事务验收以 [App API 规范](app-api-development.md) 为准。不要复制 CRM 的账号、
+固定端口、工作区或跨仓库导入路径；导入新环境需重新绑定授权。
 
-## 本分支的验证方式
-
-只运行 Markdown 本地链接/JSON 示例检查、`git diff --check`、版本脚本的严格检查，核对新规范引用的 API 和字段。未改变运行时代码，因此不启动 App、不连接业务数据库、不跑集成导入。
+现有 SQL App 的数据迁移单独制定计划，不随模板文档更新删除原库。若门禁仍要求
+Drizzle，报告缺口，不伪造表或无意义 bootstrap 求绿。

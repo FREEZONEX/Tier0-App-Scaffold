@@ -1,49 +1,19 @@
-# Role Registration — Conventions and Handoff Guide
+# Role Registration
 
-This document is the single source of truth for how business roles flow between
-the platform (UNS-SWE) and this app. Read it before adding, renaming, or
-removing any role. It exists so an agent picking up unfinished role work can see
-the full picture without re-deriving it from the code.
+The platform registers roles and assigns them to users. The App defines what
+those roles may do. Updating one side does not automatically update the other.
 
-## The one thing to understand first: two planes, not one
+When adding, renaming or removing a role, update all three:
 
-A role lives on **two independent planes**. They are updated by different
-mechanisms and neither one syncs the other automatically:
+| File | Responsibility |
+|---|---|
+| `src/lib/permissions.ts` | `ACTIONS`, `PERMISSION_MATRIX` and action authorization |
+| `src/lib/role-metadata.ts` | Labels, descriptions and landing routes |
+| Root `roles.json` | Platform registration input |
 
-| Plane | Where it lives | What it controls | Who writes it |
-|---|---|---|---|
-| **Registration plane** (platform) | Platform DB (`project_business_roles`, app bindings) | Whether the platform *knows* the role exists, shows it in the Roles tab / preview role picker, and can assign it to members | `roles.json` at import/fork, or the agent's `sync_business_roles` tool |
-| **Permission plane** (this app) | `src/lib/permissions.ts` `PERMISSION_MATRIX` (+ `role-metadata.ts`) | What the role is *allowed to do* once a request carrying it reaches the app | The agent editing this app's source |
-
-**The classic failure:** a role is visible everywhere in the platform UI
-(Roles tab, preview dropdown) but the running app rejects it. That means the
-registration plane has the role but the permission plane does not. Fixing one
-plane never fixes the other — you must update both. See
-[Handoff checklist](#handoff-checklist).
-
-## The three files that must stay in sync
-
-When you add a business role, edit **all three**. A role missing from any one of
-them is a half-finished role.
-
-1. **`src/lib/permissions.ts`** — add the role key to `PERMISSION_MATRIX` and
-   map it to the `ACTIONS` it may perform. This is the permission plane. A role
-   absent here resolves to **zero permissions** via `can()`.
-2. **`src/lib/role-metadata.ts`** — add a `ROLE_METADATA` entry (`label`,
-   `description`, `defaultRoute`). Drives display name and landing route. An
-   unknown role falls back to a generic label + the app home route, so this is
-   about polish, not access.
-3. **`roles.json`** (repo root) — mirror the role so the platform registers it.
-   This is the registration plane's input.
-
-There is no built-in or reserved role. Every role in `PERMISSION_MATRIX` —
-including one named `admin`, if the business defines it — must appear in all
-three files and be registered like any other business role.
-
-For the first generated version, keep the effective model to at most three
-business roles total. Split
-roles only when their permission scopes materially differ; do not mirror every
-page, action, or organizational job title as a separate role.
+There are no reserved or default roles, including `admin`. Start with a small
+set of materially different permission scopes; do not create a role per page.
+Every defined role must appear in all three files with the same key.
 
 ## `roles.json` format
 
@@ -59,23 +29,19 @@ page, action, or organizational job title as a separate role.
   `^[a-z]+(_[a-z]+)*$` — the platform rejects digits, hyphens, uppercase, and
   leading/trailing/double underscores (`hello_world` OK; `role2`, `AItest_x`
   rejected). Must match the `PERMISSION_MATRIX` key **exactly**
-  (`operator` ≠ `Operator`). The legacy alias `key` is also accepted but
-  prefer `role_key`.
+  (`operator` ≠ `Operator`). Use `role_key` in new files.
 - `name` — **required**. Display name; any language is fine (`游客`, `Guest`).
 - `description` — optional.
 - The template ships with `roles.json` as `{ "roles": [] }`. Keep it empty until
   the app actually defines business roles; never add demo/test fixtures.
 
-### How the platform consumes it
+### Platform registration
 
-- **On import / template fork**, the platform reads root `roles.json` and runs
-  `SyncAppRoles`: it creates or reuses each `role_key` as a project role and
-  binds it to the new app, in one transaction. This is the *only* automatic
-  registration step.
-- **On export**, the platform *regenerates* `roles.json` from its DB — the file
-  you shipped is overwritten with the authoritative registered set. Do not treat
-  a hand-edited `roles.json` inside an exported package as durable; it is an
-  output of the registration plane, not the source.
+Import/fork reads root `roles.json`. During Builder work, use its
+`sync_business_roles` capability when available to register updates. Verify the
+role is available for assignment; editing the matrix alone is insufficient.
+Platform export can regenerate `roles.json` from its registered set, so sync
+registration before relying on an exported package.
 
 ## Runtime: how assigned roles reach the app
 
@@ -85,7 +51,7 @@ request** (so the client cannot forge them):
 
 | Runtime | Headers carrying roles | Effective model | Validated upstream by |
 |---|---|---|---|
-| Deployed | `X-Tier0-Business-Roles` plus `X-Tier0-Active-Role` | Union of all assigned app roles; active role is primary display only | runtime-roles API (user's assigned roles ∩ app bindings) |
+| Deployed | `X-Tier0-Business-Roles` plus `X-Tier0-Active-Role` | Union of all assigned app roles; active role is primary display only | Platform Gateway |
 | Preview | `X-Tier0-Preview-Role` | One developer-selected "view-as" role | preview role store |
 
 `X-Tier0-Business-Roles` is comma-separated. `src/lib/gateway.ts` normalizes
@@ -97,8 +63,10 @@ JSON `user.role` integrations remain single-role.
 
 Do not invent role priority or choose one "highest" role. For a user assigned
 roles A and B, the effective action set is `permissions(A) ∪ permissions(B)`.
-This applies consistently to `can(user.roles, action)`, navigation filtering,
-`requireAuth(...)`, pages, and APIs. Unknown trusted Tier0 roles contribute no
+Use `can(user.roles, action)` for action checks and navigation.
+`requireAuth(...roles)` optionally checks membership in any supplied role; it
+does not check an action permission. Apply action checks on server routes/services,
+not just in UI. Unknown trusted Tier0 roles contribute no
 actions; they never erase permissions granted by another known assigned role.
 `user.primaryRole` exists only for display metadata; never authorize with it.
 
@@ -130,35 +98,19 @@ SSR and the middleware agree.
 ### Zero permissions is entry, not access
 
 A gateway-injected role with no matrix entry can *load* the app but sees an empty
-shell: `canViewModule()` hides every permissioned module and `requireAuth("…")`
-server routes still `403` it. Entry ≠ capability. The role only becomes useful
+shell: `canViewModule()` hides permissioned modules and server action checks
+using `can()` deny access. Authentication alone does not grant a business action.
+The role only becomes useful
 once its actions are defined in `PERMISSION_MATRIX`.
 
-## Handoff checklist
+## Verification
 
-When you add/finish a business role (worked example: guest `youke` / 游客):
-
-- [ ] `permissions.ts`: `youke` added to `PERMISSION_MATRIX` with its exact
-      allowed `ACTIONS` (for a read-only guest, the read actions only).
-- [ ] `role-metadata.ts`: `ROLE_METADATA.youke = { label: "游客", description, defaultRoute }`.
-- [ ] `roles.json`: `{ "role_key": "youke", "name": "游客" }` — key identical to the matrix key.
-- [ ] Server routes enforce it via `requireAuth("youke")` where appropriate; UI gates via `can(user.roles, action)`.
-- [ ] Decide and document what a guest may actually see/do — this is a product
-      decision the tooling cannot infer.
-- [ ] Verify: `npm run typecheck`, `npm run lint`, `npm run runtime:audit`.
-
-### Common pitfalls
-
-- **Editing only `roles.json`** registers the role on the platform but leaves it
-  with zero permissions and no metadata in the app. It will appear in the Roles
-  tab and preview picker yet do nothing until `permissions.ts` is updated.
-- **Editing only `permissions.ts`** gives the app the capability but the platform
-  never learns the role exists, so no member can be assigned it and the gateway
-  never injects it.
-- **Key casing / spelling drift** between the three files silently breaks the
-  join — `role_key` must equal the `PERMISSION_MATRIX` key byte-for-byte.
-- **Relying on a hand-edited `roles.json` surviving export** — export
-  regenerates it from the platform DB.
+- Register the role and synchronize all three files.
+- Authenticate with `requireAuth()` and enforce the appropriate action with
+  `can(user.roles, action)`; add per-record ownership rules where needed.
+- Verify one role, multiple roles, empty roles and unknown trusted roles through
+  real server routes as well as navigation. A hidden button is not authorization.
+- Run typecheck, lint and runtime audit when role implementation changes.
 
 ## Related files
 

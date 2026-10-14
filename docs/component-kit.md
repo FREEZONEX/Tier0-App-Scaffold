@@ -1,6 +1,6 @@
 # 通用组件接入
 
-本次扩充组件类型，保留脚手架黑白与荧光绿主题。业务页面、制造流程、数据服务和业务角色不在本次范围内。组件按通用职责组织，应用通过配置与适配器承载业务差异。
+组件按通用职责组织，沿用 [DESIGN.md](../DESIGN.md) 的主题。应用提供业务配置、服务与权限适配器。
 
 ## 选择组件
 
@@ -14,7 +14,7 @@
 | 通用编辑器 | `components/editors`：自定义字段、表达式/变量、编码规则、打印模板；对象与属性目录由应用提供 |
 | 布局与图表 | `components/kit/shell/page-layout`、`components/ui/responsive-page`、`workbench-layout`、`operational-list`、`components/charts/board-charts` |
 
-可从 `@/components/kit` 导入公开能力；实际页面优先按文件导入。类型在 `@/lib/component-kit/types`。可视图库覆盖 56 个非业务组件分类（含原有能力，并非新增 56 个组件）。
+可从 `@/components/kit` 导入公开能力；实际页面优先按文件导入。类型在 `@/lib/component-kit/types`；可视示例见 [图库](../gallery/README.md)。
 
 ## 必填标记
 
@@ -48,7 +48,7 @@ function RecordForm() {
 }
 ```
 
-提交前调用 `formRef.current?.validate()`；通过后由应用保存。表格区块使用 `type: 'table'`，数据放在 `value[section.key]`。明细行的 `__key` 只用于界面，提交时用 `stripRowKeys()` 去除。业务字段计算、提交事务和后端校验仍由应用负责。
+提交前调用 `formRef.current?.validate()`；通过后由应用保存。表格区块使用 `type: 'table'`，数据放在 `value[section.key]`。明细行的 `__key` 只用于界面，提交时用 `stripRowKeys()` 去除。App 服务负责业务计算与组装 API 原子批次；平台负责执行数据库事务与 Schema 校验。
 
 ## 数据与权限适配
 
@@ -69,6 +69,8 @@ const adapter: ComponentKitAdapter = {
 ```
 
 `appComponentService` 和 `appPermissions` 是宿主应用实现示意，不是脚手架自带服务。请求中的 `/api/meta/...`、`/api/system/...` 是保留的逻辑契约标识：组件不会自动 fetch，脚手架不因此新增这些后端路由。根据 `types.ts` 与调用组件映射请求/响应并传递取消信号，使用脚手架原有认证请求工具。未配置适配器时数据操作报错；未配置 `canObject` 时对象操作默认不授权。客户端检查仅控制 UI，真实服务必须继续执行角色合并和权限校验。
+
+适配器通过 App 同源服务访问平台 API，不能把 Key 放进组件，不能把逻辑路径直接拼成平台 API。详见 [数据规范](app-api-development.md)。
 
 主要契约：`meta/config` 返回字段/视图配置，`meta/query` 返回分页数据；`meta/views` 与 `meta/prefs` 保存视图；`reference-options`、`org/tree`、`org/persons` 返回选择项；`meta/import-template`、`meta/import`、`meta/export` 处理 Excel；`print-templates`、`print/render` 返回打印配置/页面。完整字段以 TypeScript 类型和调用点为准，宿主只需实现实际使用的能力。
 

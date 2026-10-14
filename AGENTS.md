@@ -40,8 +40,8 @@ is incomplete.
 - Every mutation handler under `src/routes/api/**` has a UI caller using
   `apiUrl()`. External-only handlers carry an `EXTERNAL_CALLER` comment naming
   the caller.
-- Seed data starts the experience; it does not replace operations. Use coherent,
-  populated records across relevant lifecycle states.
+- When fixtures are requested, create coherent records through the API in the
+  designated test environment. Do not seed production or replace real operations.
 - Avoid placeholder modules and copy such as “Coming soon”, “Demo mode”, or
   “can be added later”.
 - Dangerous or irreversible operations show impact, ask for confirmation, and
@@ -49,7 +49,8 @@ is incomplete.
 
 ## Managed Preview Workflow
 
-Dependencies are installed automatically by `preview_start`. Do not run
+When working in managed Builder preview, dependencies are installed by
+`preview_start`. Do not run
 `npm install` manually or start a dev server yourself; both race the managed
 preview environment.
 
@@ -60,8 +61,8 @@ preview environment.
    target. Add changed key routes that are intentionally outside the sidebar.
 4. Tell the user the preview is ready; never paste the container-local URL.
 
-After adding a dependency, restart the managed preview. If the same error
-recurs three times, stop patching and report the blocker.
+After adding a dependency, restart the managed preview. Outside that environment,
+use the local commands in README; do not assume Builder tools are available.
 
 ## Sources of Truth
 
@@ -118,58 +119,21 @@ policy unless the user explicitly asks for platform/runtime work.
 
 ## Architecture and Domain Rules
 
-Use three App layers, with persistence owned by the platform:
+Read [App API development](docs/app-api-development.md) for data modeling,
+provisioning, queries, atomic batches, concurrency, idempotency and acceptance.
 
-1. `src/routes/api/**`: authenticate, parse with Zod, call a service and return
-   through `withErrors`.
-2. `src/services/**`: ownership checks, business invariants, lifecycle transitions,
-   query plans and atomic change batches. No HTTP request/response objects.
-3. A server-only App Data client: authenticated Enterprise OpenAPI v2 calls,
-   timeouts and structured errors. The source client and version provenance are
-   described in `docs/app-api-development.md`; do not invent an npm package.
+- Routes authenticate and parse inputs, then call services through `withErrors`.
+- Services enforce business rules and per-user data access and construct API
+  queries/change batches. Keep HTTP objects out of services.
+- The server-only App Data client owns transport. No App SQL connection,
+  Drizzle model or browser-held data Key. Management provisioning is separate
+  from runtime data access; page loads do not create metadata or seed records.
+- Several HTTP writes are not one transaction. Use platform atomic batches and
+  revisions/conditions; do not replace errors with mock or local persistence.
 
-Hard invariants:
-
-- All business records, samples, audit entries, imports and persistent command
-  receipts go through the API. No `db` imports, SQL, database drivers or local
-  file/localStorage persistence for business data in new App code.
-- Define Zod inputs and platform-supported JSON Schemas explicitly. Preserve
-  IDs as strings and money as safe integer minor units. Do not derive new App
-  types from Drizzle tables.
-- App data Keys stay server-only. Use App aliases resolved by `apps/context`;
-  do not accept arbitrary API URLs, credentials or collection IDs from clients.
-- A Key scopes the App, not the browser user. Authenticate and authorize each
-  business action and constrain lists, details, exports and aggregates on the
-  server. Preserve Gateway roles and CSRF protection.
-- Multi-record business writes use one `changes/apply` atomic batch. App code
-  constructs the batch; the platform opens and commits/rolls back the database
-  transaction. Several independent HTTP calls are not one transaction.
-- Carry `expectedRevision` or transaction-time conditions for concurrent changes.
-  Re-read and revalidate business rules after conflict; never blindly replace
-  a stale revision. Define each lifecycle transition in its owning service.
-- Fix IDs, timestamps and payload for each idempotent user intent. Treat a lost
-  response as unknown, not rollback; recover from a persistent API receipt when
-  cross-process retry is required. External side effects are not DB-atomic.
-- Use server pagination and supported relational query plans for aggregation.
-  Do not load an arbitrary capped snapshot and silently present it as complete.
-
-### Provisioning and First Load
-
-Before generation, inspect the target API catalog and required capabilities.
-An authorized Agent/operator provisions Collections, supported schemas, optional
-Topics, App grants and a restricted App data Key through management APIs.
-Keep management credentials outside the App runtime. Collection creation and
-Key issuance are not ordinary page-load behavior.
-
-At runtime resolve the App context and aliases; fail clearly for missing env,
-permissions or unsupported capabilities. Never fall back to SQL, fake records
-or a broader legacy endpoint. Demo fixtures require explicit approval and use
-the API; do not seed on every service call.
-
-The existing SQL bootstrap/build hooks are migration debt, not instructions to
-run `db:push` for API Apps. A scaffold maintainer must replace them with API
-boundary checks and real persistence tests before rollout. Generated Apps must
-not edit locked checks just to make the new architecture pass.
+SQL bootstrap and build assumptions still need the
+[maintainer migration](docs/scaffold-api-migration.md). Do not weaken locked gates
+or fabricate database configuration to conceal that work.
 
 ## Routing and Server Boundaries
 
@@ -234,25 +198,14 @@ passwords, users, cookies, local sessions, login/register APIs, or logout.
 - Unknown trusted roles contribute zero permissions; explicit empty deployed
   roles remain zero-access. Forgeable unknown legacy roles fail closed.
 
-Register roles in one pass:
+Define `PERMISSION_MATRIX`, `ROLE_METADATA` and `roles.json` together; no role
+is reserved or granted by default. `requireAuth(...roles)` accepts **role names**,
+not action names. Authenticate first, then use `can(user.roles, action)` for
+action checks on the server as well as UI. Apply ownership rules in services.
+See [role registration](docs/role-registration.md) for format and handoff.
 
-The scaffold ships with no roles: `PERMISSION_MATRIX`, `ROLE_METADATA`, and
-`roles.json` start empty, and no role name is reserved — define `admin` only
-if the business genuinely needs a role by that name. Default the first version
-to no more than three roles chosen for materially different permission scopes.
-Do not create one role per page, action, or job title.
-
-1. Define actions and `PERMISSION_MATRIX` in `src/lib/permissions.ts`.
-2. Mirror every matrix role in `src/lib/role-metadata.ts` and `roles.json` —
-   every role, no exceptions. `role_key` values use ASCII snake_case.
-3. Guard APIs with `requireAuth(...)` and UI actions with
-   `can(user.roles, action)`; both use permission-union semantics.
-4. Verify each role's reachable navigation and actions.
-
-Role display belongs to the global `Shell` user block only. Do not add page-body copy explaining what Admin, Operator, Member, or another role can do;
-show permission differences through real visibility and access behavior.
-Do not modify `src/start.ts`, `src/lib/{gateway,auth}.ts`, or
-`src/routes/api/auth/**`.
+Show role identity in the Shell, not explanatory page-body paragraphs.
+Preserve `src/start.ts`, Gateway/auth helpers and `src/routes/api/auth/**`.
 
 ## UI and Client Runtime
 
@@ -362,39 +315,14 @@ Use TailwindCSS 4 through `src/styles/globals.css`; do not add
 
 ## Tier0 SDK
 
-Use the installed `@tier0/sdk` for its supported platform capabilities such as
-notifications, Flow, files, MQTT/MQ/WebSocket and device commands. App Data v2
-record/sample access uses the separate server-only client described in
-`docs/app-api-development.md`; do not assume the SDK implements that contract.
-Call lazy helpers from
-`@/lib/tier0` inside the concrete server action; do not top-level import or
-invoke SDK submodules on SSR startup paths. Keep `vite.config.ts`
-`ssr.external: ["pg", "@tier0/sdk", "mqtt"]`.
+Use `@/lib/tier0` lazy loaders inside server actions for supported SDK operations;
+do not initialize platform I/O on SSR imports. App Data v2 uses its own
+server-only client, not a substitute SDK Key. The current SDK, notification,
+MQTT and configuration contracts live in
+[platform integration](docs/platform-integration.md).
 
-The SDK baseline is `^0.5.4` (locked to `0.5.4`). For notifications, omitted
-`channels` means Web & Desktop plus Mobile; use `[]` for inbox only, `['web']`
-or `['mobile']` for explicit scope. There is no `desktop` channel. When
-upgrading an existing app, change calls that relied on omitted channels for
-silent delivery to `channels: []`. See `docs/platform-integration.md` for
-notification migration, MQTT broker handling, and API-key compatibility diagnostics.
-For MQTT authentication failures, check the installed SDK and injected key type
-before changing credentials; do not hard-code username/clientId to bypass SDK
-identity derivation.
-
-The platform injects SDK hosts, keys, and connection details. Do not add them
-to `.env.example`, business tables, or user-facing settings unless the user
-explicitly requests an operator-managed credential console. Keep human app
-names separate from `APP_ID`/manifest runtime identifiers.
-
-When the app must identify itself to the platform (notification `sender.id`
-and similar), use `resolveAppId()` from `@/lib/app-id` — the platform-injected
-`APP_ID`, i.e. the agent-platform App UUID — read at runtime. Never hard-code
-its value at generation time: an imported copy of the app gets a new UUID and
-a hard-coded value keeps pointing at the source app, so the notification's
-name, icon and Open button silently break.
-
-Do not use the sandbox file system for application-generated or user-uploaded
-data. Use the platform File Storage API instead.
+Keep credentials out of browser bundles, business records and user settings.
+Use the platform File Storage API for uploads/generated files, not local paths.
 
 ## App Identity and Product Copy
 
@@ -409,35 +337,10 @@ Without injection it resolves to `local-app` (`src/lib/app-id.ts`) — a
 local-development placeholder only. The full contract lives in
 `docs/platform-integration.md`.
 
-On first generation and every rebrand, complete all four steps below before
-reporting App Identity finished. Platform-registered image assets must have a
-stable source copy at the project root so Download Source Code and Download
-Snapshot retain the same files; never register a temporary or workspace-external
-file as the only copy.
-
-1. Create a domain-specific app icon following `DESIGN.md` → App Icons and export the final asset as
-   root `icon.png` (512×512, ≤2 MB). This matches the platform import/export
-   package name. Coded artwork is allowed: SVG,
-   Canvas, Node, HTML/browser rendering, or another deterministic drawing path
-   may be used to produce the PNG. Use a rounded-square tile, a vivid tonal
-   gradient, and a centered white or lightly tinted business symbol with subtle
-   highlights and shallow layered depth. Keep generous padding and a clear
-   silhouette at 32px; omit text and fine detail. Do not leave the scaffold
-   placeholder unchanged.
-2. Copy that exact file byte-for-byte to `public/app-icon.png` (also 512×512,
-   ≤2 MB), then set `APP_ICON = "/app-icon.png"` in `src/lib/app-chrome.ts`.
-   The public copy is the runtime asset; root `icon.png` is the durable
-   registration/export source. Never generate the two copies independently.
-3. Sync the root source with `update_app_info({ icon_path: "icon.png" })`,
-   including name/description when changed. If either root persistence or the
-   public copy fails, do not register the icon or report App Identity complete.
-4. When registering a designed/generated cover with `cover_path`, first save
-   the final file as root `cover.png` (PNG, ≤8 MB), matching the platform
-   package name, then call `update_app_info({ cover_path: "cover.png" })`.
-   This rule applies on first generation and every cover change; do not
-   register a temporary path or a second independently generated image. If
-   both icon and cover change, persist both root files before one
-   `update_app_info` call.
+On first generation and rebrand, follow [DESIGN.md](DESIGN.md#app-icons) for
+icon appearance and [asset registration](docs/platform-integration.md#agent-registered-visual-assets)
+for dimensions, durable root/public copies and registration. Update App Info
+and runtime branding together; do not leave the scaffold placeholder.
 
 Page titles name the work. Visible copy describes business data, state, action,
 or consequence—not design-system commentary or implementation notes. Remove
@@ -465,27 +368,15 @@ Contract files have two classes:
 `["sh", "-c", "..."]`; plain commands use token arrays. Leave build/run args
 unchanged unless the task is deployment work.
 
-Environment contracts are documented in `docs/platform-integration.md`.
-The proposed private App Data variables are `TIER0_APP_API_BASE` and
-`TIER0_APP_API_KEY`; deployment must explicitly supply them, they are not yet
-automatically injected by this scaffold. Preserve `APP_ID`, `VITE_BASE_PATH`
-and the separate SDK contract (`NEXT_PUBLIC_BASE_PATH` is legacy only).
-Remaining SQL environment assumptions are tracked in the migration checklist.
+Environment names and injection boundaries are maintained only in
+[platform integration](docs/platform-integration.md). Missing data API
+configuration must fail clearly, never fall back to a database or mock.
 
 ## Scaffold Version
 
-`package.json.tier0Scaffold` (`{ "version": <positive integer>, "ref":
-"<scaffold commit sha>" }`) records which Tier0-App-Scaffold version this app
-was generated from. The platform reads it when the app is imported and prompts
-alignment when it is missing or differs from the current scaffold; nothing at
-runtime depends on it, and `npm run build` only warns when it is missing or
-malformed.
-
-- Never edit `tier0Scaffold` by hand, and never remove it. It is not an app
-  setting, and changing the number does not align anything.
-- The align-platform-app Skill writes the version and ref it was pinned to
-  after a successful alignment; that is the only path that updates the field
-  inside an app.
+Preserve `package.json.tier0Scaffold`. Generated Apps must not manually change
+or remove it; alignment tooling updates it after actual alignment. Scaffold
+maintainers follow the [version procedure](README.md#scaffold-version-maintainers).
 
 ## Completion Check
 
