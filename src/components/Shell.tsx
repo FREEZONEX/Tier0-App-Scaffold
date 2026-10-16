@@ -359,6 +359,8 @@ export function Shell({
                           <Link
                             key={child.key}
                             to={child.href as never}
+                            // router-core 1.171.14: https://github.com/TanStack/router/issues/7759
+                            preload={false}
                             activeOptions={{ exact: true }}
                             title={childTitle}
                             aria-disabled={child.locked || undefined}
@@ -415,6 +417,8 @@ export function Shell({
                 // an agent will introduce. Type-safety is preserved everywhere
                 // else Link is used directly.
                 to={mod.href as never}
+                // router-core 1.171.14: https://github.com/TanStack/router/issues/7759
+                preload={false}
                 activeOptions={{ exact: true }}
                 title={
                   isCollapsed
