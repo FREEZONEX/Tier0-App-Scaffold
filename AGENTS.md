@@ -264,6 +264,25 @@ as a mandatory page recipe.
 - `actions`: `RecommendationAction` and `ImpactPreviewDialog` for transparent
   automatic/recommended/bulk changes.
 
+List-type pages (master data, ledgers, documents, tasks, and searchable record
+collections) default to `MetaListPage` from
+`@/components/kit/meta/meta-list-page`. Configure the object metadata and extend
+its `onCreate`, `onOpenRecord`, `rowActions`, `batchActions`, `cellRenderers`,
+`headerExtra`, and `toolbarExtra` hooks rather than rebuilding the query,
+view, column, sorting, and pagination shell. Follow
+[docs/component-kit.md](docs/component-kit.md#列表类型页面默认使用-metalistpage)
+for the application-scoped provider, real data adapter, and permission contract.
+`DataGrid` / `DataTable` are lower-level tables; `DetailTable` is for editable
+line items, not the default list-page foundation. Enable only capabilities the
+business needs and the application actually implements.
+
+Use a different composition when the user explicitly requests it or a concrete
+workflow does not fit a metadata list (for example a chart-first report,
+Kanban/Gantt board, scan-first station, or embedded detail table). Record that
+reason in implementation notes; do not invent a new list shell for cosmetic
+variation. A narrow repair to an existing working page does not by itself
+require migrating the whole page.
+
 Wrap every ordinary `_app` workspace page in
 `<div className="page-shell ...">`. The shared class provides responsive page
 padding (compact on phones, wider on desktop) and keeps direct children
