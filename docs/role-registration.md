@@ -86,7 +86,7 @@ request** (so the client cannot forge them):
 | Runtime | Headers carrying roles | Effective model | Validated upstream by |
 |---|---|---|---|
 | Deployed | `X-Tier0-Business-Roles` plus `X-Tier0-Active-Role` | Union of all assigned app roles; active role is primary display only | runtime-roles API (user's assigned roles ∩ app bindings) |
-| Preview | `X-Tier0-Preview-Role` | One developer-selected "view-as" role | preview role store |
+| Preview | `X-Tier0-Preview-Role` | Union of the developer-selected "view-as" role set (one or several roles, or none) | preview role store |
 
 `X-Tier0-Business-Roles` is comma-separated. `src/lib/gateway.ts` normalizes
 and deduplicates it, keeps the active role first, and exposes the complete set

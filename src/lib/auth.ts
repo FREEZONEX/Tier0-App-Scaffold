@@ -7,6 +7,7 @@ import {
   parseGatewayUser,
   type GatewayUser,
 } from "./gateway";
+import { ROLE_REQUIRED_MESSAGE_PREFIX } from "./preview-bridge";
 import { HttpError } from "./route-handlers";
 import { hasAnyRole, PERMISSION_MATRIX, toRoleList } from "./permissions";
 
@@ -33,7 +34,8 @@ function toAppUser(gatewayUser: GatewayUser, roles: readonly string[]): AppUser 
  * `X-Tier0-Business-Roles` is the complete assigned-role set and effective
  * permissions are its union.
  *
- * Preview intentionally remains single-role "view as". A preview identity
+ * Preview uses the developer's selected "view as" role set, which may contain
+ * several roles and uses the same permission union. A preview identity
  * without a selected role enters with zero roles and zero permissions — the
  * scaffold reserves no fallback role. An explicit deployed empty role list is
  * likewise authoritative zero access.
@@ -75,7 +77,10 @@ export async function requireAuth(...roles: string[]): Promise<AppUser> {
     throw new HttpError(401, "Authentication required");
   }
   if (roles.length > 0 && !hasAnyRole(user.roles, roles)) {
-    throw new HttpError(403, `Requires role: ${roles.join(" or ")}`);
+    throw new HttpError(
+      403,
+      `${ROLE_REQUIRED_MESSAGE_PREFIX} ${roles.join(" or ")}`,
+    );
   }
   return user;
 }

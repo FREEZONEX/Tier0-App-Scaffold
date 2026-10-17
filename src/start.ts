@@ -5,7 +5,8 @@
  * `X-Tier0-Business-Roles`; downstream permission checks compute the union
  * across all roles. The App does not maintain a second session cookie.
  *
- * Preview remains a single-role developer "view as" context. Legacy role
+ * Preview carries the developer's selected "view as" role set in
+ * `X-Tier0-Preview-Role` (one or several roles, same permission union). Legacy role
  * headers remain single-role and must match PERMISSION_MATRIX because the
  * Tier0 gateway does not strip/re-inject those headers.
  */
