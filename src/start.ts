@@ -31,9 +31,21 @@ const PUBLIC_PATHS = [
   "/_serverFn",
 ];
 
+// Behind a path-prefix gateway (VITE_BASE_PATH such as /p/<sandbox> or
+// /a/<appId>) request paths keep the prefix; compare public paths without it.
+const BASE_PATH = (import.meta.env.VITE_BASE_PATH ?? "").replace(/\/+$/, "");
+
+function stripBasePath(pathname: string): string {
+  if (BASE_PATH && (pathname === BASE_PATH || pathname.startsWith(BASE_PATH + "/"))) {
+    return pathname.slice(BASE_PATH.length) || "/";
+  }
+  return pathname;
+}
+
 function isPublicPath(pathname: string): boolean {
+  const path0 = stripBasePath(pathname);
   return PUBLIC_PATHS.some(
-    (path) => pathname === path || pathname.startsWith(path + "/"),
+    (path) => path0 === path || path0.startsWith(path + "/"),
   );
 }
 

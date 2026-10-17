@@ -41,7 +41,7 @@ export default defineConfig({
   server: {
     watch: {
       // Sandbox session data is not application source. Ignoring it prevents
-      // wire.jsonl appends from being amplified into full-page reloads.
+      // agent state writes from being amplified into full-page reloads.
       ignored: ["**/.tier0/**"],
     },
     port: 5173,
@@ -54,7 +54,7 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   ssr: {
-    external: ["pg", "@tier0/sdk", "mqtt"],
+    external: ["@tier0/sdk", "mqtt"],
   },
   optimizeDeps: {
     // Pre-bundle client deps that are only reached through code-split route

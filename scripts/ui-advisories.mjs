@@ -174,11 +174,11 @@ const writeHandlers = countMatches(
   /\.ts$/,
   /\b(?:POST|PUT|PATCH|DELETE):/g,
 );
+const appCollections = countMatches("src/services", /\.ts$/, /\bdefineAppCollection\s*(?:<[^>]*>)?\s*\(/g);
 const seedCallbacks = countMatches("src/services", /\.ts$/, /\bseed:\s/g);
-const enumStates = countMatches("src/db", /schema\.ts$/, /pgEnum\(/g);
 
 console.log(
-  `[advisory] delivery: ${pageCount} page routes, ${writeHandlers} write handlers, ${seedCallbacks} bootstrap seed callbacks, ${enumStates} status enums`,
+  `[advisory] delivery: ${pageCount} page routes, ${writeHandlers} write handlers, ${appCollections} app collections, ${seedCallbacks} seed callbacks`,
 );
 
 if (advisories.length > 0) {

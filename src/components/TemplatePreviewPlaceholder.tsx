@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { ClientOnly } from "@/components/client-only";
+import { publicAsset } from "@/lib/utils";
 
 /**
  * Pre-generation cover: a mac-style window centred on a white ground. The
@@ -37,7 +38,7 @@ export function TemplatePreviewPlaceholder() {
         {/* Copy */}
         <div className="shrink-0 px-8 py-6 sm:px-10 sm:py-7">
           <div className="flex items-center gap-3">
-            <img src="/tier0-logo.svg" alt="Tier0" className="h-5 w-auto" />
+            <img src={publicAsset("/tier0-logo.svg")} alt="Tier0" className="h-5 w-auto" />
             <h2 className="m-0 text-[17px] font-medium tracking-[-0.01em] text-foreground">
               Welcome to Tier0 App Builder
               <span className="template-preview-cover__cursor template-preview-cover__accent">_</span>

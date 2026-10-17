@@ -38,7 +38,7 @@ jobs:
 
           # Contract paths (plan §3.1): a change here alters what generated
           # Apps inherit, so the scaffold version must move with it.
-          contract_pattern='^(AGENTS\.md|README\.md|src/lib/.*|src/services/bootstrap\.ts|scripts/.*|artifact\.toml|vite\.config\.ts|server\.mjs|package\.json|\.env\.example)$'
+          contract_pattern='^(AGENTS\.md|README\.md|src/lib/.*|src/services/seed-utils\.ts|scripts/.*|artifact\.toml|vite\.config\.ts|server\.mjs|package\.json|\.env\.example)$'
           contract_hits="$(printf '%s\n' "$changed" | grep -E "$contract_pattern" || true)"
 
           if [ -z "$contract_hits" ]; then

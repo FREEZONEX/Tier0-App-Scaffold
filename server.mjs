@@ -23,6 +23,9 @@ const SERVER_ENTRY = pathToFileURL(
 ).href;
 
 const PORT = Number(process.env.PORT || 3000);
+// Deployed behind a path prefix (e.g. /a/<appId>) the client assets are still
+// emitted at dist/client/assets/...; strip the base before the file lookup.
+const BASE_PATH = (process.env.VITE_BASE_PATH || "").replace(/\/+$/, "");
 const HOST = process.env.HOSTNAME || process.env.HOST || "0.0.0.0";
 
 const MIME_TYPES = {
@@ -76,6 +79,9 @@ async function tryServeStatic(req, res) {
   const url = new URL(req.url, "http://x");
   let p = decodeURIComponent(url.pathname);
   if (p.includes("..")) return false;
+  if (BASE_PATH && (p === BASE_PATH || p.startsWith(BASE_PATH + "/"))) {
+    p = p.slice(BASE_PATH.length) || "/";
+  }
   // Only serve known client assets to avoid leaking arbitrary files.
   const candidates = [];
   if (p === "/" || p === "") candidates.push(null); // fall through to SSR

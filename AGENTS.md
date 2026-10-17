@@ -1,7 +1,7 @@
 # Tier0 Industrial App Scaffold
 
 This repository is a TanStack Start 1.x application scaffold (Vite 8,
-TanStack Router, React 19, Drizzle, Zod, and TailwindCSS 4). It is not Next.js:
+TanStack Router, React 19, Zod, Tier0 UNS, and TailwindCSS 4). It is not Next.js:
 do not use `next/*`, App Router conventions, `next/headers`, or Next metadata.
 Do not re-initialize the project.
 
@@ -11,7 +11,7 @@ complete workflows over a wide read-only shell.
 ## Delivery Floor: Complete the Legal Lifecycle
 
 Infer each business object's lifecycle from the domain. Do not mechanically add
-CRUD to every database table: a valid termination, correction, or operational
+CRUD to every collection: a valid termination, correction, or operational
 command is often safer than direct update/delete.
 
 | Object kind | Expected first-slice lifecycle |
@@ -43,16 +43,18 @@ is incomplete.
 
 ## Managed Preview Workflow
 
-Dependencies are installed automatically by `preview_start`. Do not run
-`npm install` manually or start a dev server yourself; both race the managed
-preview environment.
+The platform runs the preview for you: it installs dependencies and starts the
+dev server from `[services.preview]` in `artifact.toml` (port 5173, served under
+`$VITE_BASE_PATH`). Do not run `npm install` manually or start a dev server
+yourself; both race the managed preview environment.
 
-1. Use `preview_start` after a meaningful implementation slice.
-2. On failure, inspect `preview_logs`, fix the cause, then use `preview_restart`.
-3. When a local preview URL is returned, run
-   `npm run smoke:routes -- <local-url>`; it automatically checks every sidebar
-   target. Add changed key routes that are intentionally outside the sidebar.
-4. Tell the user the preview is ready; never paste the container-local URL.
+1. After a meaningful implementation slice, run
+   `npm run smoke:routes -- "http://127.0.0.1:5173${VITE_BASE_PATH:-/}"`; it
+   automatically checks every sidebar target. Add changed key routes that are
+   intentionally outside the sidebar.
+2. On failure, read the preview log (`tail -n 200 /dev/shm/.tier0/preview/preview.log`),
+   fix the cause, then use `preview_restart`.
+3. Tell the user the preview is ready; never paste the sandbox-local URL.
 
 After adding a dependency, restart the managed preview. If the same error
 recurs three times, stop patching and report the blocker.
@@ -88,8 +90,7 @@ src/
     monitor.tsx                passive fixed-board layout
     login.tsx                  hidden platform-auth error bridge
     api/**                     thin HTTP wrappers
-  services/**                  domain logic, state machines, transactions
-  db/                          Drizzle client, schema, optional bulk seed
+  services/**                  domain logic, state machines, app collections + seeds
   components/
     ui/                        visual primitives
     forms/                     safe form composition
@@ -103,68 +104,86 @@ artifact.toml                  platform build/run contract
 ```
 
 Do not modify generated `src/routeTree.gen.ts`. Preserve `src/start.ts`,
-`src/router.tsx`, `src/db/index.ts`, Gateway/auth helpers, health/manifest/auth
+`src/router.tsx`, `src/lib/uns.server.ts`, Gateway/auth helpers, health/manifest/auth
 routes, the root document structure, production entry, and existing Vite SSR
 policy unless the user explicitly asks for platform/runtime work.
 
 ## Architecture and Domain Rules
 
+There is no app database. The app's own business data lives in **app-owned
+UNS collections**; plant and workspace data lives in the other UNS
+collections, which are read-only for the app (`docs/uns-data.md`). Devices
+behind `commandable` collections (lights, valves, setpoints) are controlled
+with `sendCommand`, never by writing their records.
+
 Use three layers:
 
 1. `src/routes/api/**`: authenticate, parse with Zod, call a service, return a
    response through `withErrors`.
-2. `src/services/**`: business invariants, lifecycle transitions,
-   transactions, and audit side effects.
-3. `src/db/**`: schema, inferred types, and database client.
+2. `src/services/**`: business invariants, lifecycle transitions, audit side
+   effects, and the app's collections (`defineAppCollection(...)`).
+3. `@/lib/uns.server`: the only data access — app-owned collections plus
+   read-only access to workspace data. Server code only.
 
 Hard invariants:
 
-- Import `db` only from `src/services/**` and `src/db/seed.ts`; ESLint enforces
-  the boundary.
+- No database driver, ORM, `DATABASE_URL`, `src/db/`, or file/in-memory store
+  as the system of record. ESLint and `src/lib/app-data-contracts.test.mjs`
+  enforce it.
+- Declare each app collection once in its owning service with
+  `defineAppCollection(name, def, { seed })` and reach records only through
+  that service. Never hard-code the `app.<appKey>.` prefix; ids come from
+  `appCollectionId(name)` at runtime.
 - Keep `Request`, `Response`, and `Headers` out of services. Services return
   typed values and throw `HttpError` for caller-facing failures.
-- Put every multi-step write in `db.transaction(async (tx) => ...)`, and use
-  `tx` throughout the transaction.
+- Write with MongoDB-style operators in ONE request instead of
+  read-modify-write loops (`docs/uns-data.md`, "Writing"):
+  state transitions with `collection.findOneAndUpdate({ _id, status: from },
+  { $set: { status: to } }, { returnDocument: "after" })` (`null` = illegal or
+  concurrent transition → 409 to the caller); counters / stock with `$inc`;
+  create-or-update by a natural key with a `{ path, unique: true }` index and
+  `updateOne(..., { upsert: true })`; lists with `find` + `nextCursor`;
+  related data with `lookup`; several records that must change together with
+  `transact([...])` (`require: "matched"`); "being edited" / work queues with
+  `lock()` leases (423 for others); bulk changes with `updateManyAll` /
+  `deleteManyAll`. Make retries idempotent with deterministic record ids or
+  `idempotencyKey`. `collection.update(id, next)` is only for changes that
+  operators cannot express.
 - Define lifecycle transitions once in the owning service. Reject illegal
   transitions with a conflict/error instead of silently rewriting state.
-- Use explicit Drizzle queries such as
-  `select().from(table).where(...).limit(1)`, not relational
-  `db.query.*.findFirst()` / `tx.query.*.findFirst()`.
-- Normalize genuine raw-SQL results with `rowsOf()` before array operations.
-- Derive validation/types from the Drizzle schema with
-  `createInsertSchema`, `createUpdateSchema`, `$inferSelect`, and
-  `$inferInsert` rather than duplicating shapes by hand.
-- Tables that represent mutable business records include `...timestamps`.
+- Describe each collection with a `recordSchema` (types, `enum` for states,
+  `required` for mandatory fields) and declare object-form `indexes` for the
+  fields you filter, sort, join or upsert on (`{ path }`, `{ path, unique:
+  true }`). Validate input with Zod in the route; derive the TypeScript type
+  once next to the collection definition.
+- Mutable business records keep `createdAt` / `updatedAt` from UNS (record
+  metadata); sort with `sort: [["_meta.updatedAt", -1]]` rather than custom
+  columns.
 
-### First-Load Database Safety
+### First-Load Collection Seeding
 
-Call and await `bootstrapModule(...)` at each service entrypoint before querying
-its module tables. The helper shares in-flight/completed work and clears its
-cache on failure so a later call can retry. Do not permanently cache the first
-returned Promise in a module-level constant or start bootstrap at import time.
+Preview and deployed runs start with no app collections. The first service
+call creates them; nothing depends on a migration or seed command.
 
-- Bootstrap tables and indexes before seed callbacks; keep foreign-key order
-  explicit. The schema itself is platform-provisioned; never create it.
-- Use `create ... if not exists` and idempotent typed Drizzle seed writes.
-- Seed dates use `seedDate()` / `seedTimestamp()` from
-  `@/services/seed-utils`.
-- Parent/child seeds use declared IDs or `requireSeedRef()` /
-  `requireSeedValue()`; never pass a missing required foreign key that Drizzle
-  can turn into SQL `default`.
-- Use raw SQL only for schema/bootstrap setup and read-only helpers, not seed
-  inserts/updates/deletes.
-- Runtime startup must not depend on a prior `db:push` or execution of
-  `src/db/seed.ts`. The latter is for explicit bulk/reset fixtures and uses
-  relative imports only.
-- Declare every table and enum in `src/db/schema.ts` through
-  `appSchema.table(...)` / `appSchema.enum(...)`, never bare `pgTable` /
-  `pgEnum` and never in another file. The platform deploys with
-  `drizzle-kit push --force` scoped to `DB_SCHEMA`; a declaration outside
-  `appSchema` is invisible to it and every table in the schema gets dropped.
-- `bootstrapModule(...)` entries pass the declared table object (`table:
-  workOrders`), so a runtime table always has a declaration push can see.
-- Locally sync with `npm run db:push`; it refuses DROP/TRUNCATE plans unless
-  `DB_SYNC_ALLOW_DESTRUCTIVE=1`.
+- Every service method goes through the collection handle
+  (`orders.find(...)`, `orders.findOneAndUpdate(...)`); each call awaits `ready()`,
+  which ensures the definition (create on 404, PATCH when the definition
+  changed, re-read on a 409 race) and runs `seed` once per process. Failures
+  are not cached, so a later call retries. Do not call `ready()` at import
+  time.
+- `seed` runs only when the collection was just created or is empty, so
+  records the user deleted do not come back.
+- Seed records use fixed, readable ids (`WO-0001`); a retry or a second
+  process gets 409 and leaves the record alone. Never generate seed ids with
+  `randomUUID()` / `Math.random()` / `Date.now()`.
+- Seed dates use `seedDate()` / `seedTimestamp()` / `seedTimeMs()` from
+  `@/services/seed-utils`; parent/child seeds use declared ids or
+  `requireSeedRef()` / `requireSeedValue()`.
+- Schema changes apply to new writes only. Add new fields as optional (or
+  backfill them in the owning service) instead of making them `required` on a
+  collection that already has records.
+- `resetAppCollection(name)` / `collection.reset()` purges a collection with
+  all its records (development resets, explicit "reset data" actions only).
 
 ## Routing and Server Boundaries
 
@@ -355,13 +374,50 @@ constants/helpers in sibling `.ts` files. Import motion from `@/lib/motion`.
 Use TailwindCSS 4 through `src/styles/globals.css`; do not add
 `tailwind.config.js`, PostCSS wiring, or a second design system.
 
+## Public Assets and Base Path
+
+Preview and deployed apps are served under a path prefix (`/p/<sandbox>/`,
+`/a/<appId>/`, exposed as `VITE_BASE_PATH`). Reference files in `public/` with
+`publicAsset("/logo.svg")` from `@/lib/utils` (never `src="/logo.svg"`), call
+the app's own API with `apiUrl("/api/...")`, and navigate with the router
+(`Link`, `navigate`) so the prefix is applied automatically.
+
+## UNS Data
+
+All data lives in Tier0 UNS v2. Read `docs/uns-data.md` before building any
+page that shows or records data. Rules:
+
+- Use `@/lib/uns.server` from route handlers / server functions / services
+  only, and `useUnsChanges()` + `applyUnsChange()` from `@/lib/uns-live` for
+  live updates in the browser (record events carry the full document: replace,
+  never merge; request `delete` / `leave` kinds for lists; reload on `onReset`).
+- Collections are queried like MongoDB: `find` (filter operators, projection,
+  sort, `nextCursor` paging, `lookup` joins), `count`, `distinct`,
+  `aggregate`. Mind the differences (strict types, no implicit array
+  traversal, upsert without `_id` needs a unique index, writes only to the
+  app's own collections) listed in `docs/uns-data.md`.
+- The app's own business data goes to app-owned collections
+  (`defineAppCollection`, ids `app.<appKey>.<name>` from the injected
+  `TIER0_APP_COLLECTION_PREFIX`). The app key may create, change, purge and
+  write only those; they are deleted with the app.
+- Every other collection (plant, ERP, other apps) is read-only for the app:
+  inspect existing collections and real records first (`listCollections`,
+  `collection(id).find()`, `getLatestMany`) and use their exact field names. Never copy
+  them into app collections just to read them.
+- Device control: collections with `commandable: true` accept commands
+  (`sendCommand(collection, recordId, { name, args, wait })`, "Controlling
+  devices" in `docs/uns-data.md`). The device acknowledges and reports its new
+  state; keep the control pending until then and show failures / timeouts.
+- Never connect to the platform database or its UNS tables, and never use the
+  SDK's `unsApi` / `flowApi`, MQTT topics or Node-RED flows (retired v1 API).
+
 ## Tier0 SDK
 
-Use the installed `@tier0/sdk` when requirements involve Tier0 OpenAPI, UNS,
-Flow, files, MQTT/MQ/WebSocket, or device commands. Call lazy helpers from
+Use the installed `@tier0/sdk` for files, notifications, members and platform
+info. Call lazy helpers from
 `@/lib/tier0` inside the concrete server action; do not top-level import or
 invoke SDK submodules on SSR startup paths. Keep `vite.config.ts`
-`ssr.external: ["pg", "@tier0/sdk", "mqtt"]`.
+`ssr.external: ["@tier0/sdk", "mqtt"]`.
 
 The SDK baseline is `^0.5.4` (locked to `0.5.4`). For notifications, omitted
 `channels` means Web & Desktop plus Mobile; use `[]` for inbox only, `['web']`
@@ -456,8 +512,8 @@ Contract files have two classes:
 unchanged unless the task is deployment work.
 
 Environment contracts are documented in `docs/platform-integration.md`.
-Important names are `DATABASE_URL`, `DIRECT_DATABASE_URL`, `DB_SCHEMA`,
-`DB_SYNC_ALLOW_DESTRUCTIVE`, `APP_ID`, and `VITE_BASE_PATH`
+Important names are `TIER0_API_HOST`, `TIER0_API_KEY`,
+`TIER0_APP_COLLECTION_PREFIX`, `APP_ID`, and `VITE_BASE_PATH`
 (`NEXT_PUBLIC_BASE_PATH` is legacy only).
 
 ## Scaffold Version
@@ -481,8 +537,9 @@ malformed.
   blanket CRUD or read-only listing.
 - Every exposed action is reachable, permissioned, validated, persisted, and
   reports success/error; dangerous actions confirm impact.
-- Service boundaries, transactions, state transitions, audit effects, and
-  first-load bootstrap invariants hold.
+- Service boundaries, atomic state transitions (`findOneAndUpdate` with the
+  current state in the filter), audit effects, and first-load collection
+  seeding invariants hold.
 - Role matrix, metadata, `roles.json`, navigation, UI actions, and API guards
   agree; multiple roles grant the permission union.
 - Loading, error/retry, empty, and populated states are visible and usable.

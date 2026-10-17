@@ -5,7 +5,8 @@
 # Priority: app deploy_config (DB overrides) > this file > platform hardcoded defaults.
 #
 # Environment injection (automatic):
-#   DATABASE_URL  - injected into build_env / run_env by the backend per project schema
+#   TIER0_API_HOST / TIER0_API_KEY / TIER0_APP_COLLECTION_PREFIX
+#                 - UNS access and the app-owned collection prefix (run_env)
 #   PORT          - injected by RuntimeManager from localPort
 # User identity and roles are injected as trusted request headers by the Tier0
 # App Gateway.
@@ -48,7 +49,7 @@ HOST = "0.0.0.0"
 path = "/api/health"
 timeout = 120
 
-# Live preview (dev server running inside the Executor Pod)
+# Live preview (dev server running inside the App Builder sandbox)
 [services.preview]
 install = ["npm", "install"]
 args = ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]

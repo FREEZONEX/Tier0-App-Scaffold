@@ -115,17 +115,8 @@ There is no explicit mode switch. If a variable is missing, the app uses its
 local/default behavior. If the variable is present, the corresponding platform
 capability is enabled.
 
-### Required
-
-| Variable | Description |
-|---|---|
-| `DATABASE_URL` | PostgreSQL connection string. The database name should match the project id. |
-
-### Optional
-
-| Variable | Description |
-|---|---|
-| `DIRECT_DATABASE_URL` | Direct DB connection that bypasses the pool. Preferred by `db:push` and `seed.ts`. |
+There is no app database and no required variable: an app runs locally with
+none of them (UNS-backed pages then show their `not_configured` empty state).
 
 ### Platform-Injected
 
@@ -133,13 +124,12 @@ These variables are platform-driven. Local development does not need them.
 
 | Variable | Behavior when unset | Behavior when set |
 |---|---|---|
-| `DB_SCHEMA` | Uses the `public` schema | Binds `appSchema`, runtime queries and `drizzle-kit push` to the specified schema |
-| `DB_SYNC_ALLOW_DESTRUCTIVE` | `db:push` fails on any DROP/TRUNCATE | `1` lets `db:push` apply destructive statements; only after a verified backup |
 | `APP_ID` | `local-app` (local-development placeholder only) | Platform-injected agent-platform App UUID (36 chars); echoed by `/api/manifest` and used wherever the app identifies itself to the platform (e.g. notification `sender.id`) |
 | `VITE_BASE_PATH` | No URL prefix | Applied by `apiUrl()` and Vite `base` |
 | `NEXT_PUBLIC_BASE_PATH` | Legacy fallback only | Read by `apiUrl()` if `VITE_BASE_PATH` is missing |
-| `TIER0_API_HOST` | — | Tier0 OpenAPI host injected by the platform |
-| `TIER0_API_KEY` | — | Tier0 API credential injected by the platform; shared by OpenAPI and MQTT |
+| `TIER0_API_HOST` | UNS calls fail with 503 `not_configured` | Tier0 OpenAPI host injected by the platform; `@/lib/uns.server` calls `<host>/openapi/uns/v1` |
+| `TIER0_API_KEY` | — | App key (`sk-app-…`) injected by the platform; server-only. Limited to UNS data endpoints; writes only to the app's own collections (see `docs/uns-data.md`) |
+| `TIER0_APP_COLLECTION_PREFIX` | Derived from `APP_ID` when that is the App UUID; otherwise app-collection helpers fail with 503 `not_configured` | `app.<first 12 hex of the App id>.` — id prefix of the app-owned collections (`appCollectionId()`, `defineAppCollection()`) |
 | `TIER0_MQTT_HOST` | — | Tier0 MQTT WebSocket broker host injected by the platform |
 | `TIER0_MQTT_PORT` | Defaults to `8084` | Tier0 MQTT WebSocket port injected by the platform |
 
@@ -295,45 +285,41 @@ app only consumes the forwarded identity and role set.
 ## Platform Resource Model
 
 ```text
-Project (proj-abc123)
-  └─ Database: proj-abc123
-       ├─ schema: session-001  <- app 1
-       ├─ schema: session-002  <- app 2
-       └─ schema: session-003  <- app 3
+Workspace
+  ├─ UNS (shared by every app and data source of the workspace)
+  │    ├─ equipment, work_orders, …            <- plant data: read-only for apps
+  │    ├─ app.7bdba8039b80.inspections         <- app-owned (ownerApp = App 1)
+  │    └─ app.0c41f5e2d9aa.requests            <- app-owned (ownerApp = App 2)
+  └─ Project
+       ├─ App 1 (id 7bdba803-9b80-…)
+       └─ App 2 (id 0c41f5e2-d9aa-…)
 ```
 
-One session equals one app. `DB_SCHEMA` is the schema the platform assigns to
-the app and `APP_ID` is the app's platform UUID; both are injected, and neither
-is derived from the other by the app.
+Apps have no database. Each app stores its own data in UNS collections whose
+ids start with its prefix `app.<appKey>.` (`appKey` = the App id without `-`,
+first 12 hex characters). UNS records the owner (`ownerApp`) when the app key
+creates such a collection.
 
 ### Platform Responsibilities
 
-**When creating a project:**
-
-```sql
-CREATE DATABASE "proj-abc123";
-```
-
-**When creating a session:**
-
-```sql
-CREATE SCHEMA IF NOT EXISTS "session-xyz789";
-```
-
-**Environment injection:**
+- **Environment injection** (sandbox preview and deployed runtime):
 
 ```env
-DATABASE_URL="postgresql://appbuilder:appbuilder@db-host:5432/proj-abc123"
-DB_SCHEMA="session-xyz789"
-APP_ID="session-xyz789"
-VITE_BASE_PATH="/session-xyz789"
+APP_ID="7bdba803-9b80-4c1e-9a2b-0123456789ab"
+VITE_BASE_PATH="/a/7bdba803-9b80-4c1e-9a2b-0123456789ab/"
 TIER0_API_HOST="<platform-injected>"
-TIER0_API_KEY="<platform-injected>"
+TIER0_API_KEY="<platform-injected sk-app-…>"
+TIER0_APP_COLLECTION_PREFIX="app.7bdba8039b80."
 TIER0_MQTT_HOST="<platform-injected>"
 TIER0_MQTT_PORT="8084"
-# Optional legacy fallback:
-# NEXT_PUBLIC_BASE_PATH="/session-xyz789"
 ```
+
+- **App deletion** (and project deletion, for each app): purge every
+  collection with `ownerApp` = the app (`DELETE /collections/{id}?purge=true`,
+  records and samples included) and revoke the app's `sk-app-` key.
+- **Template-library preview reset**: purge the preview app's collections.
+- Nothing is provisioned at app creation: collections are created by the app
+  itself on first use (`defineAppCollection`).
 
 **Gateway routing:**
 
@@ -347,65 +333,41 @@ For deployed apps, the gateway must inject `X-Tier0-Runtime: deployed`,
 
 ### App Container Startup
 
-Once the platform has prepared the database, schema, and env vars, it can start
-the app:
+Once the platform has injected the env vars, it can start the app. There is no
+migration or seed step: the app creates and seeds its collections on first use.
 
 ```bash
 npm install
-npm run db:push         # sync tables under DB_SCHEMA through scripts/db-sync-guard.mjs (non-zero exit on any destructive plan)
-npx tsx src/db/seed.ts  # seed DB_SCHEMA on first use
 npm run build           # outputs dist/{client,server}
 node server.mjs         # equivalent to npm start, listens on PORT (default 3000)
 ```
 
 ---
 
-## Schema Declaration and Migration Safety
+## Collection Definitions Instead of Migrations
 
-One app owns exactly one PostgreSQL schema (`DB_SCHEMA`). When the platform
-deploys or replaces an app it runs `npx drizzle-kit push --force` in a
-migration container with `DB_SCHEMA` and `DATABASE_URL` injected, reading
-`drizzle.config.ts` and `src/db/schema.ts` directly. drizzle-kit diffs only
-tables whose declared schema is inside `schemaFilter`; anything it finds in
-`DB_SCHEMA` that is not declared there is dropped, and `--force` skips the
-confirmation. The scaffold therefore makes the declaration shape itself the
-safety guarantee:
-
-- `src/db/schema.ts` exports one `appSchema = pgSchema(DB_SCHEMA || "public")`
-  and declares every table and enum through `appSchema.table(...)` /
-  `appSchema.enum(...)`. Local, preview and deployed environments share that
-  single definition; a bare `pgTable(...)` fails the build.
-- Table declarations live only in `src/db/schema.ts`, the one file
-  `drizzle.config.ts` reads. A declaration in any other file is invisible to
-  push and its table would be dropped; the build rejects it.
-- `bootstrapModule(...)` accepts declared table objects, not names. A runtime
-  table cannot exist without a declaration, so push never sees it as garbage.
-- `drizzle.config.ts` keeps `schemaFilter: [DB_SCHEMA]` so a sync never reads
-  or writes another app's schema.
-
-These are enforced by `src/lib/db-schema-contracts.test.mjs` in `postbuild`.
-
-For developers and CI, `npm run db:push` runs `scripts/db-sync-guard.mjs`
-instead of raw push: it verifies the binding, prints the plan, and exits
-non-zero before applying anything if the plan contains `DROP TABLE`,
-`DROP SCHEMA`, `DROP COLUMN`, `TRUNCATE` or a drizzle-reported data-loss
-statement, unless `DB_SYNC_ALLOW_DESTRUCTIVE=1`. `npm run db:push:check` is
-the dry run. Raw `drizzle-kit push` exits 0 even when it drops tables or
-throws, so its exit code must never be treated as a success signal.
+App-owned collections replace tables and migrations. `defineAppCollection(name,
+def, { seed })` / `ensureAppCollection(name, def)` (`src/lib/uns.server.ts`)
+converge the stored definition on first use in every process: create on 404,
+PATCH when the definition differs, re-read on a 409 race. Changes are additive
+by nature — existing records are not rewritten — so new fields should be
+optional or backfilled by the owning service (`updateManyAll`). Object-form
+indexes (`{ path, unique?, kind? }`) are part of the definition and are awaited
+until built on first use. Removing a collection (with its
+data) is an explicit `resetAppCollection(name)` call, never a side effect of a
+deploy. `src/lib/app-data-contracts.test.mjs` (locked, run in `postbuild`)
+rejects database drivers, ORMs, `src/db/` and hard-coded prefixes.
 
 ## Where Each Variable Is Read
 
 | Variable | Read from |
 |---|---|
-| `DATABASE_URL` | `db/index.ts`, `drizzle.config.ts`, `db/seed.ts` |
-| `DIRECT_DATABASE_URL` | `drizzle.config.ts`, `db/seed.ts` |
-| `DB_SCHEMA` | `db/schema.ts` (`appSchema`), `db/index.ts` (`search_path`), `drizzle.config.ts` (`schemaFilter`), `db/seed.ts`, `services/bootstrap.ts`, `scripts/db-sync-guard.mjs` |
-| `DB_SYNC_ALLOW_DESTRUCTIVE` | `scripts/db-sync-guard.mjs` |
 | `APP_ID` | `lib/app-id.ts` (`resolveAppId`), used by `routes/api/manifest.ts` and by application code wherever it identifies itself to the platform (e.g. SDK notification `sender.id`); always read at runtime |
 | `VITE_BASE_PATH` | `vite.config.ts` (`base`), `router.tsx` (`basepath`), `lib/utils.ts` (`apiUrl` primary source) |
 | `NEXT_PUBLIC_BASE_PATH` | `lib/utils.ts`, and as a fallback in `vite.config.ts` / `router.tsx` |
-| `TIER0_API_HOST` | Injected by the platform; read by `@tier0/sdk/openapi` at runtime |
-| `TIER0_API_KEY` | Injected by the platform; read by `@tier0/sdk/openapi` and `@tier0/sdk/mq` |
+| `TIER0_API_HOST` | Injected by the platform; read by `lib/uns.server.ts` and `@tier0/sdk/openapi` at runtime |
+| `TIER0_API_KEY` | Injected by the platform; read by `lib/uns.server.ts`, `@tier0/sdk/openapi` and `@tier0/sdk/mq` |
+| `TIER0_APP_COLLECTION_PREFIX` | Injected by the platform; read by `lib/uns.server.ts` (`appCollectionPrefix`, falls back to `APP_ID`) |
 | `TIER0_MQTT_HOST` | Injected by the platform; read by `@tier0/sdk/mq` |
 | `TIER0_MQTT_PORT` | Injected by the platform; read by `@tier0/sdk/mq` |
 
@@ -440,9 +402,9 @@ it by hand.
 
 ## Scenario Matrix
 
-| Scenario | `DATABASE_URL` | `DB_SCHEMA` | `APP_ID` | Base path |
+| Scenario | `TIER0_API_HOST` / `TIER0_API_KEY` | `TIER0_APP_COLLECTION_PREFIX` | `APP_ID` | Base path |
 |---|---|---|---|---|
-| Local development | ✅ | optional | optional | optional |
+| Local development | optional (UNS pages empty without them) | optional | optional | optional |
 | Platform preview session | ✅ | ✅ | ✅ | depends on runtime |
 | Production behind gateway | ✅ | ✅ | ✅ | depends on gateway |
 

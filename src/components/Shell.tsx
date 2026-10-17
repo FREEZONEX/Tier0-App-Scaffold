@@ -10,7 +10,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, publicAsset } from "@/lib/utils";
 import type { AppUser } from "@/lib/users";
 import { APP_ICON, APP_NAME, filterSidebarModules } from "@/lib/app-chrome";
 import { getRoleMetadata } from "@/lib/role-metadata";
@@ -217,7 +217,7 @@ export function Shell({
             <div className="flex shrink-0 items-center">
               <div className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-highlight-bg-accent text-accent-foreground">
                 <img
-                  src={APP_ICON}
+                  src={publicAsset(APP_ICON)}
                   alt={`${APP_NAME} icon`}
                   className="size-full rounded-[inherit] object-cover"
                 />

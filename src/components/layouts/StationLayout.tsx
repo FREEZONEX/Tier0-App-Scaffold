@@ -4,6 +4,7 @@ import { type ReactNode } from "react";
 import { Activity } from "lucide-react";
 import type { AppUser } from "@/lib/users";
 import { APP_ICON, APP_NAME } from "@/lib/app-chrome";
+import { publicAsset } from "@/lib/utils";
 
 export function StationLayout({
   user,
@@ -18,7 +19,7 @@ export function StationLayout({
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-md border border-highlight-bg-primary bg-highlight-bg-accent text-highlight-text">
             <img
-              src={APP_ICON}
+              src={publicAsset(APP_ICON)}
               alt={`${APP_NAME} icon`}
               className="size-full rounded-[inherit] object-cover"
             />

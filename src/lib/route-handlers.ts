@@ -62,7 +62,9 @@ export function withErrors<Args extends any[]>(
       return await handler(...args);
     } catch (e) {
       if (e instanceof HttpError) {
-        return Response.json({ error: e.message }, { status: e.status });
+        // UnsError (and other coded errors) also expose `code` (locked, duplicate_key, …).
+        const code = (e as HttpError & { code?: unknown }).code;
+        return Response.json(typeof code === "string" ? { error: e.message, code } : { error: e.message }, { status: e.status });
       }
       // Backwards compatibility: services that still throw plain `{status, message}`.
       if (isHttpErrorShape(e)) {

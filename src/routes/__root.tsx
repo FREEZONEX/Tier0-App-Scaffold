@@ -23,6 +23,7 @@ import globalsCss from "@/styles/globals.css?url";
 import plexSans400 from "@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-400-normal.woff2?url";
 import plexSans500 from "@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-500-normal.woff2?url";
 import plexMono400 from "@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2?url";
+import { publicAsset } from "@/lib/utils";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -41,7 +42,7 @@ export const Route = createRootRoute({
         crossOrigin: "anonymous" as const,
       })),
       { rel: "stylesheet", href: globalsCss },
-      { rel: "icon", type: "image/svg+xml", href: "/builder-logo-dark.svg" },
+      { rel: "icon", type: "image/svg+xml", href: publicAsset("/builder-logo-dark.svg") },
     ],
   }),
   component: RootDocument,

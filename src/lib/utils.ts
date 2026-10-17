@@ -139,3 +139,14 @@ export async function requestJson<T>(
   }
   return (await res.json()) as T;
 }
+
+/**
+ * URL of a file in `public/` (icons, logos). Apps are served under a path
+ * prefix in Preview and after deployment (`/p/<sandbox>/`, `/a/<appId>/`), so
+ * never write `src="/logo.svg"`; use `publicAsset("/logo.svg")`.
+ */
+export function publicAsset(path: string): string {
+  const base = (import.meta.env?.BASE_URL as string | undefined) ?? "/";
+  if (/^(?:[a-z]+:)?\/\//i.test(path) || path.startsWith("data:")) return path;
+  return base.replace(/\/+$/, "") + "/" + path.replace(/^\/+/, "");
+}

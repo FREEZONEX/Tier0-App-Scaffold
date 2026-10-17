@@ -1,4 +1,4 @@
-// Recommended Tier0 SDK usage:
+// Recommended Tier0 SDK usage (files, notifications, members, platform info):
 // - Import this helper, then load the SDK inside the action that actually
 //   needs platform I/O. Do not statically import @tier0/sdk from pages,
 //   loaders, or services that run during SSR initialization.
@@ -46,13 +46,10 @@ export async function loadTier0Mq(): Promise<Tier0MqModule> {
   return require("@tier0/sdk/mq") as Tier0MqModule;
 }
 
-export async function getTier0UnsApi() {
-  return (await loadTier0OpenApi()).unsApi;
-}
-
-export async function getTier0FlowApi() {
-  return (await loadTier0OpenApi()).flowApi;
-}
+// UNS data (collections, records, samples, latest values, live changes) is NOT
+// read through the SDK: the SDK's unsApi / flowApi target the retired v1 topic
+// API and the platform no longer serves it. Use `@/lib/uns.server` (server) and
+// `@/lib/uns-live` (browser) instead. Node-RED flows no longer exist.
 
 export async function getTier0SystemApi() {
   return (await loadTier0OpenApi()).systemApi;

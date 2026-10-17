@@ -44,7 +44,7 @@ const runtimeFirstLoadRule = {
   meta: {
     type: "problem",
     docs: {
-      description: "Keep generated data loading and runtime seed initialization fail-safe",
+      description: "Keep generated data loading and app-collection seeding fail-safe",
     },
     schema: [],
   },
@@ -56,14 +56,14 @@ const runtimeFirstLoadRule = {
     let requestCount = 0;
     let asyncViewCount = 0;
     let seedCount = 0;
-    let bootstrapCount = 0;
+    let defineCount = 0;
 
     return {
       CallExpression(node) {
         const callee = node.callee;
         if (callee.type !== "Identifier") return;
         if (callee.name === "useRequest" && isDataUiFile) requestCount += 1;
-        if (callee.name === "bootstrapModule" && isServiceFile) bootstrapCount += 1;
+        if (callee.name === "defineAppCollection" && isServiceFile) defineCount += 1;
       },
 
       JSXOpeningElement(node) {
@@ -119,45 +119,24 @@ const runtimeFirstLoadRule = {
           context.report({
             node,
             message:
-              "Runtime seed callbacks must be inline functions so the idempotency contract can be checked.",
+              "Seed callbacks must be inline functions so the idempotency contract can be checked.",
           });
           return;
         }
 
         const seedBody = sourceCode.getText(node.value.body);
-        if (!/\bonConflictDo(?:Update|Nothing)\s*\(/.test(seedBody)) {
+        if (/\b(?:randomUUID|Math\.random|Date\.now)\s*\(/.test(seedBody)) {
           context.report({
             node,
             message:
-              "Runtime seed callbacks must use onConflictDoUpdate() or onConflictDoNothing().",
-          });
-        }
-        if (/\bdb\s*\.\s*(?:insert|update|delete)\s*\(/.test(seedBody)) {
-          context.report({
-            node,
-            message:
-              "Runtime seed callbacks must write through the transactional tx, not the shared db client.",
-          });
-        }
-        if (
-          /\btx\s*\.\s*execute\s*\(\s*sql\s*`[\s\r\n]*(?:insert|update|delete)\b/i.test(
-            seedBody,
-          ) ||
-          /\btx\s*\.\s*execute\s*\(\s*sql\s*\.\s*raw\s*\(\s*["'`][\s\r\n]*(?:insert|update|delete)\b/i.test(
-            seedBody,
-          )
-        ) {
-          context.report({
-            node,
-            message:
-              "Runtime seed writes must use typed tx.insert()/update()/delete() builders, not raw SQL. Typed builders apply the schema's date/timestamp encoders before values reach PostgreSQL.",
+              "Seed records need fixed ids so a retry or a second process gets 409 (already exists) instead of a duplicate. Do not generate ids with randomUUID()/Math.random()/Date.now() in a seed.",
           });
         }
         if (/\.\s*set(?:UTC)?Date\s*\(|\.\s*setTime\s*\(/.test(seedBody)) {
           context.report({
             node,
             message:
-              "Do not construct runtime seed values with mutating Date setters, which return numbers. Use seedDate() for date columns and seedTimestamp() for timestamp columns.",
+              "Do not construct seed values with mutating Date setters, which return numbers. Use seedDate(), seedTimestamp() or seedTimeMs() from @/services/seed-utils.",
           });
         }
       },
@@ -170,17 +149,20 @@ const runtimeFirstLoadRule = {
               "Files using useRequest must render the result through <AsyncView>.",
           });
         }
-        if (isServiceFile && seedCount > 0 && bootstrapCount === 0) {
+        if (isServiceFile && seedCount > 0 && defineCount === 0) {
           context.report({
             node,
             message:
-              "Runtime seed callbacks must be owned by bootstrapModule().",
+              "Seed callbacks must be owned by defineAppCollection() so they run once, against an ensured collection.",
           });
         }
       },
     };
   },
 };
+
+const DB_IMPORT_MESSAGE =
+  "Apps have no database. Store the app's own data in app-owned UNS collections (defineAppCollection / ensureAppCollection from @/lib/uns.server, called from src/services/**); see docs/uns-data.md.";
 
 const eslintConfig = defineConfig([
   globalIgnores([
@@ -240,29 +222,47 @@ const eslintConfig = defineConfig([
     },
     settings: { react: { version: "detect" } },
   },
-  // ─── Three-layer architecture enforcement ───
-  // The `db` client must only be touched by services and the seed script.
-  // Routes, lib, components, and start.ts must go through a service.
-  // Schema (`@/db/schema`) and seed are not restricted — routes legitimately
-  // import zod schemas from there.
+  // ─── Data-layer boundary ───
+  // Apps have no database: their own data lives in app-owned UNS collections
+  // (`defineAppCollection` in @/lib/uns.server). Database drivers and ORMs are
+  // banned everywhere; browser components must not import the server client
+  // (they call the app's own API routes instead).
   {
-    files: [
-      "src/routes/**/*.{ts,tsx}",
-      "src/lib/**/*.{ts,tsx}",
-      "src/components/**/*.{ts,tsx}",
-      "src/router.tsx",
-      "src/start.ts",
-    ],
+    files: ["**/*.{ts,tsx,js,jsx,mjs}"],
     rules: {
       "no-restricted-imports": [
         "error",
         {
           paths: [
+            { name: "pg", message: DB_IMPORT_MESSAGE },
+            { name: "postgres", message: DB_IMPORT_MESSAGE },
+            { name: "@/db", message: DB_IMPORT_MESSAGE },
+          ],
+          patterns: [
+            { group: ["drizzle-orm", "drizzle-orm/*", "drizzle-kit", "drizzle-kit/*", "drizzle-zod", "@prisma/*", "prisma", "knex", "kysely", "typeorm", "sequelize", "mysql", "mysql2", "sqlite3", "better-sqlite3", "@/db/*"], message: DB_IMPORT_MESSAGE },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["src/components/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            { name: "pg", message: DB_IMPORT_MESSAGE },
+            { name: "postgres", message: DB_IMPORT_MESSAGE },
+            { name: "@/db", message: DB_IMPORT_MESSAGE },
             {
-              name: "@/db",
+              name: "@/lib/uns.server",
               message:
-                "The db client may only be imported from src/services/** or src/db/seed.ts. Move logic into a service and call it from here.",
+                "@/lib/uns.server is server-only. Components call the app's own API routes (apiUrl('/api/...') via useRequest) and get live updates with useUnsChanges().",
             },
+          ],
+          patterns: [
+            { group: ["drizzle-orm", "drizzle-orm/*", "drizzle-kit", "drizzle-kit/*", "drizzle-zod", "@prisma/*", "prisma", "knex", "kysely", "typeorm", "sequelize", "mysql", "mysql2", "sqlite3", "better-sqlite3", "@/db/*"], message: DB_IMPORT_MESSAGE },
           ],
         },
       ],

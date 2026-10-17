@@ -29,13 +29,16 @@ function stripComments(source) {
     .replace(/^\s*\/\/.*$/gm, "");
 }
 
+// Body of every `seed: () => …` callback (block, array or parenthesized literal).
 function extractSeedBlocks(source) {
   const blocks = [];
   const seedPattern =
-    /\bseed\s*:\s*(?:async\s+)?(?:\([^)]*\)|[A-Za-z_$][\w$]*)\s*=>\s*\{/g;
+    /\bseed\s*:\s*(?:async\s+)?(?:\([^)]*\)|[A-Za-z_$][\w$]*)\s*=>\s*([{[(])/g;
+  const closers = { "{": "}", "[": "]", "(": ")" };
 
   for (const match of source.matchAll(seedPattern)) {
-    const openIndex = source.indexOf("{", match.index);
+    const opener = match[1];
+    const openIndex = match.index + match[0].length - 1;
     let depth = 0;
     let quote = null;
     let escaped = false;
@@ -52,8 +55,8 @@ function extractSeedBlocks(source) {
         quote = character;
         continue;
       }
-      if (character === "{") depth += 1;
-      else if (character === "}") {
+      if (character === opener) depth += 1;
+      else if (character === closers[opener]) {
         depth -= 1;
         if (depth === 0) {
           blocks.push(source.slice(openIndex, index + 1));
@@ -88,34 +91,22 @@ for (const root of DATA_UI_ROOTS) {
   }
 }
 
+// First-load seeds of app-owned collections: owned by defineAppCollection(),
+// fixed record ids (a retry or a second process gets 409 instead of a
+// duplicate), no numeric Date-setter results.
 for (const file of walkFiles(SERVICE_ROOT)) {
   const rel = toPosixPath(relative(process.cwd(), file));
-  if (rel === "src/services/bootstrap.ts") continue;
-
   const source = stripComments(readFileSync(file, "utf8"));
   const seedBlocks = extractSeedBlocks(source);
   if (seedBlocks.length === 0) continue;
 
-  if (!/\bbootstrapModule\s*\(/.test(source)) {
-    findings.push(`${rel}: seed callback is not owned by bootstrapModule`);
+  if (!/\bdefineAppCollection\s*(?:<[^>]*>)?\s*\(/.test(source)) {
+    findings.push(`${rel}: seed callback is not owned by defineAppCollection`);
   }
   seedBlocks.forEach((seedBlock, index) => {
-    if (!/\bonConflictDo(?:Update|Nothing)\s*\(/.test(seedBlock)) {
-      findings.push(`${rel}: seed callback ${index + 1} has no conflict strategy`);
-    }
-    if (/\bdb\s*\.\s*(?:insert|update|delete)\s*\(/.test(seedBlock)) {
-      findings.push(`${rel}: seed callback ${index + 1} writes through db instead of tx`);
-    }
-    if (
-      /\btx\s*\.\s*execute\s*\(\s*sql\s*`[\s\r\n]*(?:insert|update|delete)\b/i.test(
-        seedBlock,
-      ) ||
-      /\btx\s*\.\s*execute\s*\(\s*sql\s*\.\s*raw\s*\(\s*["'`][\s\r\n]*(?:insert|update|delete)\b/i.test(
-        seedBlock,
-      )
-    ) {
+    if (/\b(?:randomUUID|Math\.random|Date\.now)\s*\(/.test(seedBlock)) {
       findings.push(
-        `${rel}: seed callback ${index + 1} uses raw SQL for a data write`,
+        `${rel}: seed callback ${index + 1} generates record ids at runtime; use fixed ids so re-seeding is idempotent`,
       );
     }
     if (/\.\s*set(?:UTC)?Date\s*\(|\.\s*setTime\s*\(/.test(seedBlock)) {
@@ -124,22 +115,6 @@ for (const file of walkFiles(SERVICE_ROOT)) {
       );
     }
   });
-}
-
-const explicitSeedPath = join(process.cwd(), "src/db/seed.ts");
-if (existsSync(explicitSeedPath)) {
-  const explicitSeed = stripComments(readFileSync(explicitSeedPath, "utf8"));
-  if (
-    /\b(?:db|tx)\s*\.\s*insert\s*\(/.test(explicitSeed) &&
-    !/\bonConflictDo(?:Update|Nothing)\s*\(/.test(explicitSeed)
-  ) {
-    findings.push("src/db/seed.ts: explicit seed insert has no conflict strategy");
-  }
-}
-
-const bootstrap = readFileSync("src/services/bootstrap.ts", "utf8");
-for (const required of [/db\.transaction\s*\(/, /pg_advisory_xact_lock/, /bootstraps\.delete\(key\)/]) {
-  if (!required.test(bootstrap)) findings.push(`src/services/bootstrap.ts: missing ${required}`);
 }
 
 if (findings.length > 0) {
