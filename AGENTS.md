@@ -525,3 +525,25 @@ components require an application-scoped `ComponentKitProvider`; logical resourc
 paths do not imply backend endpoints exist. Never import `gallery/fixtures.ts`
 into an app. Preserve existing auth/permission guards and the scaffold theme;
 enabled inputs use white surfaces, with gray fill reserved for disabled controls.
+
+## Action-driven document lifecycle
+
+Before generating a document app, define initial states, actions, source states,
+permissions, prerequisites and transactional effects. Use `src/lib/lifecycle`
+and the integration contract in `docs/component-kit.md`. Create sets initial
+state on the server; saving a draft does not submit it. Never offer an editable
+lifecycle-state dropdown in create/edit forms. Mark action-owned fields with
+`widget.stateManagement: "action"` and business-derived progress with `"derived"`.
+State filters remain selectable; ordinary classifications remain editable.
+
+Reject managed fields in ordinary create/update/import/bulk payloads at the
+service boundary. Execute action IDs against fresh server state and permissions,
+using an atomic state/version conditional update in the same database transaction
+as business effects and audit. Roll back on failure; use an outbox for external
+effects. Never implement submit/approve/void as an unrestricted status PATCH.
+Receipt/payment progress is calculated from business records, not user-selected.
+Use LifecycleActions or existing row/batch actions with server-evaluated actions;
+confirm risky operations, show unavailable reasons, prevent duplicate clicks and
+refresh record/actions after success. Test illegal transitions, unauthorized
+calls, direct state writes, stale versions and rollback. Helpers require real
+application database/permission adapters; examples are not production services.
