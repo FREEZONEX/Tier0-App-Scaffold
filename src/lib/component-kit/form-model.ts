@@ -39,7 +39,7 @@ export function isFormFieldVisible(field: FieldDef, values: FormValues): boolean
 export function isFieldReadonly(field: FieldDef, mode: FormMode): boolean {
   if (mode === "view") return true;
   const widget = field.widget ?? {};
-  if (widget.readonly) return true;
+  if (widget.readonly || widget.stateManagement) return true;
   return mode === "edit" && widget.readonlyOnEdit === true;
 }
 
@@ -54,6 +54,7 @@ export function isDerivedField(field: FieldDef): boolean {
 
 export function defaultFieldValue(field: FieldDef, now: Date = new Date()): unknown {
   const widget = field.widget ?? {};
+  if (widget.stateManagement) return undefined;
   if (widget.defaultValue !== undefined && widget.defaultValue !== null && widget.defaultValue !== "") {
     return widget.defaultValue;
   }
@@ -205,6 +206,7 @@ export function validateFormSections(
     if (section.type !== "form") continue;
     for (const field of section.items) {
       if (!isFormFieldVisible(field, values)) continue;
+      if (field.widget?.stateManagement) continue;
       if (isFieldReadonly(field, mode) && !field.widget?.required) continue;
       if (isDerivedField(field)) continue;
       const message = validateFieldValue(field, values[field.code]);

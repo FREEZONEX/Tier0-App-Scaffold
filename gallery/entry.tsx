@@ -93,7 +93,8 @@ case'ViewListDrawer':body=<Comp {...common} activeCode="all" onCreate={hit} onEd
 case'ViewEditorDrawer':body=<ViewEditorExample/>;break;
 case'FormDrawer':case'FullscreenModal':body=<><Button onClick={()=>O(true)}>打开表单</Button><Comp {...common} anchors={[{key:'base',label:'基本信息'}]} footer={<Button onClick={done}>保存演示</Button>}>{form}</Comp></>;break;
 case'MetaListPage':body=<Comp objectCode="product" title="物料档案" onCreate={hit} onOpenRecord={hit} importable exportable rowActions={()=>[{key:'edit',label:'编辑',onClick:hit}]} />;break;
-case'ReferenceInput':case'PersonInput':case'ReferenceSelect':body=<Comp {...common} value={typeof v==='object'?v:{id:'demo-1',name:'精密铝合金支架',code:'MAT-1001'}}/>;break;
+case'ReferenceInput':body=<><Comp {...common} aria-label="物料编码" displayField="code" confirmText="选择物料" placeholder="请选择物料" value={typeof v==='object'?v:null}/><p role="status">{v && typeof v==='object' ? `已选择：${v.code ?? ''} · ${v.name}` : '尚未选择物料'}</p></>;break;
+case'PersonInput':case'ReferenceSelect':body=<Comp {...common} value={typeof v==='object'?v:{id:'demo-1',name:'精密铝合金支架',code:'MAT-1001'}}/>;break;
 case'ReferencePicker':case'PersonPicker':body=<Comp {...common} value={null} multiple/>;break;
 case'ImportDialog':body=<Comp {...common}/>;break;
 case'ExportDialog':body=<Comp {...common} request={{page:{current:1,pageSize:10}}} fieldCodes={fields.map(f=>f.code)} total={126} selectedIds={['demo-1']}/>;break;

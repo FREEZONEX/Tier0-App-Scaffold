@@ -4,7 +4,7 @@
  * Picker-backed inputs (参照输入框, right side 放大镜):
  * - PersonInput → PersonPicker (人员, single / multiple)
  * - ReferenceInput → ReferencePicker (对象参照弹窗)
- * Multiple values render as closable tags; × clears on hover.
+ * Multiple values render as closable tags; × clears without opening the picker.
  */
 import { CircleX, Search } from "lucide-react";
 import { useState, type KeyboardEvent, type MouseEvent } from "react";
@@ -36,6 +36,7 @@ interface PickerFrameProps {
   active: boolean;
   className?: string;
   ariaLabel?: string;
+  displayField?: "name" | "code";
   onOpen: () => void;
   onChange: (value: RefInputValue) => void;
 }
@@ -56,6 +57,7 @@ function PickerFrame({
   active,
   className,
   ariaLabel,
+  displayField = "name",
   onOpen,
   onChange,
 }: PickerFrameProps) {
@@ -81,7 +83,7 @@ function PickerFrame({
         if (!disabled) onOpen();
       }}
       onKeyDown={(event: KeyboardEvent<HTMLDivElement>) => {
-        if (disabled) return;
+        if (disabled || event.target !== event.currentTarget) return;
         if (event.key === "Enter" || event.key === " " || event.key === "ArrowDown") {
           event.preventDefault();
           onOpen();
@@ -110,16 +112,15 @@ function PickerFrame({
           ))
         ) : (
           <span className="truncate" title={items[0].code ? `${items[0].name}（${items[0].code}）` : items[0].name}>
-            {items[0].name}
+            {items[0][displayField] || items[0].name}
           </span>
         )}
       </span>
       {!empty && !disabled ? (
         <button
           type="button"
-          tabIndex={-1}
           aria-label="清除"
-          className="hidden shrink-0 items-center text-text-placeholder hover:text-text-tertiary group-hover:flex"
+          className="flex shrink-0 items-center text-text-placeholder hover:text-text-tertiary"
           onClick={(event) => {
             event.stopPropagation();
             onChange(multiple ? [] : null);
@@ -128,7 +129,7 @@ function PickerFrame({
           <CircleX className="size-3.5" />
         </button>
       ) : null}
-      <Search className={cn("size-3.5 shrink-0 text-text-tertiary", !empty && !disabled && "group-hover:hidden")} aria-hidden="true" />
+      <Search className="size-3.5 shrink-0 text-text-tertiary" aria-hidden="true" />
     </div>
   );
 }
@@ -194,6 +195,9 @@ export function PersonInput({
 }
 
 export interface ReferenceInputProps extends BaseInputProps {
+  /** Single-value display; selection snapshots retain both name and code. */
+  displayField?: "name" | "code";
+  confirmText?: string;
   /** Relation field (reference target, widget.params, selectionMode). */
   field?: Pick<FieldDef, "reference" | "widget" | "name">;
   /** Target objectCode when no field is given. */
@@ -211,6 +215,8 @@ export function ReferenceInput({
   field,
   objectCode,
   title,
+  displayField,
+  confirmText,
   fixedFilters,
   isRowSelectable,
   multiple,
@@ -246,6 +252,7 @@ export function ReferenceInput({
       <PickerFrame
         value={value}
         multiple={isMultiple}
+        displayField={displayField}
         placeholder={placeholder ?? field?.widget?.placeholder ?? (field ? `请选择${field.name}` : "请选择")}
         disabled={disabled || !target}
         status={status}
@@ -263,6 +270,7 @@ export function ReferenceInput({
           onOpenChange={setOpen}
           objectCode={target}
           title={title}
+          confirmText={confirmText}
           multiple={isMultiple}
           value={value}
           field={field}

@@ -86,3 +86,54 @@ test('metadata forms keep the required marker after the title in both layouts', 
   assert.ok(html.indexOf('名称') < html.indexOf('data-required-marker'));
  }
 });
+
+test('managed lifecycle fields are read-only and do not require client defaults', async () => {
+ const {isFieldReadonly, defaultFieldValue}=await import('../src/lib/component-kit/form-model');
+ for (const stateManagement of ['action','derived'] as const) {
+  const status: FieldDef={code:'status',name:'状态',type:'SINGLE_SELECT',widget:{stateManagement,required:true,defaultValue:'approved'}};
+  assert.equal(isFieldReadonly(status,'create'),true);
+  assert.equal(isFieldReadonly(status,'edit'),true);
+  assert.equal(defaultFieldValue(status),undefined);
+  assert.deepEqual(validateFormSections([{...sections[0],items:[status]}],{},'create'),{});
+ }
+});
+
+test('lifecycle actions enforce permissions, transitions, concurrency and transactional rollback', async () => {
+ const {executeLifecycleAction}=await import('../src/lib/lifecycle/execute');
+ const {assertNoManagedState}=await import('../src/lib/lifecycle');
+ assert.throws(()=>assertNoManagedState({status:'approved'},['status']));
+ assertNoManagedState({name:'A'},['status']);
+ type State='draft'|'submitted';
+ type Store={state:State;version:number;effects:number;audit:number};
+ let store:Store={state:'draft',version:1,effects:0,audit:0};
+ let permitted=true, valid=true, conflict=false, failEffect=false;
+ const run=(actionId='submit',expectedVersion=1)=>executeLifecycleAction<State,Store,Store>({
+  definition:{initial:'draft',actions:[{id:'submit',label:'提交',from:['draft'],to:'submitted',permission:'submit'}]},
+  actionId,expectedVersion,
+  transaction:async fn=>{const draft={...store};const result=await fn(draft);store=draft;return result;},
+  load:async tx=>({...tx}),authorize:async()=>permitted,
+  validate:async()=>{if(!valid)throw Error('invalid');},
+  compareAndSet:async(tx,record,next)=>{if(conflict||tx.version!==record.version)return false;tx.state=next;tx.version++;return true;},
+  apply:async tx=>{tx.effects++;if(failEffect)throw Error('failed');},
+  audit:async tx=>{tx.audit++;},
+ });
+ await assert.rejects(run('approve')); permitted=false;await assert.rejects(run());permitted=true;
+ valid=false;await assert.rejects(run());valid=true;
+ conflict=true;await assert.rejects(run());conflict=false;
+ failEffect=true;await assert.rejects(run());failEffect=false;
+ assert.deepEqual(store,{state:'draft',version:1,effects:0,audit:0});
+ await run(); await assert.rejects(run()); await assert.rejects(run('submit',2));
+ assert.deepEqual(store,{state:'submitted',version:2,effects:1,audit:1});
+});
+
+test('MetaForm renders managed state as display even with a custom editable renderer', async () => {
+ const {MetaForm}=await import('../src/components/kit/meta/meta-form');
+ const status:FieldDef={code:'status',name:'状态',type:'SINGLE_SELECT',options:[{value:'draft',label:'草稿'}],widget:{stateManagement:'action'}};
+ for(const mode of ['create','edit'] as const) {
+  const html=renderToString(createElement(MetaForm,{
+   sections:[{...sections[0],items:[status]}],value:{status:'draft'},mode,onChange:()=>{},
+   renderField:()=>createElement('input',{'data-unsafe':'true'}),
+  }));
+  assert.match(html,/草稿/); assert.doesNotMatch(html,/data-unsafe|<select|role="combobox"/);
+ }
+});

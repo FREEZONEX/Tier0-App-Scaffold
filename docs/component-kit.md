@@ -61,6 +61,14 @@ function RecordForm() {
 
 提交前调用 `formRef.current?.validate()`；通过后由应用保存。表格区块使用 `type: 'table'`，数据放在 `value[section.key]`。明细行的 `__key` 只用于界面，提交时用 `stripRowKeys()` 去除。业务字段计算、提交事务和后端校验仍由应用负责。
 
+## 弹窗参照字段
+
+使用 `@/components/kit/meta/reference-input` 的 `ReferenceInput`。参照字段显示为一个选择框，右侧始终保留放大镜，点击框内任意非清除区域打开参照弹窗；不要拼接只读输入框与“参照 xxx”按钮。Enter、空格和向下方向键也可打开弹窗，禁用时不可打开。
+
+默认显示名称；编码字段传 `displayField="code"`，无编码时回退显示名称。`value` 仍保存完整的 `{ id, name, code }`，用于重开弹窗回显；`confirmText` 可指定确认按钮文案。单选时 `onChange(value, rows)` 提供选中值与记录，业务通过 `rows` 回填关联字段；取消不改变原值。点击清除会传 `null`（多选为 `[]`）及空记录数组，应用须同时清除关联字段。清除按钮支持键盘操作且不会打开参照弹窗。
+
+该组件沿用下文的 `ComponentKitProvider` 数据适配契约。
+
 ## 数据与权限适配
 
 纯展示/受控组件不需要服务。关联选择、列表、配置、导入导出与打印等组件需要 `ComponentKitProvider`：
@@ -90,3 +98,27 @@ const adapter: ComponentKitAdapter = {
 启用状态输入框为白底，浅灰填充仅用于禁用状态；沿用根 `globals.css` 的主题变量。交互组件保留 hover、focus、error、disabled 的区分。图标、文字、链接与按钮按各自职责保留。
 
 新增 Excel/二维码依赖按需动态加载。`npm run build` 包含原有构建、认证、运行时检查及新增组件回归测试；`npm run gallery:build` 构建直接引用本仓源码的独立图库。图库的适配器仅使用本地演示数据，不能视为后端接入验证。
+
+## 单据生命周期与业务动作
+
+单据创建时由服务端设置初始状态。保存只修改允许编辑的业务字段，不提交单据。提交、审核、撤回、作废等动作由服务端根据当前状态、权限和前置条件决定能否执行及结果状态。流程按业务需要定义，不强制所有单据都有审核。
+
+- 字段元数据设置 `widget.stateManagement: "action"` 表示动作管理的状态，`"derived"` 表示由收货、付款、冲销等业务记录计算的进度。`MetaForm` 在创建和编辑中均以只读标签展示，忽略客户端默认值和必填校验，自定义字段渲染不能覆盖这项保护。列表查询条件仍可用状态下拉；普通分类字段不因名称为 status 而自动受限。
+- 创建及普通更新接口在解析原始请求后调用 `assertNoManagedState(payload, managedFields)`，明确列出全部流程与派生状态字段；随后用允许字段的 schema 校验业务数据。初始状态取 `definition.initial`。禁止通过批量编辑、导入或通用 CRUD 绕过同一服务规则。前端保存 payload 应移除这些展示字段。
+- 在服务层使用 `executeLifecycleAction`（`src/lib/lifecycle/execute.ts`）。请求只接收单据标识、action、预期 version 和动作所需业务参数，目标状态只取可信定义。`load` 读取事务内最新记录；`authorize` 使用认证用户；`validate` 检查业务条件。`compareAndSet` 必须按单据 ID、原状态、version 条件原子更新并递增 version；更新零行返回 false。
+- `transaction` 接入真实数据库事务；`apply` 写入库存、金额等业务变化，`audit` 写入操作者、动作、前后状态、时间及单据标识。任一步失败均回滚。外部通知或支付调用通过同事务 outbox 处理，不直接放在事务回调中。辅助函数提供执行顺序，应用必须实现数据库适配；它不自动生成表、接口或权限。
+- 重复请求或过期 version 返回冲突并要求刷新，不重复执行副作用。需要返回首次执行结果的幂等重试，应用应另加事务内唯一请求键。允许同状态执行的动作仍需递增 version。
+- `LifecycleActions` 接收服务端评估的可用动作；无权限动作从结果中省略，条件不满足的动作带禁用原因。应用处理确认、pending、错误及成功后的记录/动作刷新；详情、行操作和批量操作复用相同服务。批量操作逐单校验，并明确整批原子提交或逐单返回结果。
+- 已收货/已结算等派生进度由真实业务记录计算，不能通过一个“设为已结算”动作替代实际结算。它们可有多个独立字段，不必挤入单一流程状态。派生计算随对应业务动作在事务内更新。
+
+定义示例（状态与权限由应用自行命名）：
+
+```ts
+import type { LifecycleDefinition } from '@/lib/lifecycle';
+const lifecycle: LifecycleDefinition<'draft' | 'submitted'> = {
+  initial: 'draft',
+  actions: [{ id: 'submit', label: '提交', from: ['draft'], to: 'submitted', permission: 'orders.submit' }],
+};
+```
+
+服务端应将校验失败、权限不足和并发冲突映射为相应 API 错误。状态只读属于 UI 约束，服务端保护与数据库原子性仍须独立验证。

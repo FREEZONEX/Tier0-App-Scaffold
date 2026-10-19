@@ -71,6 +71,8 @@ export interface FieldWidget {
   tipExpanded?: boolean;
   required?: boolean;
   readonly?: boolean;
+  /** Server-owned lifecycle state or progress derived from business records. Never editable in forms. */
+  stateManagement?: "action" | "derived";
   /** Replica: read-only once the record exists (codes, relations fixed after confirm). */
   readonlyOnEdit?: boolean;
   /** false = not rendered in this place (kept for data binding). */

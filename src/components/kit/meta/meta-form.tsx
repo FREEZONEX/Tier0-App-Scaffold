@@ -1,4 +1,5 @@
 "use client";
+import { FieldValue } from "./field-value";
 
 /**
  * MetaForm — renders `EffectivePageConfig.formSections` (standard + custom
@@ -157,7 +158,9 @@ function FormItem({
   const widget = field.widget ?? {};
   const horizontal = layout === "horizontal";
   const onChange = (next: unknown, records?: Record<string, unknown>[]) => onFieldChange(field, next, records);
-  const control = renderField ? (
+  const control = widget.stateManagement ? (
+    <FieldValue field={field} value={value} status />
+  ) : renderField ? (
     renderField({ field, value, values, mode, readonly, error, onChange })
   ) : (
     <FieldControl
@@ -263,6 +266,7 @@ export function MetaForm({
   );
 
   const handleFieldChange = (field: FieldDef, next: unknown, records?: Record<string, unknown>[]) => {
+    if (fieldReadonly(field)) return;
     let values: FormValues = { ...value, [field.code]: next };
     if (field.type === "RELATION_OBJECT") {
       const cleared = next === null || next === undefined || (Array.isArray(next) && next.length === 0);
