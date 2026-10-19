@@ -61,6 +61,14 @@ function RecordForm() {
 
 提交前调用 `formRef.current?.validate()`；通过后由应用保存。表格区块使用 `type: 'table'`，数据放在 `value[section.key]`。明细行的 `__key` 只用于界面，提交时用 `stripRowKeys()` 去除。业务字段计算、提交事务和后端校验仍由应用负责。
 
+## 弹窗参照字段
+
+使用 `@/components/kit/meta/reference-input` 的 `ReferenceInput`。参照字段显示为一个选择框，右侧始终保留放大镜，点击框内任意非清除区域打开参照弹窗；不要拼接只读输入框与“参照 xxx”按钮。Enter、空格和向下方向键也可打开弹窗，禁用时不可打开。
+
+默认显示名称；编码字段传 `displayField="code"`，无编码时回退显示名称。`value` 仍保存完整的 `{ id, name, code }`，用于重开弹窗回显；`confirmText` 可指定确认按钮文案。单选时 `onChange(value, rows)` 提供选中值与记录，业务通过 `rows` 回填关联字段；取消不改变原值。点击清除会传 `null`（多选为 `[]`）及空记录数组，应用须同时清除关联字段。清除按钮支持键盘操作且不会打开参照弹窗。
+
+该组件沿用下文的 `ComponentKitProvider` 数据适配契约。
+
 ## 数据与权限适配
 
 纯展示/受控组件不需要服务。关联选择、列表、配置、导入导出与打印等组件需要 `ComponentKitProvider`：

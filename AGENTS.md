@@ -290,6 +290,13 @@ shrinkable; keep page-specific vertical rhythm such as `space-y-6` on the same
 element. Do not add a second outer `px-*` / `py-*` layer. Station, review, and
 monitor layouts own their spacing separately and do not use `page-shell`.
 
+Dialog-backed relation fields use `ReferenceInput` from
+`@/components/kit/meta/reference-input`: one select-like field with a persistent
+search icon on the right; clicking the field opens the reference dialog. Do not
+pair a read-only input with a separate “Reference …” button. Use
+`displayField="code"` when the field displays a record code; keep name and code
+in the selected value for dialog echo. Clearing must also clear dependent fields.
+
 Required fields use `FieldGroup required` or `FieldLabel required` with plain
 title text. Show exactly one red asterisk to the right of the title, never
 below the control. Do not hand-write stars, reverse label direction, or put
