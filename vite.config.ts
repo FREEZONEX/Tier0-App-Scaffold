@@ -54,7 +54,7 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   ssr: {
-    external: ["pg", "@tier0/sdk", "mqtt"],
+    external: ["@tier0/sdk", "mqtt"],
   },
   optimizeDeps: {
     // Pre-bundle client deps that are only reached through code-split route

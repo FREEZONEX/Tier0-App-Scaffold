@@ -5,7 +5,9 @@
  * "translate HTTP ↔ service call" without re-implementing error mapping.
  *
  * Throw `HttpError` for client-facing failures; throw `ZodError` (i.e. let
- * `schema.parse(...)` propagate) for validation failures. Anything else is a 500.
+ * `schema.parse(...)` propagate) for validation failures. Data-layer
+ * `DataError`s keep their mapped status and UNS error code (`DUPLICATE_KEY`,
+ * `VERSION_CONFLICT`, ...). Anything else is a 500.
  *
  * Usage:
  *
@@ -18,7 +20,7 @@
  *         }),
  *         POST: withErrors(async ({ request }) => {
  *           const user = await requireAuth("warehouse_manager");
- *           const data = insertWorkOrderSchema.parse(await request.json());
+ *           const data = createWorkOrderInput.parse(await request.json());
  *           return Response.json(await createWorkOrder(data, user.id));
  *         }),
  *       },
@@ -64,9 +66,18 @@ export function withErrors<Args extends any[]>(
       if (e instanceof HttpError) {
         return Response.json({ error: e.message }, { status: e.status });
       }
-      // Backwards compatibility: services that still throw plain `{status, message}`.
+      // Plain `{status, message}` errors, including data-layer `DataError`s,
+      // which also carry the UNS error `code` and `requestId`.
       if (isHttpErrorShape(e)) {
-        return Response.json({ error: e.message }, { status: e.status });
+        const { code, requestId } = e as { code?: unknown; requestId?: unknown };
+        return Response.json(
+          {
+            error: e.message,
+            ...(typeof code === "string" ? { code } : {}),
+            ...(typeof requestId === "string" ? { requestId } : {}),
+          },
+          { status: e.status },
+        );
       }
       if (e instanceof ZodError) {
         const first = e.issues[0];

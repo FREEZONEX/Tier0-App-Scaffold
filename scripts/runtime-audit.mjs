@@ -3,6 +3,7 @@ import { join, relative } from "node:path";
 
 const DATA_UI_ROOTS = ["src/components", "src/routes"];
 const SERVICE_ROOT = "src/services";
+const BOOTSTRAP_PATH = "src/lib/data/bootstrap.ts";
 
 function toPosixPath(filePath) {
   return filePath.replaceAll("\\", "/");
@@ -29,42 +30,6 @@ function stripComments(source) {
     .replace(/^\s*\/\/.*$/gm, "");
 }
 
-function extractSeedBlocks(source) {
-  const blocks = [];
-  const seedPattern =
-    /\bseed\s*:\s*(?:async\s+)?(?:\([^)]*\)|[A-Za-z_$][\w$]*)\s*=>\s*\{/g;
-
-  for (const match of source.matchAll(seedPattern)) {
-    const openIndex = source.indexOf("{", match.index);
-    let depth = 0;
-    let quote = null;
-    let escaped = false;
-
-    for (let index = openIndex; index < source.length; index += 1) {
-      const character = source[index];
-      if (quote) {
-        if (escaped) escaped = false;
-        else if (character === "\\") escaped = true;
-        else if (character === quote) quote = null;
-        continue;
-      }
-      if (character === "'" || character === '"' || character === "`") {
-        quote = character;
-        continue;
-      }
-      if (character === "{") depth += 1;
-      else if (character === "}") {
-        depth -= 1;
-        if (depth === 0) {
-          blocks.push(source.slice(openIndex, index + 1));
-          break;
-        }
-      }
-    }
-  }
-  return blocks;
-}
-
 const findings = [];
 
 for (const root of DATA_UI_ROOTS) {
@@ -88,58 +53,24 @@ for (const root of DATA_UI_ROOTS) {
   }
 }
 
+// Services run on SSR startup paths: touching App data at import time would
+// make every cold start depend on UNS. Data access starts inside a request.
 for (const file of walkFiles(SERVICE_ROOT)) {
   const rel = toPosixPath(relative(process.cwd(), file));
-  if (rel === "src/services/bootstrap.ts") continue;
-
   const source = stripComments(readFileSync(file, "utf8"));
-  const seedBlocks = extractSeedBlocks(source);
-  if (seedBlocks.length === 0) continue;
-
-  if (!/\bbootstrapModule\s*\(/.test(source)) {
-    findings.push(`${rel}: seed callback is not owned by bootstrapModule`);
-  }
-  seedBlocks.forEach((seedBlock, index) => {
-    if (!/\bonConflictDo(?:Update|Nothing)\s*\(/.test(seedBlock)) {
-      findings.push(`${rel}: seed callback ${index + 1} has no conflict strategy`);
-    }
-    if (/\bdb\s*\.\s*(?:insert|update|delete)\s*\(/.test(seedBlock)) {
-      findings.push(`${rel}: seed callback ${index + 1} writes through db instead of tx`);
-    }
-    if (
-      /\btx\s*\.\s*execute\s*\(\s*sql\s*`[\s\r\n]*(?:insert|update|delete)\b/i.test(
-        seedBlock,
-      ) ||
-      /\btx\s*\.\s*execute\s*\(\s*sql\s*\.\s*raw\s*\(\s*["'`][\s\r\n]*(?:insert|update|delete)\b/i.test(
-        seedBlock,
-      )
-    ) {
-      findings.push(
-        `${rel}: seed callback ${index + 1} uses raw SQL for a data write`,
-      );
-    }
-    if (/\.\s*set(?:UTC)?Date\s*\(|\.\s*setTime\s*\(/.test(seedBlock)) {
-      findings.push(
-        `${rel}: seed callback ${index + 1} uses a numeric Date setter result`,
-      );
-    }
-  });
-}
-
-const explicitSeedPath = join(process.cwd(), "src/db/seed.ts");
-if (existsSync(explicitSeedPath)) {
-  const explicitSeed = stripComments(readFileSync(explicitSeedPath, "utf8"));
-  if (
-    /\b(?:db|tx)\s*\.\s*insert\s*\(/.test(explicitSeed) &&
-    !/\bonConflictDo(?:Update|Nothing)\s*\(/.test(explicitSeed)
-  ) {
-    findings.push("src/db/seed.ts: explicit seed insert has no conflict strategy");
+  if (/^(?:export\s+)?(?:(?:const|let|var)\s+[\w${}[\],\s]+=\s*)?await\b/m.test(source)) {
+    findings.push(`${rel}: top-level await runs at import time; access data inside the service function`);
   }
 }
 
-const bootstrap = readFileSync("src/services/bootstrap.ts", "utf8");
-for (const required of [/db\.transaction\s*\(/, /pg_advisory_xact_lock/, /bootstraps\.delete\(key\)/]) {
-  if (!required.test(bootstrap)) findings.push(`src/services/bootstrap.ts: missing ${required}`);
+// First-load invariants of the data-layer bootstrap (src/lib/data/bootstrap.ts).
+const bootstrap = readFileSync(BOOTSTRAP_PATH, "utf8");
+for (const [required, meaning] of [
+  [/pending = null;/, "a failed ensure must not stay memoized"],
+  [/result\.status !== "created"/, "seeds are written only for newly created collections"],
+  [/idempotencyKey: seedChunkKey\(/, "seed chunks are retried with a stable idempotency key"],
+]) {
+  if (!required.test(bootstrap)) findings.push(`${BOOTSTRAP_PATH}: ${meaning} (${required})`);
 }
 
 if (findings.length > 0) {

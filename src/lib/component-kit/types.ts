@@ -142,7 +142,7 @@ export interface ReferenceSpec {
 }
 
 export interface FieldDef {
-  /** Field code from the dictionary (Drizzle property name). Custom fields use `${objectCode}${timestamp}`. */
+  /** Field code from the dictionary (stored document field name). Custom fields use `${objectCode}${timestamp}`. */
   code: string;
   name: string;
   type: FieldType;

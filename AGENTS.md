@@ -1,7 +1,8 @@
 # Tier0 Industrial App Scaffold
 
 This repository is a TanStack Start 1.x application scaffold (Vite 8,
-TanStack Router, React 19, Drizzle, Zod, and TailwindCSS 4). It is not Next.js:
+TanStack Router, React 19, Zod, TailwindCSS 4, and Tier0 UNS collections as
+the only data store). It is not Next.js:
 do not use `next/*`, App Router conventions, `next/headers`, or Next metadata.
 Do not re-initialize the project.
 
@@ -11,7 +12,7 @@ complete workflows over a wide read-only shell.
 ## Delivery Floor: Complete the Legal Lifecycle
 
 Infer each business object's lifecycle from the domain. Do not mechanically add
-CRUD to every database table: a valid termination, correction, or operational
+CRUD to every collection: a valid termination, correction, or operational
 command is often safer than direct update/delete.
 
 | Object kind | Expected first-slice lifecycle |
@@ -35,7 +36,8 @@ is incomplete.
   `apiUrl()`. External-only handlers carry an `EXTERNAL_CALLER` comment naming
   the caller.
 - Seed data starts the experience; it does not replace operations. Use coherent,
-  populated records across relevant lifecycle states.
+  populated records across relevant lifecycle states (declared once as
+  collection `seed`, see App Data).
 - Avoid placeholder modules and copy such as “Coming soon”, “Demo mode”, or
   “can be added later”.
 - Dangerous or irreversible operations show impact, ask for confirmation, and
@@ -88,8 +90,9 @@ src/
     monitor.tsx                passive fixed-board layout
     login.tsx                  hidden platform-auth error bridge
     api/**                     thin HTTP wrappers
-  services/**                  domain logic, state machines, transactions
-  db/                          Drizzle client, schema, optional bulk seed
+  services/**                  domain logic, state machines, data access
+  data/collections.ts          collection declarations + seed (source of truth)
+  data/seed-utils.ts           seed date/reference helpers
   components/
     ui/                        visual primitives
     forms/                     safe form composition
@@ -98,12 +101,13 @@ src/
     actions/                   transparent recommendation/impact actions
     layouts/                   route-group shells
   lib/                         auth, permissions, routing and runtime helpers
+  lib/data/                    App data layer over Tier0 UNS (locked)
 server.mjs                     production entry (do not modify)
 artifact.toml                  platform build/run contract
 ```
 
 Do not modify generated `src/routeTree.gen.ts`. Preserve `src/start.ts`,
-`src/router.tsx`, `src/db/index.ts`, Gateway/auth helpers, health/manifest/auth
+`src/router.tsx`, `src/lib/data/**`, Gateway/auth helpers, health/manifest/auth
 routes, the root document structure, production entry, and existing Vite SSR
 policy unless the user explicitly asks for platform/runtime work.
 
@@ -113,58 +117,316 @@ Use three layers:
 
 1. `src/routes/api/**`: authenticate, parse with Zod, call a service, return a
    response through `withErrors`.
-2. `src/services/**`: business invariants, lifecycle transitions,
-   transactions, and audit side effects.
-3. `src/db/**`: schema, inferred types, and database client.
+2. `src/services/**`: business invariants, lifecycle transitions, data
+   access through `@/lib/data`, and audit side effects.
+3. `src/data/collections.ts`: collection declarations (Zod schemas, indexes,
+   seed) and the types derived from them.
 
 Hard invariants:
 
-- Import `db` only from `src/services/**` and `src/db/seed.ts`; ESLint enforces
-  the boundary.
+- Import `@/lib/data` only from `src/services/**`. ESLint and the locked
+  `src/lib/data-contracts.test.mjs` flag accidental violations (static guard
+  rails, not a security boundary). Any file may import declarations from
+  `@/data/collections` and types from `@/lib/data/define`.
 - Keep `Request`, `Response`, and `Headers` out of services. Services return
   typed values and throw `HttpError` for caller-facing failures.
-- Put every multi-step write in `db.transaction(async (tx) => ...)`, and use
-  `tx` throughout the transaction.
 - Define lifecycle transitions once in the owning service. Reject illegal
   transitions with a conflict/error instead of silently rewriting state.
-- Use explicit Drizzle queries such as
-  `select().from(table).where(...).limit(1)`, not relational
-  `db.query.*.findFirst()` / `tx.query.*.findFirst()`.
-- Normalize genuine raw-SQL results with `rowsOf()` before array operations.
-- Derive validation/types from the Drizzle schema with
-  `createInsertSchema`, `createUpdateSchema`, `$inferSelect`, and
-  `$inferInsert` rather than duplicating shapes by hand.
-- Tables that represent mutable business records include `...timestamps`.
+- Never fetch Tier0 UNS paths yourself and never put `TIER0_API_KEY` in the
+  browser; the data layer is the only UNS client.
 
-### First-Load Database Safety
+## App Data
 
-Call and await `bootstrapModule(...)` at each service entrypoint before querying
-its module tables. The helper shares in-flight/completed work and clears its
-cache on failure so a later call can retry. Do not permanently cache the first
-returned Promise in a module-level constant or start bootstrap at import time.
+Business data lives in Tier0 UNS collections owned by this App. There is no
+SQL database, ORM, connection string, migration or `db:push` step. Preview and
+the deployed App use the **same** collections and the same records.
 
-- Bootstrap tables and indexes before seed callbacks; keep foreign-key order
-  explicit. The schema itself is platform-provisioned; never create it.
-- Use `create ... if not exists` and idempotent typed Drizzle seed writes.
-- Seed dates use `seedDate()` / `seedTimestamp()` from
-  `@/services/seed-utils`.
-- Parent/child seeds use declared IDs or `requireSeedRef()` /
-  `requireSeedValue()`; never pass a missing required foreign key that Drizzle
-  can turn into SQL `default`.
-- Use raw SQL only for schema/bootstrap setup and read-only helpers, not seed
-  inserts/updates/deletes.
-- Runtime startup must not depend on a prior `db:push` or execution of
-  `src/db/seed.ts`. The latter is for explicit bulk/reset fixtures and uses
-  relative imports only.
-- Declare every table and enum in `src/db/schema.ts` through
-  `appSchema.table(...)` / `appSchema.enum(...)`, never bare `pgTable` /
-  `pgEnum` and never in another file. The platform deploys with
-  `drizzle-kit push --force` scoped to `DB_SCHEMA`; a declaration outside
-  `appSchema` is invisible to it and every table in the schema gets dropped.
-- `bootstrapModule(...)` entries pass the declared table object (`table:
-  workOrders`), so a runtime table always has a declaration push can see.
-- Locally sync with `npm run db:push`; it refuses DROP/TRUNCATE plans unless
-  `DB_SYNC_ALLOW_DESTRUCTIVE=1`.
+### Declare collections
+
+Declare every collection in `src/data/collections.ts` and list it in
+`collections`:
+
+```ts
+import { z } from "zod";
+import { defineCollection, type Doc } from "@/lib/data/define";
+import { seedTimestamp } from "./seed-utils";
+
+export const workOrders = defineCollection({
+  alias: "work_orders",                     // unique per App, case-insensitive
+  description: "Production work orders",
+  schema: z.object({
+    code: z.string(),
+    status: z.enum(["DRAFT", "RELEASED", "DONE", "CANCELLED"]),
+    targetQty: z.number().int().min(1),
+    line: z.object({ id: z.string(), name: z.string() }),
+    items: z.array(z.object({ sku: z.string(), qty: z.number().int().min(1) })),
+    notes: z.string().optional(),
+    dueAt: z.string(),                        // ISO instant from toISOString()
+  }),
+  indexes: [{ path: "code", unique: true }, { path: "status" }],
+  seed: [
+    { _id: "wo-001", code: "WO-001", status: "RELEASED", targetQty: 50,
+      line: { id: "line-1", name: "Line 1" }, items: [], dueAt: seedTimestamp(2) },
+  ],
+});
+export type WorkOrder = Doc<typeof workOrders>;   // { _id, ...fields, _meta }
+
+export const collections = [workOrders] as const;
+```
+
+The collection schema is a **storage** schema. UNS stores this subset only, and
+`npm run build` fails with the replacement for anything else:
+
+| Use | Instead of |
+|---|---|
+| `z.string()`, `z.number()`, `z.number().int()`, `z.boolean()` | `z.date()`, `z.bigint()`, `z.any()`, `z.unknown()` |
+| `.min()` / `.max()` on numbers (inclusive) | `.positive()`, `.gt()`, `.lt()`, `.multipleOf()` |
+| `z.enum([...])` | `z.literal()`, unions, `.nullable()`, `.nullish()` |
+| `.optional()` (field may be absent) | `null` values — leave the field out, clear with `$unset` |
+| `z.object({...})` (always closed), `z.array(item)` | `z.record()`, `z.looseObject()`, `.catchall()`, `z.tuple()` |
+| plain `z.string()`; validate format/length in the API input schema | `z.email()`, `z.uuid()`, `.regex()`, `.min(1)` on strings |
+| defaults applied in the service | `.default()`, `.catch()`, `.transform()` |
+
+Store dates as `"YYYY-MM-DD"` strings and instants as ISO-8601 UTC strings
+from `toISOString()`; both sort and range-filter as strings. Record IDs (`_id`)
+and `_meta` (`revision`, `createdAt`, `updatedAt` in Unix ms) are system
+fields: never declare them. Objects nest at most 8 levels, 128 properties per
+object, 100 enum values per field; `.describe()` text is at most 2048 UTF-8
+bytes (about 680 CJK characters). An App declares at most 64 collections, and
+a collection `description` is at most 512 characters. Descriptions are stored
+when a collection or field is first created; changing one later takes
+`schema:replace` (see Schema evolution).
+
+API input schemas derive from the declaration and add input rules:
+
+```ts
+export const createWorkOrderInput = workOrders.schema
+  .omit({ status: true })
+  .extend({ code: z.string().trim().min(1).max(32) });
+```
+
+Indexes: `{ path }` or compound `{ paths }` (≤3 distinct paths), `unique: true`
+for business keys, `kind: "gin"` for one array/object field; at most 16 per
+collection. Paths follow object properties only: `items.sku` (a field inside
+array items) cannot be indexed — index `items` with `kind: "gin"` or keep the
+value in a top-level field. Index the fields lists filter and sort on.
+
+Seed: baseline records with fixed `_id`s, coherent across lifecycle states,
+referencing each other by those IDs (`requireSeedRef()`), dates from
+`seedDate()` / `seedTimestamp()`; at most 1000 documents per collection. Seeds
+are written **once**, when the collection is created (in atomic chunks of 200,
+retried safely); editing `seed` never changes an existing collection. The
+build validates every seed document against its schema and unique indexes.
+Never insert baseline data from services (on startup, or when a list is empty).
+
+### Model documents, not tables
+
+- Embed what belongs to one record and changes with it (order lines, checklist
+  steps, approval history) as arrays inside that document; one write keeps it
+  consistent. Keep arrays bounded.
+- Reference shared entities by ID plus a snapshot of the fields you display
+  (`customer: { id, name }`) instead of joining at read time. `$lookup` exists
+  in `aggregate` (see below) but has row limits; do not build list pages on it.
+- One collection per business object kind, not per screen.
+- Use `_meta.createdAt` / `_meta.updatedAt` for "newest first"; they are kept by
+  UNS.
+
+### Read and write
+
+Data access happens only in services:
+
+```ts
+import { data } from "@/lib/data";
+import { workOrders } from "@/data/collections";
+
+const orders = data.collection(workOrders);
+
+await orders.find({ status: { $in: ["RELEASED", "DONE"] } }, { sort: { "_meta.createdAt": -1 }, limit: 50 }).toArray();
+await orders.findOne({ _id: id });
+await orders.findPage(filter, { sort, page, pageSize });   // { items, total, page, pageSize }
+await orders.countDocuments({ status: "RELEASED" });
+await orders.insertOne({ code, status: "DRAFT", ... });     // optional _id
+await orders.updateOne({ _id: id }, { $set: { notes } }, { expectedRevision });
+await orders.findOneAndUpdate({ _id: id, status: "DRAFT" }, { $set: { status: "RELEASED" } });
+await orders.aggregate([{ $match: { status: "DONE" } }, { $group: { _id: "$line.id", total: { $sum: "$targetQty" } } }]).toArray();
+```
+
+Also available: `insertMany`, `updateMany`, `replaceOne`, `deleteOne`,
+`deleteMany`, `findOneAndReplace`, `findOneAndDelete`, `bulkWrite`
+(`insertOne` / `updateOne` / `replaceOne` / `deleteOne`), `distinct`, and
+`data.transact(...)`.
+
+Batch sizes and atomicity:
+
+| Call | Limit | Atomic |
+|---|---|---|
+| `insertMany`, `bulkWrite`, `data.transact` | ≤200 items per call; more fails with `BATCH_LIMIT_EXCEEDED` before sending | yes, all or nothing |
+| `updateMany`, `deleteMany` | none; pages through every match | no — like Mongo, documents commit one by one and a failure reports what was already committed |
+
+Write more than 200 records in chunks of 200 (a loop over chunks is fine), with
+fixed `_id`s or one `idempotencyKey` per chunk so a retry cannot duplicate. When
+several documents must change all or nothing, use one `data.transact` (≤200
+steps), not `updateMany`.
+
+- Filters use field paths without `data.` (`status`, `line.id`, `_id`,
+  `_meta.updatedAt`) with `$eq $ne $gt $gte $lt $lte $in $nin $exists $all $size
+  $elemMatch $not $and $or $nor` and `$contains`. `$contains` is a substring
+  match (1–256 bytes, no wildcards or regex) that ignores case for ASCII
+  letters only (`É` and `é` differ); missing, null and non-string values never
+  match, and it works on fields declared as strings only — on an array or
+  number field it fails with `INVALID_REQUEST`. It cannot use an index: on
+  large collections it can hit the 15 s statement timeout (`QUERY_TIMEOUT`),
+  so combine it with an indexed condition. `$in` takes at most 200 values.
+  Sort by at most 4 fields.
+- `find()` returns a cursor that pages 200 at a time; always give list reads a
+  `limit`. For numbered list pages (MetaListPage `meta/query`) convert the
+  request with `queryRequestToFind(request, { paths, instantFields })` and call
+  `findPage(...)`. Kit `LIKE` / `NOT_LIKE` become `$contains` / `$nor`, so
+  offer them only on string fields.
+- `aggregate()` supports `$match`, `$sort` (`{ field: 1 | -1 }`), `$group`,
+  `$project`, `$set`, `$unwind`, `$skip`, `$limit`, `$count` and `$lookup`. Write
+  `$lookup` with `from` set to a declared collection (or its alias):
+  `{ $lookup: { from: customers, localField: "customer.id", foreignField: "_id", as: "customer" } }`;
+  the data layer turns it into the collection ID. The `$exists`, `$distinct` and
+  `$frequencies` stages are not executed for records; use `countDocuments`,
+  `distinct` or `$group`.
+- Writes are validated against the declaration before they are sent: unknown
+  fields, wrong types and undeclared update paths fail with 400. Reads are
+  **not** strictly parsed: a record may hold fields written by another code
+  version, a newer enum value, or lack a field added later. Render enums with a
+  fallback label and treat fields added later as possibly absent.
+- Update with `updateOne` + `$set` / `$inc` / `$push` / `$unset`.
+  `replaceOne` rewrites the whole body and drops fields written by other code
+  versions.
+- Never call the data layer once per loop iteration or per `map` item (ESLint
+  flags it): read with one `$in`, write with `insertMany` / `updateMany` /
+  `bulkWrite`, or use `data.transact`. Looping over 200-item chunks of a batch
+  call is the exception and is not flagged.
+- Deletes are soft and need `uns.delete` on the App key; without it the call
+  fails with a 403 that says so (`error.reason` `APP_PERMISSION_MISSING`). Business records usually end with a status
+  (`CANCELLED`, `ARCHIVED`) rather than a delete.
+
+### Consistency
+
+- One document is written atomically: keep data that must change together in
+  one document.
+- State transitions: put the expected state in the filter,
+  `findOneAndUpdate({ _id, status: "DRAFT" }, { $set: { status: "RELEASED" } })`.
+  `null` means the record is missing or already moved — answer 409.
+- Concurrent edits: send `_meta.revision` from the edit form as
+  `expectedRevision`; `VERSION_CONFLICT` (409) means reload and retry.
+- Cross-document invariants (stock + reservation, order + audit entry): one
+  `data.transact([...])` (≤200 steps) with `record.check` / `record.update` /
+  `record.create` steps, `dependsOn` and `bindings`; a `record.query` step can
+  assert `expectCount: { min, max }`. It commits all or nothing; it is not a
+  session, so there is no read-then-decide inside it. Step `data` never holds
+  `_id` (set `id` on the step); fields filled by `bindings` are checked when
+  UNS commits, every literal field is validated before sending.
+- Counters and sequence numbers: declare a counters collection and use
+  `findOneAndUpdate({ _id: "work_orders" }, { $inc: { value: 1 } }, { upsert: true })`.
+- An upsert filter must contain `_id` or every field of a **ready** unique index
+  (`UPSERT_REQUIRES_UNIQUE_INDEX` otherwise; a new unique index builds
+  asynchronously).
+- `DUPLICATE_KEY` (409) means a unique index rejected the value; show it as a
+  field error.
+
+### Who the call acts as
+
+Every call uses the platform-injected App key. While serving a business request
+the data layer also forwards the Gateway's employee assertion
+(`X-Tier0-App-Data-Subject`), so UNS data rules and record leases apply to that
+employee. Collection ensure and seed writes run as the App. Work detached from
+the request (timers, queues, fire-and-forget follow-ups) must run inside
+`runAsApp(() => ...)`; a lease taken under an employee cannot be released by
+such App-level work.
+
+### First load
+
+The first data access in a server process ensures every declared collection in
+one batch: missing collections are created (then seeded), wider declarations
+widen storage, and nothing is ever narrowed. A failed ensure is retried by the
+next request (a freshly imported App may briefly answer "hosted App is not
+ready", which the App answers as a retryable 503). Do not ensure manually, do
+not touch data at import time, and do not cache your own "initialized" flags.
+
+A running process also recovers when a collection it uses disappears (a
+Preview reset deletes collections; a worker or admin may archive one): a call
+that UNS refuses with `COLLECTION_NOT_FOUND` or `COLLECTION_NOT_GRANTED` (the
+`data.reason` code) makes the data layer ensure again — recreating and reseeding what is missing — and retry the
+call once when a collection ID changed. This happens at most once per 30 s per
+process; `APP_GRANT_REVOKED` (an admin decision) is never retried. Cursor
+pages and `updateMany` / `deleteMany` continuations of the old collection fail
+instead of retrying; the next request uses the new collection.
+
+In Preview, a schema conflict or an ensure warning fails the request with the
+details; fix the declaration. The deployed App logs them and keeps serving.
+`ignored` notes never fail a request: parts of storage wider than the
+declaration are logged as info, and `ANNOTATION_NOT_APPLIED` (an edited
+`.describe()` or collection `description` that ensure does not write) as a
+warning that points at `schema:replace`.
+
+### Schema evolution
+
+Preview and the deployed App share collections, and an older deployed build
+cold-starts with its older declaration at any time. ensure therefore only
+**widens**: storage is the union of every declaration that ever ran, and every
+version's writes stay valid. Plan each change by its row:
+
+| Change | How |
+|---|---|
+| Add an optional field (any depth, also inside array items), add an enum value, make a field optional, `int` → `number`, widen or remove `min`/`max`, add an index | Edit `collections.ts`; ensure applies it on next access. |
+| Change a `.describe()` text or the collection `description` | Edit `collections.ts`, then `schema:replace` through the tier0 MCP with `npm run data:schema -- <alias>` (`dryRun` first: expect `widened`; `narrowed` means storage holds more than this declaration, e.g. fields of another version — merge them into the body or stop). ensure keeps stored annotations and reports `ANNOTATION_NOT_APPLIED`; new fields and new collections take their descriptions on creation. |
+| Add a field every record must have | Add it `.optional()`, write it everywhere, backfill old records, then make it required with `schema:replace` once the deployed App writes it. |
+| Remove or rename a field | Stop using the old field in code (it may stay in storage); a new name is a new optional field. Backfill once through the tier0 MCP (`records:updateMany` with `$rename` / `$set`). |
+| Change a field's type | Use a new field name, backfill, read the old field as fallback. ensure never converts types (`SCHEMA_CONFLICT`). |
+| Remove an enum value, make an optional field required, drop a field from storage, remove an index, tighten `min`/`max` | Only after the deployed App no longer writes the old shape: `schema:replace` through the tier0 MCP, `dryRun` first. |
+
+Never `deleteMany` or recreate a collection to "reset" a schema: it deletes the
+deployed App's data too. Changing `seed` does not reseed.
+
+### Collections through the tier0 MCP
+
+Workers inspect and change this App's collections with `tier0_execute`
+(`tier0.request({ method: "POST", path, body })`); runtime code must not call
+these (the build flags `schema:replace`, `archive` and `restore` paths in App
+code to catch mistakes).
+
+| Need | Call (`/openapi/v2` prefix) |
+|---|---|
+| App ID, collections, grants and current schemas | `POST /uns/app/context` with `{}` (whoami does not return the App ID) |
+| Preview a declaration change | `npm run data:schema`, then `POST /uns/app/collections/ensure` with that body plus `"dryRun": true` |
+| Narrow a schema | `npm run data:schema -- <alias>` for the target, then `POST /uns/app/collections/schema:replace` with `{ alias, recordSchema, indexes, expectedRevision, dryRun: true }`; repeat with `dryRun: false` |
+| Change descriptions of existing fields or the collection | Same as narrowing: `schema:replace` with the `npm run data:schema -- <alias>` body (status `widened`) |
+| Retire / bring back a collection | `POST /uns/app/collections/archive` or `restore` with `{ alias }`; at most 2000 records each (archive tombstones them, restore brings that batch back) |
+| One-off data fix or backfill | `POST /uns/collections/{collectionId}/records:updateMany` (collection ID from the context) |
+
+`expectedRevision` is the collection `revision` from an ensure result (a
+`dryRun: true` ensure returns it without changing anything). Schema paths in
+`ignored`, `warnings`, `conflicts` and `violations` join properties with `.`
+and array items with `[]` (`items.[].qty`). The spec may take up to 10 minutes
+to list new operations in `tier0_search`.
+
+| Error | Meaning and action |
+|---|---|
+| `SCHEMA_CONFLICT` (409) | The declaration cannot be joined with storage; nothing changed. `data.conflicts` lists `{ alias, path, reason, current?, declared? }`: `TYPE_CONFLICT` → use a new field name; `LIMIT_EXCEEDED` → split the structure; `JOIN_UNSUPPORTED` → storage holds a node the declaration cannot widen (e.g. enum values outside its `min`/`max`), repair it with `schema:replace`; `DATA_RULE_FIELD` → an employee data rule (owner/state field) uses the path, keep it required with the same type or ask an admin to change the rule; `OPEN_OBJECT` → use the generated body; `ALIAS_IN_USE` / `NAME_IN_USE` → pick another alias; `INVALID_INDEX` → fix the index. |
+| `ANNOTATION_NOT_APPLIED` (`ignored` note) | Not an error: ensure keeps stored titles/descriptions. Apply the change with `schema:replace`. |
+| `REQUIRED_NOT_ENFORCED` (warning) | The declaration requires a field storage keeps optional. Make it optional again, or narrow with `schema:replace` after the backfill. |
+| `INDEX_BUILD_FAILED` (warning) | Existing records violate a new unique index. Fix the duplicates; the next ensure retries. |
+| `OLD_WRITERS_REJECTED` (warning, replace) | Code that still writes the removed shape will now fail; deploy the new code first. |
+| `SCHEMA_DATA_VIOLATION` (409, replace) | Records do not fit the narrower schema; `data.violations` lists up to 20 `{ recordId, path }`. Fix them first. |
+| `SCHEMA_MIGRATION_TOO_LARGE` (409, replace) | More than 10,000 records or 16 MB. Keep the field optional in storage; enforce the rule in code. |
+| `VERSION_CONFLICT` (409, replace) | The collection changed; read the context again and retry with its revision. |
+| `REFERENCED` (409, replace) | A topic field or data rule still uses the path; remove that use first. |
+| `TEMPORARILY_UNAVAILABLE` | Retry the same request later. |
+| `APP_GRANT_REVOKED` (403) | A workspace admin removed this App's access (ensure, replace, archive); ensure does not re-grant. Ask the admin. |
+| `APP_QUOTA_EXCEEDED` (409) | `data.resource` says which per-App limit of 64 was hit: `collections` (active) → archive unused ones; `indexes` → drop indexes from the declaration and `schema:replace`; `archivedCollections` (archive) → restore one or ask an admin to clean up. |
+| `INDEX_QUOTA_EXCEEDED` (409) | The workspace holds 200 indexes that physically exist (archiving keeps unique indexes); drop unused indexes. |
+| `COLLECTION_TOO_LARGE` (409, archive / restore) | More than 2000 records (`data.maxRecords`). Do not archive large collections; stop using them in code. |
+| `DUPLICATE_KEY` (409, restore) | A restored record collides with an active record on a unique index; nothing was restored. Fix the active record first. |
+| `NOT_FOUND` (404) | The alias is not one of this App's collections. |
+| `data.reason` on record calls | `COLLECTION_NOT_GRANTED` (403): the grant does not cover the collection or operation; `COLLECTION_NOT_FOUND` (403/404): archived or deleted — the App's data layer re-ensures on both; `APP_PERMISSION_MISSING` (403, `data.missingPermission`): the key lacks e.g. `uns.delete`. Judge by these codes, never by message text. |
+| `DUPLICATE` (409, restore) | An active collection already uses the alias (`data.activeCollectionId`); archive it first. |
+| `FORBIDDEN` (403) | The key may not do this (another App's or a shared collection). `hosted App is not ready` right after an import is retryable (`retryable: true`); the App's data layer answers it as 503. |
 
 ## Routing and Server Boundaries
 
@@ -376,11 +638,15 @@ Use TailwindCSS 4 through `src/styles/globals.css`; do not add
 
 ## Tier0 SDK
 
-Use the installed `@tier0/sdk` when requirements involve Tier0 OpenAPI, UNS,
+Use the installed `@tier0/sdk` when requirements involve Tier0 OpenAPI v1,
 Flow, files, MQTT/MQ/WebSocket, or device commands. Call lazy helpers from
 `@/lib/tier0` inside the concrete server action; do not top-level import or
 invoke SDK submodules on SSR startup paths. Keep `vite.config.ts`
-`ssr.external: ["pg", "@tier0/sdk", "mqtt"]`.
+`ssr.external: ["@tier0/sdk", "mqtt"]`.
+
+App records (UNS v2 collections) are the one exception: use `@/lib/data`
+(see App Data), not the SDK and not hand-written fetches. The data layer will
+move into `@tier0/sdk` later with the same API.
 
 The SDK baseline is `^0.5.4` (locked to `0.5.4`). For notifications, omitted
 `channels` means Web & Desktop plus Mobile; use `[]` for inbox only, `['web']`
@@ -393,7 +659,7 @@ before changing credentials; do not hard-code username/clientId to bypass SDK
 identity derivation.
 
 The platform injects SDK hosts, keys, and connection details. Do not add them
-to `.env.example`, business tables, or user-facing settings unless the user
+to `.env.example`, collections, or user-facing settings unless the user
 explicitly requests an operator-managed credential console. Keep human app
 names separate from `APP_ID`/manifest runtime identifiers.
 
@@ -465,19 +731,19 @@ Contract files have two classes:
 
 - `src/lib/template-state.test.mjs` describes the blank template and is the only
   contract test generated apps may adapt.
-- Every other test under `src/lib/`, plus gate/verify/audit scripts and
-  `scripts/gate-integrity.json`, is locked. Do not edit, weaken, or delete it.
-  Use documented opt-outs such as `EXTERNAL_CALLER` / `READ_ONLY_SURFACE`, or
-  report a genuine conflict.
+- Every other test under `src/lib/`, the data layer `src/lib/data/**`,
+  gate/verify/audit scripts and `scripts/gate-integrity.json` are locked. Do
+  not edit, weaken, or delete them. Use documented opt-outs such as
+  `EXTERNAL_CALLER` / `READ_ONLY_SURFACE`, or report a genuine conflict.
 
 `artifact.toml` `args` are literal POSIX argv. Shell semantics use an explicit
 `["sh", "-c", "..."]`; plain commands use token arrays. Leave build/run args
 unchanged unless the task is deployment work.
 
 Environment contracts are documented in `docs/platform-integration.md`.
-Important names are `DATABASE_URL`, `DIRECT_DATABASE_URL`, `DB_SCHEMA`,
-`DB_SYNC_ALLOW_DESTRUCTIVE`, `APP_ID`, and `VITE_BASE_PATH`
-(`NEXT_PUBLIC_BASE_PATH` is legacy only).
+Important names are `TIER0_API_HOST` and `TIER0_API_KEY` (data layer and
+SDK), `APP_ID`, and `VITE_BASE_PATH` (`NEXT_PUBLIC_BASE_PATH` is legacy only).
+Apps have no database connection variables.
 
 ## Scaffold Version
 
@@ -500,8 +766,9 @@ malformed.
   blanket CRUD or read-only listing.
 - Every exposed action is reachable, permissioned, validated, persisted, and
   reports success/error; dangerous actions confirm impact.
-- Service boundaries, transactions, state transitions, audit effects, and
-  first-load bootstrap invariants hold.
+- Service boundaries, state transitions, consistency patterns (conditional
+  updates, `expectedRevision`, `data.transact`) and audit effects hold; every
+  collection is declared, listed and seeded in `src/data/collections.ts`.
 - Role matrix, metadata, `roles.json`, navigation, UI actions, and API guards
   agree; multiple roles grant the permission union.
 - Loading, error/retry, empty, and populated states are visible and usable.

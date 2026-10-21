@@ -115,17 +115,9 @@ There is no explicit mode switch. If a variable is missing, the app uses its
 local/default behavior. If the variable is present, the corresponding platform
 capability is enabled.
 
-### Required
-
-| Variable | Description |
-|---|---|
-| `DATABASE_URL` | PostgreSQL connection string. The database name should match the project id. |
-
-### Optional
-
-| Variable | Description |
-|---|---|
-| `DIRECT_DATABASE_URL` | Direct DB connection that bypasses the pool. Preferred by `db:push` and `seed.ts`. |
+Apps have no database connection variables: App data lives in Tier0 UNS
+collections reached with `TIER0_API_HOST` / `TIER0_API_KEY` (see
+[App Data](#app-data)).
 
 ### Platform-Injected
 
@@ -133,13 +125,11 @@ These variables are platform-driven. Local development does not need them.
 
 | Variable | Behavior when unset | Behavior when set |
 |---|---|---|
-| `DB_SCHEMA` | Uses the `public` schema | Binds `appSchema`, runtime queries and `drizzle-kit push` to the specified schema |
-| `DB_SYNC_ALLOW_DESTRUCTIVE` | `db:push` fails on any DROP/TRUNCATE | `1` lets `db:push` apply destructive statements; only after a verified backup |
 | `APP_ID` | `local-app` (local-development placeholder only) | Platform-injected agent-platform App UUID (36 chars); echoed by `/api/manifest` and used wherever the app identifies itself to the platform (e.g. notification `sender.id`) |
 | `VITE_BASE_PATH` | No URL prefix | Applied by `apiUrl()` and Vite `base` |
 | `NEXT_PUBLIC_BASE_PATH` | Legacy fallback only | Read by `apiUrl()` if `VITE_BASE_PATH` is missing |
-| `TIER0_API_HOST` | — | Tier0 OpenAPI host injected by the platform |
-| `TIER0_API_KEY` | — | Tier0 API credential injected by the platform; shared by OpenAPI and MQTT |
+| `TIER0_API_HOST` | App data calls fail with `DATA_NOT_CONFIGURED` (503) | Tier0 OpenAPI gateway host injected by the platform (Preview: the sandbox-reachable public API host; deployment: the in-cluster gateway). No scheme means `http://` |
+| `TIER0_API_KEY` | App data calls fail with `DATA_NOT_CONFIGURED` (503) | The platform-issued App key (`app` / `internal` / `full_access`); shared by OpenAPI, MQTT and the App data layer |
 | `TIER0_MQTT_HOST` | — | Tier0 MQTT WebSocket broker host injected by the platform |
 | `TIER0_MQTT_PORT` | Defaults to `8084` | Tier0 MQTT WebSocket port injected by the platform |
 
@@ -295,44 +285,35 @@ app only consumes the forwarded identity and role set.
 ## Platform Resource Model
 
 ```text
-Project (proj-abc123)
-  └─ Database: proj-abc123
-       ├─ schema: session-001  <- app 1
-       ├─ schema: session-002  <- app 2
-       └─ schema: session-003  <- app 3
+Workspace
+  ├─ App (APP_ID = agent-platform App UUID)
+  │    ├─ App key (TIER0_API_KEY)          <- issued by the platform, injected into Preview and deployments
+  │    └─ App data policy (UNS)            <- grants of this App's collections (record:read/write[/delete])
+  └─ UNS
+       └─ App directory "<App name> · <short id>"
+            ├─ collection work_orders      <- ownerAppId = APP_ID, created by ensure
+            └─ collection customers
 ```
 
-One session equals one app. `DB_SCHEMA` is the schema the platform assigns to
-the app and `APP_ID` is the app's platform UUID; both are injected, and neither
-is derived from the other by the app.
-
-### Platform Responsibilities
-
-**When creating a project:**
-
-```sql
-CREATE DATABASE "proj-abc123";
-```
-
-**When creating a session:**
-
-```sql
-CREATE SCHEMA IF NOT EXISTS "session-xyz789";
-```
+Each App owns the collections it ensures. They are created in the App's own
+UNS directory, tagged with the App ID, and granted to the App in the same
+transaction (`record:read`, `record:write`, plus `record:delete` when the key
+holds `uns.delete`). Ownership follows the App ID, not the directory, so a user
+may move or rename a collection. Preview and the deployed App use the same
+App key and therefore the same collections and records. Deleting the App
+archives its collections and releases their indexes; nothing else removes them.
 
 **Environment injection:**
 
 ```env
-DATABASE_URL="postgresql://appbuilder:appbuilder@db-host:5432/proj-abc123"
-DB_SCHEMA="session-xyz789"
-APP_ID="session-xyz789"
-VITE_BASE_PATH="/session-xyz789"
+APP_ID="<agent-platform App UUID>"
+VITE_BASE_PATH="/<app base path>"
 TIER0_API_HOST="<platform-injected>"
 TIER0_API_KEY="<platform-injected>"
 TIER0_MQTT_HOST="<platform-injected>"
 TIER0_MQTT_PORT="8084"
 # Optional legacy fallback:
-# NEXT_PUBLIC_BASE_PATH="/session-xyz789"
+# NEXT_PUBLIC_BASE_PATH="/<app base path>"
 ```
 
 **Gateway routing:**
@@ -343,69 +324,164 @@ separate-header format and then proxy the request to the app.
 For deployed apps, the gateway must inject `X-Tier0-Runtime: deployed`,
 `X-Tier0-Business-Roles` with every assigned app role, and optionally
 `X-Tier0-Active-Role` as the primary display role. Preview uses
-`X-Tier0-Runtime: preview` plus one `X-Tier0-Preview-Role`.
+`X-Tier0-Runtime: preview` plus one `X-Tier0-Preview-Role`. The gateway also
+signs the current employee into `X-Tier0-App-Data-Subject`; the App forwards
+it to UNS (see below) and never reads or forges it.
 
 ### App Container Startup
 
-Once the platform has prepared the database, schema, and env vars, it can start
-the app:
-
 ```bash
-npm install
-npm run db:push         # sync tables under DB_SCHEMA through scripts/db-sync-guard.mjs (non-zero exit on any destructive plan)
-npx tsx src/db/seed.ts  # seed DB_SCHEMA on first use
-npm run build           # outputs dist/{client,server}
+npm ci
+npm run build           # outputs dist/{client,server}; postbuild runs the gates
 node server.mjs         # equivalent to npm start, listens on PORT (default 3000)
 ```
 
+There is no migration or seed step: the App ensures and seeds its collections
+on first data access.
+
 ---
 
-## Schema Declaration and Migration Safety
+## App Data
 
-One app owns exactly one PostgreSQL schema (`DB_SCHEMA`). When the platform
-deploys or replaces an app it runs `npx drizzle-kit push --force` in a
-migration container with `DB_SCHEMA` and `DATABASE_URL` injected, reading
-`drizzle.config.ts` and `src/db/schema.ts` directly. drizzle-kit diffs only
-tables whose declared schema is inside `schemaFilter`; anything it finds in
-`DB_SCHEMA` that is not declared there is dropped, and `--force` skips the
-confirmation. The scaffold therefore makes the declaration shape itself the
-safety guarantee:
+`src/lib/data` is the only UNS client in an App. It is a locked platform
+contract written in the Mongo driver's style; it will move into `@tier0/sdk`
+with the same API. All calls are `POST {TIER0_API_HOST}/openapi/v2/...` with
+`x-api-key: TIER0_API_KEY` and a 15 s timeout; responses use the
+`{ code, msg, requestId, data }` envelope.
 
-- `src/db/schema.ts` exports one `appSchema = pgSchema(DB_SCHEMA || "public")`
-  and declares every table and enum through `appSchema.table(...)` /
-  `appSchema.enum(...)`. Local, preview and deployed environments share that
-  single definition; a bare `pgTable(...)` fails the build.
-- Table declarations live only in `src/db/schema.ts`, the one file
-  `drizzle.config.ts` reads. A declaration in any other file is invisible to
-  push and its table would be dropped; the build rejects it.
-- `bootstrapModule(...)` accepts declared table objects, not names. A runtime
-  table cannot exist without a declaration, so push never sees it as garbage.
-- `drizzle.config.ts` keeps `schemaFilter: [DB_SCHEMA]` so a sync never reads
-  or writes another app's schema.
+| Data layer | UNS operation |
+|---|---|
+| first access (bootstrap) | `appCollectionsEnsure` `POST /uns/app/collections/ensure` `{ collections: [{ alias, recordSchema, indexes, description }] }` (≤64 declarations) |
+| `find` / `findOne` | `recordFind` `records:find` (cursor pages ≤200) |
+| `aggregate` | `records:aggregate`: cursor pages for `$match`/`$sort`-only pipelines, offset pages otherwise, no page for a final `$count`; `$lookup.from` (declared collection or alias) becomes `collectionId` |
+| `findPage` | `recordAggregatePipeline` (offset page) + `recordCount` |
+| `countDocuments` / `distinct` | `records:count` / `records:distinct` (offset pages) |
+| `insertOne` / `insertMany` | `records` / `records:insertMany` (`atomic: true`, ≤200 documents) |
+| `updateOne` / `updateMany` / `replaceOne` | `records:updateOne` / `records:updateMany` (`atomic: false` like Mongo, follows `resumeAfter`) / `records:replaceOne` |
+| `deleteOne` / `deleteMany` | `records:deleteOne` / `records:deleteMany` (`atomic: false`, follows `resumeAfter`; soft delete; needs `uns.delete`) |
+| `findOneAndUpdate` / `findOneAndReplace` / `findOneAndDelete` | `records:findOneAnd*` |
+| `bulkWrite` | `records:bulkWrite` (`atomic: true`, ≤200 operations) |
+| `data.transact` | `recordTransactionExecute` `POST /uns/records:transact` with `mode: "sync"` (≤200 steps) |
 
-These are enforced by `src/lib/db-schema-contracts.test.mjs` in `postbuild`.
+The 200-item limits are UNS's synchronous atomic batch size (`SyncItems`); the
+data layer rejects larger batches with `BATCH_LIMIT_EXCEEDED` before sending.
 
-For developers and CI, `npm run db:push` runs `scripts/db-sync-guard.mjs`
-instead of raw push: it verifies the binding, prints the plan, and exits
-non-zero before applying anything if the plan contains `DROP TABLE`,
-`DROP SCHEMA`, `DROP COLUMN`, `TRUNCATE` or a drizzle-reported data-loss
-statement, unless `DB_SYNC_ALLOW_DESTRUCTIVE=1`. `npm run db:push:check` is
-the dry run. Raw `drizzle-kit push` exits 0 even when it drops tables or
-throws, so its exit code must never be treated as a success signal.
+Record bodies are flattened: `{ id, data, revision, createdAt, updatedAt }`
+reads as `{ _id, ...data, _meta: { revision, createdAt, updatedAt } }`.
+Filters are passed through unchanged; `queryRequestToFind` maps the kit's
+`LIKE` to UNS `$contains`, a 1–256 byte substring match that folds case for
+ASCII letters only, never matches missing / null / non-string values, cannot
+use an index, and fails with `INVALID_REQUEST` on non-string fields.
+
+### Bootstrap
+
+The first data access of a server process sends every declaration of
+`src/data/collections.ts` in one ensure call:
+
+- ensure creates missing collections and widens existing ones (join of the
+  stored and declared schema); it never narrows, so builds of different ages
+  can cold-start in any order. Results are `created`, `unchanged` or
+  `widened`, with `ignored` notes and `warnings` (`REQUIRED_NOT_ENFORCED`,
+  `INDEX_BUILD_FAILED`).
+- ensure never writes annotations: `title` / `description` of existing nodes
+  and the collection description keep their stored values (otherwise builds
+  of different ages would overwrite each other), and a differing declaration
+  comes back in `ignored` as `ANNOTATION_NOT_APPLIED`. New fields and new
+  collections take their annotations on creation. The bootstrap logs those
+  notes as a warning pointing at `schema:replace`, in Preview too, and never
+  fails on them; other `ignored` notes (storage wider than the declaration,
+  retired paths) are logged as info. The normalizer is deterministic, so an
+  unchanged declaration sends the stored annotations back unchanged and
+  produces no note.
+- The result is memoized per data client, i.e. per server process; a Vite dev
+  reload of `src/data/collections.ts` creates a new client and ensures again.
+  A failed ensure is not memoized; the next data access retries it.
+- Seed documents (≤1000 per collection) are inserted only for collections
+  reported `created`: fixed IDs, atomic `insertMany` chunks of 200, each with a
+  stable idempotency key and retried up to three times on retryable errors. A
+  chunk that still fails is logged; the collection is not reseeded later.
+- Self-healing: a Preview reset hard-deletes the App's collections and a
+  worker or admin may archive one, while the process still holds the old IDs.
+  Every record call (including `aggregate` with its `$lookup` targets and
+  `data.transact`) runs through `recover`. It decides by the stable
+  `data.reason` code UNS adds to App data-access refusals (the top-level
+  code stays `FORBIDDEN` / `NOT_FOUND`; never the message text):
+  `COLLECTION_NOT_FOUND` (403 or 404: archived or hard-deleted) and
+  `COLLECTION_NOT_GRANTED` (403: archive and purge remove the App grant) make
+  the data layer drop the ensure memo, ensure again (seeding collections
+  reported `created`) and retry the call once — only if some collection ID
+  changed, so a rebuild that finds nothing new never repeats a write.
+  `APP_PERMISSION_MISSING` (the key lacks e.g. `uns.delete`) does not
+  rebuild. The codes appear only on whole-request errors, not on per-item
+  results of a batch or transaction. Concurrent failures share one
+  rebuild, and a process rebuilds at most once per 30 s
+  (`REBUILD_INTERVAL_MS`). `APP_GRANT_REVOKED` is not retried, and an ensure
+  error during the rebuild (e.g. `APP_GRANT_REVOKED`) is what the caller
+  sees. Calls that continue a cursor or `resumeAfter` token of the old
+  collection rebuild but do not retry.
+- Preview (`NODE_ENV` ≠ `production`) fails the request on `SCHEMA_CONFLICT`
+  (every reason, including `JOIN_UNSUPPORTED` and `DATA_RULE_FIELD`, with a
+  hint per reason) and on warnings. A deployment logs them, re-ensures the
+  non-conflicting declarations and serves conflicting ones with their
+  existing collection ID.
+
+Schemas are converted from Zod 4 by `toRecordSchema` (`src/lib/data/schema.ts`)
+into the stored subset: `type`, `properties`, `required` (sorted),
+`additionalProperties: false` on every object, `items`, `enum`, `minimum`,
+`maximum`, `title`, `description`. `npm run data:schema` prints the exact
+ensure payload. Evolution rules and the worker's tier0 MCP operations
+(`schema:replace`, `archive`, `restore`, dry runs, error codes) are in
+[AGENTS.md → App Data](../AGENTS.md#app-data).
+
+### Errors
+
+Failures become `DataError { status, code, upstreamStatus, requestId,
+retryable, details }`; `withErrors` answers `{ error, code, requestId }` with
+`status`:
+
+| UNS answer | App status |
+|---|---|
+| 400 / 403 / 404 / 409 / 413 / 422 / 429 | same (except the retryable 403 below) |
+| 401 (credential rejected) | 502 — a platform credential problem, not the user's session |
+| 403 with `error.retryable: true` (e.g. `FORBIDDEN` "hosted App is not ready" right after an import) | 503 (`retryable`) — a platform state, not a denied action |
+| 502 / 503 / 504, timeout, network failure | 503 (`retryable`); a network failure answers without the gateway address, which goes to the server log only |
+| other 5xx | 502 |
+| missing `TIER0_API_HOST` / `TIER0_API_KEY` | 503 `DATA_NOT_CONFIGURED` |
+| batch over 200 items | 400 `BATCH_LIMIT_EXCEEDED` (not sent) |
+
+`DataError.reason` carries `data.reason`. `APP_PERMISSION_MISSING` with
+`data.missingPermission: "uns.delete"` explains that deletes need
+`uns.delete` on the App key; `COLLECTION_NOT_GRANTED` / `COLLECTION_NOT_FOUND`
+explain the grant or the missing collection when recovery cannot help.
+`APP_QUOTA_EXCEEDED` explains the limit named by `data.resource`
+(`collections`, `indexes` or `archivedCollections`, 64 each per App);
+`COLLECTION_TOO_LARGE` (archive / restore over 2000 records) and
+`DUPLICATE_KEY` (a unique index, also from a restore that collides with an
+active record) carry their own hints. Structured details stay in
+`DataError.details`. Validation failures against the declaration are
+`ZodError`s (400) raised before any call.
+
+### Data subject
+
+`src/start.ts` runs every request — public paths such as `/_serverFn`
+included — inside an `AsyncLocalStorage` context holding the request's
+`X-Tier0-App-Data-Subject`. The header is signed by the Gateway and verified
+by UNS, so the App can neither forge nor widen it. Record calls made
+while serving that request forward the header, so UNS applies employee data
+rules and binds record leases to that employee. Ensure, seed writes, calls made
+outside a request and calls inside `runAsApp(...)` carry no subject; a lease
+taken with a subject cannot be released by such App-level work.
 
 ## Where Each Variable Is Read
 
 | Variable | Read from |
 |---|---|
-| `DATABASE_URL` | `db/index.ts`, `drizzle.config.ts`, `db/seed.ts` |
-| `DIRECT_DATABASE_URL` | `drizzle.config.ts`, `db/seed.ts` |
-| `DB_SCHEMA` | `db/schema.ts` (`appSchema`), `db/index.ts` (`search_path`), `drizzle.config.ts` (`schemaFilter`), `db/seed.ts`, `services/bootstrap.ts`, `scripts/db-sync-guard.mjs` |
-| `DB_SYNC_ALLOW_DESTRUCTIVE` | `scripts/db-sync-guard.mjs` |
 | `APP_ID` | `lib/app-id.ts` (`resolveAppId`), used by `routes/api/manifest.ts` and by application code wherever it identifies itself to the platform (e.g. SDK notification `sender.id`); always read at runtime |
 | `VITE_BASE_PATH` | `vite.config.ts` (`base`), `router.tsx` (`basepath`), `lib/utils.ts` (`apiUrl` primary source) |
 | `NEXT_PUBLIC_BASE_PATH` | `lib/utils.ts`, and as a fallback in `vite.config.ts` / `router.tsx` |
-| `TIER0_API_HOST` | Injected by the platform; read by `@tier0/sdk/openapi` at runtime |
-| `TIER0_API_KEY` | Injected by the platform; read by `@tier0/sdk/openapi` and `@tier0/sdk/mq` |
+| `TIER0_API_HOST` | Injected by the platform; read by `lib/data/transport.ts` and `@tier0/sdk/openapi` at call time |
+| `TIER0_API_KEY` | Injected by the platform; read by `lib/data/transport.ts`, `@tier0/sdk/openapi` and `@tier0/sdk/mq` |
+| `NODE_ENV` | `lib/data/client.ts`: `production` selects deployed ensure behavior, anything else Preview behavior |
 | `TIER0_MQTT_HOST` | Injected by the platform; read by `@tier0/sdk/mq` |
 | `TIER0_MQTT_PORT` | Injected by the platform; read by `@tier0/sdk/mq` |
 
@@ -440,11 +516,11 @@ it by hand.
 
 ## Scenario Matrix
 
-| Scenario | `DATABASE_URL` | `DB_SCHEMA` | `APP_ID` | Base path |
-|---|---|---|---|---|
-| Local development | ✅ | optional | optional | optional |
-| Platform preview session | ✅ | ✅ | ✅ | depends on runtime |
-| Production behind gateway | ✅ | ✅ | ✅ | depends on gateway |
+| Scenario | `TIER0_API_HOST` / `TIER0_API_KEY` | `APP_ID` | Base path |
+|---|---|---|---|
+| Local development | optional (needed only to reach App data) | optional | optional |
+| Platform preview session | ✅ (sandbox-reachable host) | ✅ | depends on runtime |
+| Production behind gateway | ✅ (in-cluster gateway) | ✅ | depends on gateway |
 
 `optional` means the scaffold can fall back to defaults when the platform does
 not provide a value.

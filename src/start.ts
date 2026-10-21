@@ -8,6 +8,12 @@
  * Preview remains a single-role developer "view as" context. Legacy role
  * headers remain single-role and must match PERMISSION_MATRIX because the
  * Tier0 gateway does not strip/re-inject those headers.
+ *
+ * Every request — including public paths such as `/_serverFn` — runs inside
+ * the data-layer request context, so App data calls made while serving it
+ * forward the Gateway's `X-Tier0-App-Data-Subject`. The header is an
+ * assertion signed by the platform Gateway and verified by UNS; the App can
+ * neither forge nor widen it, so opening the context unconditionally is safe.
  */
 
 import { createMiddleware, createStart } from "@tanstack/react-start";
@@ -17,6 +23,7 @@ import {
   parseGatewayUser,
 } from "@/lib/gateway";
 import { PERMISSION_MATRIX } from "@/lib/permissions";
+import { runWithRequestContext } from "@/lib/data/context";
 
 // Exact path or proper child segment. This avoids `/login-attempts` matching
 // the public `/login` prefix.
@@ -56,8 +63,8 @@ function jsonError(status: number, error: string): Response {
   });
 }
 
-const authBridge = createMiddleware().server(
-  async ({ request, pathname, next }) => {
+export const authBridge = createMiddleware().server(({ request, pathname, next }) =>
+  runWithRequestContext(request.headers, async () => {
     if (MUTATING.has(request.method) && !isSameOrigin(request)) {
       return jsonError(403, "Cross-origin request blocked");
     }
@@ -105,7 +112,7 @@ const authBridge = createMiddleware().server(
     }
 
     return jsonError(401, "Platform authentication required");
-  },
+  }),
 );
 
 export const startInstance = createStart(() => ({

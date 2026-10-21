@@ -5,7 +5,10 @@
 # Priority: app deploy_config (DB overrides) > this file > platform hardcoded defaults.
 #
 # Environment injection (automatic):
-#   DATABASE_URL  - injected into build_env / run_env by the backend per project schema
+#   TIER0_API_HOST / TIER0_API_KEY - Tier0 gateway and App key; App data lives in
+#                   Tier0 UNS collections the App ensures on first access (no
+#                   database, migration or seed step at build or start)
+#   APP_ID        - agent-platform App UUID
 #   PORT          - injected by RuntimeManager from localPort
 # User identity and roles are injected as trusted request headers by the Tier0
 # App Gateway.
