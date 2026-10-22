@@ -12,7 +12,7 @@ target application instead of being constrained by a fixed template library.
 | Layer | Technology |
 |---|---|
 | Framework | TanStack Start 1.x (Vite 8/Rolldown + TanStack Router, React 19 SSR) |
-| Data | Tier0 UNS v2 collections through `src/lib/data` (Mongo-driver-style API) |
+| Data | Tier0 UNS v2 collections through `@tier0/sdk-v2/data`, wired in `src/lib/data` (Mongo-driver-style API) |
 | Validation | Zod 4 (collection declarations, API input schemas, inferred types) |
 | Styling | TailwindCSS 4 (Vite plugin, no PostCSS) + Tier0 design tokens |
 | UI | Lightweight layout contracts + Tailwind utilities + Tier0 tokens; no prebuilt business component library |
@@ -92,10 +92,9 @@ passing employee data delegation. Generated apps should not top-level import SDK
 should not move the SDK into `ssr.noExternal`, and should not bypass the SDK
 with fallback MQTT clients or hand-written fetch wrappers.
 
-The App data layer (`src/lib/data`) is the temporary exception: it still calls
-the UNS v2 collection and record endpoints with its own `fetch` transport. It
-will move into `@tier0/sdk-v2` with the same API; App code only changes its
-import path then. Nothing else may call UNS directly.
+App records use the data client from `@tier0/sdk-v2/data` instead:
+`src/lib/data` builds the App's instance from `src/data/collections.ts`, and
+services import `data` from `@/lib/data`. Nothing else may call UNS directly.
 
 For deployment details, see
 [docs/platform-integration.md](docs/platform-integration.md).
@@ -351,7 +350,7 @@ src/services/**.ts            <- Domain layer: business logic, state machines, c
   |                               Pure TypeScript, no HTTP concepts
   v
 src/lib/data (+ src/data/collections.ts)
-  |                           <- Data layer: Mongo-style collections, ensure + seed on first access
+  |                           <- Data layer: @tier0/sdk-v2/data client, ensure + seed on first access
   v
 Tier0 OpenAPI v2 UNS          <- /uns/app/collections/ensure, /uns/collections/:id/records:*
 ```

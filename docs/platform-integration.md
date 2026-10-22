@@ -28,6 +28,9 @@ reaches the browser — browser pages call the App's own server routes.
 v2 has no UNS v1, legacy Flow, project member queries or `getCurrentProjectId()`.
 Workspace members are not the members who can use this App: use
 `tier0.members.listApp({ appId: resolveAppId() })` for App-scoped member pickers.
+Locally `resolveAppId()` is the `local-app` placeholder, so the platform rejects
+the call; that failure is expected — App-scoped calls only work in Preview and
+deployed runs, where `APP_ID` is injected.
 App records still go through `@/lib/data` (see [App Data](#app-data)).
 Updating injected guidance alone does not upgrade an application's installed SDK.
 
@@ -327,9 +330,10 @@ on first data access.
 
 ## App Data
 
-`src/lib/data` is the only UNS client in an App. It is a locked platform
-contract written in the Mongo driver's style; it will move into `@tier0/sdk-v2`
-with the same API. All calls are `POST {TIER0_API_HOST}/openapi/v2/...` with
+App records go through `data` from `@/lib/data`, the App's instance of the
+`@tier0/sdk-v2/data` client (Mongo-driver style) built from
+`src/data/collections.ts`; services never use `tier0.uns` or fetch UNS for
+App records. All calls are `POST {TIER0_API_HOST}/openapi/v2/...` with
 `x-api-key: TIER0_API_KEY` and a 15 s timeout; responses use the
 `{ code, msg, requestId, data }` envelope.
 
@@ -409,7 +413,7 @@ The first data access of a server process sends every declaration of
   non-conflicting declarations and serves conflicting ones with their
   existing collection ID.
 
-Schemas are converted from Zod 4 by `toRecordSchema` (`src/lib/data/schema.ts`)
+Schemas are converted from Zod 4 by `compileCollection` (`@tier0/sdk-v2/data/define`)
 into the stored subset: `type`, `properties`, `required` (sorted),
 `additionalProperties: false` on every object, `items`, `enum`, `minimum`,
 `maximum`, `title`, `description`. `npm run data:schema` prints the exact
@@ -419,19 +423,27 @@ ensure payload. Evolution rules and the worker's tier0 MCP operations
 
 ### Errors
 
-Failures become `DataError { status, code, upstreamStatus, requestId,
-retryable, details }`; `withErrors` answers `{ error, code, requestId }` with
-`status`:
+Failures become `DataError { status, code, reason, upstreamStatus, requestId,
+retryable, outcomeUnknown, details }`, with the SDK's `UnsV2Error` as `cause`;
+`details` holds the `data` object of the UNS error envelope (or data-layer
+details). `withErrors` answers `{ error, code, requestId }` with `status`:
 
 | UNS answer | App status |
 |---|---|
 | 400 / 403 / 404 / 409 / 413 / 422 / 429 | same (except the retryable 403 below) |
 | 401 (credential rejected) | 502 — a platform credential problem, not the user's session |
 | 403 with `error.retryable: true` (e.g. `FORBIDDEN` "hosted App is not ready" right after an import) | 503 (`retryable`) — a platform state, not a denied action |
-| 502 / 503 / 504, timeout, network failure | 503 (`retryable`); a network failure answers without the gateway address, which goes to the server log only |
+| 502 / 503 / 504 with the UNS envelope | 503 (`retryable` for 503 / 504, or when UNS marks the error retryable) |
+| 502 / 503 / 504 without the envelope (ingress or load balancer during a rollout) | 503 `HTTP_502` / `HTTP_503` / `HTTP_504` (`retryable`) |
+| timeout / network failure | 503 `DATA_TIMEOUT` / `DATA_UNREACHABLE` (`retryable`); the message never contains the gateway address |
+| other invalid response | 502 `DATA_BAD_RESPONSE` |
 | other 5xx | 502 |
 | missing `TIER0_API_HOST` / `TIER0_API_KEY` | 503 `DATA_NOT_CONFIGURED` |
 | batch over 200 items | 400 `BATCH_LIMIT_EXCEEDED` (not sent) |
+
+`outcomeUnknown: true` means a write may have reached UNS (a timeout, a lost
+connection or an unenveloped 5xx after sending): query the result first and
+replay only with the same idempotency key, never with a new one.
 
 `DataError.reason` carries `data.reason`. `APP_PERMISSION_MISSING` with
 `data.missingPermission: "uns.delete"` explains that deletes need
@@ -448,13 +460,18 @@ active record) carry their own hints. Structured details stay in
 ### Data subject
 
 `src/start.ts` runs every request — public paths such as `/_serverFn`
-included — inside an `AsyncLocalStorage` context holding the request's
-`X-Tier0-App-Data-Subject`. The header is signed by the Gateway and verified
+included — inside the `@tier0/sdk-v2/data` request context
+(`runWithRequestContext`) holding the request's `X-Tier0-App-Data-Subject`.
+The App has no context of its own: a second context would leave the data
+client without the subject and silently run calls as the App. The header is signed by the Gateway and verified
 by UNS, so the App can neither forge nor widen it. Record calls made
 while serving that request forward the header, so UNS applies employee data
 rules and binds record leases to that employee. Ensure, seed writes, calls made
 outside a request and calls inside `runAsApp(...)` carry no subject; a lease
-taken with a subject cannot be released by such App-level work.
+taken with a subject cannot be released by such App-level work. A subject
+that is not a compact three-segment base64url token (≤8192 bytes) is a
+`TypeError` from the SDK, i.e. a 500 that points at the Gateway, not a
+`DataError`.
 
 ## Where Each Variable Is Read
 
@@ -463,9 +480,9 @@ taken with a subject cannot be released by such App-level work.
 | `APP_ID` | `lib/app-id.ts` (`resolveAppId`), used by `routes/api/manifest.ts` and by application code wherever it identifies itself to the platform (e.g. SDK notification `sender.id`); always read at runtime |
 | `VITE_BASE_PATH` | `vite.config.ts` (`base`), `router.tsx` (`basepath`), `lib/utils.ts` (`apiUrl` primary source) |
 | `NEXT_PUBLIC_BASE_PATH` | `lib/utils.ts`, and as a fallback in `vite.config.ts` / `router.tsx` |
-| `TIER0_API_HOST` | Injected by the platform; read by `lib/data/transport.ts` and the SDK client (`createClient()`) at call time |
-| `TIER0_API_KEY` | Injected by the platform; read by `lib/data/transport.ts`, the SDK client and `@tier0/sdk-v2/mq` |
-| `NODE_ENV` | `lib/data/client.ts`: `production` selects deployed ensure behavior, anything else Preview behavior |
+| `TIER0_API_HOST` | Injected by the platform; read by the SDK at call time (`createClient()` and the `@tier0/sdk-v2/data` client) |
+| `TIER0_API_KEY` | Injected by the platform; read by the SDK client, the `@tier0/sdk-v2/data` client and `@tier0/sdk-v2/mq` |
+| `NODE_ENV` | `@tier0/sdk-v2/data` `createDataClient`: `production` selects deployed ensure behavior, anything else Preview behavior |
 | `TIER0_MQTT_HOST` | Injected by the platform; read by `@tier0/sdk-v2/mq` |
 | `TIER0_MQTT_PORT` | Injected by the platform; read by `@tier0/sdk-v2/mq` |
 

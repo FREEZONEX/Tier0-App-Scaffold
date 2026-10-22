@@ -101,7 +101,7 @@ src/
     actions/                   transparent recommendation/impact actions
     layouts/                   route-group shells
   lib/                         auth, permissions, routing and runtime helpers
-  lib/data/                    App data layer over Tier0 UNS (locked)
+  lib/data/                    App instance of the @tier0/sdk-v2/data client (locked)
 server.mjs                     production entry (do not modify)
 artifact.toml                  platform build/run contract
 ```
@@ -124,10 +124,12 @@ Use three layers:
 
 Hard invariants:
 
-- Import `@/lib/data` only from `src/services/**`. ESLint and the locked
-  `src/lib/data-contracts.test.mjs` flag accidental violations (static guard
-  rails, not a security boundary). Any file may import declarations from
-  `@/data/collections` and types from `@/lib/data/define`.
+- Import `@/lib/data` (and values from `@tier0/sdk-v2/data`) only from
+  `src/services/**`; the data client is server-only and must not reach the
+  browser bundle. ESLint and the locked `src/lib/data-contracts.test.mjs` flag
+  accidental violations (static guard rails, not a security boundary). Any
+  file may import declarations from `@/data/collections` and from
+  `@tier0/sdk-v2/data/define`, and types from `@tier0/sdk-v2/data`.
 - Keep `Request`, `Response`, and `Headers` out of services. Services return
   typed values and throw `HttpError` for caller-facing failures.
 - Define lifecycle transitions once in the owning service. Reject illegal
@@ -148,7 +150,7 @@ Declare every collection in `src/data/collections.ts` and list it in
 
 ```ts
 import { z } from "zod";
-import { defineCollection, type Doc } from "@/lib/data/define";
+import { defineCollection, type Doc } from "@tier0/sdk-v2/data/define";
 import { seedTimestamp } from "./seed-utils";
 
 export const workOrders = defineCollection({
@@ -338,7 +340,10 @@ the data layer also forwards the Gateway's employee assertion
 employee. Collection ensure and seed writes run as the App. Work detached from
 the request (timers, queues, fire-and-forget follow-ups) must run inside
 `runAsApp(() => ...)`; a lease taken under an employee cannot be released by
-such App-level work.
+such App-level work. `src/start.ts` opens the SDK's request context
+(`runWithRequestContext` from `@tier0/sdk-v2/data`); never add a context of
+your own — data calls would silently run as the App. A malformed subject
+header is a `TypeError` (500), not a `DataError`.
 
 ### First load
 
@@ -364,6 +369,14 @@ details; fix the declaration. The deployed App logs them and keeps serving.
 declaration are logged as info, and `ANNOTATION_NOT_APPLIED` (an edited
 `.describe()` or collection `description` that ensure does not write) as a
 warning that points at `schema:replace`.
+
+Runtime data failures are `DataError`s (`status`, `code`, `reason`,
+`retryable`, `outcomeUnknown`, `details` = the UNS envelope `data`, `cause`);
+let them reach `withErrors`. A retryable 503 (`HTTP_502/503/504` from an ingress
+during a rollout, `DATA_TIMEOUT`, `DATA_UNREACHABLE`, "hosted App is not ready")
+may be retried. `outcomeUnknown: true` means a write may have landed: check
+before replaying, and replay only with the same idempotency key. Full mapping:
+`docs/platform-integration.md` → Errors.
 
 ### Schema evolution
 
@@ -650,11 +663,13 @@ when passing employee data delegation; the App key never reaches the browser.
 
 v2 has no UNS v1, legacy Flow or project member queries. Workspace members are
 not the members who can use this App: use `tier0.members.listApp({ appId })`
-with `resolveAppId()` for App-scoped pickers.
+with `resolveAppId()` for App-scoped pickers. Locally `resolveAppId()` is the
+`local-app` placeholder and the platform rejects the call; that is expected —
+App-scoped calls only work in Preview and deployed runs.
 
-App records (UNS v2 collections) are the one exception: use `@/lib/data`
-(see App Data), not the SDK and not hand-written fetches. The data layer will
-move into `@tier0/sdk-v2` later with the same API.
+App records (UNS v2 collections) are the one exception: use `data` from
+`@/lib/data` (see App Data) — the App's instance of the `@tier0/sdk-v2/data`
+client — not `tier0.uns` and not hand-written fetches.
 
 For notifications, omitted `channels` means Web & Desktop plus Mobile; use `[]`
 for inbox only, `['web']` or `['mobile']` for explicit scope. There is no
@@ -736,7 +751,7 @@ Contract files have two classes:
 
 - `src/lib/template-state.test.mjs` describes the blank template and is the only
   contract test generated apps may adapt.
-- Every other test under `src/lib/`, the data layer `src/lib/data/**`,
+- Every other test under `src/lib/`, the data-layer wiring `src/lib/data/**`,
   gate/verify/audit scripts and `scripts/gate-integrity.json` are locked. Do
   not edit, weaken, or delete them. Use documented opt-outs such as
   `EXTERNAL_CALLER` / `READ_ONLY_SURFACE`, or report a genuine conflict.
