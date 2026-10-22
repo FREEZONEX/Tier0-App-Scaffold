@@ -26,8 +26,7 @@ const LOCKED_FILES = [
   "src/lib/interaction-contracts.test.mjs",
   "src/lib/table-contracts.test.mjs",
   "src/lib/copy-contracts.test.mjs",
-  "src/lib/db-contracts.test.mjs",
-  "src/lib/db-schema-contracts.test.mjs",
+  "src/lib/data-contracts.test.mjs",
   "src/lib/route-smoke-contracts.test.mjs",
   "src/lib/route-nesting-contracts.test.mjs",
   "src/lib/hooks-contracts.test.mjs",
@@ -41,9 +40,18 @@ const LOCKED_FILES = [
   "scripts/route-nesting.mjs",
   "scripts/responsive-contract.mjs",
   "scripts/post-build-verify.mjs",
-  "scripts/db-sync-guard.mjs",
   "scripts/gate-integrity.mjs",
   "scripts/scaffold-version.mjs",
+  // The App data layer is a platform contract, not app code.
+  "src/lib/data/bootstrap.ts",
+  "src/lib/data/client.ts",
+  "src/lib/data/collection.ts",
+  "src/lib/data/context.ts",
+  "src/lib/data/define.ts",
+  "src/lib/data/index.ts",
+  "src/lib/data/query.ts",
+  "src/lib/data/schema.ts",
+  "src/lib/data/transport.ts",
 ];
 
 // Normalize line endings so pins hold across git autocrlf configurations.

@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "tier0Scaffold": {
-    "version": 7,
-    "ref": "3a96b2b"
+    "version": 8,
+    "ref": "308a4ea"
   },
   "engines": {
     "node": ">=22.12.0"
@@ -15,7 +15,7 @@
     "dev:local": "VITE_STRICT_PORT=false vite dev --host 127.0.0.1 --port 5173",
     "dev:force": "vite dev --host 0.0.0.0 --port 5173 --force",
     "build": "vite build",
-    "postbuild": "npm run build:verify && npm run auth:union:test && npm run runtime:audit && npm run test:components",
+    "postbuild": "npm run build:verify && npm run auth:union:test && npm run runtime:audit && npm run test:components && npm run test:data",
     "typecheck": "tsc --noEmit",
     "build:verify": "node scripts/post-build-verify.mjs",
     "build:check": "npm run build",
@@ -24,12 +24,11 @@
     "smoke:routes": "node --import tsx scripts/route-smoke.mjs",
     "start": "node server.mjs",
     "lint": "eslint .",
-    "db:push": "node --import tsx scripts/db-sync-guard.mjs",
-    "db:push:check": "node --import tsx scripts/db-sync-guard.mjs --dry-run",
-    "db:seed": "tsx src/db/seed.ts",
-    "db:studio": "drizzle-kit studio",
     "gallery:build": "vite build --config gallery/vite.config.ts",
-    "test:components": "node --import tsx --test tests/component-kit.test.ts"
+    "test:components": "node --import tsx --test tests/component-kit.test.ts",
+    "test:data": "node --import tsx --test tests/data-layer.test.ts tests/data-schema.test.ts",
+    "test": "npm run test:components && npm run test:data",
+    "data:schema": "node --import tsx scripts/data-schema.mjs"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.2.7",
@@ -39,11 +38,8 @@
     "@tanstack/react-start": "^1.167.0",
     "@tier0/sdk": "^0.5.4",
     "clsx": "^2.1.1",
-    "drizzle-orm": "^0.45.0",
-    "drizzle-zod": "^0.8.0",
     "lucide-react": "^0.577.0",
     "motion": "^12.38.0",
-    "pg": "^8.20.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "sonner": "^2.0.7",
@@ -60,14 +56,11 @@
     "@tanstack/eslint-plugin-router": "^1.161.0",
     "@tanstack/router-plugin": "^1.167.0",
     "@types/node": "^20",
-    "@types/pg": "^8.11.14",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@typescript-eslint/eslint-plugin": "^8.59.0",
     "@typescript-eslint/parser": "^8.59.0",
     "@vitejs/plugin-react": "^6.0.0",
-    "dotenv": "^17.3.1",
-    "drizzle-kit": "^0.31.0",
     "eslint": "^9",
     "eslint-plugin-react": "^7.37.0",
     "eslint-plugin-react-hooks": "^7.1.0",

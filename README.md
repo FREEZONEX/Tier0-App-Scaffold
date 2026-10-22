@@ -1,9 +1,9 @@
 # MonoApp Scaffold
 
-A scaffold built on **TanStack Start 1.x** + Drizzle ORM + TailwindCSS 4 for
-building shop-floor MES applications on the Tier0 platform. The goal is to
-give agents a light but complete starting point: authentication, database
-connectivity, platform deployment, build outputs, and layout contracts are
+A scaffold built on **TanStack Start 1.x** + Tier0 UNS collections + TailwindCSS 4
+for building shop-floor MES applications on the Tier0 platform. The goal is to
+give agents a light but complete starting point: authentication, App data
+access, platform deployment, build outputs, and layout contracts are
 pre-wired, while business pages and app-local components are generated for the
 target application instead of being constrained by a fixed template library.
 
@@ -12,8 +12,8 @@ target application instead of being constrained by a fixed template library.
 | Layer | Technology |
 |---|---|
 | Framework | TanStack Start 1.x (Vite 8/Rolldown + TanStack Router, React 19 SSR) |
-| ORM | Drizzle ORM + node-postgres |
-| Validation | Zod (`drizzle-zod` derives schemas and types) |
+| Data | Tier0 UNS v2 collections through `src/lib/data` (Mongo-driver-style API) |
+| Validation | Zod 4 (collection declarations, API input schemas, inferred types) |
 | Styling | TailwindCSS 4 (Vite plugin, no PostCSS) + Tier0 design tokens |
 | UI | Lightweight layout contracts + Tailwind utilities + Tier0 tokens; no prebuilt business component library |
 | Charts | Recharts 3 (must be wrapped in `<ResponsiveContainer>`) |
@@ -28,11 +28,12 @@ target application instead of being constrained by a fixed template library.
 
 ```bash
 npm install
-# Configure DATABASE_URL in .env
-npm run db:push           # Optional: pre-sync schema locally through the sync guard; services can also bootstrap at runtime
-npx tsx src/db/seed.ts    # Optional: explicit seed / fixture reset
+export TIER0_API_HOST=<gateway host> TIER0_API_KEY=<App key>   # only to reach App data locally
 npm run dev               # -> http://localhost:5173
 ```
+
+Collections declared in `src/data/collections.ts` are created (and seeded) by
+the App itself on first data access; there is no migration or seed command.
 
 > When the agent runs inside the Executor Pod, do **not** run `npm install`
 > manually. The platform manages installs automatically, and manual installs
@@ -46,10 +47,6 @@ enabled.
 
 | Variable | Required | When unset | When set |
 |---|:---:|---|---|
-| `DATABASE_URL` | ✅ | — | Connects to PostgreSQL |
-| `DIRECT_DATABASE_URL` | | — | Direct database connection for `db:push` and `seed.ts` |
-| `DB_SCHEMA` | | Uses `public` | Binds `appSchema` in `src/db/schema.ts`, the runtime `search_path` and `drizzle-kit push` to the specified schema |
-| `DB_SYNC_ALLOW_DESTRUCTIVE` | | `db:push` refuses DROP/TRUNCATE plans | Set to `1` to let `db:push` apply destructive statements (back up first) |
 | `APP_ID` | | `local-app` (local-development placeholder only) | Platform-injected agent-platform App UUID (36 chars); echoed by `/api/manifest` and used wherever the app identifies itself to the platform (e.g. notification `sender.id`). Not an app name or business identity |
 | `VITE_BASE_PATH` | | No URL prefix | Applied to Vite `base`, router `basepath`, and `apiUrl()` |
 | `NEXT_PUBLIC_BASE_PATH` | | Legacy fallback only | Used by `apiUrl()` when `VITE_BASE_PATH` is absent |
@@ -64,8 +61,8 @@ SDK, the platform gateway, or the runtime environment.
 
 | Variable | Purpose |
 |---|---|
-| `TIER0_API_HOST` | OpenAPI service host used by `@tier0/sdk/openapi` |
-| `TIER0_API_KEY` | API credential used by both OpenAPI and MQTT |
+| `TIER0_API_HOST` | OpenAPI gateway host used by `@tier0/sdk/openapi` and the App data layer |
+| `TIER0_API_KEY` | App key used by OpenAPI, MQTT and the App data layer |
 | `TIER0_MQTT_HOST` | MQTT WebSocket broker host |
 | `TIER0_MQTT_PORT` | MQTT WebSocket port, default `8084` |
 
@@ -82,7 +79,7 @@ pinned in `vite.config.ts`:
 
 ```ts
 ssr: {
-  external: ["pg", "@tier0/sdk", "mqtt"],
+  external: ["@tier0/sdk", "mqtt"],
 }
 ```
 
@@ -90,6 +87,11 @@ SDK calls are loaded on the server through the lazy helper in
 `src/lib/tier0.ts`. Generated apps should not top-level import SDK submodules,
 should not move the SDK into `ssr.noExternal`, and should not bypass the SDK
 with fallback MQTT clients or hand-written fetch wrappers.
+
+The App data layer (`src/lib/data`) is the temporary exception: it calls the
+UNS v2 collection and record endpoints with `fetch` because `@tier0/sdk` 0.5.4
+only covers OpenAPI v1. It will move into the SDK with the same API; App code
+only changes its import path then. Nothing else may call UNS directly.
 
 For deployment details, see
 [docs/platform-integration.md](docs/platform-integration.md).
@@ -115,14 +117,16 @@ src/
       manifest.ts             <- Role manifest (do not modify)
       auth/
         me.ts                 <- Current Gateway-resolved user snapshot (do not modify)
-  services/                   <- Domain layer: business rules, state machines, multi-step transactions
+  services/                   <- Domain layer: business rules, state machines, data access through lib/data
   components/
     Shell.tsx                 <- Left navigation shell; update defaultModules here
     layouts/                  <- StationLayout, ReviewLayout, MonitorLayout, and similar shell contracts
     toaster.tsx               <- Sonner mount point
     client-only.tsx           <- Hydration boundary for SSR-incompatible libraries
     <domain>/                 <- App-local components generated per business need
-  db/{index,schema,seed}.ts   <- Data layer: Drizzle client, table definitions, seed script
+  data/
+    collections.ts            <- Collection declarations (Zod schema, indexes, seed): the data source of truth
+    seed-utils.ts             <- seedDate() / seedTimestamp() / requireSeedRef() for seed documents
   lib/                        <- Cross-cutting utilities, not domain logic
     auth.ts                   <- getCurrentUser() / requireAuth() (do not modify)
     gateway.ts                <- Gateway header parsing (do not modify)
@@ -133,6 +137,7 @@ src/
     hooks.ts                  <- Polling and request hooks
     motion.ts                 <- motion/react re-export
     tier0.ts                  <- Server-side lazy loader for @tier0/sdk
+    data/                     <- App data layer over Tier0 UNS collections (locked; services only)
     utils.ts                  <- cn(), apiUrl(), requestJson()
 server.mjs                    <- Production Node HTTP entrypoint (do not modify)
 vite.config.ts                <- TanStack Start + Tailwind v4 + Vite 8 paths + Tier0 SDK SSR external rules
@@ -284,23 +289,43 @@ experience.
 
 ## Add an API Endpoint
 
-**Step 1: Write the service** in `src/services/work-orders.ts`. This is where
-business logic, state machines, and transactions belong. The `db` client may
-only appear in `services/` and `db/seed.ts`. Each implemented module should
-define runtime `bootstrapModule(...)` behavior near the top of the service so
-preview and new tenant schemas can create tables, indexes, and baseline data on
-first use. Shared bootstrap helpers create all module tables/indexes
-first and seed afterward; do not hand-roll local create/seed ordering in each
-service.
+**Step 1: Declare the data** in `src/data/collections.ts` with
+`defineCollection(...)` (schema, indexes, seed) and list it in `collections`.
+The App ensures every declared collection on first access; there is no
+migration step. ensure only creates and widens: it never narrows storage and
+never rewrites stored descriptions. Narrowing a schema and editing the
+descriptions of existing fields go through `schema:replace` via the tier0 MCP.
 
-**Step 2: Write the route** in `src/routes/api/work-orders.ts`. Keep it thin:
+**Step 2: Write the service** in `src/services/work-orders.ts`. This is where
+business logic, state machines, and data access belong:
+
+```ts
+import { data } from "@/lib/data";
+import { workOrders } from "@/data/collections";
+import { HttpError } from "@/lib/route-handlers";
+
+const orders = data.collection(workOrders);
+
+export async function releaseWorkOrder(id: string) {
+  const released = await orders.findOneAndUpdate(
+    { _id: id, status: "DRAFT" },
+    { $set: { status: "RELEASED" } },
+  );
+  if (!released) throw new HttpError(409, "Only draft work orders can be released");
+  return released;
+}
+```
+
+`@/lib/data` may only be imported from `services/`.
+
+**Step 3: Write the route** in `src/routes/api/work-orders.ts`. Keep it thin:
 `requireAuth()` -> `schema.parse()` -> service call -> `Response.json(...)`,
 wrapped in `withErrors(...)`. Throw `HttpError` for client-facing failures or
 let Zod issues bubble naturally.
 
-For a full state-machine example with multi-step `db.transaction(...)` logic
-and Zod validation, see
-[AGENTS.md §Build Order — Step 3](AGENTS.md#step-3-services--server-routes).
+Modeling, consistency patterns (`expectedRevision`, `data.transact`), schema
+evolution and the tier0 MCP collection operations are in
+[AGENTS.md §App Data](AGENTS.md#app-data).
 
 In pages, load with `requestJson<T>("/api/work-orders", { signal })` (it applies
 `apiUrl()`). Do not hardcode `/api/...` without `apiUrl()` or deployments with a
@@ -318,22 +343,25 @@ Browser
 src/routes/api/**.ts          <- Interface layer: requireAuth -> Zod.parse -> service -> Response.json
   |                               Wrapped by withErrors for {status,message} / Zod issue mapping
   v
-src/services/**.ts            <- Domain layer: business logic, state machines, multi-step transactions
+src/services/**.ts            <- Domain layer: business logic, state machines, consistency rules
   |                               Pure TypeScript, no HTTP concepts
   v
-src/db/{index,schema}.ts      <- Data layer: Drizzle client + table definitions
+src/lib/data (+ src/data/collections.ts)
+  |                           <- Data layer: Mongo-style collections, ensure + seed on first access
   v
-PostgreSQL
+Tier0 OpenAPI v2 UNS          <- /uns/app/collections/ensure, /uns/collections/:id/records:*
 ```
 
 Hard rules:
 
-- `db` may only be imported from `src/services/**` and `src/db/seed.ts`
+- `@/lib/data` may only be imported from `src/services/**`
 - `Request`, `Response`, and `Headers` belong only in routes, `src/start.ts`,
   and `src/lib/{auth,gateway,route-handlers}.ts`
-- Multi-step writes (2+ DB operations) must run inside
-  `db.transaction(async tx => ...)`
-- Service entry points should `await` their module runtime bootstrap first
+- Writes that must succeed together live in one document or one
+  `data.transact([...])` (≤200 steps); `updateMany` / `deleteMany` are not
+  atomic, like Mongo; never one data call per loop iteration
+- Never call UNS paths directly and never run `schema:replace` / `archive` /
+  `restore` from App code (they are worker operations through the tier0 MCP)
 - Server cookie/header helpers such as `getCookie` or `getRequest` belong only
   in server route handlers, `createServerFn` bodies, or `src/start.ts`
 
@@ -402,9 +430,8 @@ npm run build        # Vite 8/Rolldown build -> dist/{client,server}
 npm run build:check  # build + typecheck + lint
 npm run start        # node server.mjs
 npm run lint         # eslint
-npm run db:push      # push schema
-npm run db:seed      # seed baseline data
-npm run db:studio    # Drizzle Studio
+npm test             # component-kit and data-layer unit tests
+npm run data:schema  # print the normalized ensure payload of src/data/collections.ts
 ```
 
 ## Build Output
@@ -437,7 +464,7 @@ required only in this repository's CI, through
 `node scripts/scaffold-version.mjs --strict`.
 
 **When to bump.** Every PR that changes what generated Apps inherit — the
-rules in `AGENTS.md` / `README.md`, `src/lib/**`, `src/services/bootstrap.ts`,
+rules in `AGENTS.md` / `README.md`, `src/lib/**`, `src/data/seed-utils.ts`,
 `scripts/**`, `artifact.toml`, `vite.config.ts`, `server.mjs`, `package.json`
 dependencies or scripts, `.env.example` — bumps the version by one. Do not
 judge the size of the change. Pure wording, placeholder covers, or internal
@@ -467,9 +494,9 @@ so a version can be traced back to its commit from the tag.
 The full build instructions live in [AGENTS.md](AGENTS.md). For greenfield
 work, agents follow this order:
 
-1. **Schema** (`src/db/schema.ts`)
+1. **Collections** (`src/data/collections.ts`)
 2. **Auth Config** (`permissions.ts`)
-3. **Services + Runtime Bootstrap** (`src/services/**`)
+3. **Services** (`src/services/**`, data access through `@/lib/data`)
 4. **Server Routes / API** (`src/routes/api/**`)
 5. **Frontend** (choose `_app`, `station`, `review`, or a custom layout as needed)
 6. **Build** (`npm run build`)

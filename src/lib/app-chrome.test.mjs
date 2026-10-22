@@ -21,19 +21,15 @@ const TEMPLATE_ROUTE_FILES = [
   "src/routes/review.tsx",
   "src/routes/station.tsx",
 ];
-const TEMPLATE_SERVICE_FILES = [
-  "src/services/bootstrap.ts",
-  "src/services/db-results.ts",
-  "src/services/seed-utils.ts",
-];
+const TEMPLATE_SERVICE_FILES = [];
 const TEMPLATE_STATE_FINGERPRINTS = {
   "roles.json": "b2d07f68818cfc353b2f98543a018fa6ef6157026f910ad359eb7370a4b25172",
   "src/components/Shell.tsx":
     "793fa93ab0f012a1f2ebaa893337dc4bdd645ac0122f27b3d9921d30ad25c4ed",
   "src/components/shell-modules.ts":
     "f4723dafb7d19601437521226a7f58ccce27ac31245d07165d28bbfa6ff9a850",
-  "src/db/schema.ts":
-    "3967e92af2f0b5858b7aca04a9c69e7dd8f760974ae5fd9b4c57c3b7bc107cf9",
+  "src/data/collections.ts":
+    "b6187ec674b1edee7d9e2dfb98cd09424f7da9700b31385936ea152cb7f81504",
   "src/lib/app-chrome.ts":
     "e772ac721e016dcd98a848ea0159ed924c56df75677f3b0016d52210a4008ff8",
   "src/lib/permissions.ts":
