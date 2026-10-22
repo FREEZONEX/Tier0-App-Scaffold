@@ -638,25 +638,30 @@ Use TailwindCSS 4 through `src/styles/globals.css`; do not add
 
 ## Tier0 SDK
 
-Use the installed `@tier0/sdk` when requirements involve Tier0 OpenAPI v1,
-Flow, files, MQTT/MQ/WebSocket, or device commands. Call lazy helpers from
-`@/lib/tier0` inside the concrete server action; do not top-level import or
-invoke SDK submodules on SSR startup paths. Keep `vite.config.ts`
-`ssr.external: ["@tier0/sdk", "mqtt"]`.
+Use the installed `@tier0/sdk-v2` (`^0.1.0`) when requirements involve the
+Tier0 platform: user/platform info, members, notifications, files, MQTT/MQ/
+WebSocket, controls or capabilities. Load it with the lazy helpers from
+`@/lib/tier0` inside the concrete server action — `loadTier0Sdk()` and then
+`createClient()` for `tier0.system`, `members`, `notifications`, `files`,
+`mqttAuth`, `controls`; `loadTier0Mq()` for `Tier0MQClient`. Do not top-level
+import or invoke SDK modules on SSR startup paths. Keep `vite.config.ts`
+`ssr.external: ["@tier0/sdk-v2", "mqtt"]`. Create a fresh client per request
+when passing employee data delegation; the App key never reaches the browser.
+
+v2 has no UNS v1, legacy Flow or project member queries. Workspace members are
+not the members who can use this App: use `tier0.members.listApp({ appId })`
+with `resolveAppId()` for App-scoped pickers.
 
 App records (UNS v2 collections) are the one exception: use `@/lib/data`
 (see App Data), not the SDK and not hand-written fetches. The data layer will
-move into `@tier0/sdk` later with the same API.
+move into `@tier0/sdk-v2` later with the same API.
 
-The SDK baseline is `^0.5.4` (locked to `0.5.4`). For notifications, omitted
-`channels` means Web & Desktop plus Mobile; use `[]` for inbox only, `['web']`
-or `['mobile']` for explicit scope. There is no `desktop` channel. When
-upgrading an existing app, change calls that relied on omitted channels for
-silent delivery to `channels: []`. See `docs/platform-integration.md` for
-notification migration, MQTT broker handling, and API-key compatibility diagnostics.
-For MQTT authentication failures, check the installed SDK and injected key type
-before changing credentials; do not hard-code username/clientId to bypass SDK
-identity derivation.
+For notifications, omitted `channels` means Web & Desktop plus Mobile; use `[]`
+for inbox only, `['web']` or `['mobile']` for explicit scope. There is no
+`desktop` channel. See `docs/platform-integration.md` for notification mode,
+MQTT broker handling and MQTT credentials. For MQTT authentication failures,
+check the installed SDK and injected key type before changing credentials; do
+not hard-code username/clientId to bypass SDK identity derivation.
 
 The platform injects SDK hosts, keys, and connection details. Do not add them
 to `.env.example`, collections, or user-facing settings unless the user

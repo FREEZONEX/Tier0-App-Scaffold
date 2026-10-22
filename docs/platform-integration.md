@@ -1,14 +1,39 @@
 # Platform Integration and Deployment
 
-## SDK 0.5.4
+## Tier0 SDK (`@tier0/sdk-v2`)
 
-The scaffold declares `@tier0/sdk` `^0.5.4` and locks `0.5.4`. Load OpenAPI,
-Files and MQ through the existing `@/lib/tier0` server-side lazy helpers.
+The scaffold declares `@tier0/sdk-v2` `^0.1.0`. Load it only on the server
+through the lazy helpers in `@/lib/tier0`:
+
+| Helper | Module | Use |
+|---|---|---|
+| `loadTier0Sdk()` | `@tier0/sdk-v2` | `createClient()`: `tier0.system`, `members`, `notifications`, `files`, `uns`, `mqttAuth`, `capabilities`, `controls`, `source`, `stream`, `agent` |
+| `loadTier0OpenApi()` | `@tier0/sdk-v2/openapi` | `createOpenAPI()` / `configureClient()` for the raw generated operations |
+| `loadTier0Files()` | `@tier0/sdk-v2/files` | `createFilesClient()` |
+| `loadTier0Mq()` | `@tier0/sdk-v2/mq` | `Tier0MQClient`, `toWebSocketUrl()`, `parseMqttBroker()` |
+
+```ts
+import { loadTier0Sdk } from "@/lib/tier0";
+
+const { createClient } = await loadTier0Sdk();
+const tier0 = createClient(); // reads TIER0_API_HOST / TIER0_API_KEY
+const user = await tier0.system.whoami();
+```
+
+`createClient()` instances share no configuration. Reuse one for work done as
+the App; create a fresh instance per request when passing employee data
+delegation. The App key represents the App, never the current user, and never
+reaches the browser — browser pages call the App's own server routes.
+
+v2 has no UNS v1, legacy Flow, project member queries or `getCurrentProjectId()`.
+Workspace members are not the members who can use this App: use
+`tier0.members.listApp({ appId: resolveAppId() })` for App-scoped member pickers.
+App records still go through `@/lib/data` (see [App Data](#app-data)).
 Updating injected guidance alone does not upgrade an application's installed SDK.
 
 ### Notification channels
 
-The SDK expands channels before sending the HTTP request:
+`tier0.notifications.send()` expands channels before sending the HTTP request:
 
 | Input | Reminder scope |
 |---|---|
@@ -18,17 +43,14 @@ The SDK expands channels before sending the HTTP request:
 | `['mobile']` | Mobile |
 
 Explicit arrays are deduplicated without adding channels. There is no `desktop`
-value. TypeScript restricts channel values; the SDK does not validate them at
-runtime. The raw backend endpoint does not share the SDK's default expansion.
-
-When upgrading from 0.4.0 or earlier, review existing notification calls. Preserve
-intentional silent delivery with `channels: []`; generic notification requests
-can omit channels. Do not infer a narrower channel from the application's page
-layout. Reminder eligibility does not establish actual delivery.
+value; any value other than `web` / `mobile` throws a `TypeError` before the
+request. The raw backend endpoint does not share the SDK's default expansion.
+Do not infer a narrower channel from the application's page layout. Reminder
+eligibility does not establish actual delivery.
 
 Use `mode: 'test'` in development/Preview and `mode: 'live'` for published runs.
 Do not add or detect a `[Test]` title prefix; test/live is represented by message
-mode. Keep notification App identity resolved at runtime through `resolveAppId()`.
+mode. Identify the App with `sender: { type: 'app', id: resolveAppId() }`.
 
 ### MQTT broker addresses
 
@@ -50,64 +72,26 @@ when that browser requires WSS on another port.
 uses its `wssPort` option for non-WebSocket inputs. Explicit TCP/MQTT URL
 ports are not WebSocket ports and must not be reused.
 
-### MQTT API-key compatibility
+### MQTT credentials
 
-Workspace-encoded keys (`sk-<type>-ws<base36>_<secret>`) supply MQTT identity.
-Non-service types require SDK 0.5.2 or later; use the 0.5.4 baseline for the
-additional connect-time credential and endpoint fixes. Preserve the original
-key as the password and let the SDK derive username/clientId. Legacy keys keep
-the Enterprise fallback; deliberate deployment-specific identity overrides
-remain explicit. Changing the key through `connect({ password })` recalculates
-automatically derived fields while preserving each explicit field. Disconnect
-an established connection before reconnecting with new credentials.
+`Tier0MQClient` reads `TIER0_MQTT_HOST` / `TIER0_MQTT_PORT` and uses
+`TIER0_API_KEY` as the password. A workspace-encoded key
+(`sk-<type>-ws<base36>_<secret>`) supplies the MQTT identity: the client derives
+username and clientId from it. A key it cannot parse is rejected unless
+username, clientId and password are all passed explicitly; there is no
+Enterprise fallback. Alternatively create dedicated credentials with
+`tier0.mqttAuth.create()` — the full credential is returned only once.
 
-For `Not authorized`, CONNACK code 5, repeated reconnects, or OpenAPI succeeding
-while MQTT fails:
+Changing the key through `connect({ password })` recalculates derived fields
+while preserving explicitly passed ones. Disconnect an established connection
+before reconnecting with new credentials.
 
-1. Check the actually installed version with `npm ls @tier0/sdk`, not only
-   the manifest range. Inspect key presence/type in the failing runtime without
-   printing its value. OpenAPI sends an opaque credential; HTTP 401 alone does
-   not establish an SDK incompatibility.
-2. If a workspace-encoded non-service key is used below 0.5.2, upgrade to the
-   selected supported baseline. Keep the package range and authoritative
-   lockfile consistent. Managed preview owns installation/restart; do not race
-   it with a manual install. In an unmanaged checkout, validate a clean install.
-3. If the SDK compatibility diagnostic is available in the installed package
-   or injected guidance, run it from the application root. Check that the script
-   exists first: SDK 0.5.4 includes
-   `skills/tier0-sdk/scripts/check-api-key-compat.mjs`; published 0.5.3 omitted it.
-   Its absence in an older package is a packaging limitation, not an
-   authentication failure; continue the checks here.
-4. Once the installed SDK is compatible, inspect runtime injection, key
-   revocation/expiry/permissions, broker endpoint/transport, and backend support
-   for that key type. Do not repeatedly upgrade or replace credentials without
-   evidence, and never log the complete key or hard-code a Workspace identity.
-
-After an upgrade, restart the runtime and verify its installed version and the
-affected MQTT connection/subscription. A build or local compatibility check does
-not prove broker authorization or message delivery.
-
-### Existing App API-key type changes
-
-Before the platform changes an existing App to a workspace-encoded non-service
-API key, inspect the SDK version actually running in that App and whether it
-uses MQTT. For MQTT apps below 0.5.2, upgrading the SDK is a prerequisite to the
-key-type change; target 0.5.4 for the complete fixes described above. Updating
-the scaffold or replacing a Skill does not upgrade deployed Apps.
-
-Upgrade and restart the App first, confirm the installed version, and verify
-its MQTT connection/subscription. Validate the target key in an authorized
-staging or controlled cutover before retiring the old credential; a successful
-connection using only the old key does not prove the new key works. If upgrade
-or verification cannot be completed, do not automatically switch credentials;
-report the compatibility blocker. Preserve a rollback path for the controlled
-cutover rather than invalidating the working credential first.
-
-An HTTP-only App must not be marked incompatible solely because its SDK is
-below 0.5.2; check the target key's permissions and endpoint support. Unknown
-runtime versions or unknown MQTT usage are unresolved checks, not evidence that
-a switch is safe. This is a requirement for the platform credential-switch
-workflow; these scaffold instructions do not implement platform enforcement.
+For `Not authorized`, CONNACK code 5 or repeated reconnects, check the installed
+version with `npm ls @tier0/sdk-v2`, the key type in the failing runtime (without
+printing its value), the broker endpoint/transport, and backend support for that
+key type. Do not hard-code username/clientId to bypass identity derivation,
+never log the complete key, and never hard-code a Workspace identity. A build
+does not prove broker authorization or message delivery.
 
 ## Environment Variables
 
@@ -344,7 +328,7 @@ on first data access.
 ## App Data
 
 `src/lib/data` is the only UNS client in an App. It is a locked platform
-contract written in the Mongo driver's style; it will move into `@tier0/sdk`
+contract written in the Mongo driver's style; it will move into `@tier0/sdk-v2`
 with the same API. All calls are `POST {TIER0_API_HOST}/openapi/v2/...` with
 `x-api-key: TIER0_API_KEY` and a 15 s timeout; responses use the
 `{ code, msg, requestId, data }` envelope.
@@ -479,11 +463,11 @@ taken with a subject cannot be released by such App-level work.
 | `APP_ID` | `lib/app-id.ts` (`resolveAppId`), used by `routes/api/manifest.ts` and by application code wherever it identifies itself to the platform (e.g. SDK notification `sender.id`); always read at runtime |
 | `VITE_BASE_PATH` | `vite.config.ts` (`base`), `router.tsx` (`basepath`), `lib/utils.ts` (`apiUrl` primary source) |
 | `NEXT_PUBLIC_BASE_PATH` | `lib/utils.ts`, and as a fallback in `vite.config.ts` / `router.tsx` |
-| `TIER0_API_HOST` | Injected by the platform; read by `lib/data/transport.ts` and `@tier0/sdk/openapi` at call time |
-| `TIER0_API_KEY` | Injected by the platform; read by `lib/data/transport.ts`, `@tier0/sdk/openapi` and `@tier0/sdk/mq` |
+| `TIER0_API_HOST` | Injected by the platform; read by `lib/data/transport.ts` and the SDK client (`createClient()`) at call time |
+| `TIER0_API_KEY` | Injected by the platform; read by `lib/data/transport.ts`, the SDK client and `@tier0/sdk-v2/mq` |
 | `NODE_ENV` | `lib/data/client.ts`: `production` selects deployed ensure behavior, anything else Preview behavior |
-| `TIER0_MQTT_HOST` | Injected by the platform; read by `@tier0/sdk/mq` |
-| `TIER0_MQTT_PORT` | Injected by the platform; read by `@tier0/sdk/mq` |
+| `TIER0_MQTT_HOST` | Injected by the platform; read by `@tier0/sdk-v2/mq` |
+| `TIER0_MQTT_PORT` | Injected by the platform; read by `@tier0/sdk-v2/mq` |
 
 ## Scaffold Version Marker
 
