@@ -120,6 +120,8 @@ src/
       manifest.ts             <- Role manifest (do not modify)
       auth/
         me.ts                 <- Current Gateway-resolved user snapshot (do not modify)
+      uns/
+        subscribe.ts          <- Record change stream (SSE) behind useRecordChanges() (do not modify)
   services/                   <- Domain layer: business rules, state machines, data access through lib/data
   components/
     Shell.tsx                 <- Left navigation shell; update defaultModules here
@@ -138,6 +140,7 @@ src/
     users.ts                  <- AppUser type (do not modify)
     permissions.ts            <- Permission matrix definition
     hooks.ts                  <- Polling and request hooks
+    record-changes.ts         <- useRecordChanges(): live record changes from /api/uns/subscribe
     motion.ts                 <- motion/react re-export
     tier0.ts                  <- Server-side lazy loaders for @tier0/sdk-v2
     data/                     <- App data layer over Tier0 UNS collections (locked; services only)
@@ -359,7 +362,8 @@ Hard rules:
 
 - `@/lib/data` may only be imported from `src/services/**`
 - `Request`, `Response`, and `Headers` belong only in routes, `src/start.ts`,
-  and `src/lib/{auth,gateway,route-handlers}.ts`
+  `src/lib/{auth,gateway,route-handlers}.ts` and the change stream
+  (`src/lib/data/changes.ts`)
 - Writes that must succeed together live in one document or one
   `data.transact([...])` (≤200 steps); `updateMany` / `deleteMany` are not
   atomic, like Mongo; never one data call per loop iteration
