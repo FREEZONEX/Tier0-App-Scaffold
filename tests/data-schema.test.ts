@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { filterToPredicate, queryRequestToFind } from "../src/lib/data/query";
+import { filterToPredicate, queryRequestToFind, toQueryResult } from "../src/lib/data/query";
 
 // Schema compilation and write validation are tested in @tier0/sdk-v2/data;
 // the component kit's QueryRequest conversion is Scaffold code.
@@ -42,5 +42,21 @@ describe("query conversion", () => {
       },
     );
     assert.deepEqual(queryRequestToFind({}), { filter: {}, page: 1, pageSize: 20 });
+  });
+
+  it("turns a findPage result into the kit's QueryResult, keeping a capped total visible", () => {
+    const page = { items: [{ _id: "a", code: "A" }], total: { count: 10000, capped: true }, page: 3, pageSize: 20 };
+    assert.deepEqual(toQueryResult(page, { map: (item) => ({ id: item._id }), groups: [{ value: "OPEN", label: "Open", count: 4 }] }), {
+      list: [{ id: "a" }],
+      total: 10000,
+      totalCapped: true,
+      page: { current: 3, pageSize: 20 },
+      groups: [{ value: "OPEN", label: "Open", count: 4 }],
+    });
+    assert.deepEqual(toQueryResult({ ...page, total: { count: 1, capped: false } }), {
+      list: page.items,
+      total: 1,
+      page: { current: 3, pageSize: 20 },
+    });
   });
 });

@@ -7,6 +7,8 @@ import { Select } from "@/components/kit/ui/select";
 
 export interface PaginationProps {
   total: number;
+  /** `total` is a lower bound (a capped count): shown as 「共 N+ 条」. */
+  totalCapped?: boolean;
   /** 1-based page number. */
   current: number;
   pageSize: number;
@@ -37,6 +39,7 @@ function pageTokens(current: number, totalPages: number): PageToken[] {
 
 export function Pagination({
   total,
+  totalCapped = false,
   current,
   pageSize,
   onChange,
@@ -86,7 +89,7 @@ export function Pagination({
     >
       {showTotal ? (
         <span className="mr-2 whitespace-nowrap text-text-secondary">
-          {typeof showTotal === "function" ? showTotal(total, [rangeStart, rangeEnd]) : `共 ${total} 条`}
+          {typeof showTotal === "function" ? showTotal(total, [rangeStart, rangeEnd]) : `共 ${total}${totalCapped ? "+" : ""} 条`}
         </span>
       ) : null}
 

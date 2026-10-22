@@ -201,6 +201,7 @@ function PickerList({
             />
             <Pagination
               total={data.total}
+              totalCapped={data.totalCapped}
               current={controller.page}
               pageSize={controller.pageSize}
               onChange={(page, pageSize) => {

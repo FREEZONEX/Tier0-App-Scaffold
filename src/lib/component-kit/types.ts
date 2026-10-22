@@ -279,6 +279,8 @@ export interface QueryRequest {
 export interface QueryResult<Row = Record<string, unknown>> {
   list: Row[];
   total: number;
+  /** `total` is a lower bound: counting stopped at its cap (shown as "10000+"). */
+  totalCapped?: boolean;
   page: { current: number; pageSize: number };
   groups?: GroupCount[];
 }

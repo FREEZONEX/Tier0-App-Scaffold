@@ -15,6 +15,9 @@
  * forward the Gateway's `X-Tier0-App-Data-Subject`. The header is an
  * assertion signed by the platform Gateway and verified by UNS; the App can
  * neither forge nor widen it, so opening the context unconditionally is safe.
+ * The context gets the request itself, so its abort signal reaches the data
+ * layer: when the caller goes away, data calls still queued are dropped and
+ * those in flight are cancelled.
  */
 
 import { createMiddleware, createStart } from "@tanstack/react-start";
@@ -65,7 +68,7 @@ function jsonError(status: number, error: string): Response {
 }
 
 export const authBridge = createMiddleware().server(({ request, pathname, next }) =>
-  runWithRequestContext(request.headers, async () => {
+  runWithRequestContext(request, async () => {
     if (MUTATING.has(request.method) && !isSameOrigin(request)) {
       return jsonError(403, "Cross-origin request blocked");
     }

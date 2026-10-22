@@ -1,14 +1,14 @@
 /**
  * Query helpers: the component kit's `QueryRequest` (MetaListPage
- * `meta/query`) → UNS filter and sort. Sort specs and `toSortPairs` come from
- * `@tier0/sdk-v2/data`.
+ * `meta/query`) → UNS filter and sort, and a `findPage` result → the kit's
+ * `QueryResult`. Sort specs and `toSortPairs` come from `@tier0/sdk-v2/data`.
  *
  * Pure module; it never performs I/O.
  */
 import { shanghaiDateTimeToIso, shiftYmd } from "../component-kit/format";
 import { resolveDynamicDate } from "../component-kit/query-model";
-import type { DynamicDateValue, QueryFilter, QueryRequest } from "../component-kit/types";
-import { toSortPairs, type Filter, type SortPairs } from "@tier0/sdk-v2/data";
+import type { DynamicDateValue, GroupCount, QueryFilter, QueryRequest, QueryResult } from "../component-kit/types";
+import { toSortPairs, type CappedCount, type Filter, type SortPairs } from "@tier0/sdk-v2/data";
 
 export interface QueryConversionOptions {
   /** Stored path per `QueryFilter.field` when it differs, e.g. `{ customer: "customer.id" }`. */
@@ -127,5 +127,24 @@ export function queryRequestToFind(request: QueryRequest, options: QueryConversi
     ...(sort ? { sort } : {}),
     page,
     pageSize,
+  };
+}
+
+/**
+ * A `findPage` result as the kit's `QueryResult`: a capped total becomes
+ * `totalCapped` (shown as "10000+"). `map` turns stored documents into list
+ * rows; `groups` are the group chip counts, e.g. from `countBy`.
+ */
+export function toQueryResult<Doc, Row = Doc>(
+  result: { items: Doc[]; total: CappedCount; page: number; pageSize: number },
+  options: { map?: (item: Doc) => Row; groups?: GroupCount[] } = {},
+): QueryResult<Row> {
+  const map = options.map ?? ((item: Doc) => item as unknown as Row);
+  return {
+    list: result.items.map(map),
+    total: result.total.count,
+    ...(result.total.capped ? { totalCapped: true } : {}),
+    page: { current: result.page, pageSize: result.pageSize },
+    ...(options.groups ? { groups: options.groups } : {}),
   };
 }

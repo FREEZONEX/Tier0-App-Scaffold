@@ -57,26 +57,16 @@ function client(mock: ReturnType<typeof mockUns>) {
   });
 }
 
+/** UNS error envelope in the 5.0.0 model. */
+function unsError(status: number, code: string, error: Record<string, unknown>): Reply {
+  return { status, body: { code: status, msg: code, requestId: "req-err", data: null, error: { code, reason: code, details: [], ...error } } };
+}
+
 describe("route handlers", () => {
   it("lets withErrors answer with the mapped status and code", async () => {
     const mock = mockUns({
       [ENSURE]: ensured,
-      "/uns/collections/c-orders/records": {
-        status: 409,
-        body: {
-          code: 409,
-          msg: "DUPLICATE_KEY",
-          requestId: "req-err",
-          data: null,
-          error: {
-            code: "DUPLICATE_KEY",
-            reason: "DUPLICATE_KEY",
-            retryable: false,
-            details: [],
-            retryAdvice: { recommendedAction: "inspectErrorAndCorrectRequest", canRetrySameRequest: false, keepIdempotencyKey: true },
-          },
-        },
-      },
+      "/uns/collections/c-orders/records": unsError(409, "DUPLICATE_KEY", { execution: "rolledBack", retry: { safe: false } }),
     });
     const data = client(mock);
     const handler = withErrors(async () => {
@@ -85,9 +75,36 @@ describe("route handlers", () => {
     });
     const response = await handler();
     assert.equal(response.status, 409);
+    assert.equal(response.headers.get("Retry-After"), null);
     const body = await response.json();
-    assert.equal(body.code, "DUPLICATE_KEY");
-    assert.equal(body.requestId, "req-err");
+    assert.deepEqual([body.code, body.requestId], ["DUPLICATE_KEY", "req-err"]);
+    assert.deepEqual(Object.keys(body).sort(), ["code", "error", "requestId"]);
+  });
+
+  it("passes an overload's wait on as Retry-After, never its retry advice", async () => {
+    const mock = mockUns({
+      [ENSURE]: ensured,
+      [COUNT]: unsError(429, "OVERLOADED", { execution: "notStarted", retry: { safe: true, afterMs: 500 } }),
+    });
+    const data = client(mock);
+    const response = await withErrors(async () => Response.json(await data.collection(orders).countDocuments({})))();
+    assert.equal(response.status, 429);
+    assert.equal(response.headers.get("Retry-After"), "1");
+    const body = await response.json();
+    assert.equal(body.code, "OVERLOADED");
+    assert.equal(body.retry, undefined);
+  });
+
+  it("never invites a retry of a write whose outcome is unknown", async () => {
+    const mock = mockUns({
+      [ENSURE]: ensured,
+      "/uns/collections/c-orders/records": unsError(503, "OUTCOME_UNKNOWN", { execution: "unknown", retry: { safe: false, afterMs: 1000 } }),
+    });
+    const data = client(mock);
+    const response = await withErrors(async () => Response.json(await data.collection(orders).insertOne({ code: "A", status: "OPEN" })))();
+    assert.equal(response.status, 503);
+    assert.equal(response.headers.get("Retry-After"), null);
+    assert.equal((await response.json()).code, "OUTCOME_UNKNOWN");
   });
 });
 
@@ -115,5 +132,20 @@ describe("request context", () => {
     const subjects = mock.calls(COUNT).map((entry) => entry.headers[SUBJECT_HEADER.toLowerCase()]);
     assert.deepEqual(subjects, ["h.jwt-fn.s", "h.jwt-api.s", undefined]);
     assert.equal(mock.calls(ENSURE)[0].headers[SUBJECT_HEADER.toLowerCase()], undefined);
+  });
+
+  it("hands the request's abort signal to the data layer, so a caller that left sends nothing", async () => {
+    const mock = mockUns({ [ENSURE]: ensured, [COUNT]: ok({ count: 1 }) });
+    const data = client(mock);
+    await data.ensure();
+    const controller = new AbortController();
+    controller.abort();
+    const call = (authBridge.options.server as unknown as (context: { request: Request; pathname: string; next: () => Promise<unknown> }) => Promise<unknown>)({
+      request: new Request("http://app.local/_serverFn/abc", { signal: controller.signal }),
+      pathname: "/_serverFn/abc",
+      next: () => data.collection(orders).countDocuments(),
+    });
+    await assert.rejects(call);
+    assert.equal(mock.calls(COUNT).length, 0);
   });
 });

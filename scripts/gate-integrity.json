@@ -28,7 +28,7 @@
     "scripts/post-build-verify.mjs": "3bc84e56429de35599aed2c8855ca96499430e985a1bdf7c40dda2a97f78f51c",
     "scripts/gate-integrity.mjs": "99a7d15baafc88f707c6773dc08aca5cbeff2fb333b1be418af4a4b651424dcb",
     "scripts/scaffold-version.mjs": "f1163c8d3c30c9889a248cd57cc2b75313120608ea460842c32761c1479aaef8",
-    "src/lib/data/index.ts": "910961e3beaefc06c614b2ac077bdeb18e05fc757ac4eaeb82d4164e9a4866b0",
-    "src/lib/data/query.ts": "c0d06f34506a6294763466eae0de33ea9a0b5b962058a1f6d387353dbcca6e9b"
+    "src/lib/data/index.ts": "44a8f50c0deab3515f738db71eaf1a3f6f7c3cbb0bf141135289cb8902f3a277",
+    "src/lib/data/query.ts": "08cb4d6e95b77c5de03a02c120934bd231afb0d88ff2ee0d7dbdf3a9c9e2f72a"
   }
 }

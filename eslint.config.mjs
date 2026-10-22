@@ -121,6 +121,10 @@ const runtimeFirstLoadRule = {
 // batch writes and `$in` reads cover these cases. The batch calls themselves
 // (insertMany, bulkWrite, data.transact) take ≤200 items, so looping over
 // 200-item chunks of them is the intended pattern and is not reported.
+// `collection.query.*` builders send nothing (they feed one data.queryBatch)
+// and are not reported either. `find` / `aggregate` are reported through
+// their `toArray()`; `get` only with an array literal, since the name alone
+// would match Map#get.
 const DATA_METHODS = new Set([
   "insertOne",
   "updateOne",
@@ -134,6 +138,9 @@ const DATA_METHODS = new Set([
   "findOneAndReplace",
   "findOneAndDelete",
   "countDocuments",
+  "countBy",
+  "distinct",
+  "queryBatch",
   "toArray",
 ]);
 const LOOP_TYPES = new Set([
@@ -155,14 +162,16 @@ const dataAccessRule = {
     return {
       CallExpression(node) {
         const callee = node.callee;
-        if (
-          callee.type !== "MemberExpression" ||
-          callee.computed ||
-          callee.property.type !== "Identifier" ||
-          !DATA_METHODS.has(callee.property.name)
-        ) {
-          return;
-        }
+        if (callee.type !== "MemberExpression" || callee.computed || callee.property.type !== "Identifier") return;
+        const name = callee.property.name;
+        const isGet = name === "get" && node.arguments[0]?.type === "ArrayExpression";
+        if (!DATA_METHODS.has(name) && !isGet) return;
+        const isQueryBuilder =
+          callee.object.type === "MemberExpression" &&
+          !callee.object.computed &&
+          callee.object.property.type === "Identifier" &&
+          callee.object.property.name === "query";
+        if (isQueryBuilder) return;
         let child = node;
         for (let parent = node.parent; parent; child = parent, parent = parent.parent) {
           const inLoopBody = LOOP_TYPES.has(parent.type) && parent.body === child;
@@ -177,8 +186,9 @@ const dataAccessRule = {
             context.report({
               node,
               message:
-                `Do not call the data layer (${callee.property.name}) once per loop iteration or per item: each call is a UNS round trip. ` +
-                "Read with one `$in` filter, write with insertMany / updateMany / bulkWrite (chunks of ≤200), or combine steps in data.transact().",
+                `Do not call the data layer (${name}) once per loop iteration or per item: each call is a UNS round trip. ` +
+                "Read by ID with one get(ids), filter with one `$in`, or combine the reads in one data.queryBatch (collection.query.*); " +
+                "write with insertMany / updateMany / bulkWrite (chunks of ≤200), or combine steps in data.transact().",
             });
             return;
           }
