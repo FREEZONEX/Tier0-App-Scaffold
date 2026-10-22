@@ -18,7 +18,8 @@ import { compileCollection, MAX_COLLECTIONS, validateDocument } from "@tier0/sdk
 //      in `collections`, and its seed documents are valid, uniquely keyed
 //      records (seeds are written once, when ensure creates the collection).
 //   2. Only src/services/** uses the data client (`@/lib/data`, values from
-//      `@tier0/sdk-v2/data`); src/start.ts only opens the request context.
+//      `@tier0/sdk-v2/data`); src/start.ts only opens the request context and
+//      the /api/uns/subscribe route only uses the change hub.
 //      Any file may import the pure declarations in
 //      `@tier0/sdk-v2/data/define` and types from `@tier0/sdk-v2/data`.
 //   3. No source file names UNS paths directly.
@@ -31,6 +32,7 @@ const ROOT = process.cwd();
 const SRC = join(ROOT, "src");
 const DATA_LAYER = "src/lib/data/";
 const DECLARATIONS = "src/data/collections.ts";
+const SUBSCRIBE_ROUTE = "src/routes/api/uns/subscribe.ts";
 
 function toPosixPath(filePath) {
   return filePath.replaceAll("\\", "/");
@@ -74,7 +76,7 @@ export function importSpecifiers(source, { values = false } = {}) {
 
 /**
  * Data module a specifier points at: "sdk" (`@tier0/sdk-v2/data`), "define"
- * (`@tier0/sdk-v2/data/define`), a src/lib/data module ("index", "query"),
+ * (`@tier0/sdk-v2/data/define`), a src/lib/data module ("index", "query", "changes"),
  * or null.
  */
 export function dataLayerModule(fromRel, specifier) {
@@ -99,6 +101,7 @@ export function dataImportAllowed(fromRel, module) {
   if (fromRel.startsWith(DATA_LAYER)) return true;
   if (module === "define") return true;
   if (fromRel === "src/start.ts") return module === "sdk";
+  if (fromRel === SUBSCRIBE_ROUTE) return module === "changes";
   return fromRel.startsWith("src/services/");
 }
 
@@ -270,6 +273,11 @@ describe("app data contracts", () => {
     assert.equal(dataImportAllowed("src/services/orders.ts", "sdk"), true);
     assert.equal(dataImportAllowed("src/start.ts", "sdk"), true);
     assert.equal(dataImportAllowed("src/start.ts", "index"), false);
+    assert.equal(dataLayerModule(SUBSCRIBE_ROUTE, "@/lib/data/changes"), "changes");
+    assert.equal(dataImportAllowed(SUBSCRIBE_ROUTE, "changes"), true);
+    assert.equal(dataImportAllowed(SUBSCRIBE_ROUTE, "index"), false);
+    assert.equal(dataImportAllowed("src/routes/api/x.ts", "changes"), false);
+    assert.equal(UNS_PATH.test('apiUrl("/api/uns/subscribe")'), false);
     assert.equal(UNS_PATH.test('fetch(`${host}/openapi/v2/uns/collections/${id}/records:find`)'), true);
     assert.equal(UNS_PATH.test('requestJson("/api/orders")'), false);
     assert.equal(NARROWING_OPERATION.test('"/uns/app/collections/schema:replace"'), true);

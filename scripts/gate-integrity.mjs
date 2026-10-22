@@ -45,6 +45,8 @@ const LOCKED_FILES = [
   // The App's wiring of the data layer (@tier0/sdk-v2/data) is a platform contract, not app code.
   "src/lib/data/index.ts",
   "src/lib/data/query.ts",
+  "src/lib/data/changes.ts",
+  "src/routes/api/uns/subscribe.ts",
 ];
 
 // Normalize line endings so pins hold across git autocrlf configurations.

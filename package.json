@@ -26,7 +26,7 @@
     "lint": "eslint .",
     "gallery:build": "vite build --config gallery/vite.config.ts",
     "test:components": "node --import tsx --test tests/component-kit.test.ts",
-    "test:data": "node --import tsx --test tests/data-layer.test.ts tests/data-schema.test.ts",
+    "test:data": "node --import tsx --test tests/data-layer.test.ts tests/data-schema.test.ts tests/record-changes.test.ts",
     "test": "npm run test:components && npm run test:data",
     "data:schema": "node --import tsx scripts/data-schema.mjs"
   },

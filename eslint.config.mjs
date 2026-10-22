@@ -295,6 +295,29 @@ const eslintConfig = defineConfig([
       ],
     },
   },
+  // /api/uns/subscribe streams record changes from the data layer's change
+  // hub; it is the one route that imports a data-layer module directly.
+  {
+    files: ["src/routes/api/uns/subscribe.ts"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              regex: "^@/lib/data(?!/changes$)(?:/.*)?$",
+              message: "This route only uses the change hub (@/lib/data/changes).",
+            },
+            {
+              regex: "^@tier0/sdk-v2/data$",
+              allowTypeImports: true,
+              message: "This route only uses the change hub (@/lib/data/changes).",
+            },
+          ],
+        },
+      ],
+    },
+  },
   {
     files: ["src/start.ts"],
     rules: {
