@@ -80,7 +80,7 @@ export const authBridge = createMiddleware().server(({ request, pathname, next }
 
     if (gatewayUser && trustedRoles !== undefined) {
       // The Tier0 gateway strips and re-injects these headers after validating
-      // project membership and app role bindings. Unknown roles are therefore
+      // workspace membership and app role bindings. Unknown roles are therefore
       // trusted identities but contribute zero permissions until configured.
       // A deployed empty list is also authoritative and must stay zero-access.
       return next();

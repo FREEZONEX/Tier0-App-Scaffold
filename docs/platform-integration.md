@@ -136,8 +136,8 @@ These variables are platform-driven. Local development does not need them.
 `APP_ID` is platform-owned: the agent-platform App UUID the platform can
 resolve back to the app's name, icon and Open button. Read it at runtime
 through `resolveAppId()` (`src/lib/app-id.ts`) — never hard-code the value at
-generation time, because an app imported into another project gets a new UUID
-and a hard-coded value keeps pointing at the source app. Without injection it
+generation time, because an imported copy of the app gets a new UUID and a
+hard-coded value keeps pointing at the source app. Without injection it
 resolves to `local-app`, a placeholder that must never be treated as the app's
 identity; Preview and deployed runs always carry the platform value. Tier0 SDK
 variables are injected by the platform during deployment. Do not place them in
@@ -159,7 +159,7 @@ Download Source Code and in Snapshots created after the update:
 Do not use a temporary directory, a workspace-external path, or a separately
 generated file as the only registration source. On replacement, persist every
 root/runtime copy before calling `update_app_info`; if persistence fails, do not
-leave the platform pointing at an asset the project does not retain. This is a
+leave the platform pointing at an asset the App source does not retain. This is a
 Scaffold/Agent contract for file-based `update_app_info` calls; the platform
 remains authoritative for uploads and automatic captures performed outside the
 Agent workspace.

@@ -6,8 +6,8 @@
  * not the app's name or business identity.
  *
  * Always resolve it at runtime through this function — never hard-code the
- * value at generation time: an app imported into another project gets a new
- * UUID, and a hard-coded value keeps pointing at the source app.
+ * value at generation time: an imported copy of the app gets a new UUID, and
+ * a hard-coded value keeps pointing at the source app.
  *
  * Without injection the app falls back to `LOCAL_APP_ID` — a local-development
  * placeholder that deliberately says so, instead of a value that could pass as
