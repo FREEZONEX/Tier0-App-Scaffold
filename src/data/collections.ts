@@ -14,12 +14,12 @@
  * `.nullable()`, `.default()`, string formats or length limits — keep those
  * in API input schemas. `npm run build` rejects anything UNS cannot store.
  */
-import type { CollectionDefinition } from "@/lib/data/define";
+import type { CollectionDefinition } from "@tier0/sdk-v2/data/define";
 
 // ─── Agent: declare collections below ───
 //
 // import { z } from "zod";
-// import { defineCollection, type Doc } from "@/lib/data/define";
+// import { defineCollection, type Doc } from "@tier0/sdk-v2/data/define";
 // import { seedTimestamp } from "./seed-utils";
 //
 // export const workOrders = defineCollection({

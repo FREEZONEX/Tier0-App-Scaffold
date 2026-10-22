@@ -7,18 +7,32 @@
  *   const orders = data.collection(workOrders);
  *   const open = await orders.find({ status: "OPEN" }, { sort: { "_meta.createdAt": -1 }, limit: 50 }).toArray();
  *
- * Collections come from `src/data/collections.ts` and are ensured in one
- * batch on first access. Full rules: AGENTS.md → App Data.
+ * The client comes from `@tier0/sdk-v2/data`; collections come from
+ * `src/data/collections.ts` and are ensured in one batch on first access.
+ * Full rules: AGENTS.md → App Data.
  */
+import { createDataClient } from "@tier0/sdk-v2/data";
 import { collections } from "../../data/collections";
-import { createDataClient } from "./client";
 
 export const data = createDataClient({ collections });
 
-export { runAsApp } from "./context";
-export { DataError } from "./transport";
-export { filterToPredicate, queryRequestToFind, toSortPairs } from "./query";
-export type { Collection, Cursor, BulkOperation, FindOptions, FindPageOptions, FindOneAndOptions, UpdateOptions, WithMeta } from "./collection";
-export type { TransactResult, TransactStep } from "./client";
-export type { Doc, NewDoc, RecordMeta } from "./define";
-export type { ConvertedQuery, Filter, QueryConversionOptions, Sort } from "./query";
+export { DataError, runAsApp, toSortPairs } from "@tier0/sdk-v2/data";
+export type {
+  BulkOperation,
+  Collection,
+  Cursor,
+  Doc,
+  Filter,
+  FindOneAndOptions,
+  FindOptions,
+  FindPageOptions,
+  NewDoc,
+  RecordMeta,
+  Sort,
+  TransactResult,
+  TransactStep,
+  UpdateOptions,
+  WithMeta,
+} from "@tier0/sdk-v2/data";
+export { filterToPredicate, queryRequestToFind } from "./query";
+export type { ConvertedQuery, QueryConversionOptions } from "./query";

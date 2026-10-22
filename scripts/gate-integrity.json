@@ -2,7 +2,7 @@
   "locked": {
     "src/lib/gateway.test.ts": "61c93fd14170a4481b6ccc577ffa1ddf2c3af096a1c93cb0cf839e15346aa6af",
     "src/lib/permissions.test.mjs": "ff870a77b90732d1154884cfec77f00a5c73a271186245c7e9ac9204b227a26f",
-    "src/lib/app-chrome.test.mjs": "a0156f1749ccd7ade7edc60226180bc1fe3db6590a0e50c21e48d9584f9939fd",
+    "src/lib/app-chrome.test.mjs": "4697ba9a6d44304c41078d76b02f641ec635a26b2a5b318c04bd86c8396a756c",
     "src/lib/app-id-contracts.test.mjs": "1489f244f5bb310a4524bfb550aeebc45e1e4aeda575f46f353145d69b4f2961",
     "src/lib/navigation-contracts.test.mjs": "8b17bb2b12b23c5d70c6b400fb7a73c0826b2e909d13c470f29af478cca5cfd7",
     "src/lib/content-contracts.test.mjs": "1bf12c14667828208a97792fa52331d45819500d6218b2ee1540a9264235ce77",
@@ -12,7 +12,7 @@
     "src/lib/interaction-contracts.test.mjs": "8e1ca72783142d4416035bc3c01dea3d5bb16acc1959fa69aedde289acf4fa7f",
     "src/lib/table-contracts.test.mjs": "bce68248ad728a4c4ca7172b5359befe7b2063b0e7e141e00fc554196a91bf36",
     "src/lib/copy-contracts.test.mjs": "088e966a88889542f51f52e1fdb320fefdc4fed7861d8caddd9034ab465f05c2",
-    "src/lib/data-contracts.test.mjs": "473543bbbe0e8dae22822c26e1d8beeace41776bc07612da73e0ebefe10e4c0e",
+    "src/lib/data-contracts.test.mjs": "78d95cd6e9043127eb64a604023a45d8cb4be1ef61439a3c1208c562b158b092",
     "src/lib/route-smoke-contracts.test.mjs": "14836fdeedaa817893e6928f8c059b261176d6d3deff91a4b9e793eadbb33888",
     "src/lib/route-nesting-contracts.test.mjs": "9211ebb6be4f49f535c92c08ebc35b186c8b23027385e6018c8828bcc5bf9fc7",
     "src/lib/hooks-contracts.test.mjs": "27ed053436972b913c70ce55688167f093b6119fc5dc68f89eab5efec70cfd86",
@@ -26,16 +26,9 @@
     "scripts/route-nesting.mjs": "c7da9d6754ebd25de978ab395e9051f41d7a9a0f4733c24f7c2fd8d277c59891",
     "scripts/responsive-contract.mjs": "dcde5d6bf6da9e383dd388f9640a3a751e84ed5e95a2f49e4fa45c5c40cad584",
     "scripts/post-build-verify.mjs": "3bc84e56429de35599aed2c8855ca96499430e985a1bdf7c40dda2a97f78f51c",
-    "scripts/gate-integrity.mjs": "d8c03efedde9c3480879dced9ae329705eca3fee09016cb6ef51ff89a903c7dc",
+    "scripts/gate-integrity.mjs": "99a7d15baafc88f707c6773dc08aca5cbeff2fb333b1be418af4a4b651424dcb",
     "scripts/scaffold-version.mjs": "f1163c8d3c30c9889a248cd57cc2b75313120608ea460842c32761c1479aaef8",
-    "src/lib/data/bootstrap.ts": "2445f2307fd764e85b30edd156208a31cbcd1a6f7950f5ab3a2cce3f5f6be646",
-    "src/lib/data/client.ts": "81635a19b5409ceb5d1718acaab628aa3b0f16417ac114aa76453bb72f2bdce1",
-    "src/lib/data/collection.ts": "be2a05a4053577819aa32ce3963e19893498a2d96f4674c2197dbf60d847c710",
-    "src/lib/data/context.ts": "37884b47efe8539ca29bb9cafd3edefc731d65f031064ce82d1729c03d3b0a48",
-    "src/lib/data/define.ts": "8e843fae1935d008caef256b1f8de06933d03f2ed9bd2733b686991feb3580c7",
-    "src/lib/data/index.ts": "e8e33f6c60bbb4bbd5f6a4a37833643285675365ba27a149a580c85ec912ee49",
-    "src/lib/data/query.ts": "4936a5eecb659837d09e99154e2ff975992f4a7cb098a8fc14042817ee28bd7d",
-    "src/lib/data/schema.ts": "270b54804674f1da7d83777e3138fe5ae76b6ec59c9576a7d6d784e5b1eac9a0",
-    "src/lib/data/transport.ts": "4ade35c63e91c7961cf6a43ac7e6f4b38a1a7ee462a9dcf7ffe9ee3153c1b804"
+    "src/lib/data/index.ts": "910961e3beaefc06c614b2ac077bdeb18e05fc757ac4eaeb82d4164e9a4866b0",
+    "src/lib/data/query.ts": "c0d06f34506a6294763466eae0de33ea9a0b5b962058a1f6d387353dbcca6e9b"
   }
 }
