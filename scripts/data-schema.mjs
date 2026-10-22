@@ -9,8 +9,8 @@
 // changing a declaration. Exits 1 when a declaration cannot be stored.
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
+import { compileCollection } from "@tier0/sdk-v2/data";
 
-const { compileCollection } = await import(pathToFileURL(join(process.cwd(), "src/lib/data/schema.ts")).href);
 const { collections } = await import(pathToFileURL(join(process.cwd(), "src/data/collections.ts")).href);
 
 const alias = process.argv[2];

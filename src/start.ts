@@ -23,7 +23,7 @@ import {
   parseGatewayUser,
 } from "@/lib/gateway";
 import { PERMISSION_MATRIX } from "@/lib/permissions";
-import { runWithRequestContext } from "@/lib/data/context";
+import { runWithRequestContext } from "@tier0/sdk-v2/data";
 
 // Exact path or proper child segment. This avoids `/login-attempts` matching
 // the public `/login` prefix.

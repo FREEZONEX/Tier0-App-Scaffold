@@ -6,8 +6,10 @@
  *
  * Throw `HttpError` for client-facing failures; throw `ZodError` (i.e. let
  * `schema.parse(...)` propagate) for validation failures. Data-layer
- * `DataError`s keep their mapped status and UNS error code (`DUPLICATE_KEY`,
- * `VERSION_CONFLICT`, ...). Anything else is a 500.
+ * `DataError`s (`@tier0/sdk-v2/data`) keep their mapped status and UNS error
+ * code (`DUPLICATE_KEY`, `VERSION_CONFLICT`, ...); their `retryable`,
+ * `outcomeUnknown`, `details` (the UNS envelope `data`) and `cause` stay
+ * server-side. Anything else is a 500.
  *
  * Usage:
  *
@@ -67,7 +69,8 @@ export function withErrors<Args extends any[]>(
         return Response.json({ error: e.message }, { status: e.status });
       }
       // Plain `{status, message}` errors, including data-layer `DataError`s,
-      // which also carry the UNS error `code` and `requestId`.
+      // which also carry the UNS error `code` and `requestId`; only those two
+      // are answered to the caller.
       if (isHttpErrorShape(e)) {
         const { code, requestId } = e as { code?: unknown; requestId?: unknown };
         return Response.json(

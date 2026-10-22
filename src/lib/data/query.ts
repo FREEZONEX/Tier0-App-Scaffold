@@ -1,32 +1,14 @@
 /**
- * Query helpers: Mongo-style sort specs and the component kit's
- * `QueryRequest` (MetaListPage `meta/query`) → UNS filter conversion.
+ * Query helpers: the component kit's `QueryRequest` (MetaListPage
+ * `meta/query`) → UNS filter and sort. Sort specs and `toSortPairs` come from
+ * `@tier0/sdk-v2/data`.
  *
  * Pure module; it never performs I/O.
  */
 import { shanghaiDateTimeToIso, shiftYmd } from "../component-kit/format";
 import { resolveDynamicDate } from "../component-kit/query-model";
 import type { DynamicDateValue, QueryFilter, QueryRequest } from "../component-kit/types";
-
-export type Filter = Record<string, unknown>;
-export type SortDirection = 1 | -1 | "asc" | "desc" | "ascending" | "descending";
-/** `{ field: 1 | -1 }` (Mongo) or UNS pairs `[["field", 1 | -1]]`. */
-export type Sort = Record<string, SortDirection> | ReadonlyArray<readonly [string, 1 | -1]>;
-export type SortPairs = [string, 1 | -1][];
-
-/** UNS accepts at most 4 sort pairs and appends `_id` as the tie breaker. */
-export function toSortPairs(sort: Sort | undefined): SortPairs | undefined {
-  if (!sort) return undefined;
-  const pairs: SortPairs = Array.isArray(sort)
-    ? sort.map(([field, direction]) => [field, direction])
-    : Object.entries(sort as Record<string, SortDirection>).map(([field, direction]) => [
-        field,
-        direction === -1 || direction === "desc" || direction === "descending" ? -1 : 1,
-      ]);
-  if (pairs.length === 0) return undefined;
-  if (pairs.length > 4) throw new Error("UNS sorts by at most 4 fields.");
-  return pairs;
-}
+import { toSortPairs, type Filter, type SortPairs } from "@tier0/sdk-v2/data";
 
 export interface QueryConversionOptions {
   /** Stored path per `QueryFilter.field` when it differs, e.g. `{ customer: "customer.id" }`. */

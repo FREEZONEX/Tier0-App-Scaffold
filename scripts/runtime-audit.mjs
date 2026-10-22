@@ -3,7 +3,6 @@ import { join, relative } from "node:path";
 
 const DATA_UI_ROOTS = ["src/components", "src/routes"];
 const SERVICE_ROOT = "src/services";
-const BOOTSTRAP_PATH = "src/lib/data/bootstrap.ts";
 
 function toPosixPath(filePath) {
   return filePath.replaceAll("\\", "/");
@@ -61,16 +60,6 @@ for (const file of walkFiles(SERVICE_ROOT)) {
   if (/^(?:export\s+)?(?:(?:const|let|var)\s+[\w${}[\],\s]+=\s*)?await\b/m.test(source)) {
     findings.push(`${rel}: top-level await runs at import time; access data inside the service function`);
   }
-}
-
-// First-load invariants of the data-layer bootstrap (src/lib/data/bootstrap.ts).
-const bootstrap = readFileSync(BOOTSTRAP_PATH, "utf8");
-for (const [required, meaning] of [
-  [/pending = null;/, "a failed ensure must not stay memoized"],
-  [/result\.status !== "created"/, "seeds are written only for newly created collections"],
-  [/idempotencyKey: seedChunkKey\(/, "seed chunks are retried with a stable idempotency key"],
-]) {
-  if (!required.test(bootstrap)) findings.push(`${BOOTSTRAP_PATH}: ${meaning} (${required})`);
 }
 
 if (findings.length > 0) {
