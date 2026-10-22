@@ -16,7 +16,8 @@
  * Role context:
  *   1. Deployed Tier0 runtime: all `X-Tier0-Business-Roles`
  *      (`X-Tier0-Active-Role` is primary display metadata)
- *   2. Preview Tier0 runtime: one `X-Tier0-Preview-Role`
+ *   2. Preview Tier0 runtime: all comma-separated `X-Tier0-Preview-Role` values
+ *      (the developer's selected "view as" role set; the first is primary display)
  *   3. Legacy gateway role header (`X-App-User-Role`) or JSON `user.role`
  *
  * This lets the platform remain the authority for role switching while the app
@@ -86,13 +87,21 @@ function uniqueRoles(roles: Array<string | undefined>): string[] {
   return [...new Set(roles.filter((role): role is string => Boolean(role)))];
 }
 
-function parseBusinessRoles(headers: Headers): string[] {
-  const value = readHeader(headers, "X-Tier0-Business-Roles");
+function parseRoleList(headers: Headers, key: string): string[] {
+  const value = readHeader(headers, key);
   if (!value) {
     return [];
   }
 
   return uniqueRoles(value.split(",").map((role) => normalizeRole(role)));
+}
+
+function parseBusinessRoles(headers: Headers): string[] {
+  return parseRoleList(headers, "X-Tier0-Business-Roles");
+}
+
+function parsePreviewRoles(headers: Headers): string[] {
+  return parseRoleList(headers, "X-Tier0-Preview-Role");
 }
 
 export function getGatewayRuntime(
@@ -110,7 +119,7 @@ export function getGatewayRole(headers: Headers): string | undefined {
   const activeRole = normalizeRole(readHeader(headers, "X-Tier0-Active-Role"));
 
   if (runtime === "preview") {
-    return previewRole;
+    return parsePreviewRoles(headers)[0];
   }
   if (runtime === "deployed") {
     return activeRole ?? parseBusinessRoles(headers)[0];
@@ -130,8 +139,9 @@ export function getGatewayRole(headers: Headers): string | undefined {
  *
  * Deployed requests receive the user's complete app role assignment in
  * `X-Tier0-Business-Roles`; the active role is kept first for display and
- * backwards compatibility. Preview remains an intentional single-role
- * developer "view as" surface.
+ * backwards compatibility. Preview receives the developer's selected "view as"
+ * role set in `X-Tier0-Preview-Role` (comma-separated, possibly several roles)
+ * and uses the same permission union.
  *
  * `undefined` means no authoritative role context is present. An empty array
  * in deployed mode is meaningful: the authenticated user has no app role and
@@ -142,10 +152,8 @@ export function getTrustedGatewayRoles(
 ): string[] | undefined {
   const runtime = getGatewayRuntime(headers);
   if (runtime === "preview") {
-    const previewRole = normalizeRole(
-      readHeader(headers, "X-Tier0-Preview-Role"),
-    );
-    return previewRole ? [previewRole] : undefined;
+    const previewRoles = parsePreviewRoles(headers);
+    return previewRoles.length > 0 ? previewRoles : undefined;
   }
   if (runtime === "deployed") {
     const activeRole = normalizeRole(
