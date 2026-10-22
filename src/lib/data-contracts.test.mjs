@@ -3,23 +3,25 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { describe, it } from "node:test";
 import { pathToFileURL } from "node:url";
-import { MAX_COLLECTIONS } from "./data/define.ts";
-import { compileCollection, validateDocument } from "./data/schema.ts";
+import { compileCollection, MAX_COLLECTIONS, validateDocument } from "@tier0/sdk-v2/data/define";
 
 // App data contracts — locked gate.
 //
 // App data lives in Tier0 UNS collections declared in src/data/collections.ts
-// and reached only through src/lib/data. Check 1 validates the declarations
-// exactly as the runtime will send them. Checks 2–5 are static source scans
-// that catch accidental misuse by generated code; they are guard rails, not a
-// security boundary (UNS authorization is enforced server-side):
+// and reached only through the `@tier0/sdk-v2/data` client that src/lib/data
+// builds. Check 1 validates the declarations exactly as the runtime will send
+// them. Checks 2–5 are static source scans that catch accidental misuse by
+// generated code; they are guard rails, not a security boundary (UNS
+// authorization is enforced server-side):
 //
 //   1. Every declaration compiles to the UNS record-schema subset, is listed
 //      in `collections`, and its seed documents are valid, uniquely keyed
 //      records (seeds are written once, when ensure creates the collection).
-//   2. Only src/services/** imports the data layer runtime; any file may
-//      import the pure declaration helpers in src/lib/data/define.ts.
-//   3. Nothing outside src/lib/data names UNS paths directly.
+//   2. Only src/services/** uses the data client (`@/lib/data`, values from
+//      `@tier0/sdk-v2/data`); src/start.ts only opens the request context.
+//      Any file may import the pure declarations in
+//      `@tier0/sdk-v2/data/define` and types from `@tier0/sdk-v2/data`.
+//   3. No source file names UNS paths directly.
 //   4. Runtime code does not name schema:replace, archive or restore: they
 //      are worker operations through the tier0 MCP.
 //   5. Collections (and their seeds) are declared only in
@@ -60,18 +62,24 @@ function sourceFiles() {
   }));
 }
 
-/** Import / re-export / dynamic-import specifiers of a module. */
-export function importSpecifiers(source) {
+/** Import / re-export / dynamic-import specifiers of a module; `values` skips `import type` / `export type`. */
+export function importSpecifiers(source, { values = false } = {}) {
   const specifiers = [];
-  for (const match of source.matchAll(/\b(?:import|export)\s+(?:type\s+)?(?:[^'"]*?\s+from\s+)?["']([^"']+)["']/g)) {
-    specifiers.push(match[1]);
+  for (const match of source.matchAll(/\b(?:import|export)\s+(type\s+)?(?:[^'"]*?\s+from\s+)?["']([^"']+)["']/g)) {
+    if (!(values && match[1])) specifiers.push(match[2]);
   }
   for (const match of source.matchAll(/\bimport\s*\(\s*["']([^"']+)["']\s*\)/g)) specifiers.push(match[1]);
   return specifiers;
 }
 
-/** Data-layer module a specifier points at ("index", "define", ...), or null. */
+/**
+ * Data module a specifier points at: "sdk" (`@tier0/sdk-v2/data`), "define"
+ * (`@tier0/sdk-v2/data/define`), a src/lib/data module ("index", "query"),
+ * or null.
+ */
 export function dataLayerModule(fromRel, specifier) {
+  if (specifier === "@tier0/sdk-v2/data") return "sdk";
+  if (specifier === "@tier0/sdk-v2/data/define") return "define";
   let target;
   if (specifier === "@/lib/data" || specifier.startsWith("@/lib/data/")) {
     target = `src/lib/data${specifier.slice("@/lib/data".length)}`;
@@ -86,11 +94,11 @@ export function dataLayerModule(fromRel, specifier) {
   return target.slice(DATA_LAYER.length);
 }
 
-/** Whether `fromRel` may import the data-layer module `module`. */
+/** Whether `fromRel` may import values from the data module `module`. */
 export function dataImportAllowed(fromRel, module) {
   if (fromRel.startsWith(DATA_LAYER)) return true;
   if (module === "define") return true;
-  if (fromRel === "src/start.ts") return module === "context";
+  if (fromRel === "src/start.ts") return module === "sdk";
   return fromRel.startsWith("src/services/");
 }
 
@@ -181,10 +189,10 @@ describe("app data contracts", () => {
     assert.deepEqual(problems, [], problems.join("\n"));
   });
 
-  it("imports the data layer runtime only from services", () => {
+  it("imports the data client only from services", () => {
     const offenders = [];
     for (const { rel, source } of sourceFiles()) {
-      for (const specifier of importSpecifiers(source)) {
+      for (const specifier of importSpecifiers(source, { values: true })) {
         const module = dataLayerModule(rel, specifier);
         if (module !== null && !dataImportAllowed(rel, module)) offenders.push(`${rel}: imports ${specifier}`);
       }
@@ -193,21 +201,22 @@ describe("app data contracts", () => {
       offenders,
       [],
       [
-        "Only src/services/** may use the data layer (`@/lib/data`). Routes call a service; components and lib",
-        "code may import types and declarations from `@/lib/data/define` and `@/data/collections` only.",
+        "Only src/services/** may use the data client (`@/lib/data`, values from `@tier0/sdk-v2/data`). Routes call a",
+        "service; components and lib code import declarations from `@tier0/sdk-v2/data/define` and `@/data/collections`",
+        "(the data client is server-only and must not reach the browser bundle).",
         ...offenders,
       ].join("\n"),
     );
   });
 
-  it("never calls UNS directly outside src/lib/data", () => {
+  it("never calls UNS directly", () => {
     const offenders = sourceFiles()
-      .filter(({ rel, source }) => !rel.startsWith(DATA_LAYER) && UNS_PATH.test(source))
+      .filter(({ source }) => UNS_PATH.test(source))
       .map(({ rel }) => rel);
     assert.deepEqual(
       offenders,
       [],
-      `Use \`data.collection(...)\` from @/lib/data instead of fetching Tier0 UNS paths:\n${offenders.join("\n")}`,
+      `Use \`data.collection(...)\` from @/lib/data in a service instead of fetching Tier0 UNS paths:\n${offenders.join("\n")}`,
     );
   });
 
@@ -246,18 +255,20 @@ describe("app data contracts", () => {
   });
 
   it("recognises boundary shapes", () => {
-    assert.deepEqual(importSpecifiers(`import { data } from "@/lib/data";\nimport type { Doc } from "@/lib/data/define";\nconst m = await import("../lib/data/client");`), [
-      "@/lib/data",
-      "@/lib/data/define",
-      "../lib/data/client",
-    ]);
+    const sample = `import { data } from "@/lib/data";\nimport type { WithMeta } from "@tier0/sdk-v2/data";\nimport { defineCollection } from "@tier0/sdk-v2/data/define";\nconst m = await import("../lib/data/query");`;
+    assert.deepEqual(importSpecifiers(sample), ["@/lib/data", "@tier0/sdk-v2/data", "@tier0/sdk-v2/data/define", "../lib/data/query"]);
+    assert.deepEqual(importSpecifiers(sample, { values: true }), ["@/lib/data", "@tier0/sdk-v2/data/define", "../lib/data/query"]);
     assert.equal(dataLayerModule("src/routes/api/x.ts", "@/lib/data"), "index");
-    assert.equal(dataLayerModule("src/routes/api/x.ts", "../../lib/data/client"), "client");
+    assert.equal(dataLayerModule("src/routes/api/x.ts", "../../lib/data/query"), "query");
+    assert.equal(dataLayerModule("src/routes/api/x.ts", "@tier0/sdk-v2/data"), "sdk");
+    assert.equal(dataLayerModule("src/routes/api/x.ts", "@tier0/sdk-v2/data/define"), "define");
     assert.equal(dataLayerModule("src/routes/api/x.ts", "@/lib/database"), null);
     assert.equal(dataImportAllowed("src/routes/api/x.ts", "index"), false);
+    assert.equal(dataImportAllowed("src/components/x.tsx", "sdk"), false);
     assert.equal(dataImportAllowed("src/routes/api/x.ts", "define"), true);
     assert.equal(dataImportAllowed("src/services/orders.ts", "index"), true);
-    assert.equal(dataImportAllowed("src/start.ts", "context"), true);
+    assert.equal(dataImportAllowed("src/services/orders.ts", "sdk"), true);
+    assert.equal(dataImportAllowed("src/start.ts", "sdk"), true);
     assert.equal(dataImportAllowed("src/start.ts", "index"), false);
     assert.equal(UNS_PATH.test('fetch(`${host}/openapi/v2/uns/collections/${id}/records:find`)'), true);
     assert.equal(UNS_PATH.test('requestJson("/api/orders")'), false);

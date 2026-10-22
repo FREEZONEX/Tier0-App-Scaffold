@@ -12,7 +12,7 @@ mechanisms and neither one syncs the other automatically:
 
 | Plane | Where it lives | What it controls | Who writes it |
 |---|---|---|---|
-| **Registration plane** (platform) | Platform DB (`project_business_roles`, app bindings) | Whether the platform *knows* the role exists, shows it in the Roles tab / preview role picker, and can assign it to members | `roles.json` at import/fork, or the agent's `sync_business_roles` tool |
+| **Registration plane** (platform) | Platform DB (`workspace_business_roles`, `app_business_role_bindings`) | Whether the platform *knows* the role exists, shows it in the Roles tab / preview role picker, and can assign it to members | `roles.json` at import/fork, or the agent's `sync_business_roles` tool |
 | **Permission plane** (this app) | `src/lib/permissions.ts` `PERMISSION_MATRIX` (+ `role-metadata.ts`) | What the role is *allowed to do* once a request carrying it reaches the app | The agent editing this app's source |
 
 **The classic failure:** a role is visible everywhere in the platform UI
@@ -69,7 +69,7 @@ page, action, or organizational job title as a separate role.
 ### How the platform consumes it
 
 - **On import / template fork**, the platform reads root `roles.json` and runs
-  `SyncAppRoles`: it creates or reuses each `role_key` as a project role and
+  `SyncAppRoles`: it creates or reuses each `role_key` as a workspace business role and
   binds it to the new app, in one transaction. This is the *only* automatic
   registration step.
 - **On export**, the platform *regenerates* `roles.json` from its DB — the file

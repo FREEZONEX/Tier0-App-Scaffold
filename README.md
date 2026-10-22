@@ -12,14 +12,14 @@ target application instead of being constrained by a fixed template library.
 | Layer | Technology |
 |---|---|
 | Framework | TanStack Start 1.x (Vite 8/Rolldown + TanStack Router, React 19 SSR) |
-| Data | Tier0 UNS v2 collections through `src/lib/data` (Mongo-driver-style API) |
+| Data | Tier0 UNS v2 collections through `@tier0/sdk-v2/data`, wired in `src/lib/data` (Mongo-driver-style API) |
 | Validation | Zod 4 (collection declarations, API input schemas, inferred types) |
 | Styling | TailwindCSS 4 (Vite plugin, no PostCSS) + Tier0 design tokens |
 | UI | Lightweight layout contracts + Tailwind utilities + Tier0 tokens; no prebuilt business component library |
 | Charts | Recharts 3 (must be wrapped in `<ResponsiveContainer>`) |
 | Tables | TanStack React Table 8 |
 | Drag and drop | dnd-kit |
-| Tier0 Platform SDK | `@tier0/sdk` (OpenAPI REST + MQTT over WebSocket) |
+| Tier0 Platform SDK | `@tier0/sdk-v2` (OpenAPI REST via `createClient()` + MQTT over WebSocket) |
 | Icons | Lucide React |
 | Toasts | Sonner (`Toaster` is mounted in `__root.tsx`) |
 | Motion | `motion` imported from `@/lib/motion`, never directly from `motion/react` |
@@ -61,7 +61,7 @@ SDK, the platform gateway, or the runtime environment.
 
 | Variable | Purpose |
 |---|---|
-| `TIER0_API_HOST` | OpenAPI gateway host used by `@tier0/sdk/openapi` and the App data layer |
+| `TIER0_API_HOST` | OpenAPI gateway host used by the SDK client and the App data layer |
 | `TIER0_API_KEY` | App key used by OpenAPI, MQTT and the App data layer |
 | `TIER0_MQTT_HOST` | MQTT WebSocket broker host |
 | `TIER0_MQTT_PORT` | MQTT WebSocket port, default `8084` |
@@ -72,26 +72,29 @@ those values into user-editable settings.
 
 ## Tier0 SDK SSR Compatibility
 
-`@tier0/sdk` ships as a dual ESM/CJS package. This scaffold still keeps
+`@tier0/sdk-v2` ships as a dual ESM/CJS package. This scaffold still keeps
 SDK access behind server-side lazy loaders so preview startup and normal SSR do
 not execute optional platform I/O during page initialization. The SSR policy is
 pinned in `vite.config.ts`:
 
 ```ts
 ssr: {
-  external: ["@tier0/sdk", "mqtt"],
+  external: ["@tier0/sdk-v2", "mqtt"],
 }
 ```
 
-SDK calls are loaded on the server through the lazy helper in
-`src/lib/tier0.ts`. Generated apps should not top-level import SDK submodules,
+SDK calls are loaded on the server through the lazy helpers in
+`src/lib/tier0.ts`: `loadTier0Sdk()` returns the root module, whose
+`createClient()` exposes `tier0.system`, `members`, `notifications`, `files`,
+`mqttAuth` and the other domains; `loadTier0OpenApi()`, `loadTier0Files()` and
+`loadTier0Mq()` load the subpath modules. Create a fresh client per request when
+passing employee data delegation. Generated apps should not top-level import SDK submodules,
 should not move the SDK into `ssr.noExternal`, and should not bypass the SDK
 with fallback MQTT clients or hand-written fetch wrappers.
 
-The App data layer (`src/lib/data`) is the temporary exception: it calls the
-UNS v2 collection and record endpoints with `fetch` because `@tier0/sdk` 0.5.4
-only covers OpenAPI v1. It will move into the SDK with the same API; App code
-only changes its import path then. Nothing else may call UNS directly.
+App records use the data client from `@tier0/sdk-v2/data` instead:
+`src/lib/data` builds the App's instance from `src/data/collections.ts`, and
+services import `data` from `@/lib/data`. Nothing else may call UNS directly.
 
 For deployment details, see
 [docs/platform-integration.md](docs/platform-integration.md).
@@ -136,7 +139,7 @@ src/
     permissions.ts            <- Permission matrix definition
     hooks.ts                  <- Polling and request hooks
     motion.ts                 <- motion/react re-export
-    tier0.ts                  <- Server-side lazy loader for @tier0/sdk
+    tier0.ts                  <- Server-side lazy loaders for @tier0/sdk-v2
     data/                     <- App data layer over Tier0 UNS collections (locked; services only)
     utils.ts                  <- cn(), apiUrl(), requestJson()
 server.mjs                    <- Production Node HTTP entrypoint (do not modify)
@@ -347,7 +350,7 @@ src/services/**.ts            <- Domain layer: business logic, state machines, c
   |                               Pure TypeScript, no HTTP concepts
   v
 src/lib/data (+ src/data/collections.ts)
-  |                           <- Data layer: Mongo-style collections, ensure + seed on first access
+  |                           <- Data layer: @tier0/sdk-v2/data client, ensure + seed on first access
   v
 Tier0 OpenAPI v2 UNS          <- /uns/app/collections/ensure, /uns/collections/:id/records:*
 ```

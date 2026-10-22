@@ -249,10 +249,12 @@ const eslintConfig = defineConfig([
     settings: { react: { version: "detect" } },
   },
   // ─── Three-layer architecture enforcement ───
-  // The data layer (`@/lib/data`) is server-only and reached through
-  // services. Routes, lib, components and declarations may import the pure
-  // declaration helpers (`@/lib/data/define`) and `@/data/collections` only;
-  // src/start.ts opens the request context.
+  // The data client (`@/lib/data`, built on `@tier0/sdk-v2/data`) is
+  // server-only and reached through services. Routes, lib, components and
+  // declarations import the pure declaration module
+  // (`@tier0/sdk-v2/data/define`) and `@/data/collections` only; types from
+  // `@tier0/sdk-v2/data` are fine, values would pull Node-only code into the
+  // browser bundle. src/start.ts opens the request context.
   {
     files: [
       "src/routes/**/*.{ts,tsx}",
@@ -263,14 +265,20 @@ const eslintConfig = defineConfig([
     ],
     ignores: ["src/lib/data/**"],
     rules: {
-      "no-restricted-imports": [
+      "@typescript-eslint/no-restricted-imports": [
         "error",
         {
           patterns: [
             {
-              regex: "^@/lib/data(?:/(?!define$).*)?$",
+              regex: "^@/lib/data(?:/.*)?$",
               message:
                 "The App data layer may only be used from src/services/**. Move the data access into a service and call it from here.",
+            },
+            {
+              regex: "^@tier0/sdk-v2/data$",
+              allowTypeImports: true,
+              message:
+                "Import declarations from @tier0/sdk-v2/data/define; the data client in @tier0/sdk-v2/data is server-only and used through services.",
             },
           ],
         },
@@ -285,8 +293,8 @@ const eslintConfig = defineConfig([
         {
           patterns: [
             {
-              regex: "^@/lib/data(?:/(?!(?:define|context)$).*)?$",
-              message: "src/start.ts only opens the data request context.",
+              regex: "^@/lib/data(?:/.*)?$",
+              message: "src/start.ts only opens the data request context (runWithRequestContext from @tier0/sdk-v2/data).",
             },
           ],
         },
@@ -301,19 +309,19 @@ const eslintConfig = defineConfig([
   },
   {
     files: ["src/**/*.{ts,tsx,js,mjs}"],
-    ignores: ["src/lib/data/**", "**/*.test.*"],
+    ignores: ["**/*.test.*"],
     rules: {
       "no-restricted-syntax": [
         "error",
         {
           selector: "Literal[value=/\\/openapi\\/v2|collections\\/(schema:replace|archive|restore)/]",
           message:
-            "Do not call Tier0 UNS directly: use data.collection(...) from @/lib/data. schema:replace / archive / restore are worker operations through the tier0 MCP.",
+            "Do not call Tier0 UNS directly: use data.collection(...) from @/lib/data in a service. schema:replace / archive / restore are worker operations through the tier0 MCP.",
         },
         {
           selector: "TemplateElement[value.raw=/\\/openapi\\/v2|collections\\/(schema:replace|archive|restore)/]",
           message:
-            "Do not call Tier0 UNS directly: use data.collection(...) from @/lib/data. schema:replace / archive / restore are worker operations through the tier0 MCP.",
+            "Do not call Tier0 UNS directly: use data.collection(...) from @/lib/data in a service. schema:replace / archive / restore are worker operations through the tier0 MCP.",
         },
       ],
     },
