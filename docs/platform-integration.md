@@ -11,7 +11,7 @@ the server through the lazy helpers in `@/lib/tier0`:
 
 | Helper | Module | Use |
 |---|---|---|
-| `loadTier0Sdk()` | `@tier0/sdk-v2` | `createClient()`: `tier0.system`, `members`, `notifications`, `files`, `uns`, `mqttAuth`, `capabilities`, `controls`, `source`, `stream`, `agent` |
+| `loadTier0Sdk()` | `@tier0/sdk-v2` | `createClient()`: `tier0.system`, `members`, `notifications`, `files`, `uns`, `mqttAuth`, `capabilities`, `source`, `stream`, `agent` |
 | `loadTier0OpenApi()` | `@tier0/sdk-v2/openapi` | `createOpenAPI()` / `configureClient()` for the raw generated operations |
 | `loadTier0Files()` | `@tier0/sdk-v2/files` | `createFilesClient()` |
 | `loadTier0Mq()` | `@tier0/sdk-v2/mq` | `Tier0MQClient`, `toWebSocketUrl()`, `parseMqttBroker()` |
@@ -37,6 +37,43 @@ the call; that failure is expected — App-scoped calls only work in Preview and
 deployed runs, where `APP_ID` is injected.
 App records still go through `@/lib/data` (see [App Data](#app-data)).
 Updating injected guidance alone does not upgrade an application's installed SDK.
+
+### Browser App Stream requests and messages
+
+The scaffold also installs a separate `@tier0/sdk` frozen at commit
+`7f0a82ef6a719dd6843c29c1046f87ad3c2970a7` through
+`file:vendor/tier0-sdk-0.5.4-7f0a82e.tgz` and its package-lock integrity.
+This artifact is not published to npm. Retain it in source/template ZIPs;
+the registry's `0.5.4` package is not an equivalent pin. See `vendor/README.md`.
+
+```ts
+import { client } from "@tier0/sdk";
+
+const request = client.streams.requests.use({ code: "pump.start" });
+const contract = await request.describe();
+const result = await request.invoke({ speed: 10 }, { idempotencyKey: commandId });
+const topic = client.streams.messages.use({ topic: "sdk/contract" });
+const subscription = await topic.subscribe(onMessage);
+await topic.publish({ state: "ready" });
+// On view cleanup:
+await subscription.dispose();
+```
+
+Call these from browser actions/effects inside a deployed, authenticated App.
+The existing trusted Gateway runtime provider supplies the current App/user
+authorization. Do not configure browser keys, service tokens, seeds or arbitrary
+workspace identities, and do not fall back to server data credentials when the
+provider is unavailable. App policy and published Stream manifest must both
+authorize each topic/direction. Requests make one attempt; resolve uncertain
+outcomes before deliberately replaying with the same idempotency key. Business
+messages use ephemeral NATS Core WSS credentials, with no offline queue, replay
+or receiver ACK. Use `tier0-stream/v3` scripts and current Stream APIs, never
+retired Control aliases.
+
+The existing data SDK pin, server-only `@/lib/data` and `@tier0/sdk-v2/data`
+remain unchanged. Package installation is independent of Gateway/SYS
+configuration, broker readiness, existing-App migration and browser acceptance;
+neither an installed package nor a bootstrap script proves a live deployment.
 
 ### Notification channels
 

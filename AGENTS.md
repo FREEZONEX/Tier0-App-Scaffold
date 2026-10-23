@@ -789,10 +789,10 @@ Use TailwindCSS 4 through `src/styles/globals.css`; do not add
 Use the installed `@tier0/sdk-v2` (`0.2.0`, pinned in `package.json` to a
 GitHub commit until it is published to npm; never change that dependency) when requirements involve the
 Tier0 platform: user/platform info, members, notifications, files, MQTT/MQ/
-WebSocket, controls or capabilities. Load it with the lazy helpers from
+WebSocket or capabilities. Load it with the lazy helpers from
 `@/lib/tier0` inside the concrete server action — `loadTier0Sdk()` and then
 `createClient()` for `tier0.system`, `members`, `notifications`, `files`,
-`mqttAuth`, `controls`; `loadTier0Mq()` for `Tier0MQClient`. Do not top-level
+`mqttAuth`; `loadTier0Mq()` for `Tier0MQClient`. Do not top-level
 import or invoke SDK modules on SSR startup paths. Keep `vite.config.ts`
 `ssr.external: ["@tier0/sdk-v2", "mqtt"]`. Create a fresh client per request
 when passing employee data delegation; the App key never reaches the browser.
@@ -806,6 +806,25 @@ App-scoped calls only work in Preview and deployed runs.
 App records (UNS v2 collections) are the one exception: use `data` from
 `@/lib/data` (see App Data) — the App's instance of the `@tier0/sdk-v2/data`
 client — not `tier0.uns` and not hand-written fetches.
+
+For browser business requests and messages, use the separately installed frozen
+`@tier0/sdk` artifact: `import { client } from "@tier0/sdk"`, then
+`client.streams.requests.use({ code }).invoke(input, { idempotencyKey })` /
+`.describe()` or `client.streams.messages.use({ topic }).publish(payload)` /
+`.subscribe(handler)`. The trusted App Gateway runtime auto-initializes this
+client with the current browser session and App identity. Never configure a
+browser API Key, service token, workspace identity or signer seed. Missing
+runtime authorization must fail closed. Requests do not automatically retry;
+messages use short-lived NATS Core WSS credentials without offline queue,
+replay or receiver ACK. Topics may contain `/`. Dispose message subscriptions
+on cleanup. Do not use retired Control APIs/aliases or v2 Stream scripts;
+the Stream script contract is `tier0-stream/v3`.
+
+Keep the local `vendor/tier0-sdk-0.5.4-7f0a82e.tgz` and its lockfile integrity
+when packaging source. This unpublished artifact must not be replaced by a
+same-version registry package. Preserve the independent `@tier0/sdk-v2/data`
+dependency and server-side data Key. Installing the SDK and injecting the
+runtime bootstrap do not prove that a deployed App's broker/policy is ready.
 
 For notifications, omitted `channels` means Web & Desktop plus Mobile; use `[]`
 for inbox only, `['web']` or `['mobile']` for explicit scope. There is no

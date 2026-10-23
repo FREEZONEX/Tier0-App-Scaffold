@@ -15,7 +15,7 @@
     "dev:local": "VITE_STRICT_PORT=false vite dev --host 127.0.0.1 --port 5173",
     "dev:force": "vite dev --host 0.0.0.0 --port 5173 --force",
     "build": "vite build",
-    "postbuild": "npm run build:verify && npm run auth:union:test && npm run runtime:audit && npm run test:components && npm run test:data",
+    "postbuild": "npm run build:verify && npm run auth:union:test && npm run runtime:audit && npm run test:components && npm run test:data && npm run test:streams",
     "typecheck": "tsc --noEmit",
     "build:verify": "node scripts/post-build-verify.mjs",
     "build:check": "npm run build",
@@ -27,8 +27,9 @@
     "gallery:build": "vite build --config gallery/vite.config.ts",
     "test:components": "node --import tsx --test tests/component-kit.test.ts",
     "test:data": "node --import tsx --test tests/data-layer.test.ts tests/data-schema.test.ts tests/record-changes.test.ts",
-    "test": "npm run test:components && npm run test:data",
-    "data:schema": "node --import tsx scripts/data-schema.mjs"
+    "test": "npm run test:components && npm run test:data && npm run test:streams",
+    "data:schema": "node --import tsx scripts/data-schema.mjs",
+    "test:streams": "node --import tsx --test tests/app-streams.test.ts"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.2.7",
@@ -48,7 +49,8 @@
     "zod": "^4.0.0",
     "qrcode": "^1.5.4",
     "read-excel-file": "9.3.10",
-    "write-excel-file": "^4.1.1"
+    "write-excel-file": "^4.1.1",
+    "@tier0/sdk": "file:vendor/tier0-sdk-0.5.4-7f0a82e.tgz"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",
