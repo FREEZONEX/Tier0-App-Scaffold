@@ -6,9 +6,12 @@ import { describe, it } from "node:test";
 const ROOTS = ["src/components", "src/routes", "src/lib"];
 // TemplatePreviewPlaceholder: the pre-generation cover's decorative 1s clock,
 // cleaned up on unmount and mounted only while the blank scaffold route shows.
+// src/lib/data/changes.ts: the server-side SSE heartbeat of each open
+// /api/uns/subscribe stream, cleared when the stream closes.
 const INTERVAL_ALLOWLIST = new Set([
   "src/lib/hooks.ts",
   "src/components/TemplatePreviewPlaceholder.tsx",
+  "src/lib/data/changes.ts",
 ]);
 
 function toPosixPath(filePath) {

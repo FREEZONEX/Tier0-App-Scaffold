@@ -16,6 +16,7 @@ const TEMPLATE_ROUTE_FILES = [
   "src/routes/api/auth/me.ts",
   "src/routes/api/health.ts",
   "src/routes/api/manifest.ts",
+  "src/routes/api/uns/subscribe.ts",
   "src/routes/login.tsx",
   "src/routes/monitor.tsx",
   "src/routes/review.tsx",

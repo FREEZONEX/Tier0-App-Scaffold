@@ -19,6 +19,7 @@ export const data = createDataClient({ collections });
 export { DataError, runAsApp, toSortPairs } from "@tier0/sdk-v2/data";
 export type {
   BulkOperation,
+  CappedCount,
   Collection,
   Cursor,
   Doc,
@@ -34,5 +35,5 @@ export type {
   UpdateOptions,
   WithMeta,
 } from "@tier0/sdk-v2/data";
-export { filterToPredicate, queryRequestToFind } from "./query";
+export { filterToPredicate, queryRequestToFind, toQueryResult } from "./query";
 export type { ConvertedQuery, QueryConversionOptions } from "./query";

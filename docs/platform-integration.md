@@ -2,8 +2,12 @@
 
 ## Tier0 SDK (`@tier0/sdk-v2`)
 
-The scaffold declares `@tier0/sdk-v2` `^0.1.0`. Load it only on the server
-through the lazy helpers in `@/lib/tier0`:
+The scaffold declares `@tier0/sdk-v2` 0.2.0 as a GitHub commit,
+`github:FREEZONEX/Tier0-sdk-v2#<full 40-character sha>`, until 0.2.0 is on
+npm; then the dependency goes back to the version number. npm clones the
+commit, or downloads it from `codeload.github.com` when git cannot reach
+github.com, and the package's `prepare` script builds `dist`. Load it only on
+the server through the lazy helpers in `@/lib/tier0`:
 
 | Helper | Module | Use |
 |---|---|---|
@@ -320,7 +324,7 @@ the App forwards it to UNS (see below) and never reads or forges it.
 ### App Container Startup
 
 ```bash
-npm ci
+npm ci                  # needs registry.npmjs.org and github.com or codeload.github.com (the SDK commit)
 npm run build           # outputs dist/{client,server}; postbuild runs the gates
 node server.mjs         # equivalent to npm start, listens on PORT (default 3000)
 ```
@@ -336,22 +340,36 @@ App records go through `data` from `@/lib/data`, the App's instance of the
 `@tier0/sdk-v2/data` client (Mongo-driver style) built from
 `src/data/collections.ts`; services never use `tier0.uns` or fetch UNS for
 App records. All calls are `POST {TIER0_API_HOST}/openapi/v2/...` with
-`x-api-key: TIER0_API_KEY` and a 15 s timeout; responses use the
-`{ code, msg, requestId, data }` envelope.
+`x-api-key: TIER0_API_KEY`; responses use the `{ code, msg, requestId, data }`
+envelope, errors add `error` (below). The data layer's call policy:
+
+- 25 s per attempt (the gateway gives UNS at most 20 s);
+- at most 6 data requests in flight per server process, the rest queue;
+- a failed call is resent at most twice, only when UNS (or, for a read
+  without an answer, the SDK) marks it `retry.safe`, after `retry.afterMs`
+  or a jittered exponential backoff; a `retry.afterMs` over 5 s is not waited
+  for — the error surfaces at once;
+- every write that takes an idempotency key gets a fresh UUID per call,
+  reused by its resends, so a resend never applies the write twice.
 
 | Data layer | UNS operation |
 |---|---|
 | first access (bootstrap) | `appCollectionsEnsure` `POST /uns/app/collections/ensure` `{ collections: [{ alias, recordSchema, indexes, description }] }` (≤64 declarations) |
 | `find` / `findOne` | `recordFind` `records:find` (cursor pages ≤200) |
+| `get` | `recordGet` `records:get` (≤100 IDs per request, chunked) → `{ items, missing }` |
+| `data.queryBatch` | `recordQueryBatch` `POST /uns/records:queryBatch`: ≤20 reads built with `collection.query.*`, one request, one snapshot |
 | `aggregate` | `records:aggregate`: cursor pages for `$match`/`$sort`-only pipelines, offset pages otherwise, no page for a final `$count`; `$lookup.from` (declared collection or alias) becomes `collectionId` |
-| `findPage` | `recordAggregatePipeline` (offset page) + `recordCount` |
-| `countDocuments` / `distinct` | `records:count` / `records:distinct` (offset pages) |
+| `findPage` | `recordAggregatePipeline` (offset page) with `count: { max? }`: page and `total: { count, capped }` in one request and snapshot |
+| `countDocuments` | `records:count` with `maxCount?` → `{ count, capped }` |
+| `countBy` | `records:aggregate` with `$group` + `$sort` by count |
+| `distinct` | `records:distinct` (offset pages) |
 | `insertOne` / `insertMany` | `records` / `records:insertMany` (`atomic: true`, ≤200 documents) |
 | `updateOne` / `updateMany` / `replaceOne` | `records:updateOne` / `records:updateMany` (`atomic: false` like Mongo, follows `resumeAfter`) / `records:replaceOne` |
 | `deleteOne` / `deleteMany` | `records:deleteOne` / `records:deleteMany` (`atomic: false`, follows `resumeAfter`; soft delete; needs `uns.delete`) |
 | `findOneAndUpdate` / `findOneAndReplace` / `findOneAndDelete` | `records:findOneAnd*` |
 | `bulkWrite` | `records:bulkWrite` (`atomic: true`, ≤200 operations) |
 | `data.transact` | `recordTransactionExecute` `POST /uns/records:transact` with `mode: "sync"` (≤200 steps) |
+| `data.subscribe` | `GET /uns/records:subscribe` (server-sent events; every declared collection, ≤64, listed by ID; see Change stream) |
 
 The 200-item limits are UNS's synchronous atomic batch size (`SyncItems`); the
 data layer rejects larger batches with `BATCH_LIMIT_EXCEEDED` before sending.
@@ -388,8 +406,9 @@ The first data access of a server process sends every declaration of
   A failed ensure is not memoized; the next data access retries it.
 - Seed documents (≤1000 per collection) are inserted only for collections
   reported `created`: fixed IDs, atomic `insertMany` chunks of 200, each with a
-  stable idempotency key and retried up to three times on retryable errors. A
-  chunk that still fails is logged; the collection is not reseeded later.
+  stable idempotency key, so a chunk whose outcome is unknown is replayed
+  (up to three times) instead of duplicated. A chunk that still fails is
+  logged; the collection is not reseeded later.
 - Self-healing: a Preview reset hard-deletes the App's collections and a
   worker or admin may archive one, while the process still holds the old IDs.
   Every record call (including `aggregate` with its `$lookup` targets and
@@ -425,27 +444,49 @@ ensure payload. Evolution rules and the worker's tier0 MCP operations
 
 ### Errors
 
+UNS error envelopes carry
+`error: { code, reason, details, execution, retry: { safe, afterMs? }, repair? }`.
 Failures become `DataError { status, code, reason, upstreamStatus, requestId,
-retryable, outcomeUnknown, details }`, with the SDK's `UnsV2Error` as `cause`;
-`details` holds the `data` object of the UNS error envelope (or data-layer
-details). `withErrors` answers `{ error, code, requestId }` with `status`:
+execution, retry, outcomeUnknown, attempts, details }`, with the SDK's
+`UnsV2Error` as `cause`; `details` holds the `data` object of the UNS error
+envelope (or data-layer details), `outcomeUnknown` is
+`execution === "unknown"`, and `attempts` counts the requests sent, resends
+included.
+
+| `execution` | Meaning |
+|---|---|
+| `notStarted` | Refused before running (admission, authorization, data-layer checks before sending) |
+| `rolledBack` | Ran and rolled back; nothing changed |
+| `committed` | Took effect (e.g. ensure applied, only its warnings failed) |
+| `unknown` | Writes only: no answer, or the connection broke while committing; it may have landed |
+
+`withErrors` answers `{ error, code, requestId }` with `status`, plus
+`Retry-After` (seconds, rounded up from `retry.afterMs`) only on a 429 / 503
+that is safe to repeat: `retry.safe` is true, `execution` is not `unknown`,
+and `retry.afterMs` is set. `execution` and
+`retry.safe` stay on the server: an App request may span several data calls,
+so one call being safe to repeat does not make the request safe to resend.
 
 | UNS answer | App status |
 |---|---|
-| 400 / 403 / 404 / 409 / 413 / 422 / 429 | same (except the retryable 403 below) |
+| 400 / 403 / 404 / 409 / 413 / 422 / 429 | same (except the platform states below) |
 | 401 (credential rejected) | 502 — a platform credential problem, not the user's session |
-| 403 with `error.retryable: true` (e.g. `FORBIDDEN` "hosted App is not ready" right after an import) | 503 (`retryable`) — a platform state, not a denied action |
-| 502 / 503 / 504 with the UNS envelope | 503 (`retryable` for 503 / 504, or when UNS marks the error retryable) |
-| 502 / 503 / 504 without the envelope (ingress or load balancer during a rollout) | 503 `HTTP_502` / `HTTP_503` / `HTTP_504` (`retryable`) |
-| timeout / network failure | 503 `DATA_TIMEOUT` / `DATA_UNREACHABLE` (`retryable`); the message never contains the gateway address |
+| `APP_NOT_READY`, `DEPENDENCY_UNAVAILABLE`, `CREDENTIAL_CHANGED`, `OUTCOME_UNKNOWN`, `TEMPORARILY_UNAVAILABLE` | 503 — a platform state, not a denied action or a conflict |
+| 502 / 503 / 504 with the UNS envelope (`QUERY_TIMEOUT` is 504) | 503 |
+| 502 / 503 / 504 without the envelope (ingress or load balancer during a rollout) | 503 `HTTP_502` / `HTTP_503` / `HTTP_504` |
+| timeout / network failure | 503 `DATA_TIMEOUT` / `DATA_UNREACHABLE`; the message never contains the gateway address |
 | other invalid response | 502 `DATA_BAD_RESPONSE` |
 | other 5xx | 502 |
 | missing `TIER0_API_HOST` / `TIER0_API_KEY` | 503 `DATA_NOT_CONFIGURED` |
 | batch over 200 items | 400 `BATCH_LIMIT_EXCEEDED` (not sent) |
 
-`outcomeUnknown: true` means a write may have reached UNS (a timeout, a lost
-connection or an unenveloped 5xx after sending): query the result first and
-replay only with the same idempotency key, never with a new one.
+Without an error body (timeouts, network failures, unenveloped 502/503/504)
+a read counts as `rolledBack` and safe to resend, a write as `unknown` and
+never resent. `OVERLOADED` (429) is the workspace's data concurrency share
+being full; the data layer waited and resent, and a 429 that still reaches the
+App means it sends too many requests (merge page reads with
+`data.queryBatch`). `QUERY_TIMEOUT` is not resent: narrow the query as
+`repair` suggests.
 
 `DataError.reason` carries `data.reason`. `APP_PERMISSION_MISSING` with
 `data.missingPermission: "uns.delete"` explains that deletes need
@@ -463,7 +504,10 @@ active record) carry their own hints. Structured details stay in
 
 `src/start.ts` runs every request — public paths such as `/_serverFn`
 included — inside the `@tier0/sdk-v2/data` request context
-(`runWithRequestContext`) holding the request's `X-Tier0-App-Data-Subject`.
+(`runWithRequestContext(request, ...)`) holding the request's
+`X-Tier0-App-Data-Subject` and its abort signal: when the caller goes away,
+data calls still waiting for a slot are dropped unsent and those in flight
+are cancelled.
 The App has no context of its own: a second context would leave the data
 client without the subject and silently run calls as the App. The header is signed by the Gateway and verified
 by UNS, so the App can neither forge nor widen it. Record calls made
@@ -474,6 +518,59 @@ taken with a subject cannot be released by such App-level work. A subject
 that is not a compact three-segment base64url token (≤8192 bytes) is a
 `TypeError` from the SDK, i.e. a 500 that points at the Gateway, not a
 `DataError`.
+
+### Change stream
+
+`GET /api/uns/subscribe?collections=<alias,...>&recordIds=<id,...>`
+(`src/routes/api/uns/subscribe.ts`, after `requireAuth()`) answers
+`text/event-stream` for `useRecordChanges` (`src/lib/record-changes.ts`).
+Aliases must be declared (400 otherwise; all declared collections when
+absent), at most 100 `recordIds`.
+
+| SSE event | Meaning |
+|---|---|
+| `change` (`id` = `eventId`) | `{ eventId, collection, recordId, revision, change: "record" \| "delete", occurredAt }` (`occurredAt` in Unix ms); `delete` covers deletes and TTL expiry. `data.subscribe` drops a non-delete change at or below the revision it already passed on for that record; every `delete` passes, a late one too, and forgets that revision, so a record written again under the same ID may restart at revision 1 |
+| `change` of a collection with employee data rules | `{ eventId, collection, change: "collection", occurredAt }`, sent to every subscriber of the collection, `recordIds` or not |
+| `reset` (with an `id`) | `{ reason }`: changes may have been missed; reload. The hub's `unknown-event-id` or `upstream-failed`, or the upstream's: `CURSOR_EXPIRED` (resume position cleaned up after 24 h, undecodable after a key rotation, or the tenant database moved), `SCOPE_CHANGED` (access changed, e.g. a collection no longer readable), `COLLECTION_RECREATED` (SDK self-healing gave a collection a new ID) |
+| id-only frame | sent on connect: the browser's resume point, dispatches nothing |
+| `: heartbeat` comment | every 15 s; the stream starts with `retry: 5000` |
+
+`src/lib/data/changes.ts` keeps one upstream `data.subscribe` per server
+process, opened as the App (`runAsApp`) over every declared collection when
+the first browser connects and closed 30 s after the last one leaves. The
+SDK resumes it across connections itself and does not count it against the
+6 data requests in flight. Each browser stream gets the events matching its
+filter.
+
+`eventId` is the hub's own position, `<epoch>.<seq>`, never a UNS cursor:
+nothing a browser sends reaches UNS, and the upstream always starts from
+now. Each upstream session has its own random epoch and keeps its latest
+1000 events:
+
+- a reconnect whose `Last-Event-ID` is in the current session's buffer gets
+  the events after it; the id-only frame on connect gives even a browser
+  that saw no event yet such a position;
+- any other `Last-Event-ID` (another session, too old, forged) gets `reset`,
+  for that browser only.
+
+A session ends when the upstream fails (after the SDK's own reconnects),
+when the upstream sends `reset`, or when the upstream closes for lack of
+browsers. After an upstream `reset` the SDK subscribes again from now,
+without a resume position, on the same iteration.
+Connected browsers then get a `reset` carrying the new session's position
+and stay connected; a failed upstream reopens after 5 s, doubling per
+consecutive failure up to 5 minutes. Each browser stream ends after about 10
+minutes (±10 %): the browser reconnects with its position, and the route
+authenticates it again.
+
+UNS limits change subscriptions per App server process, not per user, which
+is why browsers never get an upstream of their own. Because the upstream
+runs as the App, employee data rules cannot filter its events: UNS marks
+changes of collections with such rules `restricted`, and `data.subscribe`
+turns them into collection-level events by default (alias, no record ID or
+revision), so a browser never learns of records the employee cannot read. Events carry no record data in any case; the browser reloads
+through routes where the rules apply. The route is locked: removing its
+`requireAuth()` would open the stream to anyone.
 
 ## Where Each Variable Is Read
 

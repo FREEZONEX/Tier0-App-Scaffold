@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "tier0Scaffold": {
-    "version": 9,
-    "ref": "cdd548b"
+    "version": 10,
+    "ref": "bc8daa8"
   },
   "engines": {
     "node": ">=22.12.0"
@@ -26,7 +26,7 @@
     "lint": "eslint .",
     "gallery:build": "vite build --config gallery/vite.config.ts",
     "test:components": "node --import tsx --test tests/component-kit.test.ts",
-    "test:data": "node --import tsx --test tests/data-layer.test.ts tests/data-schema.test.ts",
+    "test:data": "node --import tsx --test tests/data-layer.test.ts tests/data-schema.test.ts tests/record-changes.test.ts",
     "test": "npm run test:components && npm run test:data",
     "data:schema": "node --import tsx scripts/data-schema.mjs"
   },
@@ -36,7 +36,7 @@
     "@fontsource/inter": "^5.2.8",
     "@tanstack/react-router": "^1.168.0",
     "@tanstack/react-start": "^1.167.0",
-    "@tier0/sdk-v2": "0.1.0",
+    "@tier0/sdk-v2": "github:FREEZONEX/Tier0-sdk-v2#b9aa196e6b81a8f1c9947dc4141ea4b3a3835401",
     "clsx": "^2.1.1",
     "lucide-react": "^0.577.0",
     "motion": "^12.38.0",

@@ -90,6 +90,7 @@ src/
     monitor.tsx                passive fixed-board layout
     login.tsx                  hidden platform-auth error bridge
     api/**                     thin HTTP wrappers
+    api/uns/subscribe.ts       record change stream for useRecordChanges (do not modify)
   services/**                  domain logic, state machines, data access
   data/collections.ts          collection declarations + seed (source of truth)
   data/seed-utils.ts           seed date/reference helpers
@@ -102,14 +103,16 @@ src/
     layouts/                   route-group shells
   lib/                         auth, permissions, routing and runtime helpers
   lib/data/                    App instance of the @tier0/sdk-v2/data client (locked)
+  lib/record-changes.ts        useRecordChanges(): live record changes in the browser
 server.mjs                     production entry (do not modify)
 artifact.toml                  platform build/run contract
 ```
 
 Do not modify generated `src/routeTree.gen.ts`. Preserve `src/start.ts`,
-`src/router.tsx`, `src/lib/data/**`, Gateway/auth helpers, health/manifest/auth
-routes, the root document structure, production entry, and existing Vite SSR
-policy unless the user explicitly asks for platform/runtime work.
+`src/router.tsx`, `src/lib/data/**`, Gateway/auth helpers, the health,
+manifest, auth and `api/uns/subscribe` routes, the root document structure,
+production entry, and existing Vite SSR policy unless the user explicitly asks
+for platform/runtime work.
 
 ## Architecture and Domain Rules
 
@@ -190,7 +193,8 @@ The collection schema is a **storage** schema. UNS stores this subset only, and
 | defaults applied in the service | `.default()`, `.catch()`, `.transform()` |
 
 Store dates as `"YYYY-MM-DD"` strings and instants as ISO-8601 UTC strings
-from `toISOString()`; both sort and range-filter as strings. Record IDs (`_id`)
+from `toISOString()`; both sort and range-filter as strings (a TTL field is
+the exception: Unix milliseconds, see TTL below). Record IDs (`_id`)
 and `_meta` (`revision`, `createdAt`, `updatedAt` in Unix ms) are system
 fields: never declare them. Objects nest at most 8 levels, 128 properties per
 object, 100 enum values per field; `.describe()` text is at most 2048 UTF-8
@@ -212,6 +216,16 @@ for business keys, `kind: "gin"` for one array/object field; at most 16 per
 collection. Paths follow object properties only: `items.sku` (a field inside
 array items) cannot be indexed — index `items` with `kind: "gin"` or keep the
 value in a top-level field. Index the fields lists filter and sort on.
+
+TTL: records that should disappear on their own (login codes, short-lived
+reservations, transient sensor alerts) get one TTL index instead of a cleanup
+job — `{ path: "issuedAt", expireAfterSeconds: 300 }` on a
+`z.number().int()` field holding Unix milliseconds (`Date.now()`; ISO strings
+cannot expire). UNS deletes a record `expireAfterSeconds` (60–31536000) after
+that instant, physically and with up to minutes of delay, so reads still
+compare the time themselves; records without the field never expire. One TTL
+index per collection, on a single `path` and not `unique`. ensure may add a
+TTL or lengthen it; shortening or removing it takes `schema:replace`.
 
 Seed: baseline records with fixed `_id`s, coherent across lifecycle states,
 referencing each other by those IDs (`requireSeedRef()`), dates from
@@ -245,8 +259,10 @@ const orders = data.collection(workOrders);
 
 await orders.find({ status: { $in: ["RELEASED", "DONE"] } }, { sort: { "_meta.createdAt": -1 }, limit: 50 }).toArray();
 await orders.findOne({ _id: id });
-await orders.findPage(filter, { sort, page, pageSize });   // { items, total, page, pageSize }
-await orders.countDocuments({ status: "RELEASED" });
+await orders.get([id1, id2]);                              // { items (in request order), missing }
+await orders.findPage(filter, { sort, page, pageSize });   // { items, total: { count, capped }, page, pageSize }
+await orders.countDocuments({ status: "RELEASED" });       // { count, capped }
+await orders.countBy("status", { "line.id": lineId });     // [{ value, count }], largest first
 await orders.insertOne({ code, status: "DRAFT", ... });     // optional _id
 await orders.updateOne({ _id: id }, { $set: { notes } }, { expectedRevision });
 await orders.findOneAndUpdate({ _id: id, status: "DRAFT" }, { $set: { status: "RELEASED" } });
@@ -258,17 +274,70 @@ Also available: `insertMany`, `updateMany`, `replaceOne`, `deleteOne`,
 (`insertOne` / `updateOne` / `replaceOne` / `deleteOne`), `distinct`, and
 `data.transact(...)`.
 
+A screen that shows several things (a list with its total, status chips, a
+selected record, a lookup list) loads them with **one** `data.queryBatch`:
+up to 20 reads in one request, all from the same snapshot, typed by name.
+
+```ts
+const { list, byStatus, selected } = await data.queryBatch({
+  list: orders.query.findPage(filter, { sort, page, pageSize }),
+  byStatus: orders.query.countBy("status"),
+  ...(selectedId ? { selected: orders.query.get([selectedId]) } : {}),
+});
+```
+
+`collection.query` builds `find` (first page; `maxCount` adds a capped
+total), `findPage`, `count`, `countBy`, `distinct`, `aggregate` and `get`;
+each item returns one page (≤200 rows; `query.get` takes 1–100 IDs and
+throws a `TypeError` for none, so add it only when there is an ID). A refused item
+rejects the whole call with its `DataError`; pass `{ settle: true }` to get
+`{ ok: true, value } | { ok: false, error }` per item instead. A statement
+timeout or more than 2000 rows / 8 MiB in total fails the batch. Several
+separate reads per screen are the main cause of `OVERLOADED`.
+
+Read records by ID with `get(ids)`: IDs that do not exist, are deleted or are
+hidden from the current employee by data rules are all listed in `missing`;
+treat them all as not found (404), never as "forbidden". More than 100 IDs
+are read in chunks.
+
 Batch sizes and atomicity:
 
 | Call | Limit | Atomic |
 |---|---|---|
 | `insertMany`, `bulkWrite`, `data.transact` | ≤200 items per call; more fails with `BATCH_LIMIT_EXCEEDED` before sending | yes, all or nothing |
-| `updateMany`, `deleteMany` | none; pages through every match | no — like Mongo, documents commit one by one and a failure reports what was already committed |
+| `updateMany`, `deleteMany` | none; pages through every match | no — like Mongo: UNS commits chunks of 50 documents; a failure after some committed is `execution: "committed"` (see below) |
 
-Write more than 200 records in chunks of 200 (a loop over chunks is fine), with
-fixed `_id`s or one `idempotencyKey` per chunk so a retry cannot duplicate. When
+Write more than 200 records in chunks of 200 (a loop over chunks is fine). When
 several documents must change all or nothing, use one `data.transact` (≤200
 steps), not `updateMany`.
+
+When `updateMany` / `deleteMany` fails after part of it committed, the
+`DataError` keeps the failing `code` but has `execution: "committed"`,
+`retry.safe: false`, and `details` with the totals so far
+(`status: "partiallyCommitted"`, `resumeAfter`). Never rerun the whole call —
+`$inc` / `$push` would apply twice to the committed records; continue from
+the failure point instead:
+
+```ts
+try {
+  await orders.updateMany(filter, update);
+} catch (error) {
+  const resumeAfter = error instanceof DataError && error.execution === "committed" ? error.details.resumeAfter : undefined;
+  if (typeof resumeAfter !== "string") throw error;
+  await orders.updateMany(filter, update, { resumeAfter });
+}
+```
+
+`insertMany` and `bulkWrite` never commit part of a batch: when UNS rejects
+an item, the whole batch is rolled back and the error is `WRITE_ERRORS` with
+`execution: "rolledBack"` and only `details.writeErrors` (no `resumeAfter`).
+Fix or drop the rejected items and send the batch again.
+
+Do not pass idempotency keys: the data layer gives every write call its own
+and reuses it when it resends the call, so a retry never applies a write
+twice. A new call is a new write; when you re-run work after
+`outcomeUnknown`, fixed `_id`s and conditional updates keep it from
+duplicating.
 
 - Filters use field paths without `data.` (`status`, `line.id`, `_id`,
   `_meta.updatedAt`) with `$eq $ne $gt $gte $lt $lte $in $nin $exists $all $size
@@ -277,21 +346,29 @@ steps), not `updateMany`.
   letters only (`É` and `é` differ); missing, null and non-string values never
   match, and it works on fields declared as strings only — on an array or
   number field it fails with `INVALID_REQUEST`. It cannot use an index: on
-  large collections it can hit the 15 s statement timeout (`QUERY_TIMEOUT`),
+  large collections it can hit the query time limit (`QUERY_TIMEOUT`),
   so combine it with an indexed condition. `$in` takes at most 200 values.
   Sort by at most 4 fields.
 - `find()` returns a cursor that pages 200 at a time; always give list reads a
   `limit`. For numbered list pages (MetaListPage `meta/query`) convert the
-  request with `queryRequestToFind(request, { paths, instantFields })` and call
-  `findPage(...)`. Kit `LIKE` / `NOT_LIKE` become `$contains` / `$nor`, so
-  offer them only on string fields.
+  request with `queryRequestToFind(request, { paths, instantFields })`, call
+  `findPage(...)` (one request: the page and its total from the same
+  snapshot) and answer `toQueryResult(page, { map, groups })`. Kit `LIKE` /
+  `NOT_LIKE` become `$contains` / `$nor`, so offer them only on string fields.
+- Counts are capped: `findPage` counts up to 10000 (`maxCount` up to 100000),
+  `countDocuments` up to 100000. `capped: true` means "at least `count`" —
+  show it as "10000+" (`toQueryResult` sets `totalCapped`, which the kit
+  renders that way); never page through records to count them.
+- Statistics (status chips, per-line totals, dashboard tiles) are one
+  `countBy(field, filter)` or one `aggregate` with `$group`, never one count
+  per value.
 - `aggregate()` supports `$match`, `$sort` (`{ field: 1 | -1 }`), `$group`,
   `$project`, `$set`, `$unwind`, `$skip`, `$limit`, `$count` and `$lookup`. Write
   `$lookup` with `from` set to a declared collection (or its alias):
   `{ $lookup: { from: customers, localField: "customer.id", foreignField: "_id", as: "customer" } }`;
   the data layer turns it into the collection ID. The `$exists`, `$distinct` and
-  `$frequencies` stages are not executed for records; use `countDocuments`,
-  `distinct` or `$group`.
+  `$frequencies` stages are not executed for records; use `countBy`,
+  `countDocuments`, `distinct` or `$group`.
 - Writes are validated against the declaration before they are sent: unknown
   fields, wrong types and undeclared update paths fail with 400. Reads are
   **not** strictly parsed: a record may hold fields written by another code
@@ -301,9 +378,9 @@ steps), not `updateMany`.
   `replaceOne` rewrites the whole body and drops fields written by other code
   versions.
 - Never call the data layer once per loop iteration or per `map` item (ESLint
-  flags it): read with one `$in`, write with `insertMany` / `updateMany` /
-  `bulkWrite`, or use `data.transact`. Looping over 200-item chunks of a batch
-  call is the exception and is not flagged.
+  flags it): read with one `get` / `$in` or `data.queryBatch`, write with
+  `insertMany` / `updateMany` / `bulkWrite`, or use `data.transact`. Looping
+  over 200-item chunks of a batch call is the exception and is not flagged.
 - Deletes are soft and need `uns.delete` on the App key; without it the call
   fails with a 403 that says so (`error.reason` `APP_PERMISSION_MISSING`). Business records usually end with a status
   (`CANCELLED`, `ARCHIVED`) rather than a delete.
@@ -332,6 +409,50 @@ steps), not `updateMany`.
 - `DUPLICATE_KEY` (409) means a unique index rejected the value; show it as a
   field error.
 
+### Live updates
+
+Pages that must show other users' changes without a reload (boards, queues,
+station screens) subscribe in the browser instead of polling:
+
+```tsx
+import { useRecordChanges } from "@/lib/record-changes";
+
+const list = useRequest("work-orders", (signal) => requestJson<WorkOrder[]>("/api/work-orders", { signal }));
+useRecordChanges(["work_orders"], () => list.refresh());
+useRecordChanges(["work_orders"], () => detail.refresh(), { recordIds: [id] });
+```
+
+Pass collection aliases, not declarations: importing `@/data/collections`
+into a page ships its schemas and seeds to the browser.
+
+- An event says only which record changed (`collection`, `recordId`,
+  `revision`, `change: "record" | "delete"`), never its data. Reload through
+  the App's own API: that is where roles and employee data rules apply. The
+  callback receives the events of the last 300 ms as one batch
+  (`batch.changes`); `batch.reset: true` means changes may have been missed,
+  so reload everything the view shows (sent when UNS dropped the resume
+  position, access changed or a collection was recreated, when the App
+  server lost its upstream, and when the stream itself was closed for good,
+  e.g. a 401 after the session expired).
+- Use an event only as "reload this". Changes of one record may arrive out
+  of order: the data layer drops a `record` change older than what it
+  already passed on, but passes every `delete`, even one that arrives after
+  a newer change, and a record deleted and written again under the same ID
+  starts over at revision 1. Never compare `revision`s, remove a row on
+  `delete` without reloading, or rebuild state from the order of events.
+- A collection with employee data rules never reveals which record changed:
+  its changes arrive as aliases in `batch.collections` (also when you passed
+  `recordIds`). Reload whatever the view shows from that collection.
+- The App server holds one upstream subscription per process for every
+  declared collection (`/api/uns/subscribe`, `src/lib/data/changes.ts`) and
+  fans it out to all browsers; subscribing per page is cheap. Browsers
+  reconnect and resume on their own; the server ends each stream after about
+  10 minutes so the reconnect is authenticated again.
+- Every signed-in user may subscribe to every declared collection; a
+  user learns record IDs only of collections without employee data rules.
+- App records are always covered by a subscription: do not poll them with
+  `refetchInterval` / `usePolling`, and never subscribe from services.
+
 ### Who the call acts as
 
 Every call uses the platform-injected App key. While serving a business request
@@ -341,7 +462,8 @@ employee. Collection ensure and seed writes run as the App. Work detached from
 the request (timers, queues, fire-and-forget follow-ups) must run inside
 `runAsApp(() => ...)`; a lease taken under an employee cannot be released by
 such App-level work. `src/start.ts` opens the SDK's request context
-(`runWithRequestContext` from `@tier0/sdk-v2/data`); never add a context of
+(`runWithRequestContext(request, ...)` from `@tier0/sdk-v2/data`, which also
+cancels data calls when the caller goes away); never add a context of
 your own — data calls would silently run as the App. A malformed subject
 header is a `TypeError` (500), not a `DataError`.
 
@@ -350,9 +472,10 @@ header is a `TypeError` (500), not a `DataError`.
 The first data access in a server process ensures every declared collection in
 one batch: missing collections are created (then seeded), wider declarations
 widen storage, and nothing is ever narrowed. A failed ensure is retried by the
-next request (a freshly imported App may briefly answer "hosted App is not
-ready", which the App answers as a retryable 503). Do not ensure manually, do
-not touch data at import time, and do not cache your own "initialized" flags.
+next request (a freshly imported App may briefly answer `APP_NOT_READY`,
+which the data layer retries and the App answers as 503). Do not ensure
+manually, do not touch data at import time, and do not cache your own
+"initialized" flags.
 
 A running process also recovers when a collection it uses disappears (a
 Preview reset deletes collections; a worker or admin may archive one): a call
@@ -371,11 +494,19 @@ declaration are logged as info, and `ANNOTATION_NOT_APPLIED` (an edited
 warning that points at `schema:replace`.
 
 Runtime data failures are `DataError`s (`status`, `code`, `reason`,
-`retryable`, `outcomeUnknown`, `details` = the UNS envelope `data`, `cause`);
-let them reach `withErrors`. A retryable 503 (`HTTP_502/503/504` from an ingress
-during a rollout, `DATA_TIMEOUT`, `DATA_UNREACHABLE`, "hosted App is not ready")
-may be retried. `outcomeUnknown: true` means a write may have landed: check
-before replaying, and replay only with the same idempotency key. Full mapping:
+`execution`, `retry`, `outcomeUnknown`, `attempts`, `details` = the UNS
+envelope `data`, `cause`); let them reach `withErrors`. The data layer has
+already resent the call when `retry.safe` allowed it (overload `OVERLOADED`
+429, `APP_NOT_READY`, temporary failures, a read whose answer did not arrive
+— not `QUERY_TIMEOUT`, which needs a narrower query), so do not
+wrap data calls in retry loops of your own. Branch on `code` / `reason`, never
+on message text. `execution` says how far the request got: `notStarted` /
+`rolledBack` changed nothing, `unknown` (`outcomeUnknown: true`, writes only)
+means it may have landed — read back before writing again. `withErrors`
+answers `{ error, code, requestId }` and, for a 429 / 503 that is safe to
+repeat, `Retry-After`. A
+frequent `OVERLOADED` means the App sends too many requests: merge page reads
+into one `data.queryBatch` and drop per-record loops. Full mapping:
 `docs/platform-integration.md` → Errors.
 
 ### Schema evolution
@@ -406,15 +537,15 @@ code to catch mistakes).
 
 | Need | Call (`/openapi/v2` prefix) |
 |---|---|
-| App ID, collections, grants and current schemas | `POST /uns/app/context` with `{}` (whoami does not return the App ID) |
+| App ID, collections, grants, current schemas, revisions, index status, TTL and limits | `POST /uns/app/context` with `{}` (whoami does not return the App ID) |
 | Preview a declaration change | `npm run data:schema`, then `POST /uns/app/collections/ensure` with that body plus `"dryRun": true` |
 | Narrow a schema | `npm run data:schema -- <alias>` for the target, then `POST /uns/app/collections/schema:replace` with `{ alias, recordSchema, indexes, expectedRevision, dryRun: true }`; repeat with `dryRun: false` |
 | Change descriptions of existing fields or the collection | Same as narrowing: `schema:replace` with the `npm run data:schema -- <alias>` body (status `widened`) |
 | Retire / bring back a collection | `POST /uns/app/collections/archive` or `restore` with `{ alias }`; at most 2000 records each (archive tombstones them, restore brings that batch back) |
 | One-off data fix or backfill | `POST /uns/collections/{collectionId}/records:updateMany` (collection ID from the context) |
 
-`expectedRevision` is the collection `revision` from an ensure result (a
-`dryRun: true` ensure returns it without changing anything). Schema paths in
+`expectedRevision` is the collection `revision` from `/uns/app/context` or an
+ensure result (a `dryRun: true` ensure returns it without changing anything). Schema paths in
 `ignored`, `warnings`, `conflicts` and `violations` join properties with `.`
 and array items with `[]` (`items.[].qty`). The spec may take up to 10 minutes
 to list new operations in `tier0_search`.
@@ -439,7 +570,8 @@ to list new operations in `tier0_search`.
 | `NOT_FOUND` (404) | The alias is not one of this App's collections. |
 | `data.reason` on record calls | `COLLECTION_NOT_GRANTED` (403): the grant does not cover the collection or operation; `COLLECTION_NOT_FOUND` (403/404): archived or deleted — the App's data layer re-ensures on both; `APP_PERMISSION_MISSING` (403, `data.missingPermission`): the key lacks e.g. `uns.delete`. Judge by these codes, never by message text. |
 | `DUPLICATE` (409, restore) | An active collection already uses the alias (`data.activeCollectionId`); archive it first. |
-| `FORBIDDEN` (403) | The key may not do this (another App's or a shared collection). `hosted App is not ready` right after an import is retryable (`retryable: true`); the App's data layer answers it as 503. |
+| `FORBIDDEN` (403) | The key may not do this (another App's or a shared collection), or it was revoked. |
+| `APP_NOT_READY` (503) | The platform is still preparing a freshly imported App; retry shortly. |
 
 ## Routing and Server Boundaries
 
@@ -602,8 +734,10 @@ function each render. Render request state through `AsyncView` so failures show
 an error and retry instead of indefinite loading.
 
 Keep live data current without routine Refresh buttons: `useRequest` revalidates
-on visible/reconnect; use `{ refetchInterval: 15000 }` for shared operational
-lists. Call `refresh()` after a successful mutation and for error retry. Keep
+on visible/reconnect; shared operational lists of App records refresh on
+`useRecordChanges` (see Live updates). `{ refetchInterval: 15000 }` /
+`usePolling` are only for data a subscription cannot cover (platform SDK data,
+external systems). Call `refresh()` after a successful mutation and for error retry. Keep
 form drafts separate from fetched data so background updates cannot erase edits;
 immutable reads can disable `refetchOnWindowFocus` / `refetchOnReconnect`.
 
@@ -652,7 +786,8 @@ Use TailwindCSS 4 through `src/styles/globals.css`; do not add
 
 ## Tier0 SDK
 
-Use the installed `@tier0/sdk-v2` (`^0.1.0`) when requirements involve the
+Use the installed `@tier0/sdk-v2` (`0.2.0`, pinned in `package.json` to a
+GitHub commit until it is published to npm; never change that dependency) when requirements involve the
 Tier0 platform: user/platform info, members, notifications, files, MQTT/MQ/
 WebSocket, controls or capabilities. Load it with the lazy helpers from
 `@/lib/tier0` inside the concrete server action — `loadTier0Sdk()` and then
