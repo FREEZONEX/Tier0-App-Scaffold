@@ -328,7 +328,7 @@ fill every pixel of a wide toolbar looks unresolved and drags its placeholder fa
 from the results it filters; give it a ceiling — `max-w-xs` is a good default —
 and let the empty space carry the layout. The build catches known unbounded
 control-growth patterns; it does not verify rendered mobile usability. See the
-static-check and viewport-review boundaries in [AGENTS.md](AGENTS.md).
+static-check and viewport-review boundaries in [docs/ui-rules.md](docs/ui-rules.md#responsive-layout).
 
 ## 通用组件扩充
 
