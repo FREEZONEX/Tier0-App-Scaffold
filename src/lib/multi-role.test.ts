@@ -37,6 +37,17 @@ describe("Tier0 multi-role gateway context", () => {
     ]);
   });
 
+  it("grants nothing for a deployed active role outside the business roles", () => {
+    const headers = new Headers({
+      "X-Tier0-Runtime": "deployed",
+      "X-Tier0-Active-Role": "warehouse_manager",
+      "X-Tier0-Business-Roles": "receiver",
+    });
+
+    assert.deepEqual(getTrustedGatewayRoles(headers), ["receiver"]);
+    assert.deepEqual(getGatewayRoles(headers), ["receiver"]);
+  });
+
   it("reads the preview view-as role set only from X-Tier0-Preview-Role", () => {
     const headers = new Headers({
       "X-Tier0-Runtime": "preview",

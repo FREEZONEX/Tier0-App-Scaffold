@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createDataClient, defineCollection, runAsApp, runWithRequestContext, type SubscriptionEvent } from "@tier0/sdk-v2/data";
 import { z } from "zod";
-import { createChangeHub, streamChanges, type ChangeHubOptions } from "../src/lib/data/changes";
+import { changeFilter, createChangeHub, type ChangeHubOptions } from "../src/lib/data/changes";
 import { HttpError } from "../src/lib/route-handlers";
 
 // The fan-out of /api/uns/subscribe: one upstream per process, per-browser
@@ -327,7 +327,7 @@ describe("record change hub over data.subscribe", () => {
     const data = createDataClient({
       collections: [cases], fetch, apiHost: "http://gw.local", apiKey: "sk-app", logger: { info() {}, warn() {}, error() {} },
     });
-    const hub = createChangeHub({ open: (options) => data.subscribe(options), detach: runAsApp });
+    const hub = createChangeHub({ open: (options) => data.subscribe(options), detach: runAsApp, idleCloseMs: 0 });
     const controller = new AbortController();
 
     const browser = frames(
@@ -350,17 +350,23 @@ describe("record change hub over data.subscribe", () => {
   });
 });
 
-describe("streamChanges", () => {
+// Declarations are passed in, so these hold whatever the App itself declares
+// and never open the process's upstream.
+describe("changeFilter", () => {
   const subscribe = (query: string) => new Request(`http://app.local/api/uns/subscribe${query}`);
   const status = (expected: number) => (error: unknown) => error instanceof HttpError && error.status === expected;
 
   it("rejects aliases that are not declared and more than 100 recordIds", () => {
-    assert.throws(() => streamChanges(subscribe("?collections=nope")), status(400));
+    assert.throws(() => changeFilter(subscribe("?collections=nope"), ["orders"]), status(400));
     const ids = Array.from({ length: 101 }, (_, index) => `r${index}`).join(",");
-    assert.throws(() => streamChanges(subscribe(`?recordIds=${ids}`)), status(400));
+    assert.throws(() => changeFilter(subscribe(`?recordIds=${ids}`), ["orders"]), status(400));
+    assert.deepEqual(changeFilter(subscribe("?collections=orders&recordIds=r1,r1"), ["orders"]), {
+      collections: ["orders"],
+      recordIds: ["r1"],
+    });
   });
 
   it("answers 404 while the App declares no collections", () => {
-    assert.throws(() => streamChanges(subscribe("")), status(404));
+    assert.throws(() => changeFilter(subscribe(""), []), status(404));
   });
 });

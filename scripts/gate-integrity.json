@@ -30,7 +30,7 @@
     "scripts/scaffold-version.mjs": "f1163c8d3c30c9889a248cd57cc2b75313120608ea460842c32761c1479aaef8",
     "src/lib/data/index.ts": "44a8f50c0deab3515f738db71eaf1a3f6f7c3cbb0bf141135289cb8902f3a277",
     "src/lib/data/query.ts": "08cb4d6e95b77c5de03a02c120934bd231afb0d88ff2ee0d7dbdf3a9c9e2f72a",
-    "src/lib/data/changes.ts": "a5b84d79e802c220aaf10f3e408afd922c076d609d8b9b28334745e95fd660f8",
+    "src/lib/data/changes.ts": "c6c1f52c3c6f5a054c520fa3fb535ffe3ec1b0ce00a4d34a4510e97019a0a3ae",
     "src/routes/api/uns/subscribe.ts": "3ac63694fb26003991561e893b92eb97bce7d16b66d457623c2a940010cf632f"
   }
 }

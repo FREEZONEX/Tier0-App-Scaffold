@@ -203,7 +203,8 @@ When the platform is authoritative, the app resolves roles as follows:
 1. Preview: use every comma-separated `X-Tier0-Preview-Role` value as the
    developer-selected view-as role set; the first value is the primary display role.
 2. Deployed: use every comma-separated `X-Tier0-Business-Roles` value;
-   `X-Tier0-Active-Role` remains first as the primary display role.
+   `X-Tier0-Active-Role` goes first as the primary display role when it is one
+   of them, and grants nothing on its own.
 3. Legacy fallback: `X-Tier0-Active-Role`, `X-Tier0-Preview-Role`,
    `X-App-User-Role`, then `user.role`.
 

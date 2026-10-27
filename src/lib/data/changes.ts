@@ -306,21 +306,33 @@ function listParam(url: URL, name: string): string[] {
   return [...new Set((url.searchParams.get(name) ?? "").split(",").map((value) => value.trim()).filter(Boolean))];
 }
 
+/**
+ * The filter a subscribe request asks for, checked against the `declared`
+ * collection aliases: `?collections=<alias,...>` (every declared collection
+ * when absent) and `?recordIds=<id,...>` (≤100). 404 when nothing is declared.
+ */
+export function changeFilter(request: Request, declared: readonly string[]): ChangeFilter {
+  const url = new URL(request.url);
+  const filter: ChangeFilter = { collections: listParam(url, "collections"), recordIds: listParam(url, "recordIds") };
+  const unknown = filter.collections.filter((alias) => !declared.includes(alias));
+  if (unknown.length > 0) throw new HttpError(400, `Unknown collection alias: ${unknown.join(", ")}`);
+  if (filter.recordIds.length > MAX_RECORD_IDS) throw new HttpError(400, `At most ${MAX_RECORD_IDS} recordIds per subscription`);
+  if (declared.length === 0) throw new HttpError(404, "This App declares no collections");
+  return filter;
+}
+
 let hub: ChangeHub | undefined;
 
 /**
- * `/api/uns/subscribe` for the request: `?collections=<alias,...>` (every
- * declared collection when absent) and `?recordIds=<id,...>` (≤100), resumed
- * from `Last-Event-ID`. Authenticate before calling it.
+ * `/api/uns/subscribe` for the request, filtered by `changeFilter` over the
+ * App's declared collections and resumed from `Last-Event-ID`. Authenticate
+ * before calling it.
  */
 export function streamChanges(request: Request): Response {
-  const url = new URL(request.url);
-  const declared = new Set((collections as readonly CollectionDefinition[]).map((collection) => collection.alias));
-  const filter: ChangeFilter = { collections: listParam(url, "collections"), recordIds: listParam(url, "recordIds") };
-  const unknown = filter.collections.filter((alias) => !declared.has(alias));
-  if (unknown.length > 0) throw new HttpError(400, `Unknown collection alias: ${unknown.join(", ")}`);
-  if (filter.recordIds.length > MAX_RECORD_IDS) throw new HttpError(400, `At most ${MAX_RECORD_IDS} recordIds per subscription`);
-  if (declared.size === 0) throw new HttpError(404, "This App declares no collections");
+  const filter = changeFilter(
+    request,
+    (collections as readonly CollectionDefinition[]).map((collection) => collection.alias),
+  );
 
   hub ??= createChangeHub({
     open: ({ signal }) => data.subscribe({ signal }),
