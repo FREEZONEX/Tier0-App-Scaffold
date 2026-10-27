@@ -2,12 +2,12 @@
 
 ## Tier0 SDK (`@tier0/sdk-v2`)
 
-The scaffold declares `@tier0/sdk-v2` 0.2.0 as a GitHub commit,
-`github:FREEZONEX/Tier0-sdk-v2#<full 40-character sha>`, until 0.2.0 is on
-npm; then the dependency goes back to the version number. npm clones the
-commit, or downloads it from `codeload.github.com` when git cannot reach
-github.com, and the package's `prepare` script builds `dist`. Load it only on
-the server through the lazy helpers in `@/lib/tier0`:
+The scaffold declares `@tier0/sdk-v2` at the exact npm version `0.3.0`. Every
+SDK call goes to `/openapi/v2` (platform routes such as `/openapi/v2/info`,
+`/openapi/v2/notifications/send`, `/openapi/v2/assets/files`; Controls at
+`/openapi/v2/uns/controls/*`); 0.3.0 removed the duplicate UNS operations and
+the Agent `nodes` / `relations` methods, with no fallback to older routes.
+Load it only on the server through the lazy helpers in `@/lib/tier0`:
 
 | Helper | Module | Use |
 |---|---|---|
@@ -324,7 +324,7 @@ the App forwards it to UNS (see below) and never reads or forges it.
 ### App Container Startup
 
 ```bash
-npm ci                  # needs registry.npmjs.org and github.com or codeload.github.com (the SDK commit)
+npm ci
 npm run build           # outputs dist/{client,server}; postbuild runs the gates
 node server.mjs         # equivalent to npm start, listens on PORT (default 3000)
 ```
@@ -362,11 +362,11 @@ envelope, errors add `error` (below). The data layer's call policy:
 | `findPage` | `recordAggregatePipeline` (offset page) with `count: { max? }`: page and `total: { count, capped }` in one request and snapshot |
 | `countDocuments` | `records:count` with `maxCount?` → `{ count, capped }` |
 | `countBy` | `records:aggregate` with `$group` + `$sort` by count |
-| `distinct` | `records:distinct` (offset pages) |
-| `insertOne` / `insertMany` | `records` / `records:insertMany` (`atomic: true`, ≤200 documents) |
+| `distinct` | `records:aggregate` with `$match` + `$group` (offset pages) |
+| `insertOne` / `insertMany` | `records` (`returnDocument: "after"` answers the created record) / `records:bulkWrite` with `insertOne` operations (`atomic: true`, ≤200 documents) |
 | `updateOne` / `updateMany` / `replaceOne` | `records:updateOne` / `records:updateMany` (`atomic: false` like Mongo, follows `resumeAfter`) / `records:replaceOne` |
 | `deleteOne` / `deleteMany` | `records:deleteOne` / `records:deleteMany` (`atomic: false`, follows `resumeAfter`; soft delete; needs `uns.delete`) |
-| `findOneAndUpdate` / `findOneAndReplace` / `findOneAndDelete` | `records:findOneAnd*` |
+| `findOneAndUpdate` / `findOneAndReplace` / `findOneAndDelete` | `records:updateOne` / `records:replaceOne` with `returnDocument` (default `"after"`) / `records:deleteOne` with `returnDocument: "before"` |
 | `bulkWrite` | `records:bulkWrite` (`atomic: true`, ≤200 operations) |
 | `data.transact` | `recordTransactionExecute` `POST /uns/records:transact` with `mode: "sync"` (≤200 steps) |
 | `data.subscribe` | `GET /uns/records:subscribe` (server-sent events; every declared collection, ≤64, listed by ID; see Change stream) |
@@ -405,7 +405,7 @@ The first data access of a server process sends every declaration of
   reload of `src/data/collections.ts` creates a new client and ensures again.
   A failed ensure is not memoized; the next data access retries it.
 - Seed documents (≤1000 per collection) are inserted only for collections
-  reported `created`: fixed IDs, atomic `insertMany` chunks of 200, each with a
+  reported `created`: fixed IDs, atomic `records:bulkWrite` chunks of 200, each with a
   stable idempotency key, so a chunk whose outcome is unknown is replayed
   (up to three times) instead of duplicated. A chunk that still fails is
   logged; the collection is not reseeded later.
@@ -437,7 +437,8 @@ The first data access of a server process sends every declaration of
 Schemas are converted from Zod 4 by `compileCollection` (`@tier0/sdk-v2/data/define`)
 into the stored subset: `type`, `properties`, `required` (sorted),
 `additionalProperties: false` on every object, `items`, `enum`, `minimum`,
-`maximum`, `title`, `description`. `npm run data:schema` prints the exact
+`maximum`, a declared `format` (`int32`, `float`, `double`, `date-time`),
+`title`, `description`. `npm run data:schema` prints the exact
 ensure payload. Evolution rules and the worker's tier0 MCP operations
 (`schema:replace`, `archive`, `restore`, dry runs, error codes) are in
 [AGENTS.md → App Data](../AGENTS.md#app-data).

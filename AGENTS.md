@@ -189,7 +189,8 @@ The collection schema is a **storage** schema. UNS stores this subset only, and
 | `z.enum([...])` | `z.literal()`, unions, `.nullable()`, `.nullish()` |
 | `.optional()` (field may be absent) | `null` values — leave the field out, clear with `$unset` |
 | `z.object({...})` (always closed), `z.array(item)` | `z.record()`, `z.looseObject()`, `.catchall()`, `z.tuple()` |
-| plain `z.string()`; validate format/length in the API input schema | `z.email()`, `z.uuid()`, `.regex()`, `.min(1)` on strings |
+| plain `z.string()`; validate format/length in the API input schema | `z.email()`, `z.uuid()`, `z.iso.datetime()`, `.regex()`, `.min(1)` on strings |
+| type annotations via `.meta({ format })`: `"int32"` on `z.number().int()`, `"float"` / `"double"` on `z.number()`, `"date-time"` on `z.string()` | any other `format`; the annotation shows the type in UNS but checks and converts nothing |
 | defaults applied in the service | `.default()`, `.catch()`, `.transform()` |
 
 Store dates as `"YYYY-MM-DD"` strings and instants as ISO-8601 UTC strings
@@ -264,6 +265,7 @@ await orders.findPage(filter, { sort, page, pageSize });   // { items, total: { 
 await orders.countDocuments({ status: "RELEASED" });       // { count, capped }
 await orders.countBy("status", { "line.id": lineId });     // [{ value, count }], largest first
 await orders.insertOne({ code, status: "DRAFT", ... });     // optional _id
+await orders.insertOne(doc, { returnDocument: "after" });  // { insertedId, value }: the created record with _meta.revision, no extra read
 await orders.updateOne({ _id: id }, { $set: { notes } }, { expectedRevision });
 await orders.findOneAndUpdate({ _id: id, status: "DRAFT" }, { $set: { status: "RELEASED" } });
 await orders.aggregate([{ $match: { status: "DONE" } }, { $group: { _id: "$line.id", total: { $sum: "$targetQty" } } }]).toArray();
@@ -786,8 +788,8 @@ Use TailwindCSS 4 through `src/styles/globals.css`; do not add
 
 ## Tier0 SDK
 
-Use the installed `@tier0/sdk-v2` (`0.2.0`, pinned in `package.json` to a
-GitHub commit until it is published to npm; never change that dependency) when requirements involve the
+Use the installed `@tier0/sdk-v2` (`0.3.0`, pinned exactly in `package.json`;
+never change that dependency) when requirements involve the
 Tier0 platform: user/platform info, members, notifications, files, MQTT/MQ/
 WebSocket, controls or capabilities. Load it with the lazy helpers from
 `@/lib/tier0` inside the concrete server action — `loadTier0Sdk()` and then
