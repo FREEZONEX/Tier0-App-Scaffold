@@ -442,7 +442,7 @@ into the stored subset: `type`, `properties`, `required` (sorted),
 `title`, `description`. `npm run data:schema` prints the exact
 ensure payload. Evolution rules and the worker's tier0 MCP operations
 (`schema:replace`, `archive`, `restore`, dry runs, error codes) are in
-[AGENTS.md → App Data](../AGENTS.md#app-data).
+[app-data.md](app-data.md).
 
 ### Errors
 
