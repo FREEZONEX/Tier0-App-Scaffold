@@ -255,7 +255,8 @@ The scaffold ships with no roles (`PERMISSION_MATRIX`, `ROLE_METADATA` and
 `roles.json` start empty; no role name is reserved, define `admin` only if the
 business needs it). Default the first version to no more than three roles with
 materially different permission scopes; never one role per page, action, or job
-title. Register roles in one pass:
+title. This is generation guidance, not a build limit: define more roles when
+the business needs distinct permission scopes. Register roles in one pass:
 
 1. Define actions and `PERMISSION_MATRIX` in `src/lib/permissions.ts`.
 2. Mirror every matrix role in `src/lib/role-metadata.ts` and `roles.json` —
