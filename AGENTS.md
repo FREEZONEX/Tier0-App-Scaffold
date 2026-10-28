@@ -310,7 +310,7 @@ Use `DESIGN.md`, existing tokens and the shipped primitives
 
 ## Tier0 SDK and Platform
 
-Use the installed `@tier0/sdk-v2` (`0.3.0`, pinned exactly in `package.json`;
+Use the installed `@tier0/sdk-v2` (`0.6.1`, pinned exactly in `package.json`;
 never change that dependency) for user/platform info, members, notifications,
 files, MQTT/MQ/WebSocket, controls or capabilities. Load it lazily inside the
 server action through `@/lib/tier0` (`loadTier0Sdk()`, `loadTier0Mq()`); never

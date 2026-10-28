@@ -2,12 +2,19 @@
 
 ## Tier0 SDK (`@tier0/sdk-v2`)
 
-The scaffold declares `@tier0/sdk-v2` at the exact npm version `0.3.0`. Every
+The scaffold declares `@tier0/sdk-v2` at the exact npm version `0.6.1`. Every
 SDK call goes to `/openapi/v2` (platform routes such as `/openapi/v2/info`,
 `/openapi/v2/notifications/send`, `/openapi/v2/assets/files`; Controls at
 `/openapi/v2/uns/controls/*`); 0.3.0 removed the duplicate UNS operations and
 the Agent `nodes` / `relations` methods, with no fallback to older routes.
-Load it only on the server through the lazy helpers in `@/lib/tier0`:
+
+HTTP Sources use `http-api` with `config.role: client | server`. New Source
+configurations omit `configVersion`; native Stream documents use
+`script: { code, timeoutMs }` without `sdkVersion`. The separate Runtime
+program input retains a complete script string. Source/Stream management
+uses `source.documents.*`, `stream.documents.*` and `stream.programs.*`;
+there is no legacy protocol, facade or interpreter-selector fallback.
+Load the SDK only on the server through the lazy helpers in `@/lib/tier0`:
 
 | Helper | Module | Use |
 |---|---|---|
