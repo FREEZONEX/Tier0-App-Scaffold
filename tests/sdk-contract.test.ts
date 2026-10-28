@@ -9,8 +9,8 @@ const require = createRequire(import.meta.url);
 
 test("the lazy SDK loader resolves the exact installed Cloud contract", async () => {
   const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
-  assert.equal(pkg.dependencies["@tier0/sdk-v2"], "0.6.1");
-  assert.equal(require("@tier0/sdk-v2/package.json").version, "0.6.1");
+  assert.equal(pkg.dependencies["@tier0/sdk-v2"], "0.6.2");
+  assert.equal(require("@tier0/sdk-v2/package.json").version, "0.6.2");
   const sdk = await loadTier0Sdk();
   const client = sdk.createClient({ apiHost: "https://fixture.invalid" });
   assert.equal(typeof client.source.documents.get, "function");

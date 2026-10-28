@@ -2,7 +2,7 @@
 
 ## Tier0 SDK (`@tier0/sdk-v2`)
 
-The scaffold declares `@tier0/sdk-v2` at the exact npm version `0.6.1`. Every
+The scaffold declares `@tier0/sdk-v2` at the exact npm version `0.6.2`. Every
 SDK call goes to `/openapi/v2` (platform routes such as `/openapi/v2/info`,
 `/openapi/v2/notifications/send`, `/openapi/v2/assets/files`); 0.3.0 removed the duplicate UNS operations and
 the Agent `nodes` / `relations` methods, with no fallback to older routes.
@@ -47,8 +47,11 @@ Updating injected guidance alone does not upgrade an application's installed SDK
 ### Browser App Stream requests and messages
 
 The scaffold also installs a separate `@tier0/sdk` frozen at commit
-`d43d12b889c7f1f8c5ee23a0d34230cb04361926` through
-`file:vendor/tier0-sdk-0.5.4-d43d12b.tgz` and its package-lock integrity.
+`ee5499bfdbbc10101f1d3dfbae85c85757036d8d` through
+`file:vendor/tier0-sdk-0.5.4-ee5499bfdbbc.tgz` and its package-lock integrity.
+Its UNS v5 contract is pinned to Backend `c845ba79dad47741985852423215e059d64b948b`;
+the unchanged v1 projection retains its historical source pin and is separately
+verified equivalent to this final Backend contract.
 This artifact is not published to npm. Retain it in source/template ZIPs;
 the registry's `0.5.4` package is not an equivalent pin. See `vendor/README.md`.
 
@@ -77,8 +80,13 @@ or receiver ACK. Keep the `tier0-stream/v3` machine script contract and current
 single-model shape without generation selectors; do not use retired Control or
 v2 execution aliases.
 
-The existing data SDK pin, server-only `@/lib/data` and `@tier0/sdk-v2/data`
-remain unchanged. Package installation is independent of Gateway/SYS
+The separate data SDK baseline is the published `@tier0/sdk-v2@0.6.2`;
+server-only `@/lib/data` and `@tier0/sdk-v2/data` wiring remain unchanged.
+This baseline does not complete App Stream public naming: its explicit capability
+discovery still requires the retired `control/v1` contract, and its old controls
+exports require an official SDK-v2 successor release. Do not gate Namespace data
+calls on that discovery result or use old controls as request execution aliases.
+The separate Stream SDK does not replace those SDK-v2 exports or that parser. Package installation is independent of Gateway/SYS
 configuration, broker readiness, existing-App migration and browser acceptance;
 neither an installed package nor a bootstrap script proves a live deployment.
 Node Apps use the same SDK with automatically injected `TIER0_API_HOST`,
