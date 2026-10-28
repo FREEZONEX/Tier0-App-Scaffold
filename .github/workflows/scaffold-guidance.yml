@@ -1,0 +1,19 @@
+name: Scaffold default guidance
+on:
+  pull_request:
+    branches: [main, feature/cloud-new-architecture-migration]
+permissions:
+  contents: read
+jobs:
+  template-defaults:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+        env:
+          SCAFFOLD_GUIDANCE_STRICT: '1'

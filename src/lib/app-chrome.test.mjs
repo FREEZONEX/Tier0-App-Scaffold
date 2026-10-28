@@ -1,3 +1,4 @@
+import { guidanceIt } from "../../scripts/guidance-test.mjs";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
@@ -26,7 +27,7 @@ const TEMPLATE_SERVICE_FILES = [];
 const TEMPLATE_STATE_FINGERPRINTS = {
   "roles.json": "b2d07f68818cfc353b2f98543a018fa6ef6157026f910ad359eb7370a4b25172",
   "src/components/Shell.tsx":
-    "793fa93ab0f012a1f2ebaa893337dc4bdd645ac0122f27b3d9921d30ad25c4ed",
+    "9c0e0f0eb8cea26031fa6e2fd88f587ca4f2c8771032a3cbe0eb04bbbfb763a7",
   "src/components/shell-modules.ts":
     "f4723dafb7d19601437521226a7f58ccce27ac31245d07165d28bbfa6ff9a850",
   "src/data/collections.ts":
@@ -159,7 +160,7 @@ describe("app chrome policy", () => {
     assert.equal(height, 512, "public/app-icon.png must be 512 px high.");
   }
 
-  it("keeps workspace as the primary app chrome", () => {
+  guidanceIt("keeps workspace as the primary app chrome", () => {
     const policy = readFileSync(
       join(process.cwd(), "src/lib/app-chrome.ts"),
       "utf8",
@@ -171,7 +172,7 @@ describe("app chrome policy", () => {
     assert.match(policy, /prefix: "\/monitor"/);
   });
 
-  it("keeps the workspace content container (layout incident guard)", () => {
+  guidanceIt("keeps the workspace content container (layout incident guard)", () => {
     const shell = readFileSync(
       join(process.cwd(), "src/components/Shell.tsx"),
       "utf8",
@@ -182,7 +183,7 @@ describe("app chrome policy", () => {
     assert.match(shell, /max-w-\[1440px\]/);
   });
 
-  it("keeps responsive page-shell padding available to generated workspace pages", () => {
+  guidanceIt("keeps responsive page-shell padding available to generated workspace pages", () => {
     const styles = readFileSync(
       join(process.cwd(), "src/styles/globals.css"),
       "utf8",
@@ -215,7 +216,7 @@ describe("app chrome policy", () => {
     assert.doesNotMatch(shell, /NO_SIDEBAR_ROUTE_PREFIXES/);
   });
 
-  it("keeps the sidebar brand icon free of a highlight border", () => {
+  guidanceIt("keeps the sidebar brand icon free of a highlight border", () => {
     const shell = readFileSync(
       join(process.cwd(), "src/components/Shell.tsx"),
       "utf8",

@@ -1,3 +1,4 @@
+import { guidanceIt } from "../../scripts/guidance-test.mjs";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -37,7 +38,7 @@ describe("ui primitive contracts", () => {
     );
   });
 
-  it("keeps the five DESIGN.md button variants", () => {
+  guidanceIt("keeps the five DESIGN.md button variants", () => {
     const source = readUiFile("button.tsx");
     for (const variant of ["highlight", "primary", "secondary", "outline", "ghost"]) {
       assert.match(
@@ -48,14 +49,14 @@ describe("ui primitive contracts", () => {
     }
   });
 
-  it("drives StatusBadge colors from the shared state recipes", () => {
+  guidanceIt("drives StatusBadge colors from the shared state recipes", () => {
     const source = readUiFile("status-badge.tsx");
     for (const tone of ["state-running", "state-idle", "state-paused", "state-error", "state-info"]) {
       assert.match(source, new RegExp(tone), `StatusBadge must use ${tone}`);
     }
   });
 
-  it("keeps PageHeader on the shared type scale and off raw highlight text", () => {
+  guidanceIt("keeps PageHeader on the shared type scale and off raw highlight text", () => {
     const source = readUiFile("page-header.tsx");
     assert.match(source, /typo-h3|typo-h2/, "PageHeader title uses the typo scale");
     assert.doesNotMatch(

@@ -138,8 +138,8 @@ export function getGatewayRole(headers: Headers): string | undefined {
  * Resolve all authoritative roles injected by the Tier0 gateway.
  *
  * Deployed requests receive the user's complete app role assignment in
- * `X-Tier0-Business-Roles`; the active role is kept first for display and
- * backwards compatibility. Preview receives the developer's selected "view as"
+ * `X-Tier0-Business-Roles`; the active role is kept first for display when it
+ * is one of them, and grants nothing otherwise. Preview receives the developer's selected "view as"
  * role set in `X-Tier0-Preview-Role` (comma-separated, possibly several roles)
  * and uses the same permission union.
  *
@@ -159,7 +159,10 @@ export function getTrustedGatewayRoles(
     const activeRole = normalizeRole(
       readHeader(headers, "X-Tier0-Active-Role"),
     );
-    return uniqueRoles([activeRole, ...parseBusinessRoles(headers)]);
+    const businessRoles = parseBusinessRoles(headers);
+    return activeRole && businessRoles.includes(activeRole)
+      ? uniqueRoles([activeRole, ...businessRoles])
+      : businessRoles;
   }
   return undefined;
 }

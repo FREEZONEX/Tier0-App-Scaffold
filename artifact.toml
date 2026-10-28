@@ -39,9 +39,9 @@ serve = "dynamic"
 args = ["sh", "-c", "npm ci && npm run build && npm prune --omit=dev"]
 outputDir = "."
 
+# No `image`: the platform supplies each environment's default runtime image.
 [services.production.run]
 args = ["node", "server.mjs"]
-image = "node:22-alpine"
 
 [services.production.run.env]
 NODE_ENV = "production"

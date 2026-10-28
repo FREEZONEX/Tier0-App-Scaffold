@@ -2,12 +2,18 @@
 
 ## Tier0 SDK (`@tier0/sdk-v2`)
 
-The scaffold declares `@tier0/sdk-v2` 0.2.0 as a GitHub commit,
-`github:FREEZONEX/Tier0-sdk-v2#<full 40-character sha>`, until 0.2.0 is on
-npm; then the dependency goes back to the version number. npm clones the
-commit, or downloads it from `codeload.github.com` when git cannot reach
-github.com, and the package's `prepare` script builds `dist`. Load it only on
-the server through the lazy helpers in `@/lib/tier0`:
+The scaffold declares `@tier0/sdk-v2` at the exact npm version `0.6.1`. Every
+SDK call goes to `/openapi/v2` (platform routes such as `/openapi/v2/info`,
+`/openapi/v2/notifications/send`, `/openapi/v2/assets/files`); 0.3.0 removed the duplicate UNS operations and
+the Agent `nodes` / `relations` methods, with no fallback to older routes.
+
+HTTP Sources use `http-api` with `config.role: client | server`. New Source
+configurations omit `configVersion`; native Stream documents use
+`script: { code, timeoutMs }` without `sdkVersion`. The separate Runtime
+program input retains a complete script string. Source/Stream management
+uses `source.documents.*`, `stream.documents.*` and `stream.programs.*`;
+there is no legacy protocol, facade or interpreter-selector fallback.
+Load the SDK only on the server through the lazy helpers in `@/lib/tier0`:
 
 | Helper | Module | Use |
 |---|---|---|
@@ -41,13 +47,13 @@ Updating injected guidance alone does not upgrade an application's installed SDK
 ### Browser App Stream requests and messages
 
 The scaffold also installs a separate `@tier0/sdk` frozen at commit
-`7f0a82ef6a719dd6843c29c1046f87ad3c2970a7` through
-`file:vendor/tier0-sdk-0.5.4-7f0a82e.tgz` and its package-lock integrity.
+`d43d12b889c7f1f8c5ee23a0d34230cb04361926` through
+`file:vendor/tier0-sdk-0.5.4-d43d12b.tgz` and its package-lock integrity.
 This artifact is not published to npm. Retain it in source/template ZIPs;
 the registry's `0.5.4` package is not an equivalent pin. See `vendor/README.md`.
 
 ```ts
-import { client } from "@tier0/sdk";
+import { client } from "@tier0/sdk/cloud";
 
 const request = client.streams.requests.use({ code: "pump.start" });
 const contract = await request.describe();
@@ -67,13 +73,21 @@ provider is unavailable. App policy and published Stream manifest must both
 authorize each topic/direction. Requests make one attempt; resolve uncertain
 outcomes before deliberately replaying with the same idempotency key. Business
 messages use ephemeral NATS Core WSS credentials, with no offline queue, replay
-or receiver ACK. Use `tier0-stream/v3` scripts and current Stream APIs, never
-retired Control aliases.
+or receiver ACK. Keep the `tier0-stream/v3` machine script contract and current
+single-model shape without generation selectors; do not use retired Control or
+v2 execution aliases.
 
 The existing data SDK pin, server-only `@/lib/data` and `@tier0/sdk-v2/data`
 remain unchanged. Package installation is independent of Gateway/SYS
 configuration, broker readiness, existing-App migration and browser acceptance;
 neither an installed package nor a bootstrap script proves a live deployment.
+Node Apps use the same SDK with automatically injected `TIER0_API_HOST`,
+`TIER0_API_KEY` and `APP_ID`. Fresh App/internal Keys use unified persisted
+request/message mode ceilings; current Workspace/App policy and entry/topic
+grants still constrain every operation. Existing Keys lacking those stored
+scopes require explicit migration/reissue, never silent expansion. Pure system
+DataKeys remain data-only. Server HTTP mapping and real authority/legacy migration
+acceptance are separate checks; browser-provider success does not prove either.
 
 ### Notification channels
 
@@ -240,7 +254,8 @@ When the platform is authoritative, the app resolves roles as follows:
 1. Preview: use every comma-separated `X-Tier0-Preview-Role` value as the
    developer-selected view-as role set; the first value is the primary display role.
 2. Deployed: use every comma-separated `X-Tier0-Business-Roles` value;
-   `X-Tier0-Active-Role` remains first as the primary display role.
+   `X-Tier0-Active-Role` goes first as the primary display role when it is one
+   of them, and grants nothing on its own.
 3. Legacy fallback: `X-Tier0-Active-Role`, `X-Tier0-Preview-Role`,
    `X-App-User-Role`, then `user.role`.
 
@@ -361,7 +376,7 @@ the App forwards it to UNS (see below) and never reads or forges it.
 ### App Container Startup
 
 ```bash
-npm ci                  # needs registry.npmjs.org and github.com or codeload.github.com (the SDK commit)
+npm ci
 npm run build           # outputs dist/{client,server}; postbuild runs the gates
 node server.mjs         # equivalent to npm start, listens on PORT (default 3000)
 ```
@@ -399,11 +414,11 @@ envelope, errors add `error` (below). The data layer's call policy:
 | `findPage` | `recordAggregatePipeline` (offset page) with `count: { max? }`: page and `total: { count, capped }` in one request and snapshot |
 | `countDocuments` | `records:count` with `maxCount?` → `{ count, capped }` |
 | `countBy` | `records:aggregate` with `$group` + `$sort` by count |
-| `distinct` | `records:distinct` (offset pages) |
-| `insertOne` / `insertMany` | `records` / `records:insertMany` (`atomic: true`, ≤200 documents) |
+| `distinct` | `records:aggregate` with `$match` + `$group` (offset pages) |
+| `insertOne` / `insertMany` | `records` (`returnDocument: "after"` answers the created record) / `records:bulkWrite` with `insertOne` operations (`atomic: true`, ≤200 documents) |
 | `updateOne` / `updateMany` / `replaceOne` | `records:updateOne` / `records:updateMany` (`atomic: false` like Mongo, follows `resumeAfter`) / `records:replaceOne` |
 | `deleteOne` / `deleteMany` | `records:deleteOne` / `records:deleteMany` (`atomic: false`, follows `resumeAfter`; soft delete; needs `uns.delete`) |
-| `findOneAndUpdate` / `findOneAndReplace` / `findOneAndDelete` | `records:findOneAnd*` |
+| `findOneAndUpdate` / `findOneAndReplace` / `findOneAndDelete` | `records:updateOne` / `records:replaceOne` with `returnDocument` (default `"after"`) / `records:deleteOne` with `returnDocument: "before"` |
 | `bulkWrite` | `records:bulkWrite` (`atomic: true`, ≤200 operations) |
 | `data.transact` | `recordTransactionExecute` `POST /uns/records:transact` with `mode: "sync"` (≤200 steps) |
 | `data.subscribe` | `GET /uns/records:subscribe` (server-sent events; every declared collection, ≤64, listed by ID; see Change stream) |
@@ -442,7 +457,7 @@ The first data access of a server process sends every declaration of
   reload of `src/data/collections.ts` creates a new client and ensures again.
   A failed ensure is not memoized; the next data access retries it.
 - Seed documents (≤1000 per collection) are inserted only for collections
-  reported `created`: fixed IDs, atomic `insertMany` chunks of 200, each with a
+  reported `created`: fixed IDs, atomic `records:bulkWrite` chunks of 200, each with a
   stable idempotency key, so a chunk whose outcome is unknown is replayed
   (up to three times) instead of duplicated. A chunk that still fails is
   logged; the collection is not reseeded later.
@@ -474,10 +489,11 @@ The first data access of a server process sends every declaration of
 Schemas are converted from Zod 4 by `compileCollection` (`@tier0/sdk-v2/data/define`)
 into the stored subset: `type`, `properties`, `required` (sorted),
 `additionalProperties: false` on every object, `items`, `enum`, `minimum`,
-`maximum`, `title`, `description`. `npm run data:schema` prints the exact
+`maximum`, a declared `format` (`int32`, `float`, `double`, `date-time`),
+`title`, `description`. `npm run data:schema` prints the exact
 ensure payload. Evolution rules and the worker's tier0 MCP operations
 (`schema:replace`, `archive`, `restore`, dry runs, error codes) are in
-[AGENTS.md → App Data](../AGENTS.md#app-data).
+[app-data.md](app-data.md).
 
 ### Errors
 

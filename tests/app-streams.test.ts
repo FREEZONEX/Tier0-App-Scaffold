@@ -9,14 +9,14 @@ import { describeRequest, messageTopic } from "./fixtures/app-streams-browser";
 test("Stream SDK uses the frozen local artifact and keeps the data SDK pin", () => {
   const pkg = JSON.parse(readFileSync("package.json", "utf8"));
   const lock = JSON.parse(readFileSync("package-lock.json", "utf8"));
-  const archive = readFileSync("vendor/tier0-sdk-0.5.4-7f0a82e.tgz");
-  assert.equal(pkg.dependencies["@tier0/sdk"], "file:vendor/tier0-sdk-0.5.4-7f0a82e.tgz");
+  const archive = readFileSync("vendor/tier0-sdk-0.5.4-d43d12b.tgz");
+  assert.equal(pkg.dependencies["@tier0/sdk"], "file:vendor/tier0-sdk-0.5.4-d43d12b.tgz");
   assert.equal(createHash("sha256").update(archive).digest("hex"),
-    "63ca9a348124acaab14c2fa9319b1aed10ff22bc3419ef81daa2b95f1e77afb5");
+    "471a1cb110d792137a5d14b60546da034493dd7f5385438e3509dae0daa6f01b");
   assert.equal(lock.packages["node_modules/@tier0/sdk"].integrity,
     `sha512-${createHash("sha512").update(archive).digest("base64")}`);
   assert.equal(pkg.dependencies["@tier0/sdk-v2"],
-    "github:FREEZONEX/Tier0-sdk-v2#b9aa196e6b81a8f1c9947dc4141ea4b3a3835401");
+    "0.6.1");
 });
 
 test("browser Stream calls require the trusted runtime and never fall back to fetch", async (t) => {

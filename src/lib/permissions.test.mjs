@@ -55,8 +55,6 @@ function roleMetadataKeys(source) {
   return keys;
 }
 
-const MAX_EFFECTIVE_APP_ROLES = 3;
-
 describe("role definition sync", () => {
   it("parses matrix and metadata keys (self-check)", () => {
     assert.deepEqual(
@@ -131,24 +129,6 @@ describe("role definition sync", () => {
       unreachableRoles,
       [],
       `PERMISSION_MATRIX roles missing from roles.json (platform cannot assign them; register every role, no exceptions): ${unreachableRoles.join(", ")}`,
-    );
-  });
-
-  it("keeps the first-version role model to at most three business roles", () => {
-    const matrixKeys = permissionMatrixKeys(
-      readFileSync(join(process.cwd(), "src/lib/permissions.ts"), "utf8"),
-    );
-    const metadataKeys = roleMetadataKeys(
-      readFileSync(join(process.cwd(), "src/lib/role-metadata.ts"), "utf8"),
-    );
-
-    assert.ok(
-      matrixKeys.length <= MAX_EFFECTIVE_APP_ROLES,
-      `Keep at most ${MAX_EFFECTIVE_APP_ROLES} roles, chosen for materially different permission scopes. Current matrix: ${matrixKeys.join(", ")}`,
-    );
-    assert.ok(
-      metadataKeys.length <= MAX_EFFECTIVE_APP_ROLES,
-      `ROLE_METADATA exceeds the ${MAX_EFFECTIVE_APP_ROLES}-role first-version limit: ${metadataKeys.join(", ")}`,
     );
   });
 

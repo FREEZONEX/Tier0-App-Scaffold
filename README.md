@@ -331,7 +331,7 @@ let Zod issues bubble naturally.
 
 Modeling, consistency patterns (`expectedRevision`, `data.transact`), schema
 evolution and the tier0 MCP collection operations are in
-[AGENTS.md §App Data](AGENTS.md#app-data).
+[docs/app-data.md](docs/app-data.md).
 
 In pages, load with `requestJson<T>("/api/work-orders", { signal })` (it applies
 `apiUrl()`). Do not hardcode `/api/...` without `apiUrl()` or deployments with a

@@ -1,3 +1,4 @@
+import { guidanceIt } from "../../scripts/guidance-test.mjs";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -123,7 +124,7 @@ describe("navigation contracts", () => {
     assert.equal(isMenuHrefActive("/", "/material"), false);
   });
 
-  it("keeps Shell, not Link activeProps, responsible for the selected menu", () => {
+  guidanceIt("keeps Shell, not Link activeProps, responsible for the selected menu", () => {
     const shell = readFileSync(
       join(process.cwd(), "src/components/Shell.tsx"),
       "utf8",

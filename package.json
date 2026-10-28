@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "tier0Scaffold": {
-    "version": 11,
-    "ref": "15ce099"
+    "version": 16,
+    "ref": "01e4f99"
   },
   "engines": {
     "node": ">=22.12.0"
@@ -15,7 +15,8 @@
     "dev:local": "VITE_STRICT_PORT=false vite dev --host 127.0.0.1 --port 5173",
     "dev:force": "vite dev --host 0.0.0.0 --port 5173 --force",
     "build": "vite build",
-    "postbuild": "npm run build:verify && npm run auth:union:test && npm run runtime:audit && npm run test:components && npm run test:data && npm run test:streams",
+    "postbuild": "npm run test:guidance && npm run build:verify && npm run auth:union:test && npm run runtime:audit && npm run test:components && npm run test:data && npm run test:streams",
+    "test:guidance": "node --test tests/guidance.test.mjs tests/role-contract.test.mjs",
     "typecheck": "tsc --noEmit",
     "build:verify": "node scripts/post-build-verify.mjs",
     "build:check": "npm run build",
@@ -26,7 +27,7 @@
     "lint": "eslint .",
     "gallery:build": "vite build --config gallery/vite.config.ts",
     "test:components": "node --import tsx --test tests/component-kit.test.ts",
-    "test:data": "node --import tsx --test tests/data-layer.test.ts tests/data-schema.test.ts tests/record-changes.test.ts",
+    "test:data": "node --import tsx --test tests/data-layer.test.ts tests/data-schema.test.ts tests/record-changes.test.ts tests/sdk-contract.test.ts",
     "test": "npm run test:components && npm run test:data && npm run test:streams",
     "data:schema": "node --import tsx scripts/data-schema.mjs",
     "test:streams": "node --import tsx --test tests/app-streams.test.ts"
@@ -37,7 +38,7 @@
     "@fontsource/inter": "^5.2.8",
     "@tanstack/react-router": "^1.168.0",
     "@tanstack/react-start": "^1.167.0",
-    "@tier0/sdk-v2": "github:FREEZONEX/Tier0-sdk-v2#b9aa196e6b81a8f1c9947dc4141ea4b3a3835401",
+    "@tier0/sdk-v2": "0.6.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.577.0",
     "motion": "^12.38.0",
@@ -50,7 +51,7 @@
     "qrcode": "^1.5.4",
     "read-excel-file": "9.3.10",
     "write-excel-file": "^4.1.1",
-    "@tier0/sdk": "file:vendor/tier0-sdk-0.5.4-7f0a82e.tgz"
+    "@tier0/sdk": "file:vendor/tier0-sdk-0.5.4-d43d12b.tgz"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",

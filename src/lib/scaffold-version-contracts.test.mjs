@@ -1,3 +1,4 @@
+import { guidanceIt } from "../../scripts/guidance-test.mjs";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -35,14 +36,14 @@ describe("scaffold version marker", () => {
     assert.ok(true);
   });
 
-  it("is an object when present", { skip: !hasMarker && "tier0Scaffold absent" }, () => {
+  guidanceIt("is an object when present", { skip: !hasMarker && "tier0Scaffold absent" }, () => {
     assert.ok(
       typeof marker === "object" && !Array.isArray(marker),
       "tier0Scaffold must be an object with version and ref; run `node scripts/scaffold-version.mjs --bump` on a clean tree in the scaffold repository.",
     );
   });
 
-  it("records a positive integer version when present", { skip: !hasMarker && "tier0Scaffold absent" }, () => {
+  guidanceIt("records a positive integer version when present", { skip: !hasMarker && "tier0Scaffold absent" }, () => {
     const version = marker?.version;
     assert.ok(
       Number.isInteger(version) && version > 0,
@@ -50,13 +51,13 @@ describe("scaffold version marker", () => {
     );
   });
 
-  it("records a 7 to 40 character lowercase hex ref when present", { skip: !hasMarker && "tier0Scaffold absent" }, () => {
+  guidanceIt("records a 7 to 40 character lowercase hex ref when present", { skip: !hasMarker && "tier0Scaffold absent" }, () => {
     const ref = marker?.ref;
     assert.equal(typeof ref, "string", "tier0Scaffold.ref must be a string.");
     assert.match(ref, /^[0-9a-f]{7,40}$/, `tier0Scaffold.ref must be a short or full git sha (got ${JSON.stringify(ref)}).`);
   });
 
-  it("passes the script's validator when present", { skip: !hasMarker && "tier0Scaffold absent" }, () => {
+  guidanceIt("passes the script's validator when present", { skip: !hasMarker && "tier0Scaffold absent" }, () => {
     const value = readScaffoldVersion(PACKAGE_PATH);
     assert.deepEqual(value, marker);
     const { problems } = validateScaffoldVersion(value);
