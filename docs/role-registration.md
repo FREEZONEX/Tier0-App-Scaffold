@@ -40,10 +40,11 @@ There is no built-in or reserved role. Every role in `PERMISSION_MATRIX` —
 including one named `admin`, if the business defines it — must appear in all
 three files and be registered like any other business role.
 
-For the first generated version, keep the effective model to at most three
-business roles total. Split
-roles only when their permission scopes materially differ; do not mirror every
-page, action, or organizational job title as a separate role.
+For the first generated version, prefer at most three business roles as a
+starting point. This is generation guidance, not a build limit. Define more
+roles when their permission scopes materially differ; do not mirror every
+page, action, or organizational job title as a separate role. Role counts do
+not block builds; registration, metadata and permission checks still apply.
 
 ## `roles.json` format
 

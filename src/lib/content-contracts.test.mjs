@@ -1,3 +1,4 @@
+import { guidanceIt } from "../../scripts/guidance-test.mjs";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, statSync } from "node:fs";
@@ -114,7 +115,7 @@ describe("content contracts", () => {
     assert.deepEqual(findRoleContentCopy("<p>订单已释放</p>"), []);
   });
 
-  it("keeps business content free of role explanation panels", () => {
+  guidanceIt("keeps business content free of role explanation panels", () => {
     const offenders = [];
 
     for (const root of UI_ROOTS) {
@@ -158,7 +159,7 @@ describe("content contracts", () => {
     assert.deepEqual(findPageExplanationCopy("<p>待处理任务 12 条</p>"), []);
   });
 
-  it("keeps business pages free of persistent page-introduction explanations", () => {
+  guidanceIt("keeps business pages free of persistent page-introduction explanations", () => {
     const offenders = [];
 
     for (const root of UI_ROOTS) {
@@ -213,7 +214,7 @@ describe("content contracts", () => {
     );
   });
 
-  it("requires every committed workspace page to expose a lifecycle action", () => {
+  guidanceIt("requires every committed workspace page to expose a lifecycle action", () => {
     const offenders = [];
 
     for (const file of walkFiles("src/routes")) {
@@ -229,7 +230,7 @@ describe("content contracts", () => {
     );
   });
 
-  it("documents the no role-summary-page-content rule for generators", () => {
+  guidanceIt("documents the no role-summary-page-content rule for generators", () => {
     const agents = readFileSync(join(process.cwd(), "AGENTS.md"), "utf8");
 
     assert.match(agents, /Role display belongs to the global `Shell` user block only/);

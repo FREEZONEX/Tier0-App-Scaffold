@@ -1,3 +1,4 @@
+import { guidanceIt } from "../../scripts/guidance-test.mjs";
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
@@ -105,7 +106,7 @@ function assertClassNearToken(source, token, requiredClass, file) {
 }
 
 describe("overlay contracts", () => {
-  it("keeps Dialog and Drawer bodies from causing horizontal overlay scroll", () => {
+  guidanceIt("keeps Dialog and Drawer bodies from causing horizontal overlay scroll", () => {
     for (const file of [
       "src/components/overlays/dialog.tsx",
       "src/components/overlays/drawer.tsx",
@@ -119,7 +120,7 @@ describe("overlay contracts", () => {
     }
   });
 
-  it("keeps overlay frames clipped while the body owns vertical scrolling", () => {
+  guidanceIt("keeps overlay frames clipped while the body owns vertical scrolling", () => {
     for (const file of [
       "src/components/overlays/dialog.tsx",
       "src/components/overlays/drawer.tsx",
@@ -131,7 +132,7 @@ describe("overlay contracts", () => {
     }
   });
 
-  it("keeps FormDialog forms from widening dialog bodies", () => {
+  guidanceIt("keeps FormDialog forms from widening dialog bodies", () => {
     const source = readProjectFile("src/components/overlays/form-dialog.tsx");
 
     assertClassNearToken(source, "<form", "min-w-0", "src/components/overlays/form-dialog.tsx");
@@ -178,7 +179,7 @@ describe("overlay contracts", () => {
     assert.deepEqual(findOverlayLayoutViolations(narrowFixedWidth), []);
   });
 
-  it("keeps generated overlay bodies free of squeezed grids and fixed pixel widths", () => {
+  guidanceIt("keeps generated overlay bodies free of squeezed grids and fixed pixel widths", () => {
     const offenders = [];
 
     for (const root of UI_ROOTS) {

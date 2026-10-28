@@ -255,7 +255,8 @@ The scaffold ships with no roles (`PERMISSION_MATRIX`, `ROLE_METADATA` and
 `roles.json` start empty; no role name is reserved, define `admin` only if the
 business needs it). Default the first version to no more than three roles with
 materially different permission scopes; never one role per page, action, or job
-title. Register roles in one pass:
+title. This is generation guidance, not a build limit: define more roles when
+the business needs distinct permission scopes. Register roles in one pass:
 
 1. Define actions and `PERMISSION_MATRIX` in `src/lib/permissions.ts`.
 2. Mirror every matrix role in `src/lib/role-metadata.ts` and `roles.json` —
@@ -366,6 +367,16 @@ scaffold/default branding from the finished app.
 Run `npm run build` for completion. Its postbuild verifies the client/SSR
 bundle, gate integrity, TypeScript, ESLint, contracts, runtime safety, and
 first-load behavior. UI advisories are review prompts rather than failures.
+
+Generation guidance (role count, page copy, lifecycle/caller heuristics,
+component choices, visual recipes and static layout heuristics) is non-blocking.
+Review findings against the requested workflow; do not add fake actions,
+confirmation copy or marker comments just to silence an advisory. Equivalent
+implementations and intentional read-only pages are valid. A malformed or
+missing scaffold version marker also warns in App builds. Authentication,
+permission registration, data contracts, server boundaries, route correctness
+and actual runtime failures remain hard checks. Scaffold CI separately runs
+`SCAFFOLD_GUIDANCE_STRICT=1` to test the template's own defaults.
 Do not bypass completion with `vite build` alone.
 
 - `src/lib/template-state.test.mjs` describes the blank template and is the only
