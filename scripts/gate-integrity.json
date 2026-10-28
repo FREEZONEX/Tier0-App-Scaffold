@@ -3,7 +3,7 @@
     "scripts/guidance-test.mjs": "62c2720f0e464af4ec251cfa6a9318d12737eda592c75c84bfccfe6cdb915124",
     "src/lib/gateway.test.ts": "61c93fd14170a4481b6ccc577ffa1ddf2c3af096a1c93cb0cf839e15346aa6af",
     "src/lib/permissions.test.mjs": "a72a3daa4769b03de50cb4f24cc3d2a1436b5780ef94364e7b602219cbd3194c",
-    "src/lib/app-chrome.test.mjs": "f80a138bb641cfd812bba013f02e8023d117503f9475a1973d150b5f1d5deb46",
+    "src/lib/app-chrome.test.mjs": "f182db47c83a3f5f2cda9804d61c185613c5195906e2a556e765f696f934e26e",
     "src/lib/app-id-contracts.test.mjs": "1489f244f5bb310a4524bfb550aeebc45e1e4aeda575f46f353145d69b4f2961",
     "src/lib/navigation-contracts.test.mjs": "288dfeed525eadcfc88a46e99e3feb13b387c836d4dca91d67b34269a2a37a90",
     "src/lib/content-contracts.test.mjs": "9b6b90e438676b2f2dc8be7379fc4bfff9c842b80d2f3bdd0dec36676bbd77ae",
