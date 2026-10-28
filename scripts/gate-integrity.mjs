@@ -14,6 +14,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 const MANIFEST_PATH = "scripts/gate-integrity.json";
 
 const LOCKED_FILES = [
+  "scripts/guidance-test.mjs",
   "src/lib/gateway.test.ts",
   "src/lib/permissions.test.mjs",
   "src/lib/app-chrome.test.mjs",

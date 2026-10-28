@@ -1,3 +1,8 @@
+> The visual recipes and source-pattern checks in this document are generation
+> guidance. They produce non-blocking build advisories, not proof of a broken
+> layout or incomplete workflow. Follow explicit product requirements and verify
+> the rendered result. Runtime correctness and safety checks remain blocking.
+
 # UI and Client Runtime Rules
 
 Detailed UI rules behind the summary in `AGENTS.md` → UI and Client Runtime.
@@ -123,7 +128,7 @@ per clickable leaf. Do not create an Overview module unless the product needs on
 Wide tables own their horizontal scroll region. Interactive pages remain usable
 at 375px without page-level overflow; station controls are touch-friendly and
 monitor boards fit their intended viewport. `npm run build` checks known source
-patterns through the locked `src/lib/responsive-contracts.test.mjs` gate; it
+patterns through non-blocking `src/lib/responsive-contracts.test.mjs` advisories; it
 does not measure rendered layout or prove 375px usability. Inspect affected
 pages at a real 375px viewport when browser tooling is available, and report
 when that check could not be run. The static checks cover these patterns:

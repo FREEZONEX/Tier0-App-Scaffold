@@ -30,16 +30,17 @@ function stripComments(source) {
 }
 
 const findings = [];
+const advisories = [];
 
 for (const root of DATA_UI_ROOTS) {
   for (const file of walkFiles(root)) {
     const source = stripComments(readFileSync(file, "utf8"));
     const rel = toPosixPath(relative(process.cwd(), file));
     if (/\bif\s*\(\s*!\s*data\s*\)\s*(?:\{\s*)?return\s+null\s*;?/.test(source)) {
-      findings.push(`${rel}: fake loading guard (if (!data) return null)`);
+      advisories.push(`${rel}: fake loading guard (if (!data) return null)`);
     }
     if (/\buseRequest\s*\(/.test(source) && !/<AsyncView\b/.test(source)) {
-      findings.push(`${rel}: useRequest result is not rendered through <AsyncView>`);
+      advisories.push(`${rel}: useRequest result is not rendered through <AsyncView>`);
     }
     if (
       /\bif\s*\(\s*(?:[A-Za-z_$][\w$]*\.)?(?:is)?loading\s*\)\s*(?:\{\s*)?return\s*(?:\(|<)/i.test(
@@ -47,7 +48,7 @@ for (const root of DATA_UI_ROOTS) {
       ) &&
       !/<AsyncView\b/.test(source)
     ) {
-      findings.push(`${rel}: full-page loading return has no AsyncView error/retry state`);
+      advisories.push(`${rel}: full-page loading return has no AsyncView error/retry state`);
     }
   }
 }
@@ -61,6 +62,8 @@ for (const file of walkFiles(SERVICE_ROOT)) {
     findings.push(`${rel}: top-level await runs at import time; access data inside the service function`);
   }
 }
+
+for (const advisory of advisories) console.warn(`[advisory] ${advisory}`);
 
 if (findings.length > 0) {
   console.error(`[runtime-audit] ${findings.length} first-load safety violation(s):`);

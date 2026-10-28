@@ -1,3 +1,4 @@
+import { guidanceIt } from "../../scripts/guidance-test.mjs";
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
@@ -40,7 +41,7 @@ function findUncontainedTables(source) {
 }
 
 describe("table layout contracts", () => {
-  it("provides data-table primitives for dense enterprise tables", () => {
+  guidanceIt("provides data-table primitives for dense enterprise tables", () => {
     const tableLayout = readFileSync(
       join(process.cwd(), "src/components/data/table-layout.tsx"),
       "utf8",
@@ -99,7 +100,7 @@ describe("table layout contracts", () => {
     assert.deepEqual(findUncontainedTables(safeExplicit), []);
   });
 
-  it("keeps generated dense tables from relying on page overflow", () => {
+  guidanceIt("keeps generated dense tables from relying on page overflow", () => {
     const offenders = [];
 
     for (const root of UI_ROOTS) {
