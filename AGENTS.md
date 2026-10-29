@@ -201,6 +201,15 @@ API, limits, examples, error codes and tier0 MCP operations are in
   collection to "reset" a schema. `schema:replace`, `archive` and `restore`
   are worker operations through the tier0 MCP, never runtime code.
 
+An imported or older App's own SQL database is App-owned persistence: rewrite
+its callers to collections and remove the driver, ORM and connection settings
+instead of connecting to the old database or asking for its configuration.
+`npm run build` fails while `src/` or `server.mjs` still reads `DATABASE_URL`,
+`DIRECT_DATABASE_URL`, `DB_SCHEMA` or `PG*`, or `package.json` still depends on
+a database driver or ORM. Only a database the user explicitly keeps as an
+external system of record is declared in `package.json`
+`tier0ExternalDatabases` (`package`, optional `env`, `reason`).
+
 ## Routing and Server Boundaries
 
 TanStack Router uses file names as route structure: `_app.work-orders.index.tsx`
