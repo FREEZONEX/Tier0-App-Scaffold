@@ -73,6 +73,23 @@ describe("legacy database gate", () => {
     }
   });
 
+  it("fails on optional chaining", () => {
+    const root = fixture({}, { "src/a.ts": "const a = process.env?.DATABASE_URL;\nconst b = process.env?.['PGHOST'];\n" });
+    const problems = findLegacyDatabaseUsage(root).join("\n");
+    assert.match(problems, /reads database setting DATABASE_URL\b/);
+    assert.match(problems, /reads database setting PGHOST\b/);
+  });
+
+  it("fails on destructuring with a type annotation", () => {
+    const root = fixture({}, { "src/a.ts": "const { DB_SCHEMA }: NodeJS.ProcessEnv = process.env;\n" });
+    assert.match(findLegacyDatabaseUsage(root).join("\n"), /reads database setting DB_SCHEMA\b/);
+  });
+
+  it("fails on a member access continued on the next line", () => {
+    const root = fixture({}, { "src/a.ts": "const c = process.env\n  .POSTGRES_URL;\n" });
+    assert.match(findLegacyDatabaseUsage(root).join("\n"), /reads database setting POSTGRES_URL\b/);
+  });
+
   it("still finds a read between strings that contain /* and */", () => {
     const root = fixture({}, { "src/a.ts": 'const g = "assets/*";\nconst u = process.env.DATABASE_URL;\nconst h = "*/";\n' });
     assert.match(findLegacyDatabaseUsage(root).join("\n"), /reads database setting DATABASE_URL/);

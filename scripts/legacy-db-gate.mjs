@@ -12,9 +12,10 @@
 //     { "package": "pg", "env": ["PGHOST"], "reason": "User keeps the ERP database as system of record" }
 //   ]
 //
-// Only environment reads (process.env.X, process.env["X"], import.meta.env.X and
-// destructuring from process.env) in runtime code are checked; other mentions,
-// documentation, archived references and *.test.* files are fine.
+// Only environment reads (process.env.X, process.env?.X, process.env["X"],
+// import.meta.env.X and destructuring from process.env, typed or not) in runtime
+// code are checked; other mentions, documentation, archived references and
+// *.test.* files are fine.
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -47,8 +48,8 @@ const SOURCE_EXTENSION = /\.(?:[cm]?[jt]sx?)$/;
 const TEST_FILE = /\.test\.(?:[cm]?[jt]sx?)$/;
 const DATABASE_ENV = /^(?:DATABASE_URL(?:_\w+)?|DIRECT_DATABASE_URL|DB_SCHEMA|PG[A-Z]+|POSTGRES_\w+)$/;
 const ENV = String.raw`(?:process\.env|import\.meta\.env)`;
-const ENV_MEMBER = new RegExp(String.raw`${ENV}(?:\.(\w+)|\[\s*(["'\x60])(\w+)\2\s*\])`, "g");
-const ENV_DESTRUCTURE = new RegExp(String.raw`\{([^{}]*)\}\s*=\s*${ENV}\b`, "g");
+const ENV_MEMBER = new RegExp(String.raw`${ENV}\s*(?:\??\.(\w+)|(?:\?\.)?\[\s*(["'\x60])(\w+)\2\s*\])`, "g");
+const ENV_DESTRUCTURE = new RegExp(String.raw`\{([^{}]*)\}\s*(?::[^=]+)?=\s*${ENV}\b`, "g");
 const LOG_PREFIX = "[legacy-db-gate]";
 
 function walkFiles(root) {
