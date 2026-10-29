@@ -323,7 +323,7 @@ Use `DESIGN.md`, existing tokens and the shipped primitives
 
 Use the installed `@tier0/sdk-v2` (`0.6.1`, pinned exactly in `package.json`;
 never change that dependency) for user/platform info, members, notifications,
-files, MQTT/MQ/WebSocket, controls or capabilities. Load it lazily inside the
+files, MQTT/MQ/WebSocket or capabilities. Load it lazily inside the
 server action through `@/lib/tier0` (`loadTier0Sdk()`, `loadTier0Mq()`); never
 top-level import or invoke it on SSR startup paths, and keep `vite.config.ts`
 `ssr.external: ["@tier0/sdk-v2", "mqtt"]`. App records use `@/lib/data`, not
@@ -372,6 +372,23 @@ root, never a temporary or workspace-external file:
 Page titles name the work. Visible copy describes business data, state, action,
 or consequence—not design-system commentary or implementation notes. Remove
 scaffold/default branding from the finished app.
+
+## App Stream requests and messages
+
+Use the bundled `@tier0/sdk/cloud` for `client.streams.requests` and
+`client.streams.messages`. Keep `@tier0/sdk-v2` at its current exact pin for data
+and platform operations. Do not generate controls APIs, v2 request-execution
+aliases, interpreter selectors or a second control credential. Keep the
+`tier0-stream/v3` machine script contract; it does not select a runtime.
+
+Browser Stream calls require the platform's trusted runtime provider; application
+code does not install or impersonate it. Preview without that provider fails
+closed. Node Apps automatically read `TIER0_API_HOST`, `TIER0_API_KEY` and `APP_ID`.
+The injected App/internal Key must hold persisted unified Stream scopes, and
+current App policy plus entry/topic grants must allow the operation. Existing
+Keys missing those scopes require an explicit authorized migration/reissue; the
+SDK never expands them. Do not synthesize identity, install a fake provider or
+restore a second Control credential.
 
 ## Build, Gates, and Deployment
 
