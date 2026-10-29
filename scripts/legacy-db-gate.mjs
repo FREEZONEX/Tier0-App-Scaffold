@@ -9,11 +9,12 @@
 // declared, one entry per kept driver, in package.json:
 //
 //   "tier0ExternalDatabases": [
-//     { "package": "pg", "env": ["ERP_PGHOST"], "reason": "User keeps the ERP database as system of record" }
+//     { "package": "pg", "env": ["PGHOST"], "reason": "User keeps the ERP database as system of record" }
 //   ]
 //
-// Only runtime code is scanned: documentation, archived references and *.test.*
-// files may still mention these settings.
+// Only environment reads (process.env.X, process.env["X"], import.meta.env.X and
+// destructuring from process.env) in runtime code are checked; other mentions,
+// documentation, archived references and *.test.* files are fine.
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -22,15 +23,19 @@ export const EXTERNAL_DATABASES_FIELD = "tier0ExternalDatabases";
 
 export const LEGACY_DATABASE_PACKAGES = [
   "pg",
+  "pg-promise",
   "postgres",
+  "@neondatabase/serverless",
   "mysql",
   "mysql2",
   "sqlite3",
   "better-sqlite3",
   "drizzle-orm",
+  "drizzle-kit",
   "prisma",
   "@prisma/client",
   "knex",
+  "kysely",
   "typeorm",
   "sequelize",
 ];
@@ -40,7 +45,10 @@ const SOURCE_ROOT = "src";
 const STARTUP_FILES = ["server.mjs"];
 const SOURCE_EXTENSION = /\.(?:[cm]?[jt]sx?)$/;
 const TEST_FILE = /\.test\.(?:[cm]?[jt]sx?)$/;
-const DATABASE_ENV = /\b(?:DATABASE_URL|DIRECT_DATABASE_URL|DB_SCHEMA|PG[A-Z][A-Z_]*)\b/g;
+const DATABASE_ENV = /^(?:DATABASE_URL(?:_\w+)?|DIRECT_DATABASE_URL|DB_SCHEMA|PG[A-Z]+|POSTGRES_\w+)$/;
+const ENV = String.raw`(?:process\.env|import\.meta\.env)`;
+const ENV_MEMBER = new RegExp(String.raw`${ENV}(?:\.(\w+)|\[\s*(["'\x60])(\w+)\2\s*\])`, "g");
+const ENV_DESTRUCTURE = new RegExp(String.raw`\{([^{}]*)\}\s*=\s*${ENV}\b`, "g");
 const LOG_PREFIX = "[legacy-db-gate]";
 
 function walkFiles(root) {
@@ -58,8 +66,16 @@ function walkFiles(root) {
   return files;
 }
 
-function stripComments(source) {
-  return source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+function readEnvNames(source) {
+  const names = new Set();
+  for (const match of source.matchAll(ENV_MEMBER)) names.add(match[1] ?? match[3]);
+  for (const match of source.matchAll(ENV_DESTRUCTURE)) {
+    for (const part of match[1].split(",")) {
+      const name = part.split(/[:=]/)[0].trim();
+      if (name) names.add(name);
+    }
+  }
+  return names;
 }
 
 function readAllowlist(packageJson, problems) {
@@ -108,10 +124,8 @@ export function findLegacyDatabaseUsage(root = process.cwd()) {
     ...STARTUP_FILES.map((file) => join(root, file)).filter((file) => existsSync(file)),
   ];
   for (const file of files) {
-    const source = stripComments(readFileSync(file, "utf8"));
-    const names = new Set(source.match(DATABASE_ENV) ?? []);
-    for (const name of names) {
-      if (!allowed.env.has(name)) {
+    for (const name of readEnvNames(readFileSync(file, "utf8"))) {
+      if (DATABASE_ENV.test(name) && !allowed.env.has(name)) {
         problems.push(`${relative(root, file).replaceAll("\\", "/")}: reads database setting ${name}`);
       }
     }

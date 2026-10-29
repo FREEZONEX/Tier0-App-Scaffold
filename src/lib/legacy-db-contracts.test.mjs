@@ -47,6 +47,53 @@ describe("legacy database gate", () => {
     assert.match(findLegacyDatabaseUsage(root).join("\n"), /"drizzle-orm"/);
   });
 
+  for (const [field, name] of [
+    ["dependencies", "pg-promise"],
+    ["dependencies", "kysely"],
+    ["dependencies", "@neondatabase/serverless"],
+    ["devDependencies", "drizzle-kit"],
+  ]) {
+    it(`fails on ${name} in ${field}`, () => {
+      const root = fixture({ [field]: { [name]: "1.0.0" } });
+      assert.match(findLegacyDatabaseUsage(root).join("\n"), new RegExp(`${field}: "${name}"`));
+    });
+  }
+
+  it("fails on each form of reading a database setting, including name variants", () => {
+    const root = fixture(
+      {},
+      {
+        "src/a.ts": "const a = process.env.DATABASE_URL_UNPOOLED;\nconst b = process.env['POSTGRES_URL'];\n",
+        "src/b.ts": "const c = import.meta.env.DIRECT_DATABASE_URL;\nconst { DATABASE_URL: url, PGUSER } = process.env;\n",
+      },
+    );
+    const problems = findLegacyDatabaseUsage(root).join("\n");
+    for (const name of ["DATABASE_URL_UNPOOLED", "POSTGRES_URL", "DIRECT_DATABASE_URL", "DATABASE_URL", "PGUSER"]) {
+      assert.match(problems, new RegExp(`reads database setting ${name}\\b`));
+    }
+  });
+
+  it("still finds a read between strings that contain /* and */", () => {
+    const root = fixture({}, { "src/a.ts": 'const g = "assets/*";\nconst u = process.env.DATABASE_URL;\nconst h = "*/";\n' });
+    assert.match(findLegacyDatabaseUsage(root).join("\n"), /reads database setting DATABASE_URL/);
+  });
+
+  it("allows look-alike names and mentions that are not environment reads", () => {
+    const root = fixture(
+      {},
+      {
+        "src/a.ts": [
+          'export const tip = "PGUP / PGDN to scroll";',
+          "export const PGRANK = 1;",
+          'export const help = "No DATABASE_URL needed";',
+          "const x = 1; // was DATABASE_URL",
+          "const host = process.env.ERP_HOST;",
+        ].join("\n"),
+      },
+    );
+    assert.deepEqual(findLegacyDatabaseUsage(root), []);
+  });
+
   it("fails when src/ reads DATABASE_URL", () => {
     const root = fixture({}, { "src/db/client.ts": "export const url = process.env.DATABASE_URL;\n" });
     assert.match(findLegacyDatabaseUsage(root).join("\n"), /src\/db\/client\.ts: reads database setting DATABASE_URL/);
@@ -77,7 +124,7 @@ describe("legacy database gate", () => {
     assert.match(problems, /"pg" is a database driver/);
   });
 
-  it("ignores mentions in docs, archived references, tests and comments", () => {
+  it("ignores docs, archived references and tests", () => {
     const root = fixture(
       {},
       {

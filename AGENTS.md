@@ -204,9 +204,9 @@ API, limits, examples, error codes and tier0 MCP operations are in
 An imported or older App's own SQL database is App-owned persistence: rewrite
 its callers to collections and remove the driver, ORM and connection settings
 instead of connecting to the old database or asking for its configuration.
-`npm run build` fails while `src/` or `server.mjs` still reads `DATABASE_URL`,
-`DIRECT_DATABASE_URL`, `DB_SCHEMA` or `PG*`, or `package.json` still depends on
-a database driver or ORM. Only a database the user explicitly keeps as an
+`npm run build` fails while `src/` or `server.mjs` still reads `DATABASE_URL*`,
+`DIRECT_DATABASE_URL`, `DB_SCHEMA`, `PG*` or `POSTGRES_*` from the environment,
+or `package.json` still depends on a database driver or ORM. Only a database the user explicitly keeps as an
 external system of record is declared in `package.json`
 `tier0ExternalDatabases` (`package`, optional `env`, `reason`).
 
