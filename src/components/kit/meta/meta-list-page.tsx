@@ -20,7 +20,7 @@ import { AsyncView } from "@/components/data/async-view";
 import { ConfirmDialog } from "@/components/overlays/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { SplitButton, TextButton } from "@/components/kit/ui/buttons";
-import { PageCard, PageContainer } from "@/components/kit/shell/page-layout";
+import { PageContainer } from "@/components/kit/shell/page-layout";
 import { DataGrid, type DataGridColumn } from "@/components/kit/ui/data-grid";
 import { resolveFieldIconKind } from "@/components/kit/ui/field-icons";
 import { FieldTypeIcon } from "@/components/kit/ui/field-type-icon";
@@ -60,7 +60,7 @@ import { ViewTabs } from "@/components/kit/meta/view-tabs";
 
 export interface MetaListPageProps {
   objectCode: string;
-  /** Page title (卡片外左上). */
+  /** Page title above the list content. */
   title: ReactNode;
   /** Links on the right of the title row (移动端卡片、自定义事件…). */
   headerExtra?: ReactNode;
@@ -676,19 +676,17 @@ export function MetaListPage(props: MetaListPageProps) {
 
   return (
     <PageContainer title={title} extra={headerExtra} fill className={className}>
-      <PageCard fill>
-        <AsyncView result={config} isEmpty={() => false}>
-          {(data) => (
-            <MetaListBody
-              key={`${data.objectCode}:${data.activeView?.code ?? "default"}:${data.activeView?.updatedAt ?? ""}`}
-              {...props}
-              config={data}
-              onSwitchView={switchView}
-              onReloadConfig={reloadConfig}
-            />
-          )}
-        </AsyncView>
-      </PageCard>
+      <AsyncView result={config} isEmpty={() => false}>
+        {(data) => (
+          <MetaListBody
+            key={`${data.objectCode}:${data.activeView?.code ?? "default"}:${data.activeView?.updatedAt ?? ""}`}
+            {...props}
+            config={data}
+            onSwitchView={switchView}
+            onReloadConfig={reloadConfig}
+          />
+        )}
+      </AsyncView>
     </PageContainer>
   );
 }

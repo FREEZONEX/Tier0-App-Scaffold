@@ -294,6 +294,11 @@ centered 1440px maximum width; `page-shell` owns the responsive page inset, so
 do not repeat outer page padding. Station, review, and monitor layouts keep
 their own purpose-built spacing instead.
 
+List pages place tabs, filters, toolbars, tables, and pagination directly on
+the page canvas. Do not add an outer decorative card around `MetaListPage`;
+use its page inset and internal spacing. Cards remain available for distinct
+content groups in other compositions.
+
 The shipped component families are a discoverable toolkit, not a mandatory
 screen recipe:
 

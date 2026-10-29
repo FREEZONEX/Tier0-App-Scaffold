@@ -279,7 +279,9 @@ Use `DESIGN.md`, existing tokens and the shipped primitives
 
 - List-type pages default to `MetaListPage` (`@/components/kit/meta/meta-list-page`)
   with an application-scoped provider and real data adapter; extend its hooks
-  instead of rebuilding the list shell. Use another composition only when the
+  instead of rebuilding the list shell. Render list content directly on the page
+  canvas; do not wrap it in a decorative `Card` / `PageCard`. Keep the single
+  `page-shell` inset. Use another composition only when the
   user asks or the workflow does not fit, and record why.
 - Wrap every ordinary `_app` workspace page in
   `<div className="page-shell ...">`; no second outer `px-*` / `py-*` layer.
