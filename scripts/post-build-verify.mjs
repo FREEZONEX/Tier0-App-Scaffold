@@ -18,6 +18,10 @@ const steps = [
     command: ["node", "scripts/gate-integrity.mjs"],
   },
   {
+    label: "Legacy database gate",
+    command: ["node", "scripts/legacy-db-gate.mjs"],
+  },
+  {
     label: "TypeScript",
     command: ["npm", "run", "typecheck"],
   },
@@ -59,6 +63,7 @@ const steps = [
       "src/lib/ui-primitives-contracts.test.mjs",
       "src/lib/responsive-contracts.test.mjs",
       "src/lib/scaffold-version-contracts.test.mjs",
+      "src/lib/legacy-db-contracts.test.mjs",
       "src/lib/template-state.test.mjs",
     ],
   },

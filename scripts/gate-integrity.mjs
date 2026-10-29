@@ -36,6 +36,7 @@ const LOCKED_FILES = [
   "src/lib/ui-primitives-contracts.test.mjs",
   "src/lib/responsive-contracts.test.mjs",
   "src/lib/scaffold-version-contracts.test.mjs",
+  "src/lib/legacy-db-contracts.test.mjs",
   "scripts/ui-advisories.mjs",
   "scripts/route-smoke.mjs",
   "scripts/route-nesting.mjs",
@@ -43,6 +44,7 @@ const LOCKED_FILES = [
   "scripts/post-build-verify.mjs",
   "scripts/gate-integrity.mjs",
   "scripts/scaffold-version.mjs",
+  "scripts/legacy-db-gate.mjs",
   // The App's wiring of the data layer (@tier0/sdk-v2/data) is a platform contract, not app code.
   "src/lib/data/index.ts",
   "src/lib/data/query.ts",
