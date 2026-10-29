@@ -2,7 +2,9 @@
 
 ## Tier0 SDK (`@tier0/sdk-v2`)
 
-The scaffold declares `@tier0/sdk-v2` at the exact npm version `0.6.2`. Every
+The scaffold pins the local `@tier0/sdk-v2@0.7.0` candidate from
+`d2e5fd0db653939ee8e61bd3565e064486bba342` through
+`file:vendor/tier0-sdk-v2-0.7.0-d2e5fd0db653.tgz`. It is not an npm publication. Every
 SDK call goes to `/openapi/v2` (platform routes such as `/openapi/v2/info`,
 `/openapi/v2/notifications/send`, `/openapi/v2/assets/files`); 0.3.0 removed the duplicate UNS operations and
 the Agent `nodes` / `relations` methods, with no fallback to older routes.
@@ -47,11 +49,13 @@ Updating injected guidance alone does not upgrade an application's installed SDK
 ### Browser App Stream requests and messages
 
 The scaffold also installs a separate `@tier0/sdk` frozen at commit
-`ee5499bfdbbc10101f1d3dfbae85c85757036d8d` through
-`file:vendor/tier0-sdk-0.5.4-ee5499bfdbbc.tgz` and its package-lock integrity.
+`6367d22ab481e117c30db9c17a0662b607b9a26f` through
+`file:vendor/tier0-sdk-0.5.4-6367d22ab481.tgz` and its package-lock integrity.
 Its UNS v5 contract is pinned to Backend `c845ba79dad47741985852423215e059d64b948b`;
 the unchanged v1 projection retains its historical source pin and is separately
-verified equivalent to this final Backend contract.
+verified equivalent to this final Backend contract. The accepted fresh Backend
+consumer pin `5e11f9c46cbfceecf27ae352882bce3663a0cafa` has identical public inputs;
+the historical generated-source provenance is retained accurately.
 This artifact is not published to npm. Retain it in source/template ZIPs;
 the registry's `0.5.4` package is not an equivalent pin. See `vendor/README.md`.
 
@@ -80,13 +84,16 @@ or receiver ACK. Keep the `tier0-stream/v3` machine script contract and current
 single-model shape without generation selectors; do not use retired Control or
 v2 execution aliases.
 
-The separate data SDK baseline is the published `@tier0/sdk-v2@0.6.2`;
+The independent local data/platform SDK candidate is `@tier0/sdk-v2@0.7.0`;
 server-only `@/lib/data` and `@tier0/sdk-v2/data` wiring remain unchanged.
-This baseline does not complete App Stream public naming: its explicit capability
-discovery still requires the retired `control/v1` contract, and its old controls
-exports require an official SDK-v2 successor release. Do not gate Namespace data
-calls on that discovery result or use old controls as request execution aliases.
-The separate Stream SDK does not replace those SDK-v2 exports or that parser. Package installation is independent of Gateway/SYS
+Its discovery validates each known feature's contract without a global retired
+Control contract requirement. The old public controls methods, types, errors and
+Skill guidance have been removed; request execution uses the separate canonical
+`@tier0/sdk` entry above. Existing Apps pinned to older packages still need explicit
+migration. Canonical `StreamRequestError.outcomeUnknown` is a boolean classifier:
+base errors expose `false`, unknown-result errors expose `true`. A `false` value is
+not wire proof of `execution=notStarted` or permission to replay. `retryable` remains
+false, requests make one POST, and no V1 execution/retry/phase fields are invented. Package installation is independent of Gateway/SYS
 configuration, broker readiness, existing-App migration and browser acceptance;
 neither an installed package nor a bootstrap script proves a live deployment.
 Node Apps use the same SDK with automatically injected `TIER0_API_HOST`,

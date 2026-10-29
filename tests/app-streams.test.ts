@@ -4,19 +4,31 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { test } from "node:test";
 import { installAppRuntime } from "@tier0/sdk/runtime";
+import { StreamRequestError, StreamRequestResultUnknownError } from "@tier0/sdk/cloud";
 import { describeRequest, messageTopic } from "./fixtures/app-streams-browser";
 
-test("Stream SDK uses the frozen local artifact and keeps the data SDK pin", () => {
+test("both SDK packages use their separate immutable local artifacts", () => {
   const pkg = JSON.parse(readFileSync("package.json", "utf8"));
   const lock = JSON.parse(readFileSync("package-lock.json", "utf8"));
-  const archive = readFileSync("vendor/tier0-sdk-0.5.4-ee5499bfdbbc.tgz");
-  assert.equal(pkg.dependencies["@tier0/sdk"], "file:vendor/tier0-sdk-0.5.4-ee5499bfdbbc.tgz");
+  const archive = readFileSync("vendor/tier0-sdk-0.5.4-6367d22ab481.tgz");
+  assert.equal(pkg.dependencies["@tier0/sdk"], "file:vendor/tier0-sdk-0.5.4-6367d22ab481.tgz");
   assert.equal(createHash("sha256").update(archive).digest("hex"),
-    "9538aca9398ad5a88ab11045787217e5ff20f9bcc4ea186dfb221d33bdec0aca");
+    "97d9c5287e172dede629a44528d11505a2ad8fe92e0ddf2675477059957cb077");
   assert.equal(lock.packages["node_modules/@tier0/sdk"].integrity,
     `sha512-${createHash("sha512").update(archive).digest("base64")}`);
-  assert.equal(pkg.dependencies["@tier0/sdk-v2"],
-    "0.6.2");
+  const dataArchive = readFileSync("vendor/tier0-sdk-v2-0.7.0-d2e5fd0db653.tgz");
+  assert.equal(pkg.dependencies["@tier0/sdk-v2"], "file:vendor/tier0-sdk-v2-0.7.0-d2e5fd0db653.tgz");
+  assert.equal(createHash("sha256").update(dataArchive).digest("hex"),
+    "a0d97b55029a0f99b14b4f5bb6af6badb7dc8a2772d1820928736e16c46c1f1c");
+  assert.equal(lock.packages["node_modules/@tier0/sdk-v2"].integrity,
+    `sha512-${createHash("sha512").update(dataArchive).digest("base64")}`);
+  const known = new StreamRequestError("conflict", { errorCode: "IDEMPOTENCY_CONFLICT" });
+  const unknown = new StreamRequestResultUnknownError({ errorCode: "STREAM_REQUEST_RESULT_UNKNOWN" });
+  assert.equal(known.outcomeUnknown, false);
+  assert.equal(unknown.outcomeUnknown, true);
+  assert.equal(known.retryable, false);
+  assert.equal(unknown.retryable, false);
+  assert.equal("execution" in known, false);
 });
 
 test("browser Stream calls require the trusted runtime and never fall back to fetch", async (t) => {

@@ -1,28 +1,34 @@
-# App Stream SDK candidate
+# App Stream SDK candidate artifacts
 
-`tier0-sdk-0.5.4-ee5499bfdbbc.tgz` packages `@tier0/sdk@0.5.4` from clean Cloud commit
-`ee5499bfdbbc10101f1d3dfbae85c85757036d8d`. SHA256:
-`9538aca9398ad5a88ab11045787217e5ff20f9bcc4ea186dfb221d33bdec0aca`.
-SHA512 SRI: `sha512-C+Wsu8OVuLcLK/iWqReLF9h1DLvLgGM4taKRdmmKqaq4A0xQQjNG4EV8/PfWrNvQmKajebyHo8Puoxz2RwZIIg==`.
-The local file dependency and lock integrity identify these bytes; the package
-version alone does not identify this candidate. This is a newly built package,
-not the historical d43/7f artifacts and not an npm publication.
+Both archives are immutable local candidates; neither is an npm publication.
+Retain them in source/template ZIPs. Their package names and provenance are separate.
 
-The independent data/platform package baseline is published `@tier0/sdk-v2@0.6.2`.
-Its old controls exports and global `control/v1` discovery requirement still need
-an official owner-maintained successor release for the final public naming.
-Direct existing Namespace/data calls have no automatic capability-discovery gate;
-this does not constitute complete cross-package or live App Stream acceptance.
-The separate Stream SDK supplies the sole `streams.requests` execution entry and
-the trusted browser message runtime. Do not revive old controls aliases.
-Node uses the existing injected App/internal Key and APP_ID, with persisted
-unified scopes and current App/entry/topic policy intersection. Installation
-does not authorize topics or upgrade old stored Key scopes.
+| Package | Source commit | Local archive |
+|---|---|---|
+| `@tier0/sdk@0.5.4` | `6367d22ab481e117c30db9c17a0662b607b9a26f` | `tier0-sdk-0.5.4-6367d22ab481.tgz` |
+| `@tier0/sdk-v2@0.7.0` | `d2e5fd0db653939ee8e61bd3565e064486bba342` | `tier0-sdk-v2-0.7.0-d2e5fd0db653.tgz` |
 
-UNS v5 Backend Git schema is pinned at `c845ba79dad47741985852423215e059d64b948b`.
-The unchanged v1 projection retains its historical source pin `310bd513fd91efee78a1bf38fcce0b4128e70996`;
-the fixed-ref preflight verified equivalence against the final Backend contract.
-Legacy Key migration/proof, matched service/App artifacts and live acceptance remain release gates.
-Existing Apps require explicit source/package migration; replacing a template
-archive does not update or revoke credentials in running Pods. Keep this archive
-in source ZIPs and do not replace it with a registry package of the same version.
+Canonical Stream SDK SHA256: `97d9c5287e172dede629a44528d11505a2ad8fe92e0ddf2675477059957cb077`.
+SHA512 SRI: `sha512-K/AUod016QKNXdG1tIsj9z9wdddmAPq2SX8zOWKtaqgwF7+piVmLTgIXahJf0GTF0nsv4PR6dwe3sDcEo8U+tQ==`.
+
+Data/platform SDK SHA256: `a0d97b55029a0f99b14b4f5bb6af6badb7dc8a2772d1820928736e16c46c1f1c`.
+SHA512 SRI: `sha512-IBm8Ttd1Gw3jbuoThz0zTgA2DbIHR3M7lnPl8IhFijtmiJ5vcRnYarkPwmODX29nz6/ojgskgAh2U6E8YCKZFA==`.
+
+The canonical SDK supplies `streams.requests/messages` and explicit
+`StreamRequestError.outcomeUnknown=false` / unknown-result subclass `true`.
+This is a classifier, not a wire execution phase or safe-replay promise:
+`retryable=false` and one POST/no automatic retry remain unchanged.
+The independent0.7.0 data SDK scopes capability validation by feature and removes
+retired public controls methods/types/errors/guidance; it does not add a second
+request execution API. The old0.6.2 and ee5499/9538 artifacts remain historical
+records, not renamed copies of these final candidates.
+
+The accepted Backend consumer is `5e11f9c46cbfceecf27ae352882bce3663a0cafa`.
+The canonical SDK's generated UNS source retains real `c845ba79dad47741985852423215e059d64b948b`
+provenance; all accepted input bytes match fresh5e11. Its unchanged V1 projection
+retains historical310 provenance with equivalence recorded separately.
+Node reuses injected App/internal Key and APP_ID; current policy and persisted
+scope ceilings still apply. Installed packages do not migrate old stored Key scopes,
+update existing App callers/Pods or prove broker/service/live readiness. Actual
+caller inventory, explicit owner-scoped migration, configuration/schema/backup
+and live acceptance remain release gates. Do not add Control aliases or browser keys.

@@ -9,8 +9,8 @@ const require = createRequire(import.meta.url);
 
 test("the lazy SDK loader resolves the exact installed Cloud contract", async () => {
   const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
-  assert.equal(pkg.dependencies["@tier0/sdk-v2"], "0.6.2");
-  assert.equal(require("@tier0/sdk-v2/package.json").version, "0.6.2");
+  assert.equal(pkg.dependencies["@tier0/sdk-v2"], "file:vendor/tier0-sdk-v2-0.7.0-d2e5fd0db653.tgz");
+  assert.equal(require("@tier0/sdk-v2/package.json").version, "0.7.0");
   const sdk = await loadTier0Sdk();
   const client = sdk.createClient({ apiHost: "https://fixture.invalid" });
   assert.equal(typeof client.source.documents.get, "function");
@@ -18,6 +18,9 @@ test("the lazy SDK loader resolves the exact installed Cloud contract", async ()
   assert.equal(typeof client.stream.programs.deploy, "function");
   assert.equal("list" in client.source, false);
   assert.equal("runtime" in client.stream, false);
+  assert.equal("controls" in client, false);
+  assert.equal("ControlError" in sdk, false);
+  assert.equal("ControlResultUnknownError" in sdk, false);
   assert.equal(typeof (await loadTier0Mq()).Tier0MQClient, "function");
 });
 
