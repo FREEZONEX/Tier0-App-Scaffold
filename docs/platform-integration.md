@@ -2,9 +2,11 @@
 
 ## Tier0 SDK (`@tier0/sdk-v2`)
 
-The scaffold pins the local `@tier0/sdk-v2@0.7.0` candidate from
-`d2e5fd0db653939ee8e61bd3565e064486bba342` through
-`file:vendor/tier0-sdk-v2-0.7.0-d2e5fd0db653.tgz`. It is not an npm publication. Every
+The next candidate stages the verified local `@tier0/sdk-v2@0.7.2` candidate from
+`506c532b66973cc1b16dacd0e7d097800b65decd` through
+`file:vendor/tier0-sdk-v2-0.7.2-506c532b6697.tgz`. It is bound to Backend `397ac88a89593872cf76ad579a3c59753d832668` and is not an npm publication.
+The matched canonical 0.5.5 archive is now bound below; consumer checks are
+recorded separately from source dependency binding. Every
 SDK call goes to `/openapi/v2` (platform routes such as `/openapi/v2/info`,
 `/openapi/v2/notifications/send`, `/openapi/v2/assets/files`); 0.3.0 removed the duplicate UNS operations and
 the Agent `nodes` / `relations` methods, with no fallback to older routes.
@@ -48,16 +50,16 @@ Updating injected guidance alone does not upgrade an application's installed SDK
 
 ### Browser App Stream requests and messages
 
-The scaffold also installs a separate `@tier0/sdk` frozen at commit
-`6367d22ab481e117c30db9c17a0662b607b9a26f` through
-`file:vendor/tier0-sdk-0.5.4-6367d22ab481.tgz` and its package-lock integrity.
-Its UNS v5 contract is pinned to Backend `c845ba79dad47741985852423215e059d64b948b`;
-the unchanged v1 projection retains its historical source pin and is separately
-verified equivalent to this final Backend contract. The accepted fresh Backend
-consumer pin `5e11f9c46cbfceecf27ae352882bce3663a0cafa` has identical public inputs;
-the historical generated-source provenance is retained accurately.
-This artifact is not published to npm. Retain it in source/template ZIPs;
-the registry's `0.5.4` package is not an equivalent pin. See `vendor/README.md`.
+The separately pinned canonical `@tier0/sdk@0.5.5` archive comes from checked
+commit `9525f893b80cf4778f7f30e172f4f13c701a1787` through
+`file:vendor/tier0-sdk-0.5.5-9525f893b80c.tgz` and its actual package-lock integrity.
+Its UNS contract uses Backend `397ac88a89593872cf76ad579a3c59753d832668`, including
+required `AppContext.dataState` (`uninitialized | ready`) and optional run diagnostics.
+Its unchanged V1 projection retains accurate 0b provenance. The archive is a
+local immutable candidate, not an npm publication. Retain the exact tar in source
+ZIPs; see `vendor/README.md` for hashes. Installation and source bridge checks
+do not establish actual Gateway/SYS/broker deployment. The d20 bridge remains
+open PR734 and must not be claimed deployed merely because its source is reviewed.
 
 ```ts
 import { client } from "@tier0/sdk/cloud";
@@ -84,7 +86,7 @@ or receiver ACK. Keep the `tier0-stream/v3` machine script contract and current
 single-model shape without generation selectors; do not use retired Control or
 v2 execution aliases.
 
-The independent local data/platform SDK candidate is `@tier0/sdk-v2@0.7.0`;
+The independent local data/platform SDK candidate is `@tier0/sdk-v2@0.7.2`;
 server-only `@/lib/data` and `@tier0/sdk-v2/data` wiring remain unchanged.
 Its discovery validates each known feature's contract without a global retired
 Control contract requirement. The old public controls methods, types, errors and

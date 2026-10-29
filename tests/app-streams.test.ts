@@ -10,16 +10,16 @@ import { describeRequest, messageTopic } from "./fixtures/app-streams-browser";
 test("both SDK packages use their separate immutable local artifacts", () => {
   const pkg = JSON.parse(readFileSync("package.json", "utf8"));
   const lock = JSON.parse(readFileSync("package-lock.json", "utf8"));
-  const archive = readFileSync("vendor/tier0-sdk-0.5.4-6367d22ab481.tgz");
-  assert.equal(pkg.dependencies["@tier0/sdk"], "file:vendor/tier0-sdk-0.5.4-6367d22ab481.tgz");
+  const archive = readFileSync("vendor/tier0-sdk-0.5.5-9525f893b80c.tgz");
+  assert.equal(pkg.dependencies["@tier0/sdk"], "file:vendor/tier0-sdk-0.5.5-9525f893b80c.tgz");
   assert.equal(createHash("sha256").update(archive).digest("hex"),
-    "97d9c5287e172dede629a44528d11505a2ad8fe92e0ddf2675477059957cb077");
+    "c0ec923cfab558a00be1e6806e729c3b342f27ad6a0aa2c5f29ba7f4cdd9f00d");
   assert.equal(lock.packages["node_modules/@tier0/sdk"].integrity,
     `sha512-${createHash("sha512").update(archive).digest("base64")}`);
-  const dataArchive = readFileSync("vendor/tier0-sdk-v2-0.7.0-d2e5fd0db653.tgz");
-  assert.equal(pkg.dependencies["@tier0/sdk-v2"], "file:vendor/tier0-sdk-v2-0.7.0-d2e5fd0db653.tgz");
+  const dataArchive = readFileSync("vendor/tier0-sdk-v2-0.7.2-506c532b6697.tgz");
+  assert.equal(pkg.dependencies["@tier0/sdk-v2"], "file:vendor/tier0-sdk-v2-0.7.2-506c532b6697.tgz");
   assert.equal(createHash("sha256").update(dataArchive).digest("hex"),
-    "a0d97b55029a0f99b14b4f5bb6af6badb7dc8a2772d1820928736e16c46c1f1c");
+    "3634d19d0885f47fb02f7d2c38f2b740d519f2f79fa3a88a1f2bbc9ed98dbd19");
   assert.equal(lock.packages["node_modules/@tier0/sdk-v2"].integrity,
     `sha512-${createHash("sha512").update(dataArchive).digest("base64")}`);
   const known = new StreamRequestError("conflict", { errorCode: "IDEMPOTENCY_CONFLICT" });

@@ -1,34 +1,34 @@
-# App Stream SDK candidate artifacts
+# Matched Cloud App SDK candidate archives
 
-Both archives are immutable local candidates; neither is an npm publication.
-Retain them in source/template ZIPs. Their package names and provenance are separate.
+These immutable local candidates are bound to actual checked source commits;
+neither is an npm publication or a live deployment claim.
 
 | Package | Source commit | Local archive |
 |---|---|---|
-| `@tier0/sdk@0.5.4` | `6367d22ab481e117c30db9c17a0662b607b9a26f` | `tier0-sdk-0.5.4-6367d22ab481.tgz` |
-| `@tier0/sdk-v2@0.7.0` | `d2e5fd0db653939ee8e61bd3565e064486bba342` | `tier0-sdk-v2-0.7.0-d2e5fd0db653.tgz` |
+| `@tier0/sdk@0.5.5` | `9525f893b80cf4778f7f30e172f4f13c701a1787` | `tier0-sdk-0.5.5-9525f893b80c.tgz` |
+| `@tier0/sdk-v2@0.7.2` | `506c532b66973cc1b16dacd0e7d097800b65decd` | `tier0-sdk-v2-0.7.2-506c532b6697.tgz` |
 
-Canonical Stream SDK SHA256: `97d9c5287e172dede629a44528d11505a2ad8fe92e0ddf2675477059957cb077`.
-SHA512 SRI: `sha512-K/AUod016QKNXdG1tIsj9z9wdddmAPq2SX8zOWKtaqgwF7+piVmLTgIXahJf0GTF0nsv4PR6dwe3sDcEo8U+tQ==`.
+Canonical SHA256: `c0ec923cfab558a00be1e6806e729c3b342f27ad6a0aa2c5f29ba7f4cdd9f00d` (335533 bytes).
+SHA512 SRI: `sha512-iyZuZV3FmYpeNQGSIlGllzRDpB/7tmd8E7IjznMg5S1fImWVcm1DK1KaOjfI7EJOCytukerOWOWLEVg2YrCuSw==`.
+Data SDK SHA256: `3634d19d0885f47fb02f7d2c38f2b740d519f2f79fa3a88a1f2bbc9ed98dbd19` (592033 bytes).
+SHA512 SRI: `sha512-MJaWWkx8OM3Jbg74ewanqDq3ThiTrzF4IrRa+AurB4q5p56K8q5p3w+gCs0RzPGlue/Hf+5lNX/JMCFKplwfsw==`.
 
-Data/platform SDK SHA256: `a0d97b55029a0f99b14b4f5bb6af6badb7dc8a2772d1820928736e16c46c1f1c`.
-SHA512 SRI: `sha512-IBm8Ttd1Gw3jbuoThz0zTgA2DbIHR3M7lnPl8IhFijtmiJ5vcRnYarkPwmODX29nz6/ojgskgAh2U6E8YCKZFA==`.
+Both use Backend producer `397ac88a89593872cf76ad579a3c59753d832668`.
+The canonical UNS types include required AppContext.dataState and optional
+Stream run diagnostics. Its unchanged V1 projection retains actual 0b provenance.
+Public-input equivalence does not relabel old archives. Keep 6367/0.5.4,
+0.7.0 and 0.7.1 archives unchanged as historical checkpoints.
 
-The canonical SDK supplies `streams.requests/messages` and explicit
-`StreamRequestError.outcomeUnknown=false` / unknown-result subclass `true`.
-This is a classifier, not a wire execution phase or safe-replay promise:
-`retryable=false` and one POST/no automatic retry remain unchanged.
-The independent0.7.0 data SDK scopes capability validation by feature and removes
-retired public controls methods/types/errors/guidance; it does not add a second
-request execution API. The old0.6.2 and ee5499/9538 artifacts remain historical
-records, not renamed copies of these final candidates.
+Canonical streams.requests/messages remain the sole App request/message API;
+the Data SDK does not supply another execution API. StreamRequestError's
+outcomeUnknown boolean is an SDK classifier, not a wire execution phase or
+safe-replay promise. Requests retain one POST, retryable=false and no automatic
+retry; no V1 execution/retry/phase fields are invented.
 
-The accepted Backend consumer is `5e11f9c46cbfceecf27ae352882bce3663a0cafa`.
-The canonical SDK's generated UNS source retains real `c845ba79dad47741985852423215e059d64b948b`
-provenance; all accepted input bytes match fresh5e11. Its unchanged V1 projection
-retains historical310 provenance with equivalence recorded separately.
-Node reuses injected App/internal Key and APP_ID; current policy and persisted
-scope ceilings still apply. Installed packages do not migrate old stored Key scopes,
-update existing App callers/Pods or prove broker/service/live readiness. Actual
-caller inventory, explicit owner-scoped migration, configuration/schema/backup
-and live acceptance remain release gates. Do not add Control aliases or browser keys.
+App policy and persisted Key scope ceilings still apply. Package gates do not
+migrate old callers/Keys or prove runtime/broker/live readiness. Actual caller
+inventory, owner-scoped credential migration, configuration/schema/backup and
+real acceptance remain release gates. SWE d20 AppUser bridge is source in open
+PR734, not evidence of ACK deployment or inclusion in MCP5088. Never add
+Control aliases, browser keys or an automatic replay path. Retain these exact
+archives in source/template ZIPs; do not replace them with same-version registry packages.
