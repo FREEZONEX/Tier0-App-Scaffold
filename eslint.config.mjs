@@ -205,6 +205,8 @@ const eslintConfig = defineConfig([
     "build/**",
     "src/routeTree.gen.ts",
     "node_modules/**",
+    // Platform-private workspace (managed skills, preview state); not App code.
+    ".tier0/**",
   ]),
   {
     files: ["**/*.{ts,tsx,js,jsx,mjs}"],

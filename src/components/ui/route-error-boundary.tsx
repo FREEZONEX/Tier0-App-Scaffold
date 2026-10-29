@@ -1,10 +1,10 @@
-import type { ErrorComponentProps } from "@tanstack/react-router";
+import { errorMessage } from "@/lib/component-kit/api-client";
 import { useEffect } from "react";
 import { isPreviewRoleError, sendPreviewError } from "@/lib/preview-bridge";
 
 export interface RouteErrorBoundaryProps {
   /** Error surfaced by the route's `errorComponent` boundary. */
-  error: ErrorComponentProps["error"];
+  error: unknown;
   /** Which route failed; goes into the preview report and the DOM marker. */
   scope?: string;
 }
@@ -29,7 +29,7 @@ export function RouteErrorBoundary({
   error,
   scope = "page",
 }: RouteErrorBoundaryProps) {
-  const message = error.message || `${scope} failed to load`;
+  const message = errorMessage(error, `${scope} failed to load`);
 
   const kind = isPreviewRoleError(error) ? "role" : "app";
 

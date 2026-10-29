@@ -86,3 +86,22 @@ test('metadata forms keep the required marker after the title in both layouts', 
   assert.ok(html.indexOf('名称') < html.indexOf('data-required-marker'));
  }
 });
+
+test('route error components render unknown failures without throwing', async () => {
+ const { RouteErrorBoundary } = await import('../src/components/ui/route-error-boundary');
+ const { RouteError } = await import('../src/components/ui/route-error');
+ for (const [error, expected] of [
+  [new Error('Request failed'), 'Request failed'],
+  ['Network unavailable', 'Network unavailable'],
+  [null, 'orders failed to load'],
+  [undefined, 'orders failed to load'],
+  [{message: 42}, 'orders failed to load'],
+  [new Error(''), 'orders failed to load'],
+ ] as const) {
+  const hidden = renderToString(createElement(RouteErrorBoundary, {error, scope: 'orders'}));
+  assert.match(hidden, /data-route-error="orders" hidden=""/);
+  assert.ok(hidden.includes(expected));
+  const visible = renderToString(createElement(RouteError, {error, title: 'orders failed to load'}));
+  assert.ok(visible.includes(expected));
+ }
+});

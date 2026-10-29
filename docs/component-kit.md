@@ -32,7 +32,7 @@
 
 ## 列表类型页面默认使用 MetaListPage
 
-档案、台账、单据、任务及其他以记录查询和列表操作为主的页面，默认以 `@/components/kit/meta/meta-list-page` 的 `MetaListPage` 为基础。先配置对象字段、查询条件和列，再接入业务动作，复用组件已有的查询区、视图、列配置、排序和分页，不重新拼装一套页面壳。
+档案、台账、单据、任务及其他以记录查询和列表操作为主的页面，默认以 `@/components/kit/meta/meta-list-page` 的 `MetaListPage` 为基础。先配置对象字段、查询条件和列，再接入业务动作，复用组件已有的查询区、视图、列配置、排序和分页，不重新拼装一套页面壳。列表内容默认直接铺在页面上，页签、查询区、工具栏、表格和分页外不再套装饰性 `Card` / `PageCard`；仅保留 `PageContainer` 的页面留白及列表内部间距。
 
 - 页面以 `objectCode` 和 `title` 标识业务对象；创建、打开详情、行操作和批量操作分别通过 `onCreate`、`onOpenRecord`、`rowActions`、`batchActions` 接入。差异化展示使用 `cellRenderers`，额外入口使用 `headerExtra` / `toolbarExtra`。
 - 在应用范围内配置 `ComponentKitProvider`，将 `meta/config` 与 `meta/query` 等逻辑请求映射到真实服务，并提供 `canObject`。业务接口仍执行服务端权限校验；图库适配器不能用于应用数据。

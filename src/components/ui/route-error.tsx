@@ -1,10 +1,11 @@
+import { errorMessage } from "@/lib/component-kit/api-client";
 import type { ErrorComponentProps } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 export interface RouteErrorProps {
   /** Error surfaced by the route's `errorComponent` boundary. */
-  error: ErrorComponentProps["error"];
+  error: unknown;
   /** Boundary reset callback; when provided renders a Retry action. */
   reset?: ErrorComponentProps["reset"];
   /** Headline shown above the error message. */
@@ -43,7 +44,7 @@ export function RouteError({
           {title}
         </p>
         <p className="mt-1 text-sm text-muted-foreground sm:text-base">
-          {error.message}
+          {errorMessage(error, title)}
         </p>
         {reset ? (
           <Button
