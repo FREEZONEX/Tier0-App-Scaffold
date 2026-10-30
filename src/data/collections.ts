@@ -24,6 +24,7 @@ import type { CollectionDefinition } from "@tier0/sdk-v2/data/define";
 //
 // export const workOrders = defineCollection({
 //   alias: "work_orders",
+//   name: "Work orders",
 //   description: "Production work orders",
 //   schema: z.object({
 //     code: z.string(),

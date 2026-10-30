@@ -15,6 +15,7 @@ const COUNT = "/uns/collections/c-orders/records:count";
 
 const orders = defineCollection({
   alias: "orders",
+  name: "Orders",
   schema: z.object({ code: z.string(), status: z.enum(["OPEN", "DONE"]) }),
   indexes: [{ path: "code", unique: true }],
 });

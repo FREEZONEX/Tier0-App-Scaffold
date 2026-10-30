@@ -1,4 +1,4 @@
-import { client } from "@tier0/sdk";
+import { client } from "@tier0/sdk-v2";
 
 // Browser caller fixture: no Key, host or tenant configuration is accepted.
 export function describeRequest(code: string) {
