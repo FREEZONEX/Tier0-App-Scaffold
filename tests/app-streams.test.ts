@@ -3,25 +3,20 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { test } from "node:test";
-import { installAppRuntime } from "@tier0/sdk/runtime";
-import { StreamRequestError, StreamRequestResultUnknownError } from "@tier0/sdk/cloud";
+import { installAppRuntime } from "@tier0/sdk-v2/runtime";
+import { StreamRequestError, StreamRequestResultUnknownError } from "@tier0/sdk-v2";
 import { describeRequest, messageTopic } from "./fixtures/app-streams-browser";
 
-test("both SDK packages use their separate immutable local artifacts", () => {
+test("the unified SDK uses the exact published artifact", () => {
   const pkg = JSON.parse(readFileSync("package.json", "utf8"));
   const lock = JSON.parse(readFileSync("package-lock.json", "utf8"));
-  const archive = readFileSync("vendor/tier0-sdk-0.5.5-9525f893b80c.tgz");
-  assert.equal(pkg.dependencies["@tier0/sdk"], "file:vendor/tier0-sdk-0.5.5-9525f893b80c.tgz");
+  const archive = readFileSync("vendor/tier0-sdk-v2-0.9.0.tgz");
+  assert.equal(pkg.dependencies["@tier0/sdk"], undefined);
+  assert.equal(pkg.dependencies["@tier0/sdk-v2"], "file:vendor/tier0-sdk-v2-0.9.0.tgz");
   assert.equal(createHash("sha256").update(archive).digest("hex"),
-    "c0ec923cfab558a00be1e6806e729c3b342f27ad6a0aa2c5f29ba7f4cdd9f00d");
-  assert.equal(lock.packages["node_modules/@tier0/sdk"].integrity,
-    `sha512-${createHash("sha512").update(archive).digest("base64")}`);
-  const dataArchive = readFileSync("vendor/tier0-sdk-v2-0.7.2-506c532b6697.tgz");
-  assert.equal(pkg.dependencies["@tier0/sdk-v2"], "file:vendor/tier0-sdk-v2-0.7.2-506c532b6697.tgz");
-  assert.equal(createHash("sha256").update(dataArchive).digest("hex"),
-    "3634d19d0885f47fb02f7d2c38f2b740d519f2f79fa3a88a1f2bbc9ed98dbd19");
+    "25f503028e245e9351f648a509bb1285f547c79003f4b7b3fed549d39015e94b");
   assert.equal(lock.packages["node_modules/@tier0/sdk-v2"].integrity,
-    `sha512-${createHash("sha512").update(dataArchive).digest("base64")}`);
+    `sha512-${createHash("sha512").update(archive).digest("base64")}`);
   const known = new StreamRequestError("conflict", { errorCode: "IDEMPOTENCY_CONFLICT" });
   const unknown = new StreamRequestResultUnknownError({ errorCode: "STREAM_REQUEST_RESULT_UNKNOWN" });
   assert.equal(known.outcomeUnknown, false);
@@ -53,7 +48,7 @@ test("browser Stream calls require the trusted runtime and never fall back to fe
       },
     });
     assert.deepEqual(await describeRequest("pump.start"), contract);
-    assert.deepEqual(calls, [{ path: "/openapi/v1/stream-requests/pump.start/describe", body: {} }]);
+    assert.deepEqual(calls, [{ path: "/openapi/v2/stream-requests/pump.start/describe", body: {} }]);
     const topic = messageTopic("sdk/contract");
     assert.equal(typeof topic.publish, "function");
     assert.equal(typeof topic.subscribe, "function");

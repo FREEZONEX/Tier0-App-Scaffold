@@ -321,7 +321,7 @@ Use `DESIGN.md`, existing tokens and the shipped primitives
 
 ## Tier0 SDK and Platform
 
-Use the installed `@tier0/sdk-v2` (`0.6.1`, pinned exactly in `package.json`;
+Use the installed `@tier0/sdk-v2` (`0.9.0`, pinned exactly in `package.json`;
 never change that dependency) for user/platform info, members, notifications,
 files, MQTT/MQ/WebSocket or capabilities. Load it lazily inside the
 server action through `@/lib/tier0` (`loadTier0Sdk()`, `loadTier0Mq()`); never
@@ -375,10 +375,9 @@ scaffold/default branding from the finished app.
 
 ## App Stream requests and messages
 
-Use the bundled `@tier0/sdk/cloud` for `client.streams.requests` and
-`client.streams.messages`. Keep `@tier0/sdk-v2` at its current exact pin for data
-and platform operations. Do not generate controls APIs, v2 request-execution
-aliases, interpreter selectors or a second control credential. Keep the
+Use the bundled `@tier0/sdk-v2` for `client.streams.requests`,
+`client.streams.messages`, data and platform operations. Do not generate retired
+Control APIs, interpreter selectors or a second control credential. Keep the
 `tier0-stream/v3` machine script contract; it does not select a runtime.
 
 Browser Stream calls require the platform's trusted runtime provider; application

@@ -323,7 +323,7 @@ describe("record change hub over data.subscribe", () => {
       });
       return new Response(body, { headers: { "Content-Type": "text/event-stream; charset=utf-8" } });
     }) as typeof globalThis.fetch;
-    const cases = defineCollection({ alias: "cases", schema: z.object({ title: z.string() }) });
+    const cases = defineCollection({ alias: "cases", name: "Cases", schema: z.object({ title: z.string() }) });
     const data = createDataClient({
       collections: [cases], fetch, apiHost: "http://gw.local", apiKey: "sk-app", logger: { info() {}, warn() {}, error() {} },
     });

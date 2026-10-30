@@ -2,14 +2,10 @@
 
 ## Tier0 SDK (`@tier0/sdk-v2`)
 
-The next candidate stages the verified local `@tier0/sdk-v2@0.7.2` candidate from
-`506c532b66973cc1b16dacd0e7d097800b65decd` through
-`file:vendor/tier0-sdk-v2-0.7.2-506c532b6697.tgz`. It is bound to Backend `397ac88a89593872cf76ad579a3c59753d832668` and is not an npm publication.
-The matched canonical 0.5.5 archive is now bound below; consumer checks are
-recorded separately from source dependency binding. Every
-SDK call goes to `/openapi/v2` (platform routes such as `/openapi/v2/info`,
-`/openapi/v2/notifications/send`, `/openapi/v2/assets/files`); 0.3.0 removed the duplicate UNS operations and
-the Agent `nodes` / `relations` methods, with no fallback to older routes.
+The unified `@tier0/sdk-v2@0.9.0` is pinned to the verified published archive
+`file:vendor/tier0-sdk-v2-0.9.0.tgz`. It supplies data, platform, Stream request
+and message APIs using `/openapi/v2`. The archive integrity is checked by the
+lockfile and tests; installation alone does not prove a live deployment.
 
 HTTP Sources use `http-api` with `config.role: client | server`. New Source
 configurations omit `configVersion`; native Stream documents use
@@ -50,19 +46,12 @@ Updating injected guidance alone does not upgrade an application's installed SDK
 
 ### Browser App Stream requests and messages
 
-The separately pinned canonical `@tier0/sdk@0.5.5` archive comes from checked
-commit `9525f893b80cf4778f7f30e172f4f13c701a1787` through
-`file:vendor/tier0-sdk-0.5.5-9525f893b80c.tgz` and its actual package-lock integrity.
-Its UNS contract uses Backend `397ac88a89593872cf76ad579a3c59753d832668`, including
-required `AppContext.dataState` (`uninitialized | ready`) and optional run diagnostics.
-Its unchanged V1 projection retains accurate 0b provenance. The archive is a
-local immutable candidate, not an npm publication. Retain the exact tar in source
-ZIPs; see `vendor/README.md` for hashes. Installation and source bridge checks
-do not establish actual Gateway/SYS/broker deployment. The d20 bridge remains
-open PR734 and must not be claimed deployed merely because its source is reviewed.
+The same `@tier0/sdk-v2` package provides browser Stream interactions. The
+trusted App Gateway runtime supplies identity; no browser key or endpoint is
+configured by App code. Retain the exact SDK archive in source ZIPs.
 
 ```ts
-import { client } from "@tier0/sdk/cloud";
+import { client } from "@tier0/sdk-v2";
 
 const request = client.streams.requests.use({ code: "pump.start" });
 const contract = await request.describe();
@@ -84,20 +73,14 @@ outcomes before deliberately replaying with the same idempotency key. Business
 messages use ephemeral NATS Core WSS credentials, with no offline queue, replay
 or receiver ACK. Keep the `tier0-stream/v3` machine script contract and current
 single-model shape without generation selectors; do not use retired Control or
-v2 execution aliases.
+legacy execution aliases.
 
-The independent local data/platform SDK candidate is `@tier0/sdk-v2@0.7.2`;
-server-only `@/lib/data` and `@tier0/sdk-v2/data` wiring remain unchanged.
-Its discovery validates each known feature's contract without a global retired
-Control contract requirement. The old public controls methods, types, errors and
-Skill guidance have been removed; request execution uses the separate canonical
-`@tier0/sdk` entry above. Existing Apps pinned to older packages still need explicit
-migration. Canonical `StreamRequestError.outcomeUnknown` is a boolean classifier:
-base errors expose `false`, unknown-result errors expose `true`. A `false` value is
-not wire proof of `execution=notStarted` or permission to replay. `retryable` remains
-false, requests make one POST, and no V1 execution/retry/phase fields are invented. Package installation is independent of Gateway/SYS
-configuration, broker readiness, existing-App migration and browser acceptance;
-neither an installed package nor a bootstrap script proves a live deployment.
+The same package provides server-only `@/lib/data` and `@tier0/sdk-v2/data`.
+Existing Apps pinned to older packages need an explicit migration. A request
+makes one POST without automatic retries; `outcomeUnknown` is an SDK classifier,
+not proof that execution did not start. Reconcile uncertain results before replay.
+Installation alone does not prove Gateway, SYS, broker or browser readiness.
+
 Node Apps use the same SDK with automatically injected `TIER0_API_HOST`,
 `TIER0_API_KEY` and `APP_ID`. Fresh App/internal Keys use unified persisted
 request/message mode ceilings; current Workspace/App policy and entry/topic

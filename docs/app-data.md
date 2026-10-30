@@ -22,6 +22,7 @@ import { seedTimestamp } from "./seed-utils";
 
 export const workOrders = defineCollection({
   alias: "work_orders",                     // unique per App, case-insensitive
+  name: "Work orders",                      // required business name
   description: "Production work orders",
   schema: z.object({
     code: z.string(),

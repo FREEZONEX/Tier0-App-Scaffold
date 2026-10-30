@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "tier0Scaffold": {
-    "version": 18,
-    "ref": "f5fe69d"
+    "version": 19,
+    "ref": "aec4692"
   },
   "engines": {
     "node": ">=22.12.0"
@@ -38,8 +38,7 @@
     "@fontsource/inter": "^5.2.8",
     "@tanstack/react-router": "^1.168.0",
     "@tanstack/react-start": "^1.167.0",
-    "@tier0/sdk": "file:vendor/tier0-sdk-0.5.5-9525f893b80c.tgz",
-    "@tier0/sdk-v2": "file:vendor/tier0-sdk-v2-0.7.2-506c532b6697.tgz",
+    "@tier0/sdk-v2": "file:vendor/tier0-sdk-v2-0.9.0.tgz",
     "clsx": "^2.1.1",
     "lucide-react": "^0.577.0",
     "motion": "^12.38.0",
