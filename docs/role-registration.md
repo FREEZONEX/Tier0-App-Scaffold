@@ -80,19 +80,10 @@ not block builds; registration, metadata and permission checks still apply.
 
 ## Runtime: how assigned roles reach the app
 
-All traffic arrives through the platform App Gateway. The gateway authenticates
-the user, then injects role headers that it **strips and re-injects on every
-request** (so the client cannot forge them):
-
-| Runtime | Headers carrying roles | Effective model | Validated upstream by |
-|---|---|---|---|
-| Deployed | `X-Tier0-Business-Roles` plus `X-Tier0-Active-Role` | Union of all assigned app roles; active role is primary display only | runtime-roles API (user's assigned roles ∩ app bindings) |
-| Preview | `X-Tier0-Preview-Role` | Union of the developer-selected "view-as" role set (one or several roles, or none) | preview role store |
-
-`X-Tier0-Business-Roles` is comma-separated. `src/lib/gateway.ts` normalizes
-and deduplicates it, keeps the active role first, and exposes the complete set
-on `AppUser.roles` for the current request. Legacy `X-App-User-Role` /
-JSON `user.role` integrations remain single-role.
+All traffic arrives through the platform front door, which signs the visitor's
+complete role set into the `app_roles` claim of `X-Tier0-Visitor`. In Preview it
+holds the roles selected for "view as". `src/lib/visitor.ts` verifies the token;
+`can()` and `requireAuth()` work on the union in `AppUser.roles`.
 
 ### Multiple roles use permission union
 
@@ -105,32 +96,13 @@ actions; they never erase permissions granted by another known assigned role.
 
 ### Trust model (why an unregistered-in-matrix role can still enter)
 
-`src/start.ts` treats a role as **authoritative** when it is either:
+`src/start.ts` admits a visitor by the signature of the token, not by its roles.
+The only role source is the verified token (`visitorRoles()` in `visitor.ts`).
 
-- present in `PERMISSION_MATRIX`, **or**
-- a **gateway-injected Tier0 runtime role set** (`getTrustedGatewayRoles()` in
-  `gateway.ts` — deployed `X-Tier0-Business-Roles` / active role, or preview
-  `X-Tier0-Preview-Role`, under an explicit `X-Tier0-Runtime`).
+A signed role is trusted **even if it is not yet in `PERMISSION_MATRIX`**: it
+simply resolves to zero permissions until the matrix is updated.
 
-A gateway-injected role is trusted **even if it is not yet in
-`PERMISSION_MATRIX`**: the gateway already validated it, and it simply resolves
-to **zero permissions** via `can()` until the app defines them. This is what
-lets a freshly registered platform role (e.g. `youke`) enter the app before the
-permission plane has caught up, instead of hard-failing.
-
-Only a role that is **not** gateway-injected and **not** in the matrix — i.e. a
-forgeable legacy/login value — fails closed with `403 "Platform role is not
-recognized by this app"`. `src/lib/auth.ts` (`getCurrentUser`) mirrors this so
-SSR and the middleware agree.
-
-> Security note: the bypass is deliberately scoped to `X-Tier0-*` headers
-> because those are stripped and re-injected by the gateway. The legacy
-> `X-App-User-Role` path is **not** stripped by the gateway and therefore stays
-> gated by `PERMISSION_MATRIX` — do not widen the bypass to cover it.
-
-### Zero permissions is entry, not access
-
-A gateway-injected role with no matrix entry can *load* the app but sees an empty
+A signed role with no matrix entry can *load* the app but sees an empty
 shell: `canViewModule()` hides every permissioned module and `requireAuth("…")`
 server routes still `403` it. Entry ≠ capability. The role only becomes useful
 once its actions are defined in `PERMISSION_MATRIX`.
@@ -154,7 +126,7 @@ When you add/finish a business role (worked example: guest `youke` / 游客):
   with zero permissions and no metadata in the app. It will appear in the Roles
   tab and preview picker yet do nothing until `permissions.ts` is updated.
 - **Editing only `permissions.ts`** gives the app the capability but the platform
-  never learns the role exists, so no member can be assigned it and the gateway
+  never learns the role exists, so no member can be assigned it and the front door
   never injects it.
 - **Key casing / spelling drift** between the three files silently breaks the
   join — `role_key` must equal the `PERMISSION_MATRIX` key byte-for-byte.
@@ -165,8 +137,8 @@ When you add/finish a business role (worked example: guest `youke` / 游客):
 
 - `src/lib/permissions.ts` — `PERMISSION_MATRIX`, `ACTIONS`, `can()`
 - `src/lib/role-metadata.ts` — `ROLE_METADATA`, `getRoleMetadata()`
-- `src/lib/gateway.ts` — `getGatewayRole()`, `getGatewayRoles()`, `getTrustedGatewayRoles()`
+- `src/lib/visitor.ts` — `readVisitor()`, `visitorRoles()`
 - `src/start.ts` — request middleware / role authority decision
 - `src/lib/auth.ts` — `getCurrentUser()`, `isValidRole()`, `requireAuth()`
 - `roles.json` — platform registration input
-- [`platform-integration.md`](./platform-integration.md) — full gateway/deploy integration
+- [`platform-integration.md`](./platform-integration.md) — full platform/deploy integration

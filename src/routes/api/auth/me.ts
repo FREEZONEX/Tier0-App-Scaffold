@@ -1,5 +1,5 @@
 /**
- * Current user endpoint — returns the Gateway-resolved user.
+ * Current user endpoint — returns the user of the verified visitor token.
  * Used by Shell and frontend components to display user identity and role.
  */
 

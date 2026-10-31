@@ -1,70 +1,32 @@
 import { getRequestHeaders } from "@tanstack/react-start/server";
 import type { AppUser } from "./users";
-import {
-  getGatewayRoles,
-  getGatewayRuntime,
-  getTrustedGatewayRoles,
-  parseGatewayUser,
-  type GatewayUser,
-} from "./gateway";
 import { ROLE_REQUIRED_MESSAGE_PREFIX } from "./preview-bridge";
 import { HttpError } from "./route-handlers";
-import { hasAnyRole, PERMISSION_MATRIX, toRoleList } from "./permissions";
+import { hasAnyRole, toRoleList } from "./permissions";
+import { readVisitor, visitorRoles, type Visitor } from "./visitor";
 
-function isValidRole(role: string | undefined): role is string {
-  return typeof role === "string" &&
-    Object.prototype.hasOwnProperty.call(PERMISSION_MATRIX, role);
-}
-
-function toAppUser(gatewayUser: GatewayUser, roles: readonly string[]): AppUser {
-  const username = gatewayUser.name || gatewayUser.id;
-  const normalizedRoles = toRoleList(roles);
+function toAppUser(visitor: Visitor): AppUser {
+  const roles = toRoleList(visitorRoles(visitor));
   return {
-    id: gatewayUser.id,
-    username,
-    displayName: gatewayUser.name || username,
-    primaryRole: normalizedRoles[0] ?? "",
-    roles: normalizedRoles,
-    email: gatewayUser.email || undefined,
+    id: visitor.subject,
+    // The token carries no name or email (access design 4.4). Use
+    // `tier0.members` under `platform.users.read` where a name is needed.
+    username: visitor.subject,
+    displayName: visitor.subject,
+    primaryRole: roles[0] ?? "",
+    roles,
   };
 }
 
 /**
- * Read the current user only from Tier0 Gateway headers. In deployed mode,
- * `X-Tier0-Business-Roles` is the complete assigned-role set and effective
- * permissions are its union.
- *
- * Preview uses the developer's selected "view as" role set, which may contain
- * several roles and uses the same permission union. A preview identity
- * without a selected role enters with zero roles and zero permissions — the
- * scaffold reserves no fallback role. An explicit deployed empty role list is
- * likewise authoritative zero access.
+ * The current employee, from the verified visitor token. `app_roles` is the
+ * complete role set and effective permissions are its union; in Preview it is
+ * the developer's selected "view as" set. An empty set means zero permissions:
+ * the scaffold reserves no fallback role. Machine callers are not users.
  */
 export async function getCurrentUser(): Promise<AppUser | null> {
-  const headers = new Headers(getRequestHeaders());
-  const gatewayUser = parseGatewayUser(headers);
-  const runtime = getGatewayRuntime(headers);
-
-  const trustedRoles = getTrustedGatewayRoles(headers);
-  if (gatewayUser?.id && trustedRoles !== undefined) {
-    return toAppUser(gatewayUser, trustedRoles);
-  }
-
-  // Legacy role sources are not gateway-stripped, so they remain matrix-gated.
-  if (
-    gatewayUser?.id &&
-    gatewayUser.role &&
-    isValidRole(gatewayUser.role)
-  ) {
-    return toAppUser(gatewayUser, getGatewayRoles(headers));
-  }
-
-  if (gatewayUser?.id && runtime === "preview") {
-    // No selected preview role: zero roles, zero permissions.
-    return toAppUser(gatewayUser, []);
-  }
-
-  return null;
+  const visitor = readVisitor(new Headers(getRequestHeaders()));
+  return visitor?.subType === "employee" ? toAppUser(visitor) : null;
 }
 
 /**
@@ -83,4 +45,9 @@ export async function requireAuth(...roles: string[]): Promise<AppUser> {
     );
   }
   return user;
+}
+
+/** Require at least one of `roles`; an alias that reads better at the call site. */
+export function requireRole(...roles: [string, ...string[]]): Promise<AppUser> {
+  return requireAuth(...roles);
 }
