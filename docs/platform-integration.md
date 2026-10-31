@@ -143,8 +143,8 @@ losing messages. Messages beyond the broker's offline queue (`max_mqueue_len`,
 EMQX default 1000) during a disconnect are still lost. A disconnected client
 queues `publish`; it never opens a second client. The server reconnects forever
 with a backoff of up to 5 minutes. The browser stops when authorization fails and
-continues on `resumed`. An employee with `rowScope=own` or field-narrowed data
-rules gets no MQTT subscription in this version.
+continues on `resumed`. Browser MQTT tokens cover the App's `messageTopics` only;
+real-time collection data goes through `useRecordChanges`.
 
 ## Environment Variables
 
@@ -482,3 +482,10 @@ seed writes, calls outside a request and calls inside `runAsApp(...)` carry none
 When the caller goes away, data calls still waiting for a slot are dropped unsent
 and those in flight are cancelled. A delegation lasts 10 minutes; longer background
 work uses `runAsApp` and records who started it.
+
+In Preview the App credential may only ensure collection structure. Seed
+documents are written by the first request that carries a delegation, as the
+Builder who opened the preview: if that Builder cannot write the collection, the
+seed fails and is logged. `useRecordChanges` subscribes as the same Builder, per
+browser stream. `runAsApp` data calls are refused with
+`preview_app_self_forbidden`, in Preview only.
