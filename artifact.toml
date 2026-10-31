@@ -45,6 +45,9 @@ serve = "dynamic"
 # publication instead of being swallowed by non-blocking cleanup semantics.
 args = ["sh", "-c", "npm ci && npm run build && npm prune --omit=dev"]
 outputDir = "."
+# The app layer. artifact.toml, package.json and roles.json always go with it;
+# dependencies come from the separate deps layer.
+include = ["dist", "server.mjs"]
 
 # No `image`: the platform supplies each environment's default runtime image.
 [services.production.run]
@@ -57,6 +60,13 @@ HOST = "0.0.0.0"
 [services.production.health.startup]
 path = "/api/health"
 timeout = 120
+
+# Static bundle: the front door serves these directly, so a lazy chunk still
+# loads while the App sleeps. Only content-hashed build output is listed; other
+# public files go through the instance.
+[static]
+dir = "dist/client"
+url_prefixes = ["/assets/"]
 
 # Live preview (dev server running inside the Executor Pod)
 [services.preview]

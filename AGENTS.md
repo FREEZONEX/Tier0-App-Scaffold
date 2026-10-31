@@ -350,7 +350,8 @@ MQTT and credential handling: `docs/platform-integration.md`.
   `EventSource` does not come back after the App sleeps, because it never
   retries a 503: subscribe to `resumed` (`onPageRuntime` from
   `@tier0/sdk-v2/page-runtime`) and rebuild it, or use `openEventStream` from
-  `@tier0/sdk-v2/event-stream`.
+  `@tier0/sdk-v2/event-stream`. A hand-written WebSocket does not come back
+  after a node agent restart either; reconnect it yourself.
 - `GET /api/health` stays free of dependencies (contract in `artifact.toml`).
 - `.tier0ignore` (gitignore syntax) keeps local files out of the published source.
 - Do not use the sandbox file system for application-generated or uploaded
