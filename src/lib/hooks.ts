@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { requestJson } from "@/lib/utils";
+import { isAppSleeping, onPageRuntime } from "@tier0/sdk-v2/page-runtime";
+import { isAppWaiting, requestJson } from "@/lib/utils";
 
 export interface RequestResult<T> {
   /** Latest successful response, or null if no response yet. */
@@ -59,6 +60,8 @@ function reportRequestFailure(scope: string, error: Error) {
  * live lists can opt into `refetchInterval`. Automatic refreshes skip hidden,
  * offline, and in-flight requests; explicit `refresh()` still replaces an
  * in-flight request, so a completed mutation can invalidate an older read.
+ * While the App sleeps nothing refreshes by itself; the runtime's `resumed`
+ * reloads, and the data on screen stays until then.
  *
  * Usage:
  *   const request = useRequest(
@@ -151,6 +154,7 @@ export function useRequest<T>(
         ) {
           return;
         }
+        if (isAppWaiting(requestError)) return;
         const error = toError(requestError);
         reportRequestFailure(requestKey, error);
         setError(error);
@@ -183,7 +187,8 @@ export function useRequest<T>(
       if (
         document.hidden ||
         navigator.onLine === false ||
-        controllerRef.current
+        controllerRef.current ||
+        isAppSleeping()
       ) return;
       refresh();
     }
@@ -198,11 +203,13 @@ export function useRequest<T>(
       document.addEventListener("visibilitychange", revalidate);
     }
     if (refetchOnReconnect) window.addEventListener("online", revalidate);
+    const offResumed = onPageRuntime("resumed", refresh);
 
     return () => {
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", revalidate);
       window.removeEventListener("online", revalidate);
+      offResumed();
     };
   }, [
     requestKey, enabled, refetchInterval, refetchOnWindowFocus,
@@ -247,7 +254,7 @@ export function usePolling<T>(
       if (!enabled) {
         return;
       }
-      if (!force && navigator.onLine === false) {
+      if (!force && (navigator.onLine === false || isAppSleeping())) {
         return;
       }
       if (
@@ -287,6 +294,7 @@ export function usePolling<T>(
         if (controller.signal.aborted || requestId !== requestIdRef.current) {
           return;
         }
+        if (isAppWaiting(requestError)) return;
         const error = toError(requestError);
         reportRequestFailure(url, error);
         setError(error);
@@ -334,10 +342,12 @@ export function usePolling<T>(
       void loadRef.current();
     }
     window.addEventListener("online", handleOnline);
+    const offResumed = onPageRuntime("resumed", () => void loadRef.current(true));
 
     return () => {
       window.clearInterval(intervalId);
       window.removeEventListener("online", handleOnline);
+      offResumed();
       if (pauseWhenHidden && typeof document !== "undefined") {
         document.removeEventListener(
           "visibilitychange",

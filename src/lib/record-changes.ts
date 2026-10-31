@@ -19,13 +19,17 @@
  * order of events.
  *
  * The App server holds one upstream subscription per process and fans it out
- * to every browser, so a page may subscribe freely; the browser reconnects on
- * its own and resumes from the last event it saw. Pass collection aliases
+ * to every browser, so a page may subscribe freely; the stream reconnects on
+ * its own and resumes from the last event it saw. It stops while the App
+ * sleeps and comes back on the runtime's `resumed` with a `reset`, because
+ * changes in between were missed. It runs over `fetch`: `EventSource` gives up
+ * for good on a 503. Pass collection aliases
  * (strings): importing declarations into a page puts their schemas and seeds
  * into the browser bundle.
  */
 
 import { useEffect, useRef } from "react";
+import { openEventStream } from "@tier0/sdk-v2/event-stream";
 import { apiUrl } from "@/lib/utils";
 
 /** A `change` event of `/api/uns/subscribe` naming the record. */
@@ -73,6 +77,9 @@ export interface RecordChangeOptions {
 
 type CollectionRef = string | { alias: string };
 
+/** Three missed 15 s heartbeats of `/api/uns/subscribe`. */
+const STREAM_IDLE_TIMEOUT_MS = 45_000;
+
 /** URL of the change stream for the given collections (aliases or declarations). */
 export function recordChangesUrl(
   collections: readonly CollectionRef[],
@@ -105,9 +112,8 @@ export function useRecordChanges(
   }, [onChange]);
 
   useEffect(() => {
-    if (!enabled || collections.length === 0 || typeof EventSource === "undefined") return;
+    if (!enabled || collections.length === 0 || typeof fetch === "undefined") return;
 
-    const source = new EventSource(url);
     let pending: RecordChangeBatch | null = null;
     let timer: number | undefined;
 
@@ -124,9 +130,9 @@ export function useRecordChanges(
       timer ??= window.setTimeout(flush, batchMs);
     }
 
-    function onChange(event: MessageEvent<string>) {
+    function onChange(body: string) {
       try {
-        const change = JSON.parse(event.data) as ChangeEvent;
+        const change = JSON.parse(body) as ChangeEvent;
         queue((batch) => {
           if (change.change !== "collection") batch.changes.push(change);
           else if (!batch.collections.includes(change.collection)) batch.collections.push(change.collection);
@@ -142,24 +148,23 @@ export function useRecordChanges(
       });
     }
 
-    // EventSource retries dropped connections itself; it gives up for good
-    // on an HTTP error (401 after the session expired, 400, 404). Changes
-    // stop arriving then, so let the page reload once.
-    function onError() {
-      if (source.readyState !== EventSource.CLOSED) return;
-      console.warn("[record-changes] subscription closed by the server:", url);
-      onReset();
-    }
-
-    source.addEventListener("change", onChange);
-    source.addEventListener("reset", onReset);
-    source.addEventListener("error", onError);
+    const stream = openEventStream({
+      url,
+      idleTimeoutMs: STREAM_IDLE_TIMEOUT_MS,
+      onEvent(event) {
+        if (event.event === "change") onChange(event.data);
+        else if (event.event === "reset") onReset();
+      },
+      onResume: onReset,
+      // Refused for good (400, 404, or no page runtime): let the page reload once.
+      onClose(error) {
+        console.warn("[record-changes] subscription closed by the server:", url, error.message);
+        onReset();
+      },
+    });
 
     return () => {
-      source.removeEventListener("change", onChange);
-      source.removeEventListener("reset", onReset);
-      source.removeEventListener("error", onError);
-      source.close();
+      stream.close();
       window.clearTimeout(timer);
     };
     // `collections` and `recordIds` are folded into `url`.

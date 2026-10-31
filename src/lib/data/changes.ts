@@ -3,7 +3,7 @@
  *
  * A server process holds ONE upstream subscription (`data.subscribe` over
  * every declared collection, as the App) and fans it out to every browser
- * EventSource, filtered by the collection aliases and record IDs each one
+ * event stream, filtered by the collection aliases and record IDs each one
  * asked for. Browsers never open their own upstream: UNS limits
  * subscriptions per App server process, not per user.
  *

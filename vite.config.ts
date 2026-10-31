@@ -67,6 +67,8 @@ export default defineConfig({
       "clsx",
       "tailwind-merge",
       "sonner",
+      "@tier0/sdk-v2/event-stream",
+      "@tier0/sdk-v2/page-runtime",
     ],
   },
   plugins: [
