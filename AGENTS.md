@@ -109,7 +109,7 @@ placeholder; do not vendor Skills here.
 
 ```text
 src/
-  start.ts                     gateway auth + CSRF middleware (do not modify)
+  start.ts                     visitor token + CSRF middleware (do not modify)
   router.tsx                   router factory (do not modify)
   routes/
     __root.tsx                 root document + Toaster
@@ -159,7 +159,7 @@ Hard invariants:
   typed values and throw `HttpError` for caller-facing failures.
 - Define lifecycle transitions once in the owning service. Reject illegal
   transitions with a conflict/error instead of silently rewriting state.
-- Never fetch Tier0 UNS paths yourself and never put `TIER0_API_KEY` in the
+- Never fetch Tier0 UNS paths yourself and never put a platform credential in the
   browser; the data layer is the only UNS client.
 
 ## App Data
@@ -244,21 +244,28 @@ middleware, or `createServerFn().handler(...)`. Never import or call
 Inspect `Headers` with `.get()` or `Object.fromEntries(headers.entries())`,
 not `JSON.stringify(headers)`.
 
-## Gateway Authentication and Roles
+## Visitor Identity and Roles
 
-The platform Gateway owns login and injects identity. The App does not manage
-passwords, users, cookies, local sessions, login/register APIs, or logout.
+The platform front door owns login and signs the visitor into `X-Tier0-Visitor`
+on every request. The App does not manage passwords, users, cookies, local
+sessions, login/register APIs, or logout, and reads no plain identity header.
 
-- Deployed roles come from the complete comma-separated
-  `X-Tier0-Business-Roles` set. Effective permissions are the union of all
-  assigned roles.
-- `X-Tier0-Active-Role` / `user.primaryRole` is display metadata only; never
-  choose one “highest” role for authorization.
-- Preview uses the comma-separated `X-Tier0-Preview-Role` role set selected by
-  the developer (permission union); a preview request without a selected role
-  enters with zero roles and zero permissions.
-- Unknown trusted roles contribute zero permissions; explicit empty deployed
-  roles remain zero-access. Forgeable unknown legacy roles fail closed.
+- `src/start.ts` verifies the token on every request (keys from
+  `TIER0_JWKS_DIR`); any failure is a 401.
+- `app_roles` in the token is the complete role set. Effective permissions are
+  the union of all roles. The active role / `user.primaryRole` is display
+  metadata only; never choose one "highest" role for authorization.
+- In Preview the set holds the roles selected for "view as"; data stays limited
+  to the Builder's own rules. No selected role means zero roles and zero
+  permissions. Unknown roles contribute zero permissions.
+- Server functions require an employee by default. One that truly needs no
+  visitor is named `publicServerFn<Name>`; do not add one without a reason the
+  user agreed to. `machine` callers reach only the paths in
+  `src/lib/webhooks.ts`, which mirror `[[webhooks]]` in `artifact.toml`.
+- Server code uses `requireAuth()` / `requireRole(...)`; client code uses
+  `useVisitor()` from `@/lib/use-visitor`. The token has no name or email.
+- `npm run dev` signs a local visitor for `PREVIEW_USER_ID` with a key generated
+  at each start. Production never accepts it.
 
 The scaffold ships with no roles (`PERMISSION_MATRIX`, `ROLE_METADATA` and
 `roles.json` start empty; no role name is reserved, define `admin` only if the
@@ -276,8 +283,8 @@ the business needs distinct permission scopes. Register roles in one pass:
 
 Role display belongs to the global `Shell` user block only. Do not add page-body copy explaining what Admin, Operator, Member, or another role can do;
 show permission differences through real visibility and access behavior.
-Do not modify `src/start.ts`, `src/lib/{gateway,auth}.ts`, or
-`src/routes/api/auth/**`.
+Do not modify `src/start.ts`, `src/lib/{visitor,auth,dev-signer,server-fn-policy}.ts`,
+or `src/routes/api/auth/**`.
 
 ## UI and Client Runtime
 
@@ -331,11 +338,21 @@ top-level import or invoke it on SSR startup paths, and keep `vite.config.ts`
 `tier0.members.listApp({ appId: resolveAppId() })`. Notification channels,
 MQTT and credential handling: `docs/platform-integration.md`.
 
-- The platform injects SDK hosts, keys and connection details
-  (`TIER0_API_HOST`, `TIER0_API_KEY`, `APP_ID`, `VITE_BASE_PATH`). Do not add
-  them to `.env.example`, collections or user-facing settings unless the user
-  asks for an operator-managed credential console. Apps have no database
-  connection variables.
+- The platform provides SDK hosts, credentials and connection details
+  (`TIER0_API_HOST`, `TIER0_CREDENTIALS_FILE`, `TIER0_MQTT_URL`, `TIER0_APP_ID`,
+  `VITE_BASE_PATH`). Do not add them to `.env.example`, collections or
+  user-facing settings unless the user asks for an operator-managed credential
+  console. Apps have no database connection variables.
+- **Never read, print, copy or log the token file** (`TIER0_CREDENTIALS_FILE`,
+  `/run/tier0/credentials/`). There is no command that prints it. Scripts use
+  the SDK, which reads the file itself.
+- Real-time data in the browser: use `useRecordChanges`. A hand-written
+  `EventSource` does not come back after the App sleeps, because it never
+  retries a 503: subscribe to `resumed` (`onPageRuntime` from
+  `@tier0/sdk-v2/page-runtime`) and rebuild it, or use `openEventStream` from
+  `@tier0/sdk-v2/event-stream`.
+- `GET /api/health` stays free of dependencies (contract in `artifact.toml`).
+- `.tier0ignore` (gitignore syntax) keeps local files out of the published source.
 - Do not use the sandbox file system for application-generated or uploaded
   data; use the platform File Storage API.
 
@@ -382,7 +399,7 @@ Control APIs, interpreter selectors or a second control credential. Keep the
 
 Browser Stream calls require the platform's trusted runtime provider; application
 code does not install or impersonate it. Preview without that provider fails
-closed. Node Apps automatically read `TIER0_API_HOST`, `TIER0_API_KEY` and `APP_ID`.
+closed. Node Apps automatically read `TIER0_API_HOST`, `TIER0_CREDENTIALS_FILE` and `TIER0_APP_ID`.
 The injected App/internal Key must hold persisted unified Stream scopes, and
 current App policy plus entry/topic grants must allow the operation. Existing
 Keys missing those scopes require an explicit authorized migration/reissue; the

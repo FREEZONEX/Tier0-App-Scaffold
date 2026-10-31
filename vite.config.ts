@@ -2,33 +2,51 @@ import { defineConfig, type Plugin } from "vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import { LOCAL_APP_ID } from "./src/lib/app-id";
+import { createDevSigner } from "./src/lib/dev-signer";
+
+// Same symbol as src/lib/visitor.ts; that module needs Vite's `import.meta.env`.
+const DEV_SIGNER_KEY = Symbol.for("tier0.scaffold.dev-signer-jwks");
 
 const allowAllHosts = process.env.VITE_ALLOWED_HOSTS === "all";
 const strictPort = process.env.VITE_STRICT_PORT !== "false";
 
-function previewGatewayHeaders(): Plugin {
+/**
+ * Local stand-in for the front door under `vite dev`: signs a visitor token for
+ * `PREVIEW_USER_ID` and answers `/__tier0/runtime.js`. Inside a platform
+ * session (`TIER0_JWKS_DIR` is set) the real front door serves browsers, and
+ * this only signs loopback requests that came without a token: the agent's
+ * route smoke, which runs in the VM and never passes the front door.
+ */
+function devFrontDoor(): Plugin {
   const previewUserId = process.env.PREVIEW_USER_ID;
-  const previewUserName = process.env.PREVIEW_USER_NAME || previewUserId;
-  const previewUserEmail = process.env.PREVIEW_USER_EMAIL || "";
-  const previewUserRole = process.env.PREVIEW_USER_ROLE || "";
+  const roles = (process.env.PREVIEW_USER_ROLE ?? "").split(",").map((role) => role.trim()).filter(Boolean);
 
   return {
-    name: "preview-gateway-headers",
+    name: "dev-front-door",
+    apply: "serve",
     configureServer(server) {
-      if (!previewUserId) return;
+      const inSession = Boolean(process.env.TIER0_JWKS_DIR?.trim());
+      const signer = createDevSigner();
+      (globalThis as Record<symbol, unknown>)[DEV_SIGNER_KEY] = signer.jwks;
+      const appId = process.env.TIER0_APP_ID?.trim() || process.env.APP_ID?.trim() || LOCAL_APP_ID;
 
-      server.middlewares.use((req, _res, next) => {
-        req.headers["x-app-user-id"] ??= previewUserId;
-        if (previewUserName) {
-          req.headers["x-app-user-name"] ??= previewUserName;
+      server.middlewares.use((req, res, next) => {
+        if (inSession) {
+          const loopback = /^(?:127\.|::1$|::ffff:127\.)/.test(req.socket.remoteAddress ?? "");
+          if (loopback && !req.headers["x-tier0-visitor"]) {
+            req.headers["x-tier0-visitor"] = signer.sign({ id: previewUserId || "preview-smoke", roles, appId });
+          }
+          next();
+          return;
         }
-        if (previewUserEmail) {
-          req.headers["x-app-user-email"] ??= previewUserEmail;
+        if (req.url?.split("?")[0] === "/__tier0/runtime.js") {
+          res.setHeader("Content-Type", "text/javascript");
+          res.end("");
+          return;
         }
-        req.headers["x-tier0-runtime"] ??= "preview";
-        if (previewUserRole) {
-          req.headers["x-tier0-preview-role"] ??= previewUserRole;
-        }
+        if (previewUserId) req.headers["x-tier0-visitor"] = signer.sign({ id: previewUserId, roles, appId });
+        else delete req.headers["x-tier0-visitor"];
         next();
       });
     },
@@ -72,7 +90,7 @@ export default defineConfig({
     ],
   },
   plugins: [
-    previewGatewayHeaders(),
+    devFrontDoor(),
     tailwindcss(),
     tanstackStart({
       srcDirectory: "src",

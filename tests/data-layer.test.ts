@@ -9,7 +9,7 @@ import { authBridge } from "../src/start";
 // Scaffold's wiring around it: src/start.ts opens the SDK's request context,
 // and withErrors answers DataErrors with their mapped status.
 
-const SUBJECT_HEADER = "X-Tier0-App-Data-Subject";
+const DELEGATION_HEADER = "X-Tier0-Delegation";
 const ENSURE = "/uns/app/collections/ensure";
 const COUNT = "/uns/collections/c-orders/records:count";
 
@@ -110,7 +110,7 @@ describe("route handlers", () => {
 });
 
 describe("request context", () => {
-  it("opens the SDK request context in src/start.ts, so data calls carry the subject on every path", async () => {
+  it("opens the SDK request context in src/start.ts, so data calls carry the delegation on every path", async () => {
     const mock = mockUns({ [ENSURE]: ensured, [COUNT]: ok({ count: 1 }) });
     const data = client(mock);
     await data.ensure();
@@ -121,18 +121,13 @@ describe("request context", () => {
         next: () => data.collection(orders).countDocuments(),
       });
 
-    await serve("/_serverFn/abc", { [SUBJECT_HEADER]: "h.jwt-fn.s" });
-    await serve("/api/orders", {
-      [SUBJECT_HEADER]: "h.jwt-api.s",
-      "X-App-User-ID": "u1",
-      "X-Tier0-Runtime": "deployed",
-      "X-Tier0-Business-Roles": "",
-    });
+    await serve("/_serverFn/abc", { [DELEGATION_HEADER]: "h.jwt-fn.s" });
+    await serve("/login", { [DELEGATION_HEADER]: "h.jwt-login.s" });
     await serve("/_serverFn/abc", {});
 
-    const subjects = mock.calls(COUNT).map((entry) => entry.headers[SUBJECT_HEADER.toLowerCase()]);
-    assert.deepEqual(subjects, ["h.jwt-fn.s", "h.jwt-api.s", undefined]);
-    assert.equal(mock.calls(ENSURE)[0].headers[SUBJECT_HEADER.toLowerCase()], undefined);
+    const delegations = mock.calls(COUNT).map((entry) => entry.headers[DELEGATION_HEADER.toLowerCase()]);
+    assert.deepEqual(delegations, ["h.jwt-fn.s", "h.jwt-login.s", undefined]);
+    assert.equal(mock.calls(ENSURE)[0].headers[DELEGATION_HEADER.toLowerCase()], undefined);
   });
 
   it("hands the request's abort signal to the data layer, so a caller that left sends nothing", async () => {

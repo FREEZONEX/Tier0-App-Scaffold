@@ -15,7 +15,7 @@ const MANIFEST_PATH = "scripts/gate-integrity.json";
 
 const LOCKED_FILES = [
   "scripts/guidance-test.mjs",
-  "src/lib/gateway.test.ts",
+  "src/lib/visitor.test.ts",
   "src/lib/permissions.test.mjs",
   "src/lib/app-chrome.test.mjs",
   "src/lib/app-id-contracts.test.mjs",
@@ -50,6 +50,13 @@ const LOCKED_FILES = [
   "src/lib/data/query.ts",
   "src/lib/data/changes.ts",
   "src/routes/api/uns/subscribe.ts",
+  // Identity: who may call the App is a platform contract, not app code.
+  "src/start.ts",
+  "src/lib/auth.ts",
+  "src/lib/visitor.ts",
+  "src/lib/dev-signer.ts",
+  "src/lib/server-fn-policy.ts",
+  "src/routes/api/auth/me.ts",
 ];
 
 // Normalize line endings so pins hold across git autocrlf configurations.

@@ -48,14 +48,14 @@ describe("API failure visibility contracts", () => {
     const utils = read("src/lib/utils.ts");
 
     assert.match(utils, /import \{ sendPreviewError \} from "@\/lib\/preview-bridge"/);
-    assert.match(utils, /res\.status >= 500 && typeof window !== "undefined"/);
+    assert.match(utils, /res\.status >= 500 && !failure && typeof window !== "undefined"/);
     assert.match(utils, /sendPreviewError\(error\.message, "network"\)/);
   });
 
   it("hooks load through requestJson and report every other loader failure", () => {
     const hooks = read("src/lib/hooks.ts");
 
-    assert.match(hooks, /import \{ requestJson \} from "@\/lib\/utils"/);
+    assert.match(hooks, /import \{ isAppWaiting, requestJson \} from "@\/lib\/utils"/);
     assert.match(hooks, /await requestJson<T>\(url, \{ signal: controller\.signal \}\)/);
     assert.match(hooks, /function reportRequestFailure\(/);
     assert.match(hooks, /console\.error\(`\[request\] \$\{scope\} failed:`/);

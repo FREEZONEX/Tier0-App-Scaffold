@@ -5,13 +5,20 @@
 # Priority: app deploy_config (DB overrides) > this file > platform hardcoded defaults.
 #
 # Environment injection (automatic):
-#   TIER0_API_HOST / TIER0_API_KEY - Tier0 gateway and App key; App data lives in
-#                   Tier0 UNS collections the App ensures on first access (no
-#                   database, migration or seed step at build or start)
-#   APP_ID        - agent-platform App UUID
-#   PORT          - injected by RuntimeManager from localPort
-# User identity and roles are injected as trusted request headers by the Tier0
-# App Gateway.
+#   TIER0_API_HOST          - Backend entry for the SDK; App data lives in Tier0
+#                             UNS collections the App ensures on first access (no
+#                             database, migration or seed step at build or start)
+#   TIER0_CREDENTIALS_FILE  - App credential token; only the SDK reads it
+#   TIER0_JWKS_DIR          - keys for verifying the visitor token
+#   TIER0_MQTT_URL          - MQTT broker for the SDK
+#   TIER0_APP_ID            - agent-platform App id
+#   PORT                    - injected by the runtime from localPort
+# The front door signs the visitor into X-Tier0-Visitor on every request.
+#
+# Health contract: GET /api/health answers 200 once the process serves requests.
+# It must not touch Tier0 or any other dependency: it is called on every wake, and
+# a platform outage must not stop the App from starting. It is reachable without
+# a visitor and without waking anything.
 
 [deployment]
 deploymentTarget = "autoscale"

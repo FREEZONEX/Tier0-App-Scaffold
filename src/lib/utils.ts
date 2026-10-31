@@ -106,11 +106,13 @@ function transientWait(failure: PlatformError | undefined, method: string): numb
 
 function wait(ms: number, signal: AbortSignal | null | undefined): Promise<void> {
   return new Promise((resolve) => {
-    const timer = setTimeout(resolve, ms);
-    signal?.addEventListener("abort", () => {
+    const done = () => {
       clearTimeout(timer);
+      signal?.removeEventListener("abort", done);
       resolve();
-    }, { once: true });
+    };
+    const timer = setTimeout(done, ms);
+    signal?.addEventListener("abort", done);
   });
 }
 
