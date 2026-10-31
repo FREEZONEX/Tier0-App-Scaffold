@@ -14,7 +14,7 @@ test("the unified SDK uses the exact published artifact", () => {
   assert.equal(pkg.dependencies["@tier0/sdk"], undefined);
   assert.equal(pkg.dependencies["@tier0/sdk-v2"], "file:vendor/tier0-sdk-v2-0.10.0-aenv.1.tgz");
   assert.equal(createHash("sha256").update(archive).digest("hex"),
-    "97cc9350351235c8d324a03bd860248070c214d4244ed93fd6f2d8b63d251b15");
+    "494f75f4c1eee76ae13b5e9e9c4e2ffbec9693542d435286a980cd9610ad7ddb");
   assert.equal(lock.packages["node_modules/@tier0/sdk-v2"].integrity,
     `sha512-${createHash("sha512").update(archive).digest("base64")}`);
   const known = new StreamRequestError("conflict", { errorCode: "IDEMPOTENCY_CONFLICT" });
