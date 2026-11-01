@@ -136,6 +136,9 @@ manifest, auth and `api/uns/subscribe` routes, the root document structure,
 production entry, and existing Vite SSR policy unless the user explicitly asks
 for platform/runtime work.
 
+Write temporary source copies, backups, and reports to `.tier0-output/` at the
+workspace root. It is not committed and is left out of source downloads.
+
 ## Architecture and Domain Rules
 
 Use three layers:
