@@ -331,7 +331,12 @@ server action through `@/lib/tier0` (`loadTier0Sdk()`, `loadTier0Mq()`); never
 top-level import or invoke it on SSR startup paths, and keep `vite.config.ts`
 `ssr.external: ["@tier0/sdk-v2", "mqtt"]`. App records use `@/lib/data`, not
 `tier0.uns`. App-scoped member pickers use
-`tier0.members.listApp({ appId: resolveAppId() })`. Notification channels,
+`tier0.members.listApp({ appId: resolveAppId() })`; the platform injects
+`TIER0_RUNTIME` (`preview` in Builder preview, `deployed` online) and the SDK
+sends the matching `scope`, so preview lists the draft roles' members and the
+live App its published roles'. Never pass `scope` by hand, set
+`TIER0_RUNTIME` in `artifact.toml` or `.env`, or block on the response's
+`published` flag. Notification channels,
 MQTT and credential handling: `docs/platform-integration.md`.
 
 - The platform injects SDK hosts, keys and connection details

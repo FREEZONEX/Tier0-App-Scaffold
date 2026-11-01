@@ -41,6 +41,12 @@ Workspace members are not the members who can use this App: use
 Locally `resolveAppId()` is the `local-app` placeholder, so the platform rejects
 the call; that failure is expected — App-scoped calls only work in Preview and
 deployed runs, where `APP_ID` is injected.
+The SDK sends `scope` from the platform-injected `TIER0_RUNTIME`: Preview
+(`preview`) lists members of the current draft roles, even before the first
+publish, and a deployed App (`deployed`) lists its published roles. Do not pass
+`scope`, set `TIER0_RUNTIME` in `artifact.toml` or `.env`, or block on the
+response's `published` flag; render the returned roles with a normal empty
+state for a role nobody holds.
 App records still go through `@/lib/data` (see [App Data](#app-data)).
 Updating injected guidance alone does not upgrade an application's installed SDK.
 
