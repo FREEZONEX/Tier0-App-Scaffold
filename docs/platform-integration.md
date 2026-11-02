@@ -2,11 +2,11 @@
 
 ## Tier0 SDK (`@tier0/sdk-v2`)
 
-The unified `@tier0/sdk-v2@0.9.7` is pinned to the bundled archive
-`file:vendor/tier0-sdk-v2-0.9.7.tgz`. It supplies data, platform, Stream request
+The unified `@tier0/sdk-v2@0.9.8` is pinned to the bundled archive
+`file:vendor/tier0-sdk-v2-0.9.8.tgz`. It supplies data, platform, Stream request
 and message APIs using `/openapi/v2`. The archive integrity is checked by the
 lockfile and tests; installation alone does not prove a live deployment.
-This 0.9.7 artifact uses the committed backend contract and is distributed with
+This 0.9.8 artifact uses the committed backend contract and is distributed with
 the scaffold. Follow [the directory rollout plan](collection-directory-release.md)
 before distributing the template or deploying its backend dependency.
 

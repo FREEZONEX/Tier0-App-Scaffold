@@ -8,12 +8,13 @@ This change requires a coordinated release of:
 - This Scaffold's declaration examples, directory gate and `data:schema` output.
 - The Builder Skill instructions and uns-swe MCP/worker guidance.
 
-The Scaffold pins the bundled `vendor/tier0-sdk-v2-0.9.7.tgz` and its actual
+The Scaffold pins the bundled `vendor/tier0-sdk-v2-0.9.8.tgz` and its actual
 package integrity, following the existing vendor distribution model. The
 artifact is included with the source, so installation never depends on a
-developer's parent directory or an unpublished registry version. Version 0.9.7
+developer's parent directory or an unpublished registry version. Version 0.9.8
 is generated from Backend commit
-`69b9dda5cbc6fcb447ddb752b656ec5a202a4ea6`, with committed contract provenance.
+`5c77d6f21e6332cb09e3212df9203eb01bf7f129`, with committed contract provenance
+for both `app-collections/2` and `source-lifecycle/2`.
 The bundled package has not been published to the registry. Its availability
 in this repository does not mean the coordinated backend/worker release has
 been deployed.
