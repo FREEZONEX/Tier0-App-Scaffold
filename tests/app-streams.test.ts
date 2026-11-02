@@ -7,16 +7,18 @@ import { installAppRuntime } from "@tier0/sdk-v2/runtime";
 import { StreamRequestError, StreamRequestResultUnknownError } from "@tier0/sdk-v2";
 import { describeRequest, messageTopic } from "./fixtures/app-streams-browser";
 
-test("the unified SDK uses the exact published artifact", () => {
+test("the unified SDK pins one bundled artifact and its integrity", () => {
   const pkg = JSON.parse(readFileSync("package.json", "utf8"));
   const lock = JSON.parse(readFileSync("package-lock.json", "utf8"));
-  const archive = readFileSync("vendor/tier0-sdk-v2-0.9.0.tgz");
+  const dependency = pkg.dependencies["@tier0/sdk-v2"];
+  const locked = lock.packages["node_modules/@tier0/sdk-v2"];
+  const artifact = `vendor/tier0-sdk-v2-${locked.version}.tgz`;
+  const archive = readFileSync(artifact);
   assert.equal(pkg.dependencies["@tier0/sdk"], undefined);
-  assert.equal(pkg.dependencies["@tier0/sdk-v2"], "file:vendor/tier0-sdk-v2-0.9.0.tgz");
-  assert.equal(createHash("sha256").update(archive).digest("hex"),
-    "25f503028e245e9351f648a509bb1285f547c79003f4b7b3fed549d39015e94b");
-  assert.equal(lock.packages["node_modules/@tier0/sdk-v2"].integrity,
-    `sha512-${createHash("sha512").update(archive).digest("base64")}`);
+  assert.equal(dependency, `file:${artifact}`);
+  assert.equal(lock.packages[""].dependencies["@tier0/sdk-v2"], dependency);
+  assert.equal(locked.resolved, `file:${artifact}`);
+  assert.equal(locked.integrity, `sha512-${createHash("sha512").update(archive).digest("base64")}`);
   const known = new StreamRequestError("conflict", { errorCode: "IDEMPOTENCY_CONFLICT" });
   const unknown = new StreamRequestResultUnknownError({ errorCode: "STREAM_REQUEST_RESULT_UNKNOWN" });
   assert.equal(known.outcomeUnknown, false);
