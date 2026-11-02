@@ -8,6 +8,12 @@
  * and the deployed App share the same collections — never `deleteMany` to
  * "reset" a schema. Rules: AGENTS.md → App Data.
  *
+ * Declare each collection's directoryPath from the workspace root using real
+ * business names. Inspect/reuse existing directories; industrial data follows
+ * the known ISA-95 equipment hierarchy. Shared data uses its common ancestor.
+ * An App/module directory (e.g. MES) may follow the known factory/line scope;
+ * never default to a root App container or invent missing facilities.
+ *
  * Collection schemas are storage schemas: plain `z.object`, `z.string()`,
  * `z.number()` / `.int()` with optional `.min()` / `.max()`, `z.boolean()`,
  * `z.enum([...])`, `z.array(...)`, nested objects and `.optional()`. No
@@ -25,6 +31,7 @@ import type { CollectionDefinition } from "@tier0/sdk-v2/data/define";
 // export const workOrders = defineCollection({
 //   alias: "work_orders",
 //   name: "Work orders",
+//   directoryPath: ["North Plant", "Line 1", "MES"], // example only: use verified business scope
 //   description: "Production work orders",
 //   schema: z.object({
 //     code: z.string(),

@@ -2,10 +2,13 @@
 
 ## Tier0 SDK (`@tier0/sdk-v2`)
 
-The unified `@tier0/sdk-v2@0.9.0` is pinned to the verified published archive
-`file:vendor/tier0-sdk-v2-0.9.0.tgz`. It supplies data, platform, Stream request
+The unified `@tier0/sdk-v2@0.9.8` is pinned to the bundled archive
+`file:vendor/tier0-sdk-v2-0.9.8.tgz`. It supplies data, platform, Stream request
 and message APIs using `/openapi/v2`. The archive integrity is checked by the
 lockfile and tests; installation alone does not prove a live deployment.
+This 0.9.8 artifact uses the committed backend contract and is distributed with
+the scaffold. Follow [the directory rollout plan](collection-directory-release.md)
+before distributing the template or deploying its backend dependency.
 
 HTTP Sources use `http-api` with `config.role: client | server`. New Source
 configurations omit `configVersion`; native Stream documents use
@@ -340,18 +343,29 @@ Workspace
   │    ├─ App key (TIER0_API_KEY)          <- issued by the platform, injected into Preview and deployments
   │    └─ App data policy (UNS)            <- grants of this App's collections (record:read/write[/delete])
   └─ UNS
-       └─ App directory "<App name> · <short id>"
-            ├─ collection work_orders      <- ownerAppId = APP_ID, created by ensure
-            └─ collection customers
+       └─ North Plant                     <- verified business scope, shared directory
+            ├─ Assembly Line 1
+            │    └─ MES                    <- App/module directory within that scope
+            │         └─ collection work_orders  <- ownerAppId = APP_ID
+            └─ collection quality_records  <- plant-wide data at the common ancestor
 ```
 
-Each App owns the collections it ensures. They are created in the App's own
-UNS directory, tagged with the App ID, and granted to the App in the same
-transaction (`record:read`, `record:write`, plus `record:delete` when the key
-holds `uns.delete`). Ownership follows the App ID, not the directory, so a user
-may move or rename a collection. Preview and the deployed App use the same
-App key and therefore the same collections and records. Deleting the App
-archives its collections and releases their indexes; nothing else removes them.
+Each App owns the collections it ensures (`ownerAppId = APP_ID`). Every new
+collection declares a `directoryPath` from the workspace root; the backend
+reuses or creates those business directories and grants the collection to the
+App in the same transaction (`record:read`, `record:write`, plus `record:delete`
+when the key holds `uns.delete`). The diagram assumes those business scopes
+are verified; its names are examples, not defaults. An App/module directory
+such as MES is valid within the known factory/line scope, and shared data
+belongs at a suitable common ancestor. Use only known, meaningful levels;
+do not force five levels or default to a root-level App container.
+
+Directories are shared business structure, not App-owned resources. Collection
+ownership and grants remain independent of location. Ensure preserves the
+location and name of an existing alias; moving or renaming an existing
+collection requires a separate authorized metadata operation. Preview and the
+deployed App use the same App key and therefore the same collections and
+records. Deleting the App does not reclaim shared business directories.
 
 **Environment injection:**
 
@@ -412,7 +426,7 @@ envelope, errors add `error` (below). The data layer's call policy:
 
 | Data layer | UNS operation |
 |---|---|
-| first access (bootstrap) | `appCollectionsEnsure` `POST /uns/app/collections/ensure` `{ collections: [{ alias, recordSchema, indexes, description }] }` (≤64 declarations) |
+| first access (bootstrap) | `appCollectionsEnsure` `POST /uns/app/collections/ensure` `{ collections: [{ alias, name, directoryPath, recordSchema, indexes, description }] }` (≤64 declarations); `directoryPath` is the business directory path from the workspace root, required for new aliases; existing aliases never move during ensure |
 | `find` / `findOne` | `recordFind` `records:find` (cursor pages ≤200) |
 | `get` | `recordGet` `records:get` (≤100 IDs per request, chunked) → `{ items, missing }` |
 | `data.queryBatch` | `recordQueryBatch` `POST /uns/records:queryBatch`: ≤20 reads built with `collection.query.*`, one request, one snapshot |

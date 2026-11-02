@@ -4,6 +4,7 @@ import { dirname, join, relative, resolve } from "node:path";
 import { describe, it } from "node:test";
 import { pathToFileURL } from "node:url";
 import { compileCollection, MAX_COLLECTIONS, validateDocument } from "@tier0/sdk-v2/data/define";
+import { assertCollectionDirectory } from "../../scripts/collection-directory-contract.mjs";
 
 // App data contracts — locked gate.
 //
@@ -131,7 +132,7 @@ describe("app data contracts", () => {
       if (aliases.has(key)) problems.push(`alias "${definition.alias}" is listed twice (aliases are case-insensitive)`);
       aliases.add(key);
       try {
-        compileCollection(definition);
+        assertCollectionDirectory(definition, compileCollection(definition));
       } catch (error) {
         problems.push(error instanceof Error ? error.message : String(error));
       }
