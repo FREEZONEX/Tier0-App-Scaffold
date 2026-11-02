@@ -321,7 +321,7 @@ Use `DESIGN.md`, existing tokens and the shipped primitives
 
 ## Tier0 SDK and Platform
 
-Use the installed `@tier0/sdk-v2` (`0.9.0`, pinned exactly in `package.json`;
+Use the installed `@tier0/sdk-v2` (`0.9.6`, pinned exactly in `package.json`;
 never change that dependency) for user/platform info, members, notifications,
 files, MQTT/MQ/WebSocket or capabilities. Load it lazily inside the
 server action through `@/lib/tier0` (`loadTier0Sdk()`, `loadTier0Mq()`); never
@@ -330,6 +330,11 @@ top-level import or invoke it on SSR startup paths, and keep `vite.config.ts`
 `tier0.uns`. App-scoped member pickers use
 `tier0.members.listApp({ appId: resolveAppId() })`. Notification channels,
 MQTT and credential handling: `docs/platform-integration.md`.
+Preview member queries use draft roles automatically through the SDK and the
+platform-injected `TIER0_RUNTIME`; publishing is not a prerequisite. Do not
+block assignment on `published`, hard-code members, set runtime variables in
+App code, or replace App membership with the whole Workspace. Diagnose an
+unexpected empty list using the installed SDK, preview runtime and role bindings.
 
 - The platform injects SDK hosts, keys and connection details
   (`TIER0_API_HOST`, `TIER0_API_KEY`, `APP_ID`, `VITE_BASE_PATH`). Do not add
