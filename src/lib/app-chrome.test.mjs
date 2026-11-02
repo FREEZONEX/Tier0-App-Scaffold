@@ -31,7 +31,7 @@ const TEMPLATE_STATE_FINGERPRINTS = {
   "src/components/shell-modules.ts":
     "f4723dafb7d19601437521226a7f58ccce27ac31245d07165d28bbfa6ff9a850",
   "src/data/collections.ts":
-    "be7acc9bd88202e9f8cac79992923bb0cb8a76afb20e93176b3088dada4b5e43",
+    "fd8a2b2dd01cb35048f883252a125757da0b304c82736dfb8ee9372486d45ca7",
   "src/lib/app-chrome.ts":
     "e772ac721e016dcd98a848ea0159ed924c56df75677f3b0016d52210a4008ff8",
   "src/lib/permissions.ts":

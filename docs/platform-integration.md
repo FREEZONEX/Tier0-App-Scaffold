@@ -2,10 +2,13 @@
 
 ## Tier0 SDK (`@tier0/sdk-v2`)
 
-The unified `@tier0/sdk-v2@0.9.0` is pinned to the verified published archive
-`file:vendor/tier0-sdk-v2-0.9.0.tgz`. It supplies data, platform, Stream request
+The unified `@tier0/sdk-v2@0.9.7` is pinned to the bundled archive
+`file:vendor/tier0-sdk-v2-0.9.7.tgz`. It supplies data, platform, Stream request
 and message APIs using `/openapi/v2`. The archive integrity is checked by the
 lockfile and tests; installation alone does not prove a live deployment.
+This 0.9.7 artifact uses the committed backend contract and is distributed with
+the scaffold. Follow [the directory rollout plan](collection-directory-release.md)
+before distributing the template or deploying its backend dependency.
 
 HTTP Sources use `http-api` with `config.role: client | server`. New Source
 configurations omit `configVersion`; native Stream documents use
@@ -406,7 +409,7 @@ envelope, errors add `error` (below). The data layer's call policy:
 
 | Data layer | UNS operation |
 |---|---|
-| first access (bootstrap) | `appCollectionsEnsure` `POST /uns/app/collections/ensure` `{ collections: [{ alias, recordSchema, indexes, description }] }` (≤64 declarations) |
+| first access (bootstrap) | `appCollectionsEnsure` `POST /uns/app/collections/ensure` `{ collections: [{ alias, name, directoryPath, recordSchema, indexes, description }] }` (≤64 declarations); `directoryPath` is the business directory path from the workspace root, required for new aliases; existing aliases never move during ensure |
 | `find` / `findOne` | `recordFind` `records:find` (cursor pages ≤200) |
 | `get` | `recordGet` `records:get` (≤100 IDs per request, chunked) → `{ items, missing }` |
 | `data.queryBatch` | `recordQueryBatch` `POST /uns/records:queryBatch`: ≤20 reads built with `collection.query.*`, one request, one snapshot |

@@ -28,6 +28,7 @@ const LOCKED_FILES = [
   "src/lib/table-contracts.test.mjs",
   "src/lib/copy-contracts.test.mjs",
   "src/lib/data-contracts.test.mjs",
+  "scripts/collection-directory-contract.mjs",
   "src/lib/route-smoke-contracts.test.mjs",
   "src/lib/route-nesting-contracts.test.mjs",
   "src/lib/hooks-contracts.test.mjs",
