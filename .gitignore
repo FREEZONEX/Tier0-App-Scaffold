@@ -25,6 +25,7 @@
 *.pem
 *.zip
 .tier0/
+/.tier0-output/
 
 # debug
 npm-debug.log*
