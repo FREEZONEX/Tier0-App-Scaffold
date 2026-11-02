@@ -12,6 +12,38 @@ the deployed App use the **same** collections and the same records.
 
 ## Declare collections
 
+First inspect existing directories through the authorized tier0 metadata tools,
+reuse their exact business names, and decide the scope of each collection.
+Set `directoryPath` to an array of directory names starting at the workspace
+root (1–16 segments, each 1–63 Unicode characters, without leading/trailing
+whitespace, `/` or NUL). Names are preserved exactly. The backend reuses those directories
+and creates missing levels in the same transaction as the collection. These
+are business directories shared by the workspace, not App-owned containers;
+collection ownership and permissions remain separate.
+
+For industrial data use the actual ISA-95 equipment hierarchy: Enterprise →
+Site → Area → Work Center (line, process cell, production unit or storage zone)
+→ Work Unit. Include only known, meaningful levels; do not force all five,
+invent factories/equipment, or substitute control activity Levels 0–4. Put
+shared data at its appropriate common ancestor. Non-industrial apps use their
+real business hierarchy. App and business-module directories are valid within
+that scope: Factory → Line → MES → Work orders uses MES as the App directory.
+Do not default to one root-level App container for unrelated data.
+
+For example, **if these business scopes are known**, line work orders can use
+`["North Plant", "Assembly", "Line 1", "MES"]`, plant-wide quality records can use
+`["North Plant", "Quality"]`, and shared product master data can use
+`["Product Management"]`. These are examples, not default folders. If the
+necessary scope is unknown, resolve that business detail before first creation.
+
+Every declaration generated with this scaffold includes a path so the App can
+also initialize in a new environment. A missing path for a new alias fails
+explicitly; there is no automatic root-level App directory. Existing aliases may omit the
+path in older Apps, and ensure never moves or renames an existing collection
+when the declared path changes. Moving existing data is a separate authorized
+metadata operation. Keep stable aliases; never create a second collection to
+work around a directory or permission error.
+
 Declare every collection in `src/data/collections.ts` and list it in
 `collections`:
 
@@ -23,6 +55,7 @@ import { seedTimestamp } from "./seed-utils";
 export const workOrders = defineCollection({
   alias: "work_orders",                     // unique per App, case-insensitive
   name: "Work orders",                      // required business name
+  directoryPath: ["North Plant", "Assembly"], // replace with verified business scope
   description: "Production work orders",
   schema: z.object({
     code: z.string(),
@@ -405,7 +438,7 @@ code to catch mistakes).
 | Need | Call (`/openapi/v2` prefix) |
 |---|---|
 | App ID, collections, grants, current schemas, revisions, index status, TTL and limits | `POST /uns/app/context` with `{}` (whoami does not return the App ID) |
-| Preview a declaration change | `npm run data:schema`, then `POST /uns/app/collections/ensure` with that body plus `"dryRun": true` |
+| Preview a declaration change | `npm run data:schema` (includes every `directoryPath`), then `POST /uns/app/collections/ensure` with that body plus `"dryRun": true`; verify planned collection scopes before first creation |
 | Narrow a schema | `npm run data:schema -- <alias>` for the target, then `POST /uns/app/collections/schema:replace` with `{ alias, recordSchema, indexes, expectedRevision, dryRun: true }`; repeat with `dryRun: false` |
 | Change descriptions of existing fields or the collection | Same as narrowing: `schema:replace` with the `npm run data:schema -- <alias>` body (status `widened`) |
 | Retire / bring back a collection | `POST /uns/app/collections/archive` or `restore` with `{ alias }`; at most 2000 records each (archive tombstones them, restore brings that batch back) |
@@ -419,6 +452,9 @@ to list new operations in `tier0_search`.
 
 | Error | Meaning and action |
 |---|---|
+| `INVALID_REQUEST` at `collections/<index>/directoryPath` | A new alias needs a valid business path. Inspect existing directories and resolve the actual scope; do not fall back to a root-level App folder. An App/module directory is valid within the known scope. |
+| `SCHEMA_CONFLICT` with `data.reason=DIRECTORY_PATH_CONFLICT` | A directory segment conflicts with existing metadata. Inspect it; do not overwrite, move or rename unrelated data, or append random suffixes. |
+| `DIRECTORY_PATH_NOT_APPLIED` (`ignored` note) | The alias already exists at another location. Ensure preserves it; a move requires a separate authorized metadata operation. |
 | `SCHEMA_CONFLICT` (409) | The declaration cannot be joined with storage; nothing changed. `data.conflicts` lists `{ alias, path, reason, current?, declared? }`: `TYPE_CONFLICT` → use a new field name; `LIMIT_EXCEEDED` → split the structure; `JOIN_UNSUPPORTED` → storage holds a node the declaration cannot widen (e.g. enum values outside its `min`/`max`), repair it with `schema:replace`; `DATA_RULE_FIELD` → an employee data rule (owner/state field) uses the path, keep it required with the same type or ask an admin to change the rule; `OPEN_OBJECT` → use the generated body; `ALIAS_IN_USE` / `NAME_IN_USE` → pick another alias; `INVALID_INDEX` → fix the index. |
 | `ANNOTATION_NOT_APPLIED` (`ignored` note) | Not an error: ensure keeps stored titles/descriptions. Apply the change with `schema:replace`. |
 | `REQUIRED_NOT_ENFORCED` (warning) | The declaration requires a field storage keeps optional. Make it optional again, or narrow with `schema:replace` after the backfill. |

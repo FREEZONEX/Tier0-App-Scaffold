@@ -10,6 +10,7 @@
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { compileCollection } from "@tier0/sdk-v2/data";
+import { assertCollectionDirectory } from "./collection-directory-contract.mjs";
 
 const { collections } = await import(pathToFileURL(join(process.cwd(), "src/data/collections.ts")).href);
 
@@ -22,8 +23,11 @@ try {
       console.error(`[data:schema] no collection "${alias}"; declared: ${payload.map((entry) => entry.alias).join(", ") || "(none)"}`);
       process.exit(1);
     }
-    console.log(JSON.stringify(item, null, 2));
+    // schema:replace 只更新结构，不接受或更改集合目录。
+    const { directoryPath: _directoryPath, name: _name, ...schemaChange } = item;
+    console.log(JSON.stringify(schemaChange, null, 2));
   } else {
+    collections.forEach((definition, index) => assertCollectionDirectory(definition, payload[index]));
     console.log(JSON.stringify({ collections: payload }, null, 2));
   }
 } catch (error) {
