@@ -28,7 +28,7 @@ target application instead of being constrained by a fixed template library.
 
 ```bash
 npm install
-export TIER0_API_HOST=<gateway host> TIER0_API_KEY=<App key>   # local development only; the platform needs neither key
+export TIER0_API_HOST=<gateway host> TIER0_API_KEY=<personal or external App key>   # local development only
 npm run dev               # -> http://localhost:5173
 ```
 
@@ -79,7 +79,9 @@ A direct `fetch` / `curl` to `TIER0_API_HOST` (not through the SDK) must send
 topics are managed by workspace admins in the App settings and apply
 immediately; external collections are confirmed when publishing.
 
-For local development set `TIER0_API_HOST` and `TIER0_API_KEY` yourself.
+For local development set `TIER0_API_HOST` and `TIER0_API_KEY` yourself, using a
+personal key or an external App's key. In Preview and deployments the App needs
+no credential and cannot read any.
 
 If the platform explicitly requires browser-side Vite env access, the runtime
 is responsible for injecting `VITE_TIER0_*`. Generated apps should not turn
