@@ -10,11 +10,11 @@ import { describeRequest, messageTopic } from "./fixtures/app-streams-browser";
 test("the unified SDK uses the exact published artifact", () => {
   const pkg = JSON.parse(readFileSync("package.json", "utf8"));
   const lock = JSON.parse(readFileSync("package-lock.json", "utf8"));
-  const archive = readFileSync("vendor/tier0-sdk-v2-0.10.0-aenv.1.tgz");
+  const archive = readFileSync("vendor/tier0-sdk-v2-0.10.0-aenv.2.tgz");
   assert.equal(pkg.dependencies["@tier0/sdk"], undefined);
-  assert.equal(pkg.dependencies["@tier0/sdk-v2"], "file:vendor/tier0-sdk-v2-0.10.0-aenv.1.tgz");
+  assert.equal(pkg.dependencies["@tier0/sdk-v2"], "file:vendor/tier0-sdk-v2-0.10.0-aenv.2.tgz");
   assert.equal(createHash("sha256").update(archive).digest("hex"),
-    "d2990af9806ec262962f9743f92ad85e397bc0136d893aa4a93385e29bfb7232");
+    "b06ada5c74ab707d88ec4b2fa74798a8b15c41cd983f06df6d9345c31eabed41");
   assert.equal(lock.packages["node_modules/@tier0/sdk-v2"].integrity,
     `sha512-${createHash("sha512").update(archive).digest("base64")}`);
   const known = new StreamRequestError("conflict", { errorCode: "IDEMPOTENCY_CONFLICT" });
