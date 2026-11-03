@@ -328,7 +328,7 @@ Use `DESIGN.md`, existing tokens and the shipped primitives
 
 ## Tier0 SDK and Platform
 
-Use the installed `@tier0/sdk-v2` (`0.10.0-aenv.1`, pinned exactly in `package.json`;
+Use the installed `@tier0/sdk-v2` (`0.10.0-aenv.2`, pinned exactly in `package.json`;
 never change that dependency) for user/platform info, members, notifications,
 files, MQTT/MQ/WebSocket or capabilities. Load it lazily inside the
 server action through `@/lib/tier0` (`loadTier0Sdk()`, `loadTier0Mq()`); never
@@ -338,14 +338,21 @@ top-level import or invoke it on SSR startup paths, and keep `vite.config.ts`
 `tier0.members.listApp({ appId: resolveAppId() })`. Notification channels,
 MQTT and credential handling: `docs/platform-integration.md`.
 
-- The platform provides SDK hosts, credentials and connection details
-  (`TIER0_API_HOST`, `TIER0_CREDENTIALS_FILE`, `TIER0_MQTT_URL`, `TIER0_APP_ID`,
-  `VITE_BASE_PATH`). Do not add them to `.env.example`, collections or
-  user-facing settings unless the user asks for an operator-managed credential
-  console. Apps have no database connection variables.
-- **Never read, print, copy or log the token file** (`TIER0_CREDENTIALS_FILE`,
-  `/run/tier0/credentials/`). There is no command that prints it. Scripts use
-  the SDK, which reads the file itself.
+- The platform provides the SDK's hosts and the App's identity
+  (`TIER0_API_HOST`, `TIER0_MQTT_URL`, `TIER0_WORKSPACE_ID`, `TIER0_APP_ID`,
+  `TIER0_RUNTIME`, `TIER0_RELEASE` / `TIER0_SESSION`, `TIER0_JWKS_DIR`,
+  `VITE_BASE_PATH`); see `docs/platform-integration.md`. Do not add them to
+  `.env.example`, collections or user-facing settings. Apps have no database
+  connection variables.
+- **In Preview and deployments the SDK needs no credential and none can be
+  found**: there is no token file and no `TIER0_API_KEY`. The node proxy
+  attaches the App credential. Never look for, generate or hard-code a key.
+- Scripts and App code use the SDK. A direct `fetch` / `curl` to
+  `TIER0_API_HOST` must send `X-Tier0-SDK: 1` and no `Authorization`; the proxy
+  refuses it otherwise (`403 sbx_proxy_forbidden`).
+- The App's platform permissions and message topics are managed by workspace
+  admins in the App settings and apply immediately; external collections are
+  confirmed when publishing. There is no permission request to file from code.
 - Real-time data in the browser: use `useRecordChanges`. A hand-written
   `EventSource` does not come back after the App sleeps, because it never
   retries a 503: subscribe to `resumed` (`onPageRuntime` from
@@ -400,7 +407,7 @@ Control APIs, interpreter selectors or a second control credential. Keep the
 
 Browser Stream calls require the platform's trusted runtime provider; application
 code does not install or impersonate it. Preview without that provider fails
-closed. Node Apps automatically read `TIER0_API_HOST`, `TIER0_CREDENTIALS_FILE` and `TIER0_APP_ID`.
+closed. Node Apps automatically read `TIER0_API_HOST` and `TIER0_APP_ID`; the node proxy attaches the App credential.
 The injected App/internal Key must hold persisted unified Stream scopes, and
 current App policy plus entry/topic grants must allow the operation. Existing
 Keys missing those scopes require an explicit authorized migration/reissue; the

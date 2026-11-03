@@ -2,8 +2,8 @@
 
 ## Tier0 SDK (`@tier0/sdk-v2`)
 
-The unified `@tier0/sdk-v2@0.10.0-aenv.1` is pinned to the verified published archive
-`file:vendor/tier0-sdk-v2-0.10.0-aenv.1.tgz`. It supplies data, platform, Stream request
+The unified `@tier0/sdk-v2@0.10.0-aenv.2` is pinned to the verified published archive
+`file:vendor/tier0-sdk-v2-0.10.0-aenv.2.tgz`. It supplies data, platform, Stream request
 and message APIs using `/openapi/v2`. The archive integrity is checked by the
 lockfile and tests; installation alone does not prove a live deployment.
 
@@ -26,9 +26,35 @@ Load the SDK only on the server through the lazy helpers in `@/lib/tier0`:
 import { loadTier0Sdk } from "@/lib/tier0";
 
 const { createClient } = await loadTier0Sdk();
-const tier0 = createClient(); // reads TIER0_API_HOST and the App credential
-const user = await tier0.system.whoami();
+const tier0 = createClient(); // reads TIER0_API_HOST; the node proxy attaches the App credential
+const info = await tier0.system.info();
 ```
+
+In Preview and deployments the SDK needs no credential and none can be found:
+there is no token file and no `TIER0_API_KEY`. The node proxy (`sbx-api-proxy`)
+recognizes the App's VM by its address and attaches the App credential, so the
+SDK sends no `Authorization` and marks every request with `X-Tier0-SDK: 1`. A
+direct `fetch` / `curl` to `TIER0_API_HOST` must do the same, or the proxy
+answers `403 sbx_proxy_forbidden`:
+
+```ts
+await fetch(`${process.env.TIER0_API_HOST}/openapi/v2/info`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "X-Tier0-SDK": "1" },
+  body: "{}",
+});
+```
+
+Through the proxy the App credential reaches `/openapi/v2/uns/**`,
+`/openapi/v2/assets/**`, `notifications/send`, `notifications/get`,
+`platform/getMembers` and `info`; other paths answer `404 sbx_proxy_not_found`.
+The proxy's own answers carry `X-Tier0-Proxy: not-forwarded` and a
+`sbx_proxy_*` code (`not_ready` 503, `limited` 429, `unbound` 403,
+`token_expired` 403, `bad_request` 400, `forbidden` 403, `not_found` 404); the
+SDK resends only the 503 and 429, at most 3 times. The App's platform
+permissions and message topics are managed by workspace admins in the App
+settings and apply immediately; external collections are confirmed when
+publishing.
 
 `createClient()` instances share no configuration. Reuse one for work done as
 the App; create a fresh instance per request when passing employee data
@@ -82,8 +108,8 @@ makes one POST without automatic retries; `outcomeUnknown` is an SDK classifier,
 not proof that execution did not start. Reconcile uncertain results before replay.
 Installation alone does not prove Gateway, SYS, broker or browser readiness.
 
-Node Apps use the same SDK with automatically injected `TIER0_API_HOST`,
-`TIER0_CREDENTIALS_FILE` and `TIER0_APP_ID`. Fresh App/internal Keys use unified persisted
+Node Apps use the same SDK with automatically injected `TIER0_API_HOST` and
+`TIER0_APP_ID`; the node proxy attaches the App credential. Fresh App/internal Keys use unified persisted
 request/message mode ceilings; current Workspace/App policy and entry/topic
 grants still constrain every operation. Existing Keys lacking those stored
 scopes require explicit migration/reissue, never silent expansion. Pure system
@@ -133,17 +159,21 @@ ports are not WebSocket ports and must not be reused.
 
 ### MQTT credentials
 
-`Tier0MQClient` takes a fresh token for every connection: from
-`TIER0_CREDENTIALS_FILE` on the server, from the page runtime in the browser. It
-derives username and clientId from the token, so pass neither. The broker comes
-from `TIER0_MQTT_URL`.
+On the server `Tier0MQClient` sends no password: it connects over TCP to
+`TIER0_MQTT_URL` (`mqtt://`, the node proxy), which fills in the App credential.
+It builds username and clientId from `TIER0_WORKSPACE_ID`, `TIER0_APP_ID`,
+`TIER0_RUNTIME` and `TIER0_RELEASE` / `TIER0_SESSION`, so pass neither, and
+pass no `host`: an explicit host means WebSocket, which does not go through the
+proxy. In the browser it takes a fresh token from the page runtime for every
+connection.
 
 `clean` defaults to `false`: with QoS 1 a subscriber crosses token expiry without
 losing messages. Messages beyond the broker's offline queue (`max_mqueue_len`,
 EMQX default 1000) during a disconnect are still lost. A disconnected client
 queues `publish`; it never opens a second client. The server reconnects forever
-with a backoff of up to 5 minutes. The browser stops when authorization fails and
-continues on `resumed`. Browser MQTT tokens cover the App's `messageTopics` only;
+with a backoff of up to 5 minutes; the proxy puts in the current token. The browser
+stops when authorization fails and continues on `resumed`. MQTT covers the
+message topics that workspace admins set in the App settings only;
 real-time collection data goes through `useRecordChanges`.
 
 ## Environment Variables
@@ -153,7 +183,7 @@ local/default behavior. If the variable is present, the corresponding platform
 capability is enabled.
 
 Apps have no database connection variables: App data lives in Tier0 UNS
-collections reached with `TIER0_API_HOST` and the App credential (see
+collections reached with `TIER0_API_HOST` through the node proxy (see
 [App Data](#app-data)).
 
 ### Platform-Provided
@@ -166,10 +196,16 @@ These variables are platform-driven. Local development does not need them.
 | `APP_ID` | `local-app` (local-development placeholder only) | Older name of `TIER0_APP_ID`; echoed by `/api/manifest` |
 | `VITE_BASE_PATH` | No URL prefix | Applied by `apiUrl()` and Vite `base` |
 | `NEXT_PUBLIC_BASE_PATH` | Legacy fallback only | Read by `apiUrl()` if `VITE_BASE_PATH` is missing |
-| `TIER0_API_HOST` | App data calls fail with `DATA_NOT_CONFIGURED` (503) | Backend entry for the SDK |
-| `TIER0_CREDENTIALS_FILE` | The SDK falls back to `TIER0_API_KEY` for local development | Path of the App credential token. Only the SDK reads it; never read, print or copy it |
+| `TIER0_API_HOST` | App data calls fail with `DATA_NOT_CONFIGURED` (503) | `http://api.sbx.internal:8080`, the node proxy in front of the platform API. A bare host name means `https://` (local development) |
+| `TIER0_MQTT_URL` | — | `mqtt://mqtt.sbx.internal:1883`, the node proxy in front of the broker |
+| `TIER0_WORKSPACE_ID` | — | Workspace of the App; the SDK uses it for MQTT |
+| `TIER0_RUNTIME` | The SDK uses `TIER0_API_KEY` (local development) | `deployed` or `preview`. With it and no `TIER0_API_KEY` the SDK sends no credential; the node proxy attaches the App credential |
+| `TIER0_RELEASE` | — | Release of a deployment |
+| `TIER0_SESSION` | — | Session of a Preview |
 | `TIER0_JWKS_DIR` | Requests answer 503 outside `vite dev` | Directory of the front door's public keys, used to verify `X-Tier0-Visitor` |
-| `TIER0_MQTT_URL` | — | MQTT broker for the SDK |
+
+None of these is a secret. No credential is injected: there is no token file
+and no `TIER0_API_KEY` in Preview or deployments.
 
 `TIER0_APP_ID` is platform-owned: the agent-platform App UUID the platform can
 resolve back to the app's name, icon and Open button. Read it at runtime
@@ -287,8 +323,8 @@ Each App owns the collections it ensures. They are created in the App's own
 UNS directory, tagged with the App ID, and granted to the App in the same
 transaction (`record:read`, `record:write`, plus `record:delete` when the key
 holds `uns.delete`). Ownership follows the App ID, not the directory, so a user
-may move or rename a collection. Preview and the deployed App use the same
-App key and therefore the same collections and records. Deleting the App
+may move or rename a collection. Preview and the deployed App act as the same
+App and therefore see the same collections and records. Deleting the App
 archives its collections and releases their indexes; nothing else removes them.
 
 ### App Container Startup
@@ -448,7 +484,8 @@ so one call being safe to repeat does not make the request safe to resend.
 | timeout / network failure | 503 `DATA_TIMEOUT` / `DATA_UNREACHABLE`; the message never contains the gateway address |
 | other invalid response | 502 `DATA_BAD_RESPONSE` |
 | other 5xx | 502 |
-| missing `TIER0_API_HOST` or App credential | 503 `DATA_NOT_CONFIGURED` |
+| missing `TIER0_API_HOST` (or, in local development, `TIER0_API_KEY`) | 503 `DATA_NOT_CONFIGURED` |
+| refused by the node proxy (`X-Tier0-Proxy: not-forwarded`) | the `sbx_proxy_*` code; never started, the 503 and 429 already resent by the SDK |
 | batch over 200 items | 400 `BATCH_LIMIT_EXCEEDED` (not sent) |
 
 Without an error body (timeouts, network failures, unenveloped 502/503/504)
