@@ -101,8 +101,10 @@ ssr: {
 
 SDK calls are loaded on the server through the lazy helpers in
 `src/lib/tier0.ts`: `loadTier0Sdk()` returns the root module, whose
-`createClient()` exposes `tier0.system`, `members`, `notifications`, `files`,
-`mqttAuth` and the other domains; `loadTier0OpenApi()`, `loadTier0Files()` and
+`createClient()` exposes `tier0.system`, `members`, `notifications`, `files`
+and the other domains (in Preview and deployments only `system.info()`,
+`members.listWorkspace()`, notifications, files and data work; see
+`docs/platform-integration.md`); `loadTier0OpenApi()`, `loadTier0Files()` and
 `loadTier0Mq()` load the subpath modules. Create a fresh client per request when
 passing employee data delegation. Generated apps should not top-level import SDK submodules,
 should not move the SDK into `ssr.noExternal`, and should not bypass the SDK

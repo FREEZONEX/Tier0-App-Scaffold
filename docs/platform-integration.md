@@ -2,8 +2,8 @@
 
 ## Tier0 SDK (`@tier0/sdk-v2`)
 
-The unified `@tier0/sdk-v2@0.10.0-aenv.2` is pinned to the verified published archive
-`file:vendor/tier0-sdk-v2-0.10.0-aenv.2.tgz`. It supplies data, platform, Stream request
+The unified `@tier0/sdk-v2@0.10.0-aenv.3` is pinned to the verified published archive
+`file:vendor/tier0-sdk-v2-0.10.0-aenv.3.tgz`. It supplies data, platform, Stream request
 and message APIs using `/openapi/v2`. The archive integrity is checked by the
 lockfile and tests; installation alone does not prove a live deployment.
 
@@ -17,7 +17,7 @@ Load the SDK only on the server through the lazy helpers in `@/lib/tier0`:
 
 | Helper | Module | Use |
 |---|---|---|
-| `loadTier0Sdk()` | `@tier0/sdk-v2` | `createClient()`: `tier0.system`, `members`, `notifications`, `files`, `uns`, `mqttAuth`, `capabilities`, `source`, `stream`, `agent` |
+| `loadTier0Sdk()` | `@tier0/sdk-v2` | `createClient()`: `tier0.system.info()`, `members.listWorkspace()`, `notifications`, `files`, `uns` (see the availability note below) |
 | `loadTier0OpenApi()` | `@tier0/sdk-v2/openapi` | `createOpenAPI()` / `configureClient()` for the raw generated operations |
 | `loadTier0Files()` | `@tier0/sdk-v2/files` | `createFilesClient()` |
 | `loadTier0Mq()` | `@tier0/sdk-v2/mq` | `Tier0MQClient`, `toWebSocketUrl()`, `parseMqttBroker()` |
@@ -63,15 +63,24 @@ the browser — browser pages call the App's own server routes. Calls made while
 serving a request forward its `X-Tier0-Delegation`; `runAsApp` calls do not.
 
 v2 has no UNS v1, legacy Flow, project member queries or `getCurrentProjectId()`.
-Workspace members are not the members who can use this App: use
-`tier0.members.listApp({ appId: resolveAppId() })` for App-scoped member pickers.
-Locally `resolveAppId()` (`TIER0_APP_ID`, then `APP_ID`) is the `local-app` placeholder, so the platform rejects
-the call; that failure is expected — App-scoped calls only work in Preview and
-deployed runs, where `APP_ID` is injected.
+Workspace members are not the members who can use this App, but
+`tier0.members.listApp` is currently unavailable in Preview and deployments
+(below), so there is no App-scoped member picker yet; use
+`tier0.members.listWorkspace` and say so to the user.
+
+**Availability in Preview and deployments.** The node proxy forwards only
+`/openapi/v2/uns/**`, `assets/**`, `notifications/send`, `notifications/get`,
+`platform/getMembers` and `info`. `system.whoami()`, `members.listApp()`,
+`mqttAuth`, `capabilities`, `agent` and `client.streams` answer
+`404 sbx_proxy_not_found`; `source` and `stream` management is forwarded but
+refused for the App credential (403). Do not build App features on them.
 App records still go through `@/lib/data` (see [App Data](#app-data)).
 Updating injected guidance alone does not upgrade an application's installed SDK.
 
 ### Browser App Stream requests and messages
+
+**Currently unavailable in Preview and deployments; do not generate these
+calls.** The description below is kept for when the platform enables them.
 
 The same `@tier0/sdk-v2` package provides browser Stream interactions. The
 trusted App Gateway runtime supplies identity; no browser key or endpoint is
