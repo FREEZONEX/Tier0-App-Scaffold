@@ -5,13 +5,16 @@
 # Priority: app deploy_config (DB overrides) > this file > platform hardcoded defaults.
 #
 # Environment injection (automatic):
-#   TIER0_API_HOST          - Backend entry for the SDK; App data lives in Tier0
+#   TIER0_API_HOST          - Backend entry for the SDK (http://, the node proxy); App data lives in Tier0
 #                             UNS collections the App ensures on first access (no
 #                             database, migration or seed step at build or start)
-#   TIER0_CREDENTIALS_FILE  - App credential token; only the SDK reads it
-#   TIER0_JWKS_DIR          - keys for verifying the visitor token
-#   TIER0_MQTT_URL          - MQTT broker for the SDK
+#   TIER0_MQTT_URL          - MQTT broker for the SDK (mqtt://, through the node proxy)
+#   TIER0_WORKSPACE_ID      - workspace of the App
 #   TIER0_APP_ID            - agent-platform App id
+#   TIER0_RUNTIME           - deployed or preview
+#   TIER0_JWKS_DIR          - keys for verifying the visitor token
+#   No credential is injected: the node proxy injects the App's key, so
+#   the SDK sends none. A direct fetch to TIER0_API_HOST sends X-Tier0-SDK: 1.
 #   PORT                    - injected by the runtime from localPort
 # The front door signs the visitor into X-Tier0-Visitor on every request.
 #

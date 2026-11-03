@@ -328,24 +328,38 @@ Use `DESIGN.md`, existing tokens and the shipped primitives
 
 ## Tier0 SDK and Platform
 
-Use the installed `@tier0/sdk-v2` (`0.10.0-aenv.1`, pinned exactly in `package.json`;
-never change that dependency) for user/platform info, members, notifications,
-files, MQTT/MQ/WebSocket or capabilities. Load it lazily inside the
+Use the installed `@tier0/sdk-v2` (`0.10.0-aenv.4`, pinned exactly in `package.json`;
+never change that dependency) for platform info (`tier0.system.info()`),
+workspace members (`tier0.members.listWorkspace`), notifications, files and
+MQTT (`Tier0MQClient`). Load it lazily inside the
 server action through `@/lib/tier0` (`loadTier0Sdk()`, `loadTier0Mq()`); never
 top-level import or invoke it on SSR startup paths, and keep `vite.config.ts`
 `ssr.external: ["@tier0/sdk-v2", "mqtt"]`. App records use `@/lib/data`, not
-`tier0.uns`. App-scoped member pickers use
-`tier0.members.listApp({ appId: resolveAppId() })`. Notification channels,
-MQTT and credential handling: `docs/platform-integration.md`.
+`tier0.uns`. Notification channels, MQTT and credential handling:
+`docs/platform-integration.md`.
+- **Not available to the App in Preview and deployments**, so do not use or
+  recommend them: `tier0.members.listApp`, `tier0.system.whoami`,
+  `tier0.mqttAuth`, `tier0.capabilities`, `tier0.agent` and
+  `client.streams` (Stream requests and messages). The node proxy does not
+  forward them (`404 sbx_proxy_not_found`). `tier0.source` and `tier0.stream`
+  management is forwarded but refused for the App's key (403).
 
-- The platform provides SDK hosts, credentials and connection details
-  (`TIER0_API_HOST`, `TIER0_CREDENTIALS_FILE`, `TIER0_MQTT_URL`, `TIER0_APP_ID`,
-  `VITE_BASE_PATH`). Do not add them to `.env.example`, collections or
-  user-facing settings unless the user asks for an operator-managed credential
-  console. Apps have no database connection variables.
-- **Never read, print, copy or log the token file** (`TIER0_CREDENTIALS_FILE`,
-  `/run/tier0/credentials/`). There is no command that prints it. Scripts use
-  the SDK, which reads the file itself.
+- The platform provides the SDK's hosts and the App's identity
+  (`TIER0_API_HOST`, `TIER0_MQTT_URL`, `TIER0_WORKSPACE_ID`, `TIER0_APP_ID`,
+  `TIER0_RUNTIME`, `TIER0_JWKS_DIR`,
+  `VITE_BASE_PATH`); see `docs/platform-integration.md`. Do not add them to
+  `.env.example`, collections or user-facing settings. Apps have no database
+  connection variables.
+- **In Preview and deployments the SDK needs no credential and none can be
+  found**: there is no `TIER0_API_KEY` and no credential file. The node proxy
+  injects the App's long-lived key; Preview and deployments use the same key
+  and behave the same. Never look for, generate or hard-code a key.
+- Scripts and App code use the SDK. A direct `fetch` / `curl` to
+  `TIER0_API_HOST` must send `X-Tier0-SDK: 1` and no `Authorization`; the proxy
+  refuses it otherwise (`403 sbx_proxy_forbidden`).
+- The App's platform permissions and message topics are managed by workspace
+  admins in the App settings and apply immediately; external collections are
+  confirmed when publishing. There is no permission request to file from code.
 - Real-time data in the browser: use `useRecordChanges`. A hand-written
   `EventSource` does not come back after the App sleeps, because it never
   retries a 503: subscribe to `resumed` (`onPageRuntime` from
@@ -393,19 +407,14 @@ scaffold/default branding from the finished app.
 
 ## App Stream requests and messages
 
-Use the bundled `@tier0/sdk-v2` for `client.streams.requests`,
-`client.streams.messages`, data and platform operations. Do not generate retired
-Control APIs, interpreter selectors or a second control credential. Keep the
-`tier0-stream/v3` machine script contract; it does not select a runtime.
-
-Browser Stream calls require the platform's trusted runtime provider; application
-code does not install or impersonate it. Preview without that provider fails
-closed. Node Apps automatically read `TIER0_API_HOST`, `TIER0_CREDENTIALS_FILE` and `TIER0_APP_ID`.
-The injected App/internal Key must hold persisted unified Stream scopes, and
-current App policy plus entry/topic grants must allow the operation. Existing
-Keys missing those scopes require an explicit authorized migration/reissue; the
-SDK never expands them. Do not synthesize identity, install a fake provider or
-restore a second Control credential.
+**Currently unavailable in Preview and deployments.** `client.streams.requests`
+and `client.streams.messages` do not work for the App there (the node proxy
+does not forward `/openapi/v2/stream-requests/*` or `stream-messages/*`).
+Do not generate features on them, do not recommend them to the user, and do
+not work around it: no retired Control APIs, interpreter selectors, second
+control credential, fake runtime provider or synthesized identity. Use
+`@/lib/data` (with `useRecordChanges` for live updates) and `Tier0MQClient`
+for the App's own messages instead.
 
 ## Build, Gates, and Deployment
 

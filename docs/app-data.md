@@ -322,9 +322,11 @@ into a page ships its schemas and seeds to the browser.
 
 ## Who the call acts as
 
-Every call uses the platform-injected App key. While serving a business request
-the data layer also forwards the Gateway's employee assertion
-(`X-Tier0-App-Data-Subject`), so UNS data rules and record leases apply to that
+Every call acts as the App: in Preview and deployments the node proxy injects
+the App's long-lived key (the App holds none; Preview and deployments share it), in local development the SDK sends
+`TIER0_API_KEY`. While serving a business request the data layer also forwards
+the front door's `X-Tier0-Delegation` (with a local API key, the Gateway's
+`X-Tier0-App-Data-Subject`), so UNS data rules and record leases apply to that
 employee. Collection ensure and seed writes run as the App. Work detached from
 the request (timers, queues, fire-and-forget follow-ups) must run inside
 `runAsApp(() => ...)`; a lease taken under an employee cannot be released by

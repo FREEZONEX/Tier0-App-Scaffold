@@ -28,7 +28,7 @@ target application instead of being constrained by a fixed template library.
 
 ```bash
 npm install
-export TIER0_API_HOST=<gateway host> TIER0_API_KEY=<App key>   # only to reach App data locally
+export TIER0_API_HOST=<gateway host> TIER0_API_KEY=<personal or external App key>   # local development only
 npm run dev               # -> http://localhost:5173
 ```
 
@@ -59,12 +59,29 @@ SDK, the platform gateway, or the runtime environment.
 
 ### Variables Injected for the SDK
 
+In Preview and deployments the SDK needs no credential and none can be found:
+there is no `TIER0_API_KEY` and no credential file. The node proxy recognizes
+the App's VM and injects the App's long-lived key; Preview and deployments use
+the same key and behave the same. Besides the App id (`APP_ID` above,
+read through `resolveAppId()`), the platform sets these variables; they are
+identifiers, not secrets:
+
 | Variable | Purpose |
 |---|---|
-| `TIER0_API_HOST` | OpenAPI gateway host used by the SDK client and the App data layer |
-| `TIER0_API_KEY` | App key used by OpenAPI, MQTT and the App data layer |
-| `TIER0_MQTT_HOST` | MQTT WebSocket broker host |
-| `TIER0_MQTT_PORT` | MQTT WebSocket port, default `8084` |
+| `TIER0_API_HOST` | `http://api.sbx.internal:8080`, the node proxy in front of the platform API (a bare host name still means `https://`, for local development) |
+| `TIER0_MQTT_URL` | `mqtt://mqtt.sbx.internal:1883`, the node proxy in front of the broker |
+| `TIER0_WORKSPACE_ID` | Workspace of the App |
+| `TIER0_RUNTIME` | `deployed` or `preview`; both behave the same |
+| `TIER0_JWKS_DIR` | Front-door public keys for verifying `X-Tier0-Visitor` |
+
+A direct `fetch` / `curl` to `TIER0_API_HOST` (not through the SDK) must send
+`X-Tier0-SDK: 1` and no `Authorization`. Platform permissions and message
+topics are managed by workspace admins in the App settings and apply
+immediately; external collections are confirmed when publishing.
+
+For local development set `TIER0_API_HOST` and `TIER0_API_KEY` yourself, using a
+personal key or an external App's key. In Preview and deployments the App needs
+no credential and cannot read any.
 
 If the platform explicitly requires browser-side Vite env access, the runtime
 is responsible for injecting `VITE_TIER0_*`. Generated apps should not turn
@@ -85,8 +102,10 @@ ssr: {
 
 SDK calls are loaded on the server through the lazy helpers in
 `src/lib/tier0.ts`: `loadTier0Sdk()` returns the root module, whose
-`createClient()` exposes `tier0.system`, `members`, `notifications`, `files`,
-`mqttAuth` and the other domains; `loadTier0OpenApi()`, `loadTier0Files()` and
+`createClient()` exposes `tier0.system`, `members`, `notifications`, `files`
+and the other domains (in Preview and deployments only `system.info()`,
+`members.listWorkspace()`, notifications, files and data work; see
+`docs/platform-integration.md`); `loadTier0OpenApi()`, `loadTier0Files()` and
 `loadTier0Mq()` load the subpath modules. Create a fresh client per request when
 passing employee data delegation. Generated apps should not top-level import SDK submodules,
 should not move the SDK into `ssr.noExternal`, and should not bypass the SDK

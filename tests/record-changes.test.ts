@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createDataClient, currentDelegation, defineCollection, runAsApp, runWithRequestContext, type SubscriptionEvent } from "@tier0/sdk-v2/data";
+import { createDataClient, defineCollection, runAsApp, runWithRequestContext, type SubscriptionEvent } from "@tier0/sdk-v2/data";
 import { z } from "zod";
 import { changeFilter, createChangeHub, type ChangeHubOptions } from "../src/lib/data/changes";
 import { HttpError } from "../src/lib/route-handlers";
@@ -352,43 +352,6 @@ describe("record change hub over data.subscribe", () => {
 
 // Declarations are passed in, so these hold whatever the App itself declares
 // and never open the process's upstream.
-describe("Preview upstream", () => {
-  it("ends the browser stream with the upstream, so its reconnect brings a new delegation", async () => {
-    const upstream = fakeUpstream();
-    const hub = createChangeHub({ open: upstream.open, endWithUpstream: true, idleCloseMs: 0, logger: { warn() {} } });
-    const reader = hub.stream({ collections: [], recordIds: [] }, {}).body!.getReader();
-    await tick();
-    assert.equal(upstream.opens.length, 1);
-    upstream.push(new Error("401"));
-    for (;;) {
-      const { done } = await reader.read();
-      if (done) break;
-    }
-    await tick(20);
-    assert.equal(hub.size, 0);
-    assert.equal(upstream.opens.length, 1, "it must not reopen on its own");
-  });
-
-  it("keeps the upstream in the request's context, delegation included", async () => {
-    const upstream = fakeUpstream();
-    const seen: (string | undefined)[] = [];
-    const hub = createChangeHub({
-      open: (options) => {
-        seen.push(currentDelegation());
-        return upstream.open(options);
-      },
-      endWithUpstream: true,
-      idleCloseMs: 0,
-      logger: { warn() {} },
-    });
-    const controller = new AbortController();
-    runWithRequestContext(new Headers({ "X-Tier0-Delegation": "h.builder.s" }), () => hub.stream({ collections: [], recordIds: [] }, { signal: controller.signal }));
-    await tick();
-    controller.abort();
-    assert.deepEqual(seen, ["h.builder.s"]);
-  });
-});
-
 describe("changeFilter", () => {
   const subscribe = (query: string) => new Request(`http://app.local/api/uns/subscribe${query}`);
   const status = (expected: number) => (error: unknown) => error instanceof HttpError && error.status === expected;
