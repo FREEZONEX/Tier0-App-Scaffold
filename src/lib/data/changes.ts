@@ -25,20 +25,17 @@
  * stream ends after `MAX_STREAM_MS` (±10 %), so the browser reconnects and
  * the route authenticates it again.
  *
- * In a platform Preview the App credential may not read data (access design
- * 8), so there is no shared upstream: each browser stream gets its own hub,
- * subscribed as the Builder through the request's delegation. That upstream
- * does not outlive a broken connection (design 21.7): the browser stream ends
- * with it, and the browser's reconnect brings a new delegation.
+ * Preview and deployments behave the same: the node proxy injects the App's
+ * key in both, so one shared upstream serves every browser stream.
  *
  * Events carry only collection, record ID, revision and kind of change. The
- * deployed upstream runs as the App, so employee data rules do not filter them: for a
+ * upstream runs as the App, so employee data rules do not filter them: for a
  * collection with such rules, `data.subscribe` already turns each change into
  * a collection-level `change: "collection"` event without record ID or
  * revision (its default), and the browser reloads through the App's API,
  * where the rules apply.
  */
-import { appCredentialRuntime, type ChangeEvent, type SubscriptionEvent } from "@tier0/sdk-v2/data";
+import type { ChangeEvent, SubscriptionEvent } from "@tier0/sdk-v2/data";
 import type { CollectionDefinition } from "@tier0/sdk-v2/data/define";
 import { collections } from "../../data/collections";
 import { HttpError } from "../route-handlers";
@@ -69,8 +66,6 @@ export interface ChangeHubOptions {
   /** Browser reconnect delay sent as the SSE `retry` field. */
   retryMs?: number;
   logger?: Pick<Console, "warn">;
-  /** End the browser streams when the upstream ends, instead of reopening it. */
-  endWithUpstream?: boolean;
 }
 
 export interface ChangeHub {
@@ -143,7 +138,6 @@ export function createChangeHub(options: ChangeHubOptions): ChangeHub {
     maxStreamMs = MAX_STREAM_MS,
     retryMs = RETRY_MS,
     logger = console,
-    endWithUpstream = false,
   } = options;
   const subscribers = new Set<Subscriber>();
   let session = newSession();
@@ -184,9 +178,7 @@ export function createChangeHub(options: ChangeHubOptions): ChangeHub {
       }
     } finally {
       if (upstream === controller) upstream = null;
-      if (!controller.signal.aborted && endWithUpstream) {
-        for (const subscriber of [...subscribers]) subscriber.close();
-      } else if (!controller.signal.aborted) {
+      if (!controller.signal.aborted) {
         // Changes during the outage are lost to this session.
         resetAll("upstream-failed");
         schedule();
@@ -345,19 +337,9 @@ export function streamChanges(request: Request): Response {
     (collections as readonly CollectionDefinition[]).map((collection) => collection.alias),
   );
 
-  const from = { lastEventId: request.headers.get("Last-Event-ID") ?? undefined, signal: request.signal };
-  if (appCredentialRuntime() === "preview") {
-    // No detach: the upstream stays in this request's context, with its delegation.
-    return createChangeHub({
-      open: ({ signal }) => data.subscribe({ signal }),
-      endWithUpstream: true,
-      idleCloseMs: 0,
-    }).stream(filter, from);
-  }
-
   hub ??= createChangeHub({
     open: ({ signal }) => data.subscribe({ signal }),
     detach: runAsApp,
   });
-  return hub.stream(filter, from);
+  return hub.stream(filter, { lastEventId: request.headers.get("Last-Event-ID") ?? undefined, signal: request.signal });
 }

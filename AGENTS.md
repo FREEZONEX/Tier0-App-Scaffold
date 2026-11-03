@@ -328,7 +328,7 @@ Use `DESIGN.md`, existing tokens and the shipped primitives
 
 ## Tier0 SDK and Platform
 
-Use the installed `@tier0/sdk-v2` (`0.10.0-aenv.3`, pinned exactly in `package.json`;
+Use the installed `@tier0/sdk-v2` (`0.10.0-aenv.4`, pinned exactly in `package.json`;
 never change that dependency) for platform info (`tier0.system.info()`),
 workspace members (`tier0.members.listWorkspace`), notifications, files and
 MQTT (`Tier0MQClient`). Load it lazily inside the
@@ -342,17 +342,18 @@ top-level import or invoke it on SSR startup paths, and keep `vite.config.ts`
   `tier0.mqttAuth`, `tier0.capabilities`, `tier0.agent` and
   `client.streams` (Stream requests and messages). The node proxy does not
   forward them (`404 sbx_proxy_not_found`). `tier0.source` and `tier0.stream`
-  management is forwarded but refused for the App credential (403).
+  management is forwarded but refused for the App's key (403).
 
 - The platform provides the SDK's hosts and the App's identity
   (`TIER0_API_HOST`, `TIER0_MQTT_URL`, `TIER0_WORKSPACE_ID`, `TIER0_APP_ID`,
-  `TIER0_RUNTIME`, `TIER0_RELEASE` / `TIER0_SESSION`, `TIER0_JWKS_DIR`,
+  `TIER0_RUNTIME`, `TIER0_JWKS_DIR`,
   `VITE_BASE_PATH`); see `docs/platform-integration.md`. Do not add them to
   `.env.example`, collections or user-facing settings. Apps have no database
   connection variables.
 - **In Preview and deployments the SDK needs no credential and none can be
-  found**: there is no token file and no `TIER0_API_KEY`. The node proxy
-  attaches the App credential. Never look for, generate or hard-code a key.
+  found**: there is no `TIER0_API_KEY` and no credential file. The node proxy
+  injects the App's long-lived key; Preview and deployments use the same key
+  and behave the same. Never look for, generate or hard-code a key.
 - Scripts and App code use the SDK. A direct `fetch` / `curl` to
   `TIER0_API_HOST` must send `X-Tier0-SDK: 1` and no `Authorization`; the proxy
   refuses it otherwise (`403 sbx_proxy_forbidden`).

@@ -322,8 +322,8 @@ into a page ships its schemas and seeds to the browser.
 
 ## Who the call acts as
 
-Every call acts as the App: in Preview and deployments the node proxy attaches
-the App credential (the App holds none), in local development the SDK sends
+Every call acts as the App: in Preview and deployments the node proxy injects
+the App's long-lived key (the App holds none; Preview and deployments share it), in local development the SDK sends
 `TIER0_API_KEY`. While serving a business request the data layer also forwards
 the front door's `X-Tier0-Delegation` (with a local API key, the Gateway's
 `X-Tier0-App-Data-Subject`), so UNS data rules and record leases apply to that

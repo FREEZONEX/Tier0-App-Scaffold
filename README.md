@@ -60,8 +60,9 @@ SDK, the platform gateway, or the runtime environment.
 ### Variables Injected for the SDK
 
 In Preview and deployments the SDK needs no credential and none can be found:
-there is no token file and no `TIER0_API_KEY`. The node proxy recognizes the
-App's VM and attaches the App credential. Besides the App id (`APP_ID` above,
+there is no `TIER0_API_KEY` and no credential file. The node proxy recognizes
+the App's VM and injects the App's long-lived key; Preview and deployments use
+the same key and behave the same. Besides the App id (`APP_ID` above,
 read through `resolveAppId()`), the platform sets these variables; they are
 identifiers, not secrets:
 
@@ -70,9 +71,7 @@ identifiers, not secrets:
 | `TIER0_API_HOST` | `http://api.sbx.internal:8080`, the node proxy in front of the platform API (a bare host name still means `https://`, for local development) |
 | `TIER0_MQTT_URL` | `mqtt://mqtt.sbx.internal:1883`, the node proxy in front of the broker |
 | `TIER0_WORKSPACE_ID` | Workspace of the App |
-| `TIER0_RUNTIME` | `deployed` or `preview` |
-| `TIER0_RELEASE` | Release of a deployment |
-| `TIER0_SESSION` | Session of a Preview |
+| `TIER0_RUNTIME` | `deployed` or `preview`; both behave the same |
 | `TIER0_JWKS_DIR` | Front-door public keys for verifying `X-Tier0-Visitor` |
 
 A direct `fetch` / `curl` to `TIER0_API_HOST` (not through the SDK) must send
