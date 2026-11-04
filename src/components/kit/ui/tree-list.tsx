@@ -219,8 +219,8 @@ export function TreeList<T = unknown>({
                 aria-disabled={node.disabled || undefined}
                 tabIndex={node.key === tabStop ? 0 : -1}
                 className={cn(
-                  "group flex min-h-8 cursor-pointer select-none items-center gap-1 rounded-sm pr-2 text-sm leading-[22px] outline-none transition-colors duration-100 focus-visible:shadow-[inset_0_0_0_1px_var(--tier0-primary)]",
-                  selected && !checkable ? "bg-brand-soft text-foreground" : "text-foreground hover:bg-fill-hover",
+                  "group flex min-h-8 cursor-pointer select-none items-center gap-1 rounded-[4px] pr-2 text-sm leading-[22px] outline-none transition-colors duration-100 focus-visible:shadow-[inset_0_0_0_1px_var(--tier0-primary)]",
+                  selected && !checkable ? "bg-muted text-foreground" : "text-foreground hover:bg-fill-hover",
                   node.disabled && "cursor-not-allowed text-text-placeholder hover:bg-transparent",
                 )}
                 style={{ paddingLeft: row.depth * 18 + 4 }}
@@ -235,7 +235,7 @@ export function TreeList<T = unknown>({
                     type="button"
                     tabIndex={-1}
                     aria-label={row.expanded ? "收起" : "展开"}
-                    className="inline-flex size-5 shrink-0 items-center justify-center rounded-sm text-text-tertiary hover:bg-fill-active hover:text-foreground"
+                    className="inline-flex size-5 shrink-0 items-center justify-center rounded-[4px] text-text-tertiary hover:bg-fill-active hover:text-foreground"
                     onClick={(event) => {
                       event.stopPropagation();
                       if (!searching) toggleExpand(node.key);

@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -13,9 +17,13 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
-    "types": ["vite/client"],
+    "types": [
+      "vite/client"
+    ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*"
+      ]
     }
   },
   "include": [
@@ -24,5 +32,13 @@
     "**/*.mts",
     "src/routeTree.gen.ts"
   ],
-  "exclude": ["node_modules", "src/db/seed.ts", ".output", "dist"]
+  "exclude": [
+    "node_modules",
+    "src/db/seed.ts",
+    ".output",
+    "dist",
+    "gallery",
+    "backup-pre-reactbits",
+    "backup-pre-shadcnuikit"
+  ]
 }

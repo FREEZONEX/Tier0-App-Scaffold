@@ -42,12 +42,12 @@ export function ViewTabs({
   return (
     <div
       className={cn(
-        "flex min-w-0 items-stretch border-b border-border-secondary",
+        "flex h-11 min-w-0 items-stretch border-b border-border-secondary",
         className,
       )}
     >
       <div
-        className="scrollbar-none -mb-px flex min-w-0 flex-1 items-stretch overflow-x-auto"
+        className="scrollbar-none flex min-w-0 flex-1 items-stretch overflow-x-auto"
         role="tablist"
         aria-label="视图"
       >
@@ -57,73 +57,88 @@ export function ViewTabs({
             <div
               key={view.code}
               className={cn(
-                "relative flex shrink-0 items-center gap-0.5 pr-1",
+                "relative flex h-11 shrink-0 items-center",
                 index > 0 &&
-                  "before:mr-3 before:h-4 before:w-px before:bg-border-secondary before:content-['']",
+                  "before:absolute before:top-1/2 before:left-0 before:h-3.5 before:w-px before:-translate-y-1/2 before:bg-border-secondary before:content-['']",
               )}
             >
-              <button
-                type="button"
-                role="tab"
-                aria-selected={selected}
-                title={view.name}
+              <div
                 className={cn(
-                  "flex h-11 max-w-[12rem] items-center gap-1.5 border-b-2 px-1 text-sm transition-colors duration-150",
-                  selected
-                    ? "border-brand font-medium text-brand"
-                    : "border-transparent text-foreground hover:text-brand-hover",
+                  "flex h-full items-center gap-0.5 px-3",
+                  index === 0 && "pl-1",
                 )}
-                onClick={() => onSwitch(view.code)}
               >
-                <ViewIcon icon={view.icon} />
-                <span className="truncate">{view.name}</span>
-              </button>
-              {manageable ? (
-                <DropdownMenu
-                  placement="bottom-start"
-                  minWidth={112}
-                  aria-label={`视图「${view.name}」操作`}
-                  items={[
-                    {
-                      key: "edit",
-                      label: "编辑",
-                      icon: <PenLine />,
-                      onClick: () => onEdit(view.code),
-                    },
-                    {
-                      key: "copy",
-                      label: "复制",
-                      icon: <Copy />,
-                      onClick: () => onCopy(view.code),
-                    },
-                    {
-                      key: "delete",
-                      label: "删除",
-                      icon: <Trash2 />,
-                      danger: !view.builtIn,
-                      disabled: view.builtIn,
-                      title: view.builtIn ? "内置视图不可删除" : undefined,
-                      onClick: () => onDelete(view),
-                    },
-                  ]}
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={selected}
+                  title={view.name}
+                  className={cn(
+                    "inline-flex h-8 max-w-[12rem] items-center gap-1.5 rounded-[4px] px-1 text-sm leading-none",
+                    "transition-colors duration-150 ease-out motion-reduce:transition-none",
+                    selected
+                      ? "font-medium text-foreground"
+                      : "font-normal text-muted-foreground hover:text-foreground",
+                  )}
+                  onClick={() => onSwitch(view.code)}
                 >
-                  <IconButton
-                    size="sm"
-                    label="视图操作"
-                    tooltip={false}
-                    icon={<EllipsisVertical />}
-                    className={cn(
-                      selected ? "text-brand" : "text-text-tertiary",
-                    )}
-                  />
-                </DropdownMenu>
+                  <ViewIcon icon={view.icon} size={16} />
+                  <span className="truncate leading-none">{view.name}</span>
+                </button>
+                {manageable ? (
+                  <DropdownMenu
+                    placement="bottom-start"
+                    minWidth={112}
+                    aria-label={`视图「${view.name}」操作`}
+                    items={[
+                      {
+                        key: "edit",
+                        label: "编辑",
+                        icon: <PenLine />,
+                        onClick: () => onEdit(view.code),
+                      },
+                      {
+                        key: "copy",
+                        label: "复制",
+                        icon: <Copy />,
+                        onClick: () => onCopy(view.code),
+                      },
+                      {
+                        key: "delete",
+                        label: "删除",
+                        icon: <Trash2 />,
+                        danger: !view.builtIn,
+                        disabled: view.builtIn,
+                        title: view.builtIn ? "内置视图不可删除" : undefined,
+                        onClick: () => onDelete(view),
+                      },
+                    ]}
+                  >
+                    <IconButton
+                      size="sm"
+                      label="视图操作"
+                      tooltip={false}
+                      icon={<EllipsisVertical />}
+                      className={cn(
+                        "size-6",
+                        selected ? "text-foreground" : "text-text-tertiary",
+                      )}
+                    />
+                  </DropdownMenu>
+                ) : null}
+              </div>
+              {selected ? (
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 bg-[color:var(--tier0-cta)]"
+                />
               ) : null}
             </div>
           );
         })}
       </div>
       {manageable ? (
-        <div className="flex shrink-0 items-center pl-3">
+        <div className="flex h-11 shrink-0 items-center border-l border-border-secondary pl-3">
           <IconButton label="视图列表" icon={<Plus />} onClick={onOpenList} />
         </div>
       ) : null}

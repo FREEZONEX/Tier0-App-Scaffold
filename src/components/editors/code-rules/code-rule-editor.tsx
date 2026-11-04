@@ -73,7 +73,10 @@ const YES_NO = [
 function SectionTitle({ children }: { children: ReactNode }) {
   return (
     <h3 className="flex items-center gap-2 text-base font-semibold text-foreground">
-      <span className="h-4 w-1 rounded-full bg-gradient-to-b from-[#050b14] to-[#69b1ff]" aria-hidden="true" />
+      <span
+        className="h-4 w-1 rounded-full bg-gradient-to-b from-[#050b14] to-[color:var(--tier0-highlight-deep)]"
+        aria-hidden="true"
+      />
       {children}
     </h3>
   );
@@ -415,7 +418,7 @@ function EditorBody({
 
       <section className="flex min-w-0 flex-1 flex-col gap-4">
         <SectionTitle>编码规则</SectionTitle>
-        <div className="flex min-h-[88px] flex-col items-center justify-center gap-1 rounded-md border border-dashed border-[#c9d6ea] bg-[#f5f7fa] px-4 py-4 text-center">
+        <div className="flex min-h-[88px] flex-col items-center justify-center gap-1 rounded-[4px] border border-dashed border-border bg-muted px-4 py-4 text-center">
           {format ? (
             <>
               <span className="break-all font-mono text-2xl tracking-wide text-foreground sm:text-3xl">{format}</span>

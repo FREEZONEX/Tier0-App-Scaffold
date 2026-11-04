@@ -74,7 +74,7 @@ export function SortConditionList({ fields, value, onChange, className }: SortCo
           }}
           onDragEnd={() => setDragIndex(null)}
           className={cn(
-            "flex min-w-0 items-center gap-2 rounded-md bg-[#f5f7fa] px-2 py-1.5",
+            "flex min-w-0 items-center gap-2 rounded-[4px] bg-muted px-2 py-1.5",
             dragIndex === index && "opacity-40",
           )}
         >

@@ -29,7 +29,7 @@ export function DataTable({ bare = false, className, children, ...props }: DataT
       data-table-scroll="true"
       className={cn(
         "w-full overflow-x-auto",
-        !bare && "rounded-lg border border-border bg-card shadow-sm",
+        !bare && "rounded-[4px] border border-border bg-card shadow-sm",
       )}
     >
       <table className={cn("w-full", className)} {...props}>

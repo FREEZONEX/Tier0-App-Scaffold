@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
+import { Inbox } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ENTER_RISE } from "@/lib/interaction";
 
 /**
- * EmptyState — what a list/section shows when there is no data yet. Pair it
- * with a real create/import action; never explain what the feature "will" do.
+ * EmptyState — ReUI empty surface recipe (dashed ring + 4px), Tier0 colors.
  */
 export interface EmptyStateProps {
   icon?: ReactNode;
@@ -23,17 +24,36 @@ export function EmptyState({
 }: EmptyStateProps) {
   return (
     <div
+      data-slot="empty"
       className={cn(
-        "flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border-strong bg-card px-6 py-10 text-center",
+        "flex w-full min-w-0 flex-col items-center justify-center gap-4 rounded-[4px] border border-dashed border-border px-6 py-12 text-center text-balance",
+        ENTER_RISE,
         className,
       )}
     >
-      {icon && <div className="text-muted-foreground [&>svg]:size-8">{icon}</div>}
-      <p className="typo-label text-foreground">{title}</p>
-      {description && (
-        <p className="typo-body max-w-sm text-muted-foreground">{description}</p>
-      )}
-      {action && <div className="mt-2">{action}</div>}
+      <div
+        data-slot="empty-icon"
+        className="inline-flex size-8 shrink-0 items-center justify-center rounded-[4px] bg-muted text-foreground [&>svg]:size-4"
+      >
+        {icon ?? <Inbox aria-hidden="true" />}
+      </div>
+      <div data-slot="empty-header" className="flex max-w-sm flex-col items-center gap-2">
+        <div
+          data-slot="empty-title"
+          className="text-sm font-medium tracking-tight text-foreground"
+        >
+          {title}
+        </div>
+        {description && (
+          <div
+            data-slot="empty-description"
+            className="text-sm/relaxed text-muted-foreground"
+          >
+            {description}
+          </div>
+        )}
+      </div>
+      {action && <div data-slot="empty-content">{action}</div>}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { LoaderCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useControllableState } from "@/components/kit/ui/floating";
 
@@ -9,10 +10,8 @@ export interface SwitchProps {
   defaultChecked?: boolean;
   onChange?: (checked: boolean) => void;
   disabled?: boolean;
-  /** Spinner in the knob while a toggle request is in flight. */
   loading?: boolean;
   size?: "sm" | "md";
-  /** Text inside the track when on / off (e.g. 开 / 关). */
   checkedChildren?: ReactNode;
   unCheckedChildren?: ReactNode;
   className?: string;
@@ -21,6 +20,7 @@ export interface SwitchProps {
   "aria-label"?: string;
 }
 
+/** Switch — ReUI thumb recipe; checked fill uses Tier0 marketing lime. */
 export function Switch({
   checked,
   defaultChecked = false,
@@ -38,6 +38,7 @@ export function Switch({
   const [isOn, setOn] = useControllableState(checked, defaultChecked);
   const small = size === "sm";
   const inert = disabled || loading;
+  const label = isOn ? checkedChildren : unCheckedChildren;
 
   return (
     <button
@@ -50,10 +51,14 @@ export function Switch({
       aria-busy={loading || undefined}
       disabled={inert}
       className={cn(
-        "relative inline-flex shrink-0 items-center rounded-full align-middle transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-border",
-        small ? "h-4 min-w-7" : "h-[22px] min-w-11",
-        isOn ? "bg-brand hover:bg-brand-hover" : "bg-[rgb(0_0_0/0.25)] hover:bg-[rgb(0_0_0/0.45)]",
-        inert && "cursor-not-allowed opacity-60 hover:bg-[inherit]",
+        "peer group/switch relative inline-flex shrink-0 items-center rounded-full border border-transparent outline-none before:absolute before:-inset-y-3 before:-inset-x-1",
+        "transition-[background-color,box-shadow] duration-[var(--motion-fast)] ease-[var(--motion-ease)]",
+        "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
+        small ? "h-3.5 w-6" : "h-[18px] w-8",
+        isOn
+          ? "bg-[color:var(--tier0-highlight)] shadow-[inset_0_0_0_1px_rgb(115_178_0/0.15)]"
+          : "bg-input",
+        inert && "cursor-not-allowed opacity-50",
         className,
       )}
       onClick={() => {
@@ -62,25 +67,30 @@ export function Switch({
         onChange?.(next);
       }}
     >
-      <span
-        className={cn(
-          "flex items-center whitespace-nowrap text-xs text-white transition-[padding] duration-200",
-          small ? "h-4 text-[10px]" : "h-[22px]",
-          isOn ? (small ? "pl-1.5 pr-5" : "pl-2 pr-7") : small ? "pl-5 pr-1.5" : "pl-7 pr-2",
-        )}
-      >
-        {isOn ? checkedChildren : unCheckedChildren}
-      </span>
+      {label ? (
+        <span
+          className={cn(
+            "pointer-events-none absolute inset-y-0 flex items-center text-[9px] font-medium",
+            isOn
+              ? "left-1 text-[color:var(--tier0-highlight-foreground)]"
+              : "right-1 text-muted-foreground",
+          )}
+        >
+          {label}
+        </span>
+      ) : null}
       <span
         aria-hidden="true"
         className={cn(
-          "absolute top-0.5 flex items-center justify-center rounded-full bg-white shadow-[0_2px_4px_0_rgb(0_35_11/0.2)] transition-[left] duration-200",
-          small ? "size-3" : "size-[18px]",
-          isOn ? (small ? "left-[calc(100%-14px)]" : "left-[calc(100%-20px)]") : "left-0.5",
+          "pointer-events-none flex items-center justify-center rounded-full bg-white shadow-sm ring-0",
+          "transition-transform duration-[var(--motion-base)] ease-[var(--motion-spring)]",
+          "motion-reduce:transition-none",
+          small ? "size-3" : "size-4",
+          isOn ? "translate-x-[calc(100%-2px)]" : "translate-x-0.5",
         )}
       >
         {loading ? (
-          <span className="size-2.5 animate-spin rounded-full border-[1.5px] border-brand border-r-transparent" />
+          <LoaderCircle className="size-2.5 animate-spin text-muted-foreground" />
         ) : null}
       </span>
     </button>

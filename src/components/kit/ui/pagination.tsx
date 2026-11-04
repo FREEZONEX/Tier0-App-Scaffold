@@ -70,10 +70,12 @@ export function Pagination({
 
   const itemClass = (active: boolean) =>
     cn(
-      "inline-flex shrink-0 items-center justify-center rounded-md tabular-nums transition-colors duration-150",
-      small ? "h-6 min-w-6 px-1 text-sm" : "h-8 min-w-8 px-1.5 text-sm",
-      active ? "bg-brand-soft font-medium text-brand" : "text-foreground hover:bg-fill-hover",
-      disabled && "cursor-not-allowed text-text-placeholder hover:bg-transparent",
+      "inline-flex shrink-0 items-center justify-center rounded-[4px] tabular-nums transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+      small ? "h-7 min-w-7 px-1 text-xs" : "h-8 min-w-8 px-1.5 text-sm",
+      active
+        ? "bg-primary font-medium text-primary-foreground"
+        : "text-foreground hover:bg-muted",
+      disabled && "pointer-events-none opacity-50",
     );
 
   const rangeStart = total === 0 ? 0 : (page - 1) * pageSize + 1;
@@ -175,7 +177,7 @@ export function Pagination({
             disabled={disabled}
             value={jumpText}
             className={cn(
-              "rounded-md border border-border-strong bg-card text-center tabular-nums text-foreground outline-none transition-[border-color,box-shadow] hover:border-brand-hover focus:border-brand focus:shadow-[0_0_0_2px_rgb(115_178_0/0.15)]",
+              "rounded-[4px] border border-border-strong bg-card text-center tabular-nums text-foreground outline-none transition-[border-color,box-shadow] hover:border-brand-hover focus:border-brand focus:shadow-[0_0_0_2px_rgb(115_178_0/0.15)]",
               small ? "h-6 w-11 text-sm" : "h-8 w-12 text-sm",
             )}
             onChange={(event) => setJumpText(event.target.value.replace(/\D/g, ""))}

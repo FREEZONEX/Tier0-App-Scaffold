@@ -60,12 +60,18 @@ export interface StatusBadgeProps extends HTMLAttributes<HTMLSpanElement> {
   tone?: StatusTone;
   /** Raw status value; used for the label and to derive tone when unset. */
   status?: string;
+  /** Leading tone dot (default on) for fast scanning in dense tables. */
+  dot?: boolean;
+  /** Ping the dot for live states such as a running line or an active alarm. */
+  pulse?: boolean;
   children?: ReactNode;
 }
 
 export function StatusBadge({
   tone,
   status,
+  dot = true,
+  pulse = false,
   className,
   children,
   ...props
@@ -78,12 +84,20 @@ export function StatusBadge({
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-sm border px-1.5 py-0.5 text-xs font-medium leading-4",
+        "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[4px] border px-2 py-0.5 text-xs font-medium leading-4",
         toneClass[resolved],
         className,
       )}
       {...props}
     >
+      {dot ? (
+        <span aria-hidden="true" className="relative flex size-1.5 shrink-0">
+          {pulse ? (
+            <span className="absolute inset-0 rounded-full bg-current opacity-60 animate-[ping-dot_1.6s_cubic-bezier(0,0,0.2,1)_infinite]" />
+          ) : null}
+          <span className="relative size-1.5 rounded-full bg-current" />
+        </span>
+      ) : null}
       {label}
     </span>
   );

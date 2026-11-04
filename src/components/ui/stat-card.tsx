@@ -1,13 +1,14 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { AnimatedNumber } from "@/components/ui/animated-number";
 
 /**
  * StatCard — dashboard summary tile. Value comes from real (seeded or live)
  * data, never an invented number.
  *
- * `tone` drives both the value color and the icon chip (`default` = neutral
- * grey; running/paused/error/info tint it). `trend` renders a semantic arrow +
- * delta. `footer` is free for a link or scope line. Use what the metric needs.
+ * `icon` is a muted lucide glyph (no colored chip, so a KPI row stays calm);
+ * `tone` is kept for API compatibility; primary metric values remain neutral. `trend` renders a semantic arrow +
+ * delta. Numeric `value`s roll to new readings on live refresh. `footer` is free for a link or scope line. Use what the metric needs.
  */
 export type StatTone = "default" | "running" | "paused" | "error" | "info";
 
@@ -37,22 +38,6 @@ export interface StatCardProps {
   tone?: StatTone;
   className?: string;
 }
-
-const toneValueClass: Record<StatTone, string> = {
-  default: "text-foreground",
-  running: "text-[color:var(--state-running-fg)]",
-  paused: "text-[color:var(--state-paused-fg)]",
-  error: "text-[color:var(--state-error-fg)]",
-  info: "text-[color:var(--state-info-fg)]",
-};
-
-const toneChipClass: Record<StatTone, string> = {
-  default: "bg-surface-inset text-muted-foreground",
-  running: "bg-[color:var(--state-running-bg)] text-[color:var(--state-running-fg)]",
-  paused: "bg-[color:var(--state-paused-bg)] text-[color:var(--state-paused-fg)]",
-  error: "bg-[color:var(--state-error-bg)] text-[color:var(--state-error-fg)]",
-  info: "bg-[color:var(--state-info-bg)] text-[color:var(--state-info-fg)]",
-};
 
 const trendIntentClass = {
   positive: "text-[color:var(--tier0-success-color)]",
@@ -95,19 +80,22 @@ export function StatCard({
 }: StatCardProps) {
   return (
     <div
+      data-tone={tone}
       className={cn(
-        "rounded-lg border border-border bg-card p-4 shadow-sm",
+        // Read-only KPI: no stroke / lift on hover — only a faint fill shift.
+        "group relative rounded-[4px] border border-border bg-card p-4 shadow-sm",
+        "transition-colors duration-150 ease-out motion-reduce:transition-none",
+        "hover:bg-[color:var(--tier0-fill-hover)]",
+        "animate-[tier0-rise_260ms_var(--motion-spring)_both]",
         className,
       )}
     >
       <div className="flex items-center justify-between gap-2">
-        <p className="caption">{label}</p>
+        <p className="caption text-muted-foreground">{label}</p>
         {icon && (
           <span
-            className={cn(
-              "grid size-8 shrink-0 place-items-center rounded-md [&>svg]:size-4",
-              toneChipClass[tone],
-            )}
+            aria-hidden="true"
+            className="flex shrink-0 text-muted-foreground [&>svg]:size-[18px] [&>svg]:stroke-[1.75]"
           >
             {icon}
           </span>
@@ -118,11 +106,11 @@ export function StatCard({
           // Sized to read as a deliberate big-number KPI even when the card
           // carries nothing but a label + value (its most common generated
           // form) — a small number floating in a wide tile reads as hollow.
-          "mt-1 text-3xl font-semibold leading-9 tracking-tight tabular-nums",
-          toneValueClass[tone],
+          "mt-1 text-3xl font-semibold leading-9 tabular-nums",
+          "text-foreground",
         )}
       >
-        {value}
+        {typeof value === "number" ? <AnimatedNumber value={value} /> : value}
         {unit && (
           <span className="ml-1 text-base font-normal text-muted-foreground">
             {unit}

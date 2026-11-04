@@ -4,6 +4,7 @@ import { type ReactNode, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 export type { OverlaySize } from "./overlay-lifecycle";
 
@@ -67,39 +68,40 @@ export function OverlayHeader({
   closeButtonRef: RefObject<HTMLButtonElement | null>;
 }) {
   return (
-    <div className="flex items-start justify-between gap-4 border-b border-border px-6 py-5 sm:px-8 sm:py-6">
-      <div className="min-w-0">
+    <div className="flex shrink-0 items-start justify-between gap-3 px-5 pt-5 pb-0">
+      <div className="min-w-0 flex-1 space-y-1.5">
         <h2
           id={titleId}
-          className="text-xl font-semibold leading-7 text-foreground sm:text-2xl sm:leading-8"
+          className="text-lg font-semibold leading-6 tracking-tight text-foreground"
         >
           {title}
         </h2>
         {description ? (
           <div
             id={descriptionId}
-            className="mt-2 text-sm leading-6 text-muted-foreground"
+            className="text-sm leading-5 text-muted-foreground"
           >
             {description}
           </div>
         ) : null}
       </div>
-      <button
+      <Button
         ref={closeButtonRef}
         type="button"
+        variant="ghost"
+        size="sm"
         aria-label="Close"
-        className="inline-flex size-9 shrink-0 items-center justify-center rounded-sm border border-border bg-card text-muted-foreground shadow-sm transition-[background-color,border-color,color,box-shadow] duration-150 hover:border-border-strong hover:bg-background hover:text-foreground hover:shadow-md focus:border-highlight focus:outline-none"
+        className="size-8 shrink-0 px-0 text-muted-foreground hover:text-foreground"
         onClick={onClose}
-      >
-        <X className="size-4" />
-      </button>
+        icon={<X className="size-4" />}
+      />
     </div>
   );
 }
 
 export function OverlayFooter({ children }: { children: ReactNode }) {
   return (
-    <div className="flex flex-col-reverse gap-2 border-t border-border bg-surface-inset px-6 py-4 sm:flex-row sm:justify-end sm:px-8">
+    <div className="flex shrink-0 flex-col-reverse gap-2 px-5 pt-4 pb-5 sm:flex-row sm:justify-end">
       {children}
     </div>
   );
@@ -112,32 +114,30 @@ export function OverlayActionButton({
   action: OverlayAction;
   onDefaultClick?: () => void;
 }) {
-  const variant = action.variant ?? "outline";
+  const variant =
+    action.variant === "destructive"
+      ? "danger"
+      : action.variant === "primary"
+        ? "primary"
+        : action.variant === "highlight"
+          ? "highlight"
+          : action.variant === "secondary"
+            ? "secondary"
+            : action.variant === "ghost"
+              ? "ghost"
+              : "outline";
 
   return (
-    <button
+    <Button
       type={action.type ?? "button"}
       form={action.form}
-      disabled={action.disabled || action.loading}
-      aria-busy={action.loading || undefined}
-      className={cn(
-        "inline-flex h-9 items-center justify-center rounded-sm border px-3.5 text-sm font-medium shadow-sm transition-[background-color,border-color,color,box-shadow] duration-150 hover:shadow-md disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none",
-        variant === "primary" &&
-          "border-primary bg-primary text-primary-foreground hover:bg-[var(--tier0-primary-hover)]",
-        variant === "highlight" &&
-          "border-highlight-bg-primary bg-button-highlight text-accent-foreground hover:bg-highlight-bg-accent",
-        variant === "secondary" &&
-          "border-border bg-card text-foreground hover:border-border-strong hover:bg-background",
-        variant === "outline" &&
-          "border-border bg-background text-foreground hover:bg-surface-inset",
-        variant === "ghost" &&
-          "border-transparent bg-transparent text-muted-foreground hover:bg-surface-inset hover:text-foreground",
-        variant === "destructive" &&
-          "border-state-error-border bg-state-error-bg text-state-error-fg hover:border-state-error-fg",
-      )}
+      variant={variant}
+      size="md"
+      disabled={action.disabled}
+      loading={action.loading}
       onClick={action.onClick ?? onDefaultClick}
     >
-      {action.loading ? "Processing..." : action.label}
-    </button>
+      {action.label}
+    </Button>
   );
 }

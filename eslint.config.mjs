@@ -184,6 +184,8 @@ const runtimeFirstLoadRule = {
 
 const eslintConfig = defineConfig([
   globalIgnores([
+    "backup-pre-reactbits/**",
+    ".refs/**",
     ".output/**",
     "dist/**",
     "build/**",

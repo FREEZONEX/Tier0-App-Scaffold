@@ -1,0 +1,1357 @@
+{
+  "items": [
+    {
+      "name": "Button",
+      "label": "按钮",
+      "category": "通用",
+      "layer": "base",
+      "detail": "@/components/ui/button · @/components/kit/ui/buttons · @/components/kit/ui/buttons · @/components/kit/ui/buttons",
+      "reason": "",
+      "samples": [
+        {
+          "name": "Button",
+          "label": "Button",
+          "engine": "library",
+          "importPath": "@/components/ui/button",
+          "source": "src/components/ui/button.tsx"
+        },
+        {
+          "name": "IconButton",
+          "label": "IconButton",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/buttons",
+          "source": "src/components/kit/ui/buttons.tsx"
+        },
+        {
+          "name": "TextButton",
+          "label": "TextButton",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/buttons",
+          "source": "src/components/kit/ui/buttons.tsx"
+        },
+        {
+          "name": "SplitButton",
+          "label": "SplitButton",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/buttons",
+          "source": "src/components/kit/ui/buttons.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "HighlightText",
+      "label": "高亮文本",
+      "category": "通用",
+      "layer": "base",
+      "detail": "@/components/kit/ui/text",
+      "reason": "",
+      "samples": [
+        {
+          "name": "HighlightText",
+          "label": "HighlightText",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/text",
+          "source": "src/components/kit/ui/text.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "EllipsisText",
+      "label": "省略文本",
+      "category": "通用",
+      "layer": "base",
+      "detail": "@/components/kit/ui/tooltip",
+      "reason": "",
+      "samples": [
+        {
+          "name": "EllipsisText",
+          "label": "EllipsisText",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/tooltip",
+          "source": "src/components/kit/ui/tooltip.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "FieldTypeIcon",
+      "label": "字段图标",
+      "category": "通用",
+      "layer": "base",
+      "detail": "@/components/kit/ui/field-type-icon",
+      "reason": "",
+      "samples": [
+        {
+          "name": "FieldTypeIcon",
+          "label": "FieldTypeIcon",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/field-type-icon",
+          "source": "src/components/kit/ui/field-type-icon.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "FormGrid",
+      "label": "表单布局",
+      "category": "布局",
+      "layer": "base",
+      "detail": "@/components/forms/form-layout · @/components/forms/form-layout · @/components/forms/form-layout",
+      "reason": "",
+      "samples": [
+        {
+          "name": "FormGrid",
+          "label": "FormGrid",
+          "engine": "library",
+          "importPath": "@/components/forms/form-layout",
+          "source": "src/components/forms/form-layout.tsx"
+        },
+        {
+          "name": "FieldGroup",
+          "label": "FieldGroup",
+          "engine": "library",
+          "importPath": "@/components/forms/form-layout",
+          "source": "src/components/forms/form-layout.tsx"
+        },
+        {
+          "name": "LineItemSection",
+          "label": "LineItemSection",
+          "engine": "library",
+          "importPath": "@/components/forms/form-layout",
+          "source": "src/components/forms/form-layout.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "PageContainer",
+      "label": "页面容器",
+      "category": "布局",
+      "layer": "base",
+      "detail": "@/components/kit/shell/page-layout · @/components/kit/shell/page-layout · @/components/ui/responsive-page",
+      "reason": "",
+      "samples": [
+        {
+          "name": "PageContainer",
+          "label": "PageContainer",
+          "engine": "library",
+          "importPath": "@/components/kit/shell/page-layout",
+          "source": "src/components/kit/shell/page-layout.tsx"
+        },
+        {
+          "name": "PageCard",
+          "label": "PageCard",
+          "engine": "library",
+          "importPath": "@/components/kit/shell/page-layout",
+          "source": "src/components/kit/shell/page-layout.tsx"
+        },
+        {
+          "name": "ResponsivePage",
+          "label": "ResponsivePage",
+          "engine": "library",
+          "importPath": "@/components/ui/responsive-page",
+          "source": "src/components/ui/responsive-page.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "PageHeader",
+      "label": "页头与工具栏",
+      "category": "布局",
+      "layer": "base",
+      "detail": "@/components/ui/page-header · @/components/ui/responsive-page",
+      "reason": "",
+      "samples": [
+        {
+          "name": "PageHeader",
+          "label": "PageHeader",
+          "engine": "library",
+          "importPath": "@/components/ui/page-header",
+          "source": "src/components/ui/page-header.tsx"
+        },
+        {
+          "name": "PageToolbar",
+          "label": "PageToolbar",
+          "engine": "library",
+          "importPath": "@/components/ui/responsive-page",
+          "source": "src/components/ui/responsive-page.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "TableViewport",
+      "label": "表格滚动容器",
+      "category": "布局",
+      "layer": "base",
+      "detail": "@/components/data/table-layout",
+      "reason": "",
+      "samples": [
+        {
+          "name": "TableViewport",
+          "label": "TableViewport",
+          "engine": "library",
+          "importPath": "@/components/data/table-layout",
+          "source": "src/components/data/table-layout.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "AnchorTabs",
+      "label": "锚点导航",
+      "category": "导航",
+      "layer": "base",
+      "detail": "@/components/kit/ui/tabs",
+      "reason": "",
+      "samples": [
+        {
+          "name": "AnchorTabs",
+          "label": "AnchorTabs",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/tabs",
+          "source": "src/components/kit/ui/tabs.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "DropdownMenu",
+      "label": "下拉菜单",
+      "category": "导航",
+      "layer": "base",
+      "detail": "@/components/kit/ui/dropdown-menu",
+      "reason": "",
+      "samples": [
+        {
+          "name": "DropdownMenu",
+          "label": "DropdownMenu",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/dropdown-menu",
+          "source": "src/components/kit/ui/dropdown-menu.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "Pagination",
+      "label": "分页",
+      "category": "导航",
+      "layer": "base",
+      "detail": "@/components/kit/ui/pagination",
+      "reason": "",
+      "samples": [
+        {
+          "name": "Pagination",
+          "label": "Pagination",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/pagination",
+          "source": "src/components/kit/ui/pagination.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "Tabs",
+      "label": "标签页",
+      "category": "导航",
+      "layer": "base",
+      "detail": "@/components/kit/ui/tabs · @/components/kit/ui/tabs",
+      "reason": "",
+      "samples": [
+        {
+          "name": "Tabs",
+          "label": "Tabs",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/tabs",
+          "source": "src/components/kit/ui/tabs.tsx"
+        },
+        {
+          "name": "CapsuleGroup",
+          "label": "CapsuleGroup",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/tabs",
+          "source": "src/components/kit/ui/tabs.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "PageHeaderLink",
+      "label": "页头链接",
+      "category": "导航",
+      "layer": "base",
+      "detail": "@/components/kit/shell/page-layout",
+      "reason": "",
+      "samples": [
+        {
+          "name": "PageHeaderLink",
+          "label": "PageHeaderLink",
+          "engine": "library",
+          "importPath": "@/components/kit/shell/page-layout",
+          "source": "src/components/kit/shell/page-layout.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "Input",
+      "label": "输入框",
+      "category": "数据录入",
+      "layer": "base",
+      "detail": "@/components/kit/ui/input · @/components/kit/ui/input",
+      "reason": "",
+      "samples": [
+        {
+          "name": "Input",
+          "label": "Input",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/input",
+          "source": "src/components/kit/ui/input.tsx"
+        },
+        {
+          "name": "TextArea",
+          "label": "TextArea",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/input",
+          "source": "src/components/kit/ui/input.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "NumberInput",
+      "label": "数字输入",
+      "category": "数据录入",
+      "layer": "base",
+      "detail": "@/components/kit/ui/number-input · @/components/kit/ui/number-input",
+      "reason": "",
+      "samples": [
+        {
+          "name": "NumberInput",
+          "label": "NumberInput",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/number-input",
+          "source": "src/components/kit/ui/number-input.tsx"
+        },
+        {
+          "name": "NumberRangeInput",
+          "label": "NumberRangeInput",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/number-input",
+          "source": "src/components/kit/ui/number-input.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "Select",
+      "label": "选择器",
+      "category": "数据录入",
+      "layer": "base",
+      "detail": "@/components/kit/ui/select",
+      "reason": "",
+      "samples": [
+        {
+          "name": "Select",
+          "label": "Select",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/select",
+          "source": "src/components/kit/ui/select.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "DatePicker",
+      "label": "日期选择",
+      "category": "数据录入",
+      "layer": "base",
+      "detail": "@/components/kit/ui/date-picker · @/components/kit/ui/date-picker",
+      "reason": "",
+      "samples": [
+        {
+          "name": "DatePicker",
+          "label": "DatePicker",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/date-picker",
+          "source": "src/components/kit/ui/date-picker.tsx"
+        },
+        {
+          "name": "DateRangePicker",
+          "label": "DateRangePicker",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/date-picker",
+          "source": "src/components/kit/ui/date-picker.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "Checkbox",
+      "label": "复选框",
+      "category": "数据录入",
+      "layer": "base",
+      "detail": "@/components/kit/ui/checkbox · @/components/kit/ui/checkbox",
+      "reason": "",
+      "samples": [
+        {
+          "name": "Checkbox",
+          "label": "Checkbox",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/checkbox",
+          "source": "src/components/kit/ui/checkbox.tsx"
+        },
+        {
+          "name": "CheckboxGroup",
+          "label": "CheckboxGroup",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/checkbox",
+          "source": "src/components/kit/ui/checkbox.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "RadioGroup",
+      "label": "单选框",
+      "category": "数据录入",
+      "layer": "base",
+      "detail": "@/components/kit/ui/radio",
+      "reason": "",
+      "samples": [
+        {
+          "name": "RadioGroup",
+          "label": "RadioGroup",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/radio",
+          "source": "src/components/kit/ui/radio.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "Switch",
+      "label": "开关",
+      "category": "数据录入",
+      "layer": "base",
+      "detail": "@/components/kit/ui/switch",
+      "reason": "",
+      "samples": [
+        {
+          "name": "Switch",
+          "label": "Switch",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/switch",
+          "source": "src/components/kit/ui/switch.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "FileUpload",
+      "label": "文件上传",
+      "category": "数据录入",
+      "layer": "base",
+      "detail": "@/components/forms/file-upload · @/components/kit/ui/upload · @/components/kit/ui/upload",
+      "reason": "",
+      "samples": [
+        {
+          "name": "FileUpload",
+          "label": "FileUpload",
+          "engine": "library",
+          "importPath": "@/components/forms/file-upload",
+          "source": "src/components/forms/file-upload.tsx"
+        },
+        {
+          "name": "ImageUpload",
+          "label": "ImageUpload",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/upload",
+          "source": "src/components/kit/ui/upload.tsx"
+        },
+        {
+          "name": "AttachmentUpload",
+          "label": "AttachmentUpload",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/upload",
+          "source": "src/components/kit/ui/upload.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "RecordSelect",
+      "label": "记录下拉",
+      "category": "数据录入",
+      "layer": "base",
+      "detail": "@/components/forms/record-select",
+      "reason": "",
+      "samples": [
+        {
+          "name": "RecordSelect",
+          "label": "RecordSelect",
+          "engine": "library",
+          "importPath": "@/components/forms/record-select",
+          "source": "src/components/forms/record-select.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "ReferenceInput",
+      "label": "参照输入",
+      "category": "数据录入",
+      "layer": "base",
+      "detail": "@/components/kit/meta/reference-input · @/components/kit/meta/reference-select · @/components/kit/meta/reference-input",
+      "reason": "",
+      "samples": [
+        {
+          "name": "ReferenceInput",
+          "label": "ReferenceInput",
+          "engine": "library",
+          "importPath": "@/components/kit/meta/reference-input",
+          "source": "src/components/kit/meta/reference-input.tsx"
+        },
+        {
+          "name": "ReferenceSelect",
+          "label": "ReferenceSelect",
+          "engine": "library",
+          "importPath": "@/components/kit/meta/reference-select",
+          "source": "src/components/kit/meta/reference-select.tsx"
+        },
+        {
+          "name": "PersonInput",
+          "label": "PersonInput",
+          "engine": "library",
+          "importPath": "@/components/kit/meta/reference-input",
+          "source": "src/components/kit/meta/reference-input.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "FieldControl",
+      "label": "表单字段",
+      "category": "数据录入",
+      "layer": "base",
+      "detail": "@/components/kit/meta/field-control · @/components/forms/field-label · @/components/forms/field-label",
+      "reason": "",
+      "samples": [
+        {
+          "name": "FieldControl",
+          "label": "FieldControl",
+          "engine": "library",
+          "importPath": "@/components/kit/meta/field-control",
+          "source": "src/components/kit/meta/field-control.tsx"
+        },
+        {
+          "name": "FieldLabel",
+          "label": "FieldLabel",
+          "engine": "library",
+          "importPath": "@/components/forms/field-label",
+          "source": "src/components/forms/field-label.tsx"
+        },
+        {
+          "name": "RequiredMark",
+          "label": "RequiredMark",
+          "engine": "library",
+          "importPath": "@/components/forms/field-label",
+          "source": "src/components/forms/field-label.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "ReferenceCascader",
+      "label": "级联参照",
+      "category": "数据录入",
+      "layer": "base",
+      "detail": "@/components/editors/custom-fields/reference-cascader",
+      "reason": "",
+      "samples": [
+        {
+          "name": "ReferenceCascader",
+          "label": "ReferenceCascader",
+          "engine": "library",
+          "importPath": "@/components/editors/custom-fields/reference-cascader",
+          "source": "src/components/editors/custom-fields/reference-cascader.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "Avatar",
+      "label": "头像",
+      "category": "数据展示",
+      "layer": "base",
+      "detail": "@/components/kit/ui/avatar",
+      "reason": "",
+      "samples": [
+        {
+          "name": "Avatar",
+          "label": "Avatar",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/avatar",
+          "source": "src/components/kit/ui/avatar.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "Badge",
+      "label": "徽标",
+      "category": "数据展示",
+      "layer": "base",
+      "detail": "@/components/kit/ui/avatar",
+      "reason": "",
+      "samples": [
+        {
+          "name": "Badge",
+          "label": "Badge",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/avatar",
+          "source": "src/components/kit/ui/avatar.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "Card",
+      "label": "卡片",
+      "category": "数据展示",
+      "layer": "base",
+      "detail": "@/components/ui/card",
+      "reason": "",
+      "samples": [
+        {
+          "name": "Card",
+          "label": "Card",
+          "engine": "library",
+          "importPath": "@/components/ui/card",
+          "source": "src/components/ui/card.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "CollapseSection",
+      "label": "折叠分区",
+      "category": "数据展示",
+      "layer": "base",
+      "detail": "@/components/kit/ui/collapse-section",
+      "reason": "",
+      "samples": [
+        {
+          "name": "CollapseSection",
+          "label": "CollapseSection",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/collapse-section",
+          "source": "src/components/kit/ui/collapse-section.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "Empty",
+      "label": "空状态",
+      "category": "数据展示",
+      "layer": "base",
+      "detail": "@/components/kit/ui/feedback · @/components/ui/empty-state",
+      "reason": "",
+      "samples": [
+        {
+          "name": "Empty",
+          "label": "Empty",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/feedback",
+          "source": "src/components/kit/ui/feedback.tsx"
+        },
+        {
+          "name": "EmptyState",
+          "label": "EmptyState",
+          "engine": "library",
+          "importPath": "@/components/ui/empty-state",
+          "source": "src/components/ui/empty-state.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "ImagePreview",
+      "label": "图片与文件预览",
+      "category": "数据展示",
+      "layer": "base",
+      "detail": "@/components/kit/ui/preview · @/components/kit/ui/preview · @/components/kit/ui/upload",
+      "reason": "",
+      "samples": [
+        {
+          "name": "ImagePreview",
+          "label": "ImagePreview",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/preview",
+          "source": "src/components/kit/ui/preview.tsx"
+        },
+        {
+          "name": "FilePreview",
+          "label": "FilePreview",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/preview",
+          "source": "src/components/kit/ui/preview.tsx"
+        },
+        {
+          "name": "ImageThumbs",
+          "label": "ImageThumbs",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/upload",
+          "source": "src/components/kit/ui/upload.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "Popover",
+      "label": "气泡卡片",
+      "category": "数据展示",
+      "layer": "base",
+      "detail": "@/components/kit/ui/popover",
+      "reason": "",
+      "samples": [
+        {
+          "name": "Popover",
+          "label": "Popover",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/popover",
+          "source": "src/components/kit/ui/popover.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "Segmented",
+      "label": "分段控制器",
+      "category": "数据展示",
+      "layer": "base",
+      "detail": "@/components/kit/ui/segmented",
+      "reason": "",
+      "samples": [
+        {
+          "name": "Segmented",
+          "label": "Segmented",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/segmented",
+          "source": "src/components/kit/ui/segmented.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "StatCard",
+      "label": "统计卡片",
+      "category": "数据展示",
+      "layer": "base",
+      "detail": "@/components/ui/stat-card",
+      "reason": "",
+      "samples": [
+        {
+          "name": "StatCard",
+          "label": "StatCard",
+          "engine": "library",
+          "importPath": "@/components/ui/stat-card",
+          "source": "src/components/ui/stat-card.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "DataGrid",
+      "label": "数据表格",
+      "category": "数据展示",
+      "layer": "base",
+      "detail": "@/components/kit/ui/data-grid · @/components/data/table-layout",
+      "reason": "",
+      "samples": [
+        {
+          "name": "DataGrid",
+          "label": "DataGrid",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/data-grid",
+          "source": "src/components/kit/ui/data-grid.tsx"
+        },
+        {
+          "name": "DataTable",
+          "label": "DataTable",
+          "engine": "library",
+          "importPath": "@/components/data/table-layout",
+          "source": "src/components/data/table-layout.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "Tag",
+      "label": "标签与状态",
+      "category": "数据展示",
+      "layer": "base",
+      "detail": "@/components/kit/ui/tag · @/components/kit/ui/tag · @/components/ui/status-badge · @/components/kit/ui/tag",
+      "reason": "",
+      "samples": [
+        {
+          "name": "Tag",
+          "label": "Tag",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/tag",
+          "source": "src/components/kit/ui/tag.tsx"
+        },
+        {
+          "name": "StatusTag",
+          "label": "StatusTag",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/tag",
+          "source": "src/components/kit/ui/tag.tsx"
+        },
+        {
+          "name": "StatusBadge",
+          "label": "StatusBadge",
+          "engine": "library",
+          "importPath": "@/components/ui/status-badge",
+          "source": "src/components/ui/status-badge.tsx"
+        },
+        {
+          "name": "ColorDotLabel",
+          "label": "ColorDotLabel",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/tag",
+          "source": "src/components/kit/ui/tag.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "Tooltip",
+      "label": "文字提示",
+      "category": "数据展示",
+      "layer": "base",
+      "detail": "@/components/kit/ui/tooltip",
+      "reason": "",
+      "samples": [
+        {
+          "name": "Tooltip",
+          "label": "Tooltip",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/tooltip",
+          "source": "src/components/kit/ui/tooltip.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "TreeList",
+      "label": "树列表",
+      "category": "数据展示",
+      "layer": "base",
+      "detail": "@/components/kit/ui/tree-list",
+      "reason": "",
+      "samples": [
+        {
+          "name": "TreeList",
+          "label": "TreeList",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/tree-list",
+          "source": "src/components/kit/ui/tree-list.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "FieldValue",
+      "label": "字段值",
+      "category": "数据展示",
+      "layer": "base",
+      "detail": "@/components/kit/meta/field-value",
+      "reason": "",
+      "samples": [
+        {
+          "name": "FieldValue",
+          "label": "FieldValue",
+          "engine": "library",
+          "importPath": "@/components/kit/meta/field-value",
+          "source": "src/components/kit/meta/field-value.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "RiskBanner",
+      "label": "风险提示",
+      "category": "反馈",
+      "layer": "base",
+      "detail": "@/components/ui/risk-banner",
+      "reason": "",
+      "samples": [
+        {
+          "name": "RiskBanner",
+          "label": "RiskBanner",
+          "engine": "library",
+          "importPath": "@/components/ui/risk-banner",
+          "source": "src/components/ui/risk-banner.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "Drawer",
+      "label": "抽屉",
+      "category": "反馈",
+      "layer": "base",
+      "detail": "@/components/overlays/drawer",
+      "reason": "",
+      "samples": [
+        {
+          "name": "Drawer",
+          "label": "Drawer",
+          "engine": "library",
+          "importPath": "@/components/overlays/drawer",
+          "source": "src/components/overlays/drawer.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "Dialog",
+      "label": "对话框",
+      "category": "反馈",
+      "layer": "base",
+      "detail": "@/components/overlays/dialog · @/components/overlays/confirm-dialog · @/components/overlays/form-dialog · @/components/kit/meta/fullscreen-modal",
+      "reason": "",
+      "samples": [
+        {
+          "name": "Dialog",
+          "label": "Dialog",
+          "engine": "library",
+          "importPath": "@/components/overlays/dialog",
+          "source": "src/components/overlays/dialog.tsx"
+        },
+        {
+          "name": "ConfirmDialog",
+          "label": "ConfirmDialog",
+          "engine": "library",
+          "importPath": "@/components/overlays/confirm-dialog",
+          "source": "src/components/overlays/confirm-dialog.tsx"
+        },
+        {
+          "name": "FormDialog",
+          "label": "FormDialog",
+          "engine": "library",
+          "importPath": "@/components/overlays/form-dialog",
+          "source": "src/components/overlays/form-dialog.tsx"
+        },
+        {
+          "name": "FullscreenModal",
+          "label": "FullscreenModal",
+          "engine": "library",
+          "importPath": "@/components/kit/meta/fullscreen-modal",
+          "source": "src/components/kit/meta/fullscreen-modal.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "Toaster",
+      "label": "消息提示",
+      "category": "反馈",
+      "layer": "base",
+      "detail": "@/components/toaster",
+      "reason": "",
+      "samples": [
+        {
+          "name": "Toaster",
+          "label": "Toaster",
+          "engine": "library",
+          "importPath": "@/components/toaster",
+          "source": "src/components/toaster.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "ProgressBar",
+      "label": "进度",
+      "category": "反馈",
+      "layer": "base",
+      "detail": "@/components/kit/ui/feedback · @/components/kit/ui/feedback",
+      "reason": "",
+      "samples": [
+        {
+          "name": "ProgressBar",
+          "label": "ProgressBar",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/feedback",
+          "source": "src/components/kit/ui/feedback.tsx"
+        },
+        {
+          "name": "ProgressRing",
+          "label": "ProgressRing",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/feedback",
+          "source": "src/components/kit/ui/feedback.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "Skeleton",
+      "label": "骨架屏",
+      "category": "反馈",
+      "layer": "base",
+      "detail": "@/components/kit/ui/feedback · @/components/kit/ui/feedback",
+      "reason": "",
+      "samples": [
+        {
+          "name": "Skeleton",
+          "label": "Skeleton",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/feedback",
+          "source": "src/components/kit/ui/feedback.tsx"
+        },
+        {
+          "name": "TableSkeleton",
+          "label": "TableSkeleton",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/feedback",
+          "source": "src/components/kit/ui/feedback.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "Spin",
+      "label": "加载状态",
+      "category": "反馈",
+      "layer": "base",
+      "detail": "@/components/kit/ui/feedback · @/components/data/async-view",
+      "reason": "",
+      "samples": [
+        {
+          "name": "Spin",
+          "label": "Spin",
+          "engine": "library",
+          "importPath": "@/components/kit/ui/feedback",
+          "source": "src/components/kit/ui/feedback.tsx"
+        },
+        {
+          "name": "AsyncView",
+          "label": "AsyncView",
+          "engine": "library",
+          "importPath": "@/components/data/async-view",
+          "source": "src/components/data/async-view.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "MetaForm",
+      "label": "元数据表单",
+      "category": "重型组件",
+      "layer": "extension",
+      "detail": "@/components/kit/meta/meta-form",
+      "reason": "",
+      "samples": [
+        {
+          "name": "MetaForm",
+          "label": "MetaForm",
+          "engine": "library",
+          "importPath": "@/components/kit/meta/meta-form",
+          "source": "src/components/kit/meta/meta-form.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "DetailTable",
+      "label": "可编辑明细表",
+      "category": "重型组件",
+      "layer": "extension",
+      "detail": "@/components/kit/meta/detail-table",
+      "reason": "",
+      "samples": [
+        {
+          "name": "DetailTable",
+          "label": "DetailTable",
+          "engine": "library",
+          "importPath": "@/components/kit/meta/detail-table",
+          "source": "src/components/kit/meta/detail-table.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "MetaListPage",
+      "label": "元数据列表页",
+      "category": "重型组件",
+      "layer": "extension",
+      "detail": "@/components/kit/meta/meta-list-page",
+      "reason": "",
+      "samples": [
+        {
+          "name": "MetaListPage",
+          "label": "MetaListPage",
+          "engine": "library",
+          "importPath": "@/components/kit/meta/meta-list-page",
+          "source": "src/components/kit/meta/meta-list-page.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "ReferencePicker",
+      "label": "参照选择弹窗",
+      "category": "重型组件",
+      "layer": "extension",
+      "detail": "@/components/kit/meta/reference-picker · @/components/kit/meta/person-picker",
+      "reason": "",
+      "samples": [
+        {
+          "name": "ReferencePicker",
+          "label": "ReferencePicker",
+          "engine": "library",
+          "importPath": "@/components/kit/meta/reference-picker",
+          "source": "src/components/kit/meta/reference-picker.tsx"
+        },
+        {
+          "name": "PersonPicker",
+          "label": "PersonPicker",
+          "engine": "library",
+          "importPath": "@/components/kit/meta/person-picker",
+          "source": "src/components/kit/meta/person-picker.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "SearchPanel",
+      "label": "查询条件",
+      "category": "重型组件",
+      "layer": "extension",
+      "detail": "@/components/kit/meta/search-panel · @/components/kit/meta/filter-condition-list · @/components/kit/meta/sort-popover",
+      "reason": "",
+      "samples": [
+        {
+          "name": "SearchPanel",
+          "label": "SearchPanel",
+          "engine": "library",
+          "importPath": "@/components/kit/meta/search-panel",
+          "source": "src/components/kit/meta/search-panel.tsx"
+        },
+        {
+          "name": "FilterConditionList",
+          "label": "FilterConditionList",
+          "engine": "library",
+          "importPath": "@/components/kit/meta/filter-condition-list",
+          "source": "src/components/kit/meta/filter-condition-list.tsx"
+        },
+        {
+          "name": "SortConditionList",
+          "label": "SortConditionList",
+          "engine": "library",
+          "importPath": "@/components/kit/meta/sort-popover",
+          "source": "src/components/kit/meta/sort-popover.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "CustomFieldForm",
+      "label": "字段配置",
+      "category": "重型组件",
+      "layer": "extension",
+      "detail": "@/components/editors/custom-fields/custom-field-form · @/components/editors/custom-fields/custom-field-table · @/components/editors/custom-fields/option-list-editor",
+      "reason": "",
+      "samples": [
+        {
+          "name": "CustomFieldForm",
+          "label": "CustomFieldForm",
+          "engine": "library",
+          "importPath": "@/components/editors/custom-fields/custom-field-form",
+          "source": "src/components/editors/custom-fields/custom-field-form.tsx"
+        },
+        {
+          "name": "CustomFieldTable",
+          "label": "CustomFieldTable",
+          "engine": "library",
+          "importPath": "@/components/editors/custom-fields/custom-field-table",
+          "source": "src/components/editors/custom-fields/custom-field-table.tsx"
+        },
+        {
+          "name": "OptionListEditor",
+          "label": "OptionListEditor",
+          "engine": "library",
+          "importPath": "@/components/editors/custom-fields/option-list-editor",
+          "source": "src/components/editors/custom-fields/option-list-editor.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "ExpressionEditorDialog",
+      "label": "表达式编辑",
+      "category": "重型组件",
+      "layer": "extension",
+      "detail": "@/components/editors/custom-events/expression-editor-dialog · @/components/editors/custom-events/variable-picker",
+      "reason": "",
+      "samples": [
+        {
+          "name": "ExpressionEditorDialog",
+          "label": "ExpressionEditorDialog",
+          "engine": "library",
+          "importPath": "@/components/editors/custom-events/expression-editor-dialog",
+          "source": "src/components/editors/custom-events/expression-editor-dialog.tsx"
+        },
+        {
+          "name": "VariablePicker",
+          "label": "VariablePicker",
+          "engine": "library",
+          "importPath": "@/components/editors/custom-events/variable-picker",
+          "source": "src/components/editors/custom-events/variable-picker.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "CodeRuleEditor",
+      "label": "编码规则编辑",
+      "category": "重型组件",
+      "layer": "extension",
+      "detail": "@/components/editors/code-rules/code-rule-editor",
+      "reason": "",
+      "samples": [
+        {
+          "name": "CodeRuleEditor",
+          "label": "CodeRuleEditor",
+          "engine": "library",
+          "importPath": "@/components/editors/code-rules/code-rule-editor",
+          "source": "src/components/editors/code-rules/code-rule-editor.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "PrintTemplateEditor",
+      "label": "打印模板",
+      "category": "重型组件",
+      "layer": "extension",
+      "detail": "@/components/editors/print-templates/print-template-editor · @/components/editors/print-templates/print-template-preview",
+      "reason": "",
+      "samples": [
+        {
+          "name": "PrintTemplateEditor",
+          "label": "PrintTemplateEditor",
+          "engine": "library",
+          "importPath": "@/components/editors/print-templates/print-template-editor",
+          "source": "src/components/editors/print-templates/print-template-editor.tsx"
+        },
+        {
+          "name": "PrintTemplatePreview",
+          "label": "PrintTemplatePreview",
+          "engine": "library",
+          "importPath": "@/components/editors/print-templates/print-template-preview",
+          "source": "src/components/editors/print-templates/print-template-preview.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "ImportDialog",
+      "label": "导入导出",
+      "category": "重型组件",
+      "layer": "extension",
+      "detail": "@/components/kit/meta/import-dialog · @/components/kit/meta/export-dialog · @/components/kit/meta/excel-log-modal",
+      "reason": "",
+      "samples": [
+        {
+          "name": "ImportDialog",
+          "label": "ImportDialog",
+          "engine": "library",
+          "importPath": "@/components/kit/meta/import-dialog",
+          "source": "src/components/kit/meta/import-dialog.tsx"
+        },
+        {
+          "name": "ExportDialog",
+          "label": "ExportDialog",
+          "engine": "library",
+          "importPath": "@/components/kit/meta/export-dialog",
+          "source": "src/components/kit/meta/export-dialog.tsx"
+        },
+        {
+          "name": "ExcelLogModal",
+          "label": "ExcelLogModal",
+          "engine": "library",
+          "importPath": "@/components/kit/meta/excel-log-modal",
+          "source": "src/components/kit/meta/excel-log-modal.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "ViewTabs",
+      "label": "视图管理",
+      "category": "重型组件",
+      "layer": "extension",
+      "detail": "@/components/kit/meta/view-tabs · @/components/kit/meta/view-editor-drawer · @/components/kit/meta/view-list-drawer",
+      "reason": "",
+      "samples": [
+        {
+          "name": "ViewTabs",
+          "label": "ViewTabs",
+          "engine": "library",
+          "importPath": "@/components/kit/meta/view-tabs",
+          "source": "src/components/kit/meta/view-tabs.tsx"
+        },
+        {
+          "name": "ViewEditorDrawer",
+          "label": "ViewEditorDrawer",
+          "engine": "library",
+          "importPath": "@/components/kit/meta/view-editor-drawer",
+          "source": "src/components/kit/meta/view-editor-drawer.tsx"
+        },
+        {
+          "name": "ViewListDrawer",
+          "label": "ViewListDrawer",
+          "engine": "library",
+          "importPath": "@/components/kit/meta/view-list-drawer",
+          "source": "src/components/kit/meta/view-list-drawer.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "MobileCard",
+      "label": "记录卡片",
+      "category": "重型组件",
+      "layer": "extension",
+      "detail": "@/components/kit/meta/mobile-card · @/components/kit/meta/mobile-card-config-dialog",
+      "reason": "",
+      "samples": [
+        {
+          "name": "MobileCard",
+          "label": "MobileCard",
+          "engine": "library",
+          "importPath": "@/components/kit/meta/mobile-card",
+          "source": "src/components/kit/meta/mobile-card.tsx"
+        },
+        {
+          "name": "MobileCardConfigDialog",
+          "label": "MobileCardConfigDialog",
+          "engine": "library",
+          "importPath": "@/components/kit/meta/mobile-card-config-dialog",
+          "source": "src/components/kit/meta/mobile-card-config-dialog.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    }
+  ],
+  "sourceCommit": "f7c2adb32071b8222c58910bea23556cbb3aa2fd"
+}

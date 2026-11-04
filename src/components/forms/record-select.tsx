@@ -156,7 +156,7 @@ export function RecordSelect({
         aria-describedby={[props["aria-describedby"], validationMessage ? `${uid}-error` : ""].filter(Boolean).join(" ") || undefined} aria-invalid={validationMessage ? true : props["aria-invalid"]}
         aria-required={props.required} aria-expanded={open && !disabled} aria-haspopup="listbox"
         aria-controls={listId} aria-activedescendant={open ? `${listId}-${active}` : undefined}
-        className={cn("flex h-10 w-full min-w-0 items-center gap-2 rounded-sm border border-input bg-card px-3 text-left text-sm text-foreground shadow-sm outline-none transition-[border-color,box-shadow] duration-150 disabled:bg-surface-inset disabled:text-muted-foreground focus:border-highlight focus:ring-2 focus:ring-highlight/20", className)}
+        className={cn("flex h-10 w-full min-w-0 items-center gap-2 rounded-[4px] border border-input bg-card px-3 text-left text-sm text-foreground shadow-sm outline-none transition-[border-color,box-shadow] duration-150 disabled:bg-surface-inset disabled:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/30", className)}
         onClick={() => { setActive(Math.max(0, items.findIndex(o => values.includes(o.value)))); setOpen(!open); }}
         onKeyDown={event => {
           if (event.key === "Escape") { if (open) event.stopPropagation(); setOpen(false); return; }
@@ -181,11 +181,11 @@ export function RecordSelect({
       {validationMessage && <p id={`${uid}-error`} role="alert" className="mt-1 text-sm text-destructive">{validationMessage}</p>}
       {open && !disabled && createPortal(<div ref={popupRef} style={popupStyle} id={listId} role="listbox" aria-multiselectable={multiple || undefined}
         aria-label={props["aria-label"] ?? placeholder}
-        className="min-w-0 overflow-y-auto rounded-md border border-input bg-card p-1 text-sm shadow-lg"
+        className="min-w-0 overflow-y-auto rounded-[4px] border border-input bg-card p-1 text-sm shadow-lg"
         onMouseDown={event => { event.preventDefault(); event.stopPropagation(); }} onClick={event => event.stopPropagation()}>
         {items.map((option, index) => <div key={option.value} id={`${listId}-${index}`} role="option"
           aria-selected={values.includes(option.value)} aria-disabled={option.disabled || undefined}
-          className={cn("flex min-h-9 cursor-pointer items-center gap-2 rounded-sm px-3 py-2", index === active && "bg-surface-inset", values.includes(option.value) && "bg-highlight/10", option.disabled && "cursor-not-allowed opacity-50")}
+          className={cn("flex min-h-9 cursor-pointer items-center gap-2 rounded-[4px] px-3 py-2", index === active && "bg-muted", values.includes(option.value) && "bg-muted font-medium text-foreground", option.disabled && "cursor-not-allowed opacity-50")}
           onMouseMove={() => { if (!option.disabled) setActive(index); }} onClick={() => choose(option)}>
           <span className="min-w-0 flex-1 break-words">{formatRecordOptionLabel(option, metaLabels)}</span>
           {values.includes(option.value) && <Check aria-hidden="true" className="size-4 shrink-0 text-highlight" />}

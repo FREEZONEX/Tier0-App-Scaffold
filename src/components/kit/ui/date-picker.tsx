@@ -638,7 +638,7 @@ export function DateRangePicker({
                   type="button"
                   key={preset.label}
                   tabIndex={-1}
-                  className="rounded-sm px-2 py-1 text-left text-sm text-brand hover:bg-brand-soft"
+                  className="rounded-[4px] px-2 py-1 text-left text-sm text-foreground hover:bg-muted"
                   onClick={() => {
                     const [start, end] = preset.value();
                     commit(parseDateValue(start), parseDateValue(end));

@@ -50,7 +50,7 @@ export function FieldOrderPicker({ candidates, value, onChange, disabled = false
   };
 
   return (
-    <div className={cn("grid min-w-0 gap-3 rounded-md border p-3 md:grid-cols-2", error ? "border-danger/60" : "border-border-secondary")}>
+    <div className={cn("grid min-w-0 gap-3 rounded-[4px] border p-3 md:grid-cols-2", error ? "border-danger/60" : "border-border-secondary")}>
       <div className="flex min-w-0 flex-col gap-2">
         <span className="text-xs font-medium text-text-secondary">可选字段（{candidates.length}）</span>
         <Input prefix={<Search />} allowClear placeholder="搜索字段" value={keyword} onChange={setKeyword} disabled={disabled} aria-label={`搜索${label}`} />
@@ -100,7 +100,7 @@ export function FieldOrderPicker({ candidates, value, onChange, disabled = false
                 setDropIndex(null);
               }}
               className={cn(
-                "flex min-w-0 items-center gap-2 rounded-md border border-dashed border-border-secondary bg-card px-2 py-1",
+                "flex min-w-0 items-center gap-2 rounded-[4px] border border-dashed border-border-secondary bg-card px-2 py-1",
                 dragIndex === index && "opacity-40",
                 dropIndex === index && dragIndex !== null && dragIndex !== index && "border-t-2 border-t-brand",
               )}
@@ -121,7 +121,7 @@ export function FieldOrderPicker({ candidates, value, onChange, disabled = false
               {!disabled ? <IconButton size="sm" label="移除字段" icon={<X />} onClick={() => onChange(value.filter((item) => item.code !== field.code))} /> : null}
             </li>
           ))}
-          {value.length === 0 ? <li className="rounded-md border border-dashed border-border-secondary py-6 text-center text-sm text-text-tertiary">请在左侧勾选要打印的字段</li> : null}
+          {value.length === 0 ? <li className="rounded-[4px] border border-dashed border-border-secondary py-6 text-center text-sm text-text-tertiary">请在左侧勾选要打印的字段</li> : null}
         </ul>
       </div>
     </div>

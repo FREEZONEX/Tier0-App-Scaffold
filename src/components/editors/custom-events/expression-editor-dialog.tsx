@@ -94,8 +94,8 @@ function PalettePanel({ onInsert }: { onInsert: (text: string, caret?: number) =
   const shownFunctions = functionName ? EXPRESSION_FUNCTIONS.filter((item) => item.name === functionName) : EXPRESSION_FUNCTIONS;
 
   return (
-    <div className="flex min-w-0 flex-col overflow-hidden rounded-md border border-border-secondary sm:flex-row">
-      <nav className="flex shrink-0 flex-row flex-wrap gap-1 border-b border-border-secondary bg-[#fafbfc] p-2 sm:w-36 sm:flex-col sm:flex-nowrap sm:border-b-0 sm:border-r" aria-label="常用符号与函数">
+    <div className="flex min-w-0 flex-col overflow-hidden rounded-[4px] border border-border-secondary sm:flex-row">
+      <nav className="flex shrink-0 flex-row flex-wrap gap-1 border-b border-border-secondary bg-muted p-2 sm:w-36 sm:flex-col sm:flex-nowrap sm:border-b-0 sm:border-r" aria-label="常用符号与函数">
         <Button variant={section === "symbols" ? "highlight" : "ghost"} size="sm" className="justify-start" onClick={() => setSection("symbols")}>
           常用符号
         </Button>
@@ -145,7 +145,7 @@ function PalettePanel({ onInsert }: { onInsert: (text: string, caret?: number) =
         ) : (
           <ul className="flex flex-col gap-2">
             {shownFunctions.map((item) => (
-              <li key={item.name} className="flex flex-col gap-1 rounded-md border border-border-secondary px-3 py-2 sm:flex-row sm:items-center sm:gap-3">
+              <li key={item.name} className="flex flex-col gap-1 rounded-[4px] border border-border-secondary px-3 py-2 sm:flex-row sm:items-center sm:gap-3">
                 <Button variant="outline" size="sm" className="font-mono" onClick={() => onInsert(item.template, item.template.length - 1)}>
                   {item.template}
                 </Button>
@@ -223,11 +223,11 @@ function EditorBody({
   return (
     <div className="flex min-h-0 min-w-0 flex-col gap-4">
       <div className="flex min-h-0 min-w-0 flex-col gap-4 md:h-[min(560px,calc(100dvh-220px))] md:flex-row">
-        <aside className="flex max-h-72 min-h-0 shrink-0 flex-col rounded-md border border-border-secondary p-2 md:max-h-none md:w-56">
+        <aside className="flex max-h-72 min-h-0 shrink-0 flex-col rounded-[4px] border border-border-secondary p-2 md:max-h-none md:w-56">
           <FieldTree groups={groups} onPick={(value) => insert(value)} />
         </aside>
         <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-y-auto">
-          <div className="flex min-w-0 shrink-0 flex-col rounded-md border border-border-secondary">
+          <div className="flex min-w-0 shrink-0 flex-col rounded-[4px] border border-border-secondary">
             <div className="flex items-center justify-between gap-2 border-b border-border-secondary px-3 py-2">
               <span className="min-w-0 truncate text-sm font-semibold text-foreground">{title} =</span>
               <span className={cn("shrink-0 text-xs tabular-nums", text.length > EXPRESSION_MAX_LENGTH ? "text-danger" : "text-text-tertiary")}>
@@ -235,7 +235,7 @@ function EditorBody({
               </span>
             </div>
             <div className="flex h-48 min-w-0 md:h-56">
-              <div ref={gutterRef} aria-hidden="true" className="w-10 shrink-0 overflow-hidden bg-[#fafbfc] py-2 text-right font-mono text-xs leading-6 text-text-placeholder">
+              <div ref={gutterRef} aria-hidden="true" className="w-10 shrink-0 overflow-hidden bg-muted py-2 text-right font-mono text-xs leading-6 text-text-placeholder">
                 {Array.from({ length: lineCount }, (_, index) => (
                   <div key={index} className="pr-2">
                     {index + 1}

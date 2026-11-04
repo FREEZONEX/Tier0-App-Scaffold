@@ -30,7 +30,7 @@ export function Sample({name}:{name:string}){
  const [value,setValue]=useState('');const [filter,setFilter]=useState('all');const [open,setOpen]=useState(false);const [count,setCount]=useState(0);const [files,setFiles]=useState<File[]>([]);const [mode,setMode]=useState('ready');const ref=useRef<HTMLButtonElement>(null);
  const done=()=>{setCount(c=>c+1);setOpen(false)};
  const input=<input className="w-full max-w-sm" aria-label="任务名称" value={value} onChange={e=>setValue(e.target.value)} placeholder="输入任务名称"/>;
- const field=<FieldGroup label="任务名称" required htmlFor="task-name" helperText="输入后可观察示例状态"><input id="task-name" required className="w-full max-w-sm" value={value} onChange={e=>setValue(e.target.value)} placeholder="输入任务名称"/></FieldGroup>;
+ const field=<FieldGroup label="任务名称" required htmlFor="task-name" helperText="输入后可观察示例状态"><input id="task-name" required className="w-full" value={value} onChange={e=>setValue(e.target.value)} placeholder="输入任务名称"/></FieldGroup>;
  const footer=<><Button variant="outline" onClick={()=>setOpen(false)}>取消</Button><Button onClick={done}>确认</Button></>;
  let body:ReactNode;
  switch(name){
@@ -53,7 +53,7 @@ export function Sample({name}:{name:string}){
  case 'TableViewport':body=<TableViewport><Table/></TableViewport>;break;
  case 'TableCellText':body=<div className="max-w-xs"><TableCellText clamp>{'设备检查记录需要保留完整的信息说明。'.repeat(12)}</TableCellText><p className="caption mt-3">两行截断示例</p></div>;break;
  case 'AsyncView':body=<><div className="flex flex-wrap gap-2">{['ready','loading','empty','error'].map(s=><Button key={s} size="sm" variant={mode===s?'primary':'outline'} onClick={()=>setMode(s)}>{s}</Button>)}</div><AsyncView result={{data:mode==='ready'?rows:mode==='empty'?[]:undefined,error:mode==='error'?new Error('示例加载失败'):null,isLoading:mode==='loading',refresh:()=>setMode('ready')}}>{()=> <Table/>}</AsyncView></>;break;
- case 'Dialog':case 'DialogActions':body=<><Button onClick={()=>setOpen(true)}>打开对话框</Button><Dialog open={open} onOpenChange={setOpen} title="任务详情" footer={<DialogActions>{footer}</DialogActions>}><p>这是由脚手架 Dialog 渲染的对话框。</p>{field}</Dialog></>;break;
+ case 'Dialog':case 'DialogActions':body=<><Button onClick={()=>setOpen(true)}>打开对话框</Button><Dialog open={open} onOpenChange={setOpen} title="任务详情" description="这是由脚手架 Dialog 渲染的对话框。" footer={<DialogActions>{footer}</DialogActions>}>{field}</Dialog></>;break;
  case 'FormDialog':body=<><Button onClick={()=>setOpen(true)}>新建任务</Button><FormDialog open={open} onOpenChange={setOpen} title="新建任务" submitLabel="保存" cancelLabel="取消" onSubmit={e=>{e.preventDefault();done()}}>{field}</FormDialog><p className="caption">已保存 {count} 次：{value||'—'}</p></>;break;
  case 'ConfirmDialog':body=<><Button onClick={()=>setOpen(true)}>停用示例设备</Button><ConfirmDialog open={open} onOpenChange={setOpen} title="停用设备？" description="只更新当前样例计数，不修改真实设备。" destructive confirmLabel="停用" cancelLabel="取消" onConfirm={done}/><p className="caption">已确认 {count} 次</p></>;break;
  case 'Drawer':body=<><Button onClick={()=>setOpen(true)}>打开详情抽屉</Button><Drawer open={open} onOpenChange={setOpen} title="设备详情" footer={footer}>{field}<Table/></Drawer></>;break;

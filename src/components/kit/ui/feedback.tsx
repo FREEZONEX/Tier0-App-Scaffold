@@ -14,15 +14,15 @@ function EmptyInbox({ small }: { small: boolean }) {
       height={small ? 31 : 41}
       viewBox="0 0 64 41"
       aria-hidden="true"
-      className="text-[#d9d9d9]"
+      className="text-border"
     >
       <g transform="translate(0 1)" fill="none" fillRule="evenodd">
-        <ellipse fill="#f5f5f5" cx="32" cy="33" rx="32" ry="7" />
+        <ellipse fill="var(--muted)" cx="32" cy="33" rx="32" ry="7" />
         <g fillRule="nonzero" stroke="currentColor">
           <path d="M55 12.76 44.854 1.258C44.367.474 43.656 0 42.907 0H21.093c-.749 0-1.46.474-1.947 1.257L9 12.761V22h46v-9.24z" />
           <path
             d="M41.613 15.931c0-1.605.994-2.93 2.227-2.931H55v18.137C55 33.26 53.68 35 52.05 35h-40.1C10.32 35 9 33.259 9 31.137V13h11.16c1.233 0 2.227 1.323 2.227 2.928v.022c0 1.605 1.005 2.901 2.237 2.901h14.752c1.232 0 2.237-1.308 2.237-2.913v-.007z"
-            fill="#fafafa"
+            fill="var(--card)"
           />
         </g>
       </g>
@@ -127,7 +127,7 @@ export function Spin({ spinning = true, size = "md", tip, children, className }:
 }
 
 const SKELETON_BAR =
-  "rounded-sm bg-[linear-gradient(90deg,#f2f2f2_25%,#e6e6e6_37%,#f2f2f2_63%)] bg-[length:400%_100%]";
+  "rounded-[4px] bg-[linear-gradient(90deg,var(--tier0-skeleton-base)_25%,var(--tier0-skeleton-shine)_37%,var(--tier0-skeleton-base)_63%)] bg-[length:400%_100%]";
 
 export interface SkeletonProps {
   rows?: number;
@@ -170,10 +170,10 @@ export interface TableSkeletonProps {
 /** Placeholder for a list table while the first page loads. */
 export function TableSkeleton({ rows = 6, columns = 6, className }: TableSkeletonProps) {
   return (
-    <div className={cn("w-full overflow-hidden rounded-lg", className)} aria-busy="true" aria-live="polite">
+    <div className={cn("w-full overflow-hidden rounded-[4px]", className)} aria-busy="true" aria-live="polite">
       <div className="flex h-11 items-center gap-6 bg-card px-3">
         {Array.from({ length: columns }, (_, index) => (
-          <div key={index} className="h-3.5 flex-1 rounded-sm bg-[#e8e8e8]" />
+          <div key={index} className="h-3.5 flex-1 rounded-[4px] bg-[color:var(--tier0-skeleton-base)]" />
         ))}
       </div>
       {Array.from({ length: rows }, (_, row) => (
@@ -213,7 +213,7 @@ function progressColor(percent: number, status: ProgressStatus | undefined, stro
   if (status === "success" || (status !== "active" && clampPercent(percent) >= 100)) {
     return "var(--tier0-success-color)";
   }
-  return "var(--tier0-primary)";
+  return "var(--tier0-highlight-deep)";
 }
 
 export interface ProgressBarProps {
@@ -234,7 +234,7 @@ export function ProgressBar({
   showInfo = true,
   size = "md",
   strokeColor,
-  trailColor = "#f0f0f0",
+  trailColor = "var(--muted)",
   format,
   className,
 }: ProgressBarProps) {
@@ -249,15 +249,15 @@ export function ProgressBar({
       className={cn("flex w-full min-w-0 items-center gap-2", className)}
     >
       <div
-        className={cn("relative min-w-0 flex-1 overflow-hidden rounded-full", size === "sm" ? "h-1" : "h-1.5")}
+        className={cn("relative min-w-0 flex-1 overflow-hidden rounded-full", size === "sm" ? "h-1.5" : "h-2")}
         style={{ backgroundColor: trailColor }}
       >
         <div
           className={cn(
-            "absolute inset-y-0 left-0 rounded-full transition-[width] duration-300",
-            status === "active" && "animate-pulse",
+            "absolute inset-y-0 left-0 w-full origin-left rounded-full transition-transform duration-200 ease-out motion-reduce:transition-none",
+            status === "active" && "motion-safe:animate-pulse",
           )}
-          style={{ width: `${value}%`, backgroundColor: color }}
+          style={{ transform: `scaleX(${value / 100})`, backgroundColor: color }}
         />
       </div>
       {showInfo ? (
@@ -318,7 +318,7 @@ export function ProgressRing({
       style={{ width: size, height: size }}
     >
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90" aria-hidden="true">
-        <circle cx={size / 2} cy={size / 2} r={radius} fill="#fff" stroke={trailColor} strokeWidth={strokeWidth} />
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="var(--card)" stroke={trailColor} strokeWidth={strokeWidth} />
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -329,7 +329,7 @@ export function ProgressRing({
           strokeLinecap={value > 0 && value < 100 ? "round" : "butt"}
           strokeDasharray={circumference}
           strokeDashoffset={circumference * (1 - value / 100)}
-          className="transition-[stroke-dashoffset] duration-300"
+          className="transition-[stroke-dashoffset] duration-200 ease-out motion-reduce:transition-none"
         />
       </svg>
       {showInfo ? (

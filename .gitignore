@@ -25,6 +25,7 @@
 *.pem
 *.zip
 .tier0/
+.refs/
 
 # debug
 npm-debug.log*
@@ -43,3 +44,24 @@ yarn-error.log*
 
 # TanStack Router auto-generated route tree
 src/routeTree.gen.ts
+
+# Local integration backup may contain environment secrets
+backup-pre-*/
+
+# Licensed component libraries (ReUI / React Bits / Shadcn UI Kit): local reference only.
+# Keys live in .env.local; their source must never reach the public scaffold repo.
+src/components/reui/
+src/components/blocks/
+src/components/hero2.tsx
+src/components/ui/checkbox.tsx
+src/components/ui/dropdown-menu.tsx
+src/components/ui/input.tsx
+src/components/ui/popover.tsx
+src/components/ui/select.tsx
+src/components/ui/separator.tsx
+src/components/ui/skeleton.tsx
+src/components/ui/spinner.tsx
+gallery/vendor/
+gallery/public/patterns/
+.claude/skills/reactbits/
+.claude/skills/shadcnuikit/

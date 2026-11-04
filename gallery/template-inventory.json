@@ -1,0 +1,128 @@
+[
+  {
+    "name": "tempo-v1.1.0",
+    "components": 170,
+    "examples": [
+      "tempo-v1.1.0/src/features/settings/components/data.tsx",
+      "tempo-v1.1.0/src/features/settings/components/settings-dialog.tsx",
+      "tempo-v1.1.0/src/features/tasks/components/data-grid-view.tsx",
+      "tempo-v1.1.0/src/features/tasks/components/task-sheet.tsx",
+      "tempo-v1.1.0/src/features/tasks/components/columns.tsx",
+      "tempo-v1.1.0/src/features/tasks/components/data.tsx",
+      "tempo-v1.1.0/src/features/calendar/event-calendar/event-fields.tsx",
+      "tempo-v1.1.0/src/features/calendar/event-calendar/event-calendar-app.tsx",
+      "tempo-v1.1.0/src/features/calendar/event-calendar/calendars-menu.tsx",
+      "tempo-v1.1.0/src/features/calendar/event-calendar/event-sheet.tsx",
+      "tempo-v1.1.0/src/features/calendar/event-calendar/calendar-dialog.tsx",
+      "tempo-v1.1.0/src/features/auth/components/auth.tsx",
+      "tempo-v1.1.0/src/features/auth/components/data.tsx",
+      "tempo-v1.1.0/src/features/auth/components/wave-dots.tsx",
+      "tempo-v1.1.0/src/features/auth/components/auth-logo.tsx"
+    ]
+  },
+  {
+    "name": "atlas-v1.1.0",
+    "components": 206,
+    "examples": [
+      "atlas-v1.1.0/features/products/inventory-data-grid.tsx",
+      "atlas-v1.1.0/features/products/columns.tsx",
+      "atlas-v1.1.0/features/products/stats-header.tsx",
+      "atlas-v1.1.0/features/products/product-actions-context.tsx",
+      "atlas-v1.1.0/features/products/product-sheet.tsx",
+      "atlas-v1.1.0/features/products/products-view.tsx",
+      "atlas-v1.1.0/features/auth/auth-shell.tsx",
+      "atlas-v1.1.0/features/auth/data.tsx",
+      "atlas-v1.1.0/features/auth/components/oauth-buttons.tsx",
+      "atlas-v1.1.0/features/auth/components/auth-form-panel.tsx",
+      "atlas-v1.1.0/features/auth/components/auth-grid-background.tsx",
+      "atlas-v1.1.0/features/auth/components/auth-logo.tsx",
+      "atlas-v1.1.0/features/auth/signup-view.tsx",
+      "atlas-v1.1.0/features/auth/login-view.tsx",
+      "atlas-v1.1.0/features/auth/forgot-password-view.tsx"
+    ]
+  },
+  {
+    "name": "lucent-devops-v1.0.0",
+    "components": 234,
+    "examples": [
+      "lucent-devops-v1.0.0/src/features/settings/components/settings.tsx",
+      "lucent-devops-v1.0.0/src/features/settings/components/general-settings-data.tsx",
+      "lucent-devops-v1.0.0/src/features/settings/components/general-settings.tsx",
+      "lucent-devops-v1.0.0/src/features/settings/components/notification-rules.tsx",
+      "lucent-devops-v1.0.0/src/features/settings/components/setting-field.tsx",
+      "lucent-devops-v1.0.0/src/features/settings/components/editor-preferences.tsx",
+      "lucent-devops-v1.0.0/src/features/settings/components/color-picker.tsx",
+      "lucent-devops-v1.0.0/src/features/security/components/audit-counts.tsx",
+      "lucent-devops-v1.0.0/src/features/security/components/workspace-security-data.tsx",
+      "lucent-devops-v1.0.0/src/features/security/components/audit-log-timeline.tsx",
+      "lucent-devops-v1.0.0/src/features/security/components/workspace-security.tsx",
+      "lucent-devops-v1.0.0/src/features/security/components/audit-log-data.tsx",
+      "lucent-devops-v1.0.0/src/features/security/components/audit-log.tsx",
+      "lucent-devops-v1.0.0/src/features/auth/components/sign-in-data.tsx",
+      "lucent-devops-v1.0.0/src/features/auth/components/sign-in.tsx"
+    ]
+  },
+  {
+    "name": "flowly-app-v1.0.0",
+    "components": 283,
+    "examples": [
+      "flowly-app-v1.0.0/features/settings/components/sections/settings-section.tsx",
+      "flowly-app-v1.0.0/features/settings/components/sections/connection-test.tsx",
+      "flowly-app-v1.0.0/features/settings/components/sections/profile-form-fields.tsx",
+      "flowly-app-v1.0.0/features/settings/components/sections/member-management-columns.tsx",
+      "flowly-app-v1.0.0/features/settings/components/sections/invite-member-sheet.tsx",
+      "flowly-app-v1.0.0/features/settings/components/sections/setting-group.tsx",
+      "flowly-app-v1.0.0/features/settings/components/sections/members-tab.tsx",
+      "flowly-app-v1.0.0/features/settings/components/sections/profile-icon-container.tsx",
+      "flowly-app-v1.0.0/features/settings/components/sections/integrations-data.tsx",
+      "flowly-app-v1.0.0/features/settings/components/sections/profile-tab.tsx",
+      "flowly-app-v1.0.0/features/settings/components/sections/member-sheet.tsx",
+      "flowly-app-v1.0.0/features/settings/components/sections/webhooks-tab.tsx",
+      "flowly-app-v1.0.0/features/settings/components/sections/webhook-sheets.tsx",
+      "flowly-app-v1.0.0/features/settings/components/sections/integration-list.tsx",
+      "flowly-app-v1.0.0/features/settings/components/sections/data.tsx"
+    ]
+  },
+  {
+    "name": "flux-agentops-v1.0.0",
+    "components": 326,
+    "examples": [
+      "flux-agentops-v1.0.0/features/settings/components/settings.test.tsx",
+      "flux-agentops-v1.0.0/features/settings/components/security/security-settings.tsx",
+      "flux-agentops-v1.0.0/features/settings/components/security/data.tsx",
+      "flux-agentops-v1.0.0/features/settings/components/workspace/workspace-settings.tsx",
+      "flux-agentops-v1.0.0/features/settings/components/workspace/data.tsx",
+      "flux-agentops-v1.0.0/features/settings/components/api-keys/columns.tsx",
+      "flux-agentops-v1.0.0/features/settings/components/api-keys/data.tsx",
+      "flux-agentops-v1.0.0/features/settings/components/api-keys/api-integrations-grid.tsx",
+      "flux-agentops-v1.0.0/features/settings/components/webhooks/endpoint-alert-indicator.tsx",
+      "flux-agentops-v1.0.0/features/settings/components/webhooks/status-indicator.tsx",
+      "flux-agentops-v1.0.0/features/settings/components/webhooks/endpoint-row.tsx",
+      "flux-agentops-v1.0.0/features/settings/components/webhooks/endpoint-actions-menu.tsx",
+      "flux-agentops-v1.0.0/features/settings/components/webhooks/data.tsx",
+      "flux-agentops-v1.0.0/features/settings/components/webhooks/endpoint-toast.tsx",
+      "flux-agentops-v1.0.0/features/settings/components/webhooks/endpoint-url-copy.tsx"
+    ]
+  },
+  {
+    "name": "strata-v1.0.0",
+    "components": 400,
+    "examples": [
+      "strata-v1.0.0/features/monitors/components/new-monitor-sheet/new-monitor-sheet.test.tsx",
+      "strata-v1.0.0/features/monitors/components/new-monitor-sheet/new-monitor-sheet.tsx",
+      "strata-v1.0.0/features/monitors/components/new-monitor-sheet/data.tsx",
+      "strata-v1.0.0/features/monitors/components/new-monitor-sheet/job-form-fields.tsx",
+      "strata-v1.0.0/features/monitors/components/monitors.tsx",
+      "strata-v1.0.0/features/monitors/components/check-durations/run-table.tsx",
+      "strata-v1.0.0/features/monitors/components/check-durations/run-legend.tsx",
+      "strata-v1.0.0/features/monitors/components/check-durations/chart.tsx",
+      "strata-v1.0.0/features/monitors/components/check-durations/run-color-picker.tsx",
+      "strata-v1.0.0/features/monitors/components/check-durations/data.tsx",
+      "strata-v1.0.0/features/monitors/components/check-durations/run-plot.tsx",
+      "strata-v1.0.0/features/monitors/components/check-durations/run-toolbar.tsx",
+      "strata-v1.0.0/features/monitors/components/check-durations/run-sheet.tsx",
+      "strata-v1.0.0/features/monitors/components/check-durations/pause-dialog.tsx",
+      "strata-v1.0.0/features/monitors/components/check-durations/slo-strip.tsx"
+    ]
+  }
+]
