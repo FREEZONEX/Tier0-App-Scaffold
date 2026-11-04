@@ -342,17 +342,24 @@ Use `DESIGN.md`, existing tokens and the shipped primitives
 
 ## Tier0 SDK and Platform
 
-Use the installed `@tier0/sdk-v2` (`0.10.0-aenv.5`, pinned exactly in `package.json`;
+Use the installed `@tier0/sdk-v2` (`0.10.0-aenv.6`, pinned exactly in `package.json`;
 never change that dependency) for platform info (`tier0.system.info()`),
-workspace members (`tier0.members.listWorkspace`), notifications, files and
+workspace members (`tier0.members.listWorkspace`), App-scoped member pickers
+(`tier0.members.listApp({ appId: resolveAppId() })`), notifications, files and
 MQTT (`Tier0MQClient`). Load it lazily inside the
 server action through `@/lib/tier0` (`loadTier0Sdk()`, `loadTier0Mq()`); never
 top-level import or invoke it on SSR startup paths, and keep `vite.config.ts`
 `ssr.external: ["@tier0/sdk-v2", "mqtt"]`. App records use `@/lib/data`, not
-`tier0.uns`. Notification channels, MQTT and credential handling:
+`tier0.uns`. The platform injects `TIER0_RUNTIME` (`preview` in Builder
+preview, `deployed` online) and the SDK sends the matching `scope`, so preview
+lists the draft roles' members and the live App its published roles'. Never
+pass `scope` by hand, set `TIER0_RUNTIME` in `artifact.toml` or `.env`, or block
+on the response's `published` flag; the hosted key gets the minimal directory
+(`email` is empty, show `userName`) and needs the App's `platform.users.read`.
+Notification channels, MQTT and credential handling:
 `docs/platform-integration.md`.
 - **Not available to the App in Preview and deployments**, so do not use or
-  recommend them: `tier0.members.listApp`, `tier0.system.whoami`,
+  recommend them: `tier0.system.whoami`,
   `tier0.mqttAuth`, `tier0.capabilities`, `tier0.agent` and
   `client.streams` (Stream requests and messages). The node proxy does not
   forward them (`404 sbx_proxy_not_found`). `tier0.source` and `tier0.stream`

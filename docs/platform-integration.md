@@ -2,8 +2,8 @@
 
 ## Tier0 SDK (`@tier0/sdk-v2`)
 
-The unified `@tier0/sdk-v2@0.10.0-aenv.5` is pinned to the verified published archive
-`file:vendor/tier0-sdk-v2-0.10.0-aenv.5.tgz`. It supplies data, platform, Stream request
+The unified `@tier0/sdk-v2@0.10.0-aenv.6` is pinned to the verified published archive
+`file:vendor/tier0-sdk-v2-0.10.0-aenv.6.tgz`. It supplies data, platform, Stream request
 and message APIs using `/openapi/v2`. The archive integrity is checked by the
 lockfile and tests; installation alone does not prove a live deployment.
 The SDK must preserve `directoryPath` in collection ensure payloads (Backend
@@ -67,15 +67,25 @@ the browser — browser pages call the App's own server routes. Calls made while
 serving a request forward its `X-Tier0-Delegation`; `runAsApp` calls do not.
 
 v2 has no UNS v1, legacy Flow, project member queries or `getCurrentProjectId()`.
-Workspace members are not the members who can use this App, but
-`tier0.members.listApp` is currently unavailable in Preview and deployments
-(below), so there is no App-scoped member picker yet; use
-`tier0.members.listWorkspace` and say so to the user.
+Workspace members are not the members who can use this App: use
+`tier0.members.listApp({ appId: resolveAppId() })` for App-scoped member pickers.
+Locally `resolveAppId()` is the `local-app` placeholder, so the platform rejects
+the call; that failure is expected — App-scoped calls only work in Preview and
+deployed runs, where `TIER0_APP_ID` is injected.
+The SDK sends `scope` from the platform-injected `TIER0_RUNTIME`: Preview
+(`preview`) lists members of the current draft roles, even before the first
+publish, and a deployed App (`deployed`) lists its published roles. Do not pass
+`scope`, set `TIER0_RUNTIME` in `artifact.toml` or `.env`, or block on the
+response's `published` flag; render the returned roles with a normal empty
+state for a role nobody holds. The node proxy forwards the call with the App's
+key; the hosted key is authorized by the App's `platform.users.read` like
+`listWorkspace` (403 when the App lacks it) and gets the minimal directory:
+`email` is empty, so label members by `userName`.
 
 **Availability in Preview and deployments.** The node proxy forwards only
 `/openapi/v2/uns/**`, `assets/**`, `notifications/send`, `notifications/get`,
-`platform/getMembers` and `info`. `system.whoami()`, `members.listApp()`,
-`mqttAuth`, `capabilities`, `agent` and `client.streams` answer
+`platform/getMembers`, `apps/access-members/list` (`members.listApp()`) and
+`info`. `system.whoami()`, `mqttAuth`, `capabilities`, `agent` and `client.streams` answer
 `404 sbx_proxy_not_found`; `source` and `stream` management is forwarded but
 refused for the App's key (403). Do not build App features on them.
 App records still go through `@/lib/data` (see [App Data](#app-data)).
