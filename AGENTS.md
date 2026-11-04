@@ -342,7 +342,7 @@ Use `DESIGN.md`, existing tokens and the shipped primitives
 
 ## Tier0 SDK and Platform
 
-Use the installed `@tier0/sdk-v2` (`0.10.0-aenv.4`, pinned exactly in `package.json`;
+Use the installed `@tier0/sdk-v2` (`0.10.0-aenv.5`, pinned exactly in `package.json`;
 never change that dependency) for platform info (`tier0.system.info()`),
 workspace members (`tier0.members.listWorkspace`), notifications, files and
 MQTT (`Tier0MQClient`). Load it lazily inside the

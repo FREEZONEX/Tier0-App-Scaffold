@@ -2,8 +2,8 @@
 
 ## Tier0 SDK (`@tier0/sdk-v2`)
 
-The unified `@tier0/sdk-v2@0.10.0-aenv.4` is pinned to the verified published archive
-`file:vendor/tier0-sdk-v2-0.10.0-aenv.4.tgz`. It supplies data, platform, Stream request
+The unified `@tier0/sdk-v2@0.10.0-aenv.5` is pinned to the verified published archive
+`file:vendor/tier0-sdk-v2-0.10.0-aenv.5.tgz`. It supplies data, platform, Stream request
 and message APIs using `/openapi/v2`. The archive integrity is checked by the
 lockfile and tests; installation alone does not prove a live deployment.
 The SDK must preserve `directoryPath` in collection ensure payloads (Backend
