@@ -116,8 +116,13 @@ export function optionRowClass({
   return cn(
     "flex min-h-8 w-full cursor-pointer select-none items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-sm leading-5 transition-colors duration-100",
     danger ? "text-destructive" : "text-foreground",
-    active && !disabled && (danger ? "bg-destructive/10" : "bg-muted"),
-    selected && !disabled && !danger && "bg-muted font-medium text-foreground",
+    /* Light gray hover/active — never bg-muted (muted is white in light theme). */
+    !disabled &&
+      (danger
+        ? "hover:bg-danger-soft focus:bg-danger-soft"
+        : "hover:bg-fill-hover focus:bg-fill-hover"),
+    active && !disabled && (danger ? "bg-destructive/10" : "bg-fill-hover"),
+    selected && !disabled && !danger && "bg-fill-hover font-medium text-foreground",
     disabled && "cursor-not-allowed opacity-50",
   );
 }

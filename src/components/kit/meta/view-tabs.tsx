@@ -47,7 +47,7 @@ export function ViewTabs({
       )}
     >
       <div
-        className="scrollbar-none flex min-w-0 flex-1 items-stretch overflow-x-auto"
+        className="scrollbar-none flex min-w-0 flex-1 items-stretch overflow-x-auto overflow-y-hidden"
         role="tablist"
         aria-label="视图"
       >
@@ -64,7 +64,7 @@ export function ViewTabs({
             >
               <div
                 className={cn(
-                  "flex h-full items-center gap-0.5 px-3",
+                  "flex h-8 items-center gap-0.5 px-3",
                   index === 0 && "pl-1",
                 )}
               >
@@ -82,13 +82,14 @@ export function ViewTabs({
                   )}
                   onClick={() => onSwitch(view.code)}
                 >
-                  <ViewIcon icon={view.icon} size={16} />
+                  <ViewIcon icon={view.icon} size={16} className="block size-4" />
                   <span className="truncate leading-none">{view.name}</span>
                 </button>
                 {manageable ? (
                   <DropdownMenu
                     placement="bottom-start"
                     minWidth={112}
+                    anchorClassName="inline-flex h-8 items-center self-center"
                     aria-label={`视图「${view.name}」操作`}
                     items={[
                       {
@@ -118,9 +119,9 @@ export function ViewTabs({
                       size="sm"
                       label="视图操作"
                       tooltip={false}
-                      icon={<EllipsisVertical />}
+                      icon={<EllipsisVertical className="block size-3.5" strokeWidth={2.25} />}
                       className={cn(
-                        "size-6",
+                        "size-8 shrink-0 [&_svg]:size-3.5",
                         selected ? "text-foreground" : "text-text-tertiary",
                       )}
                     />
@@ -130,7 +131,7 @@ export function ViewTabs({
               {selected ? (
                 <span
                   aria-hidden="true"
-                  className="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 bg-[color:var(--tier0-cta)]"
+                  className="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 bg-[color:var(--tier0-highlight-deep)]"
                 />
               ) : null}
             </div>

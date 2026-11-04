@@ -240,7 +240,12 @@ function Gallery() {
             aria-label={copy.filterNav}
             placeholder={copy.filterPlaceholder}
             value={navQuery}
-            onChange={(e) => setNavQuery(e.target.value)}
+            onChange={(e) => {
+              const next = e.target.value;
+              setNavQuery(next);
+              /* Sidebar used to only filter category titles — sync to card search. */
+              setQuery(next);
+            }}
           />
         </label>
         <nav aria-label={copy.components} className="doc-nav-scroll">
@@ -248,11 +253,20 @@ function Gallery() {
             <div key={group.id} className="doc-nav-group">
               <p>{group.id === "review" ? copy.review : copy.components}</p>
               {group.keys
-                .filter((key) =>
-                  categoryLabel(locale, key)
-                    .toLowerCase()
-                    .includes(navQuery.trim().toLowerCase()),
-                )
+                .filter((key) => {
+                  const q = navQuery.trim().toLowerCase();
+                  if (!q) return true;
+                  if (categoryLabel(locale, key).toLowerCase().includes(q)) {
+                    return true;
+                  }
+                  return mergedCatalog.some(
+                    (item) =>
+                      matches(item, key) &&
+                      `${item.label} ${item.name} ${item.detail ?? ""}`
+                        .toLowerCase()
+                        .includes(q),
+                  );
+                })
                 .map((key) => {
                   const active = !selected && filter === key;
                   const count = mergedCatalog.filter((item) => matches(item, key)).length;
@@ -442,7 +456,11 @@ function Gallery() {
                   filter === "business" ? copy.searchScenes : copy.searchComponents
                 }
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setQuery(next);
+                  setNavQuery(next);
+                }}
               />
             </label>
             <div className="doc-pills-row">

@@ -137,13 +137,15 @@
   /* Minimal scaffold compatibility aliases */
   --background: var(--tier0-canvas);
   --foreground: var(--tier0-text-color);
-  --muted: var(--tier0-bg-tertiary);
+  /* Soft gray for hover/selected rows — must not equal white card. */
+  --muted: var(--tier0-fill-hover);
   --muted-foreground: var(--tier0-text-tertiary);
   --border: var(--tier0-border);
   --border-strong: #cfcfcf;
   --input: var(--tier0-input-border);
   --input-bg: var(--tier0-input-bg);
-  --ring: var(--tier0-highlight);
+  /* Light focus ring: deep green (readable), not pale CTA lime. */
+  --ring: var(--tier0-highlight-deep);
 
   --card: #ffffff;
   --card-foreground: var(--tier0-text-color);
@@ -405,6 +407,17 @@ body {
 * {
   scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, var(--foreground) 28%, transparent) transparent;
+}
+
+/* Opt-out for tab strips / chip rows that only scroll on one axis. */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 .dark * {
   scrollbar-color: #3f3f46 #141518;
@@ -1032,65 +1045,45 @@ body {
     font-feature-settings: "tnum", "zero";
   }
 
-  /* ReUI Badge *-light recipes: deep text on /10 tint; dark flips to bright text on /15. */
+  /*
+   * Soft status fills — use --state-*-fg/bg (theme-swapped), never
+   * --*-foreground which stays dark (600) under .dark and becomes unreadable.
+   * No outline stroke on these banners.
+   */
   .state-running {
-    color: var(--success-foreground);
-    background-color: color-mix(in srgb, var(--success) 10%, transparent);
-    border-color: color-mix(in srgb, var(--success) 15%, transparent);
+    color: var(--state-running-fg);
+    background-color: var(--state-running-bg);
+    border-color: transparent;
   }
 
   .state-idle {
     color: var(--muted-foreground);
     background-color: var(--muted);
-    border-color: var(--border);
+    border-color: transparent;
   }
 
   .state-paused {
-    color: var(--warning-foreground);
-    background-color: color-mix(in srgb, var(--warning) 10%, transparent);
-    border-color: color-mix(in srgb, var(--warning) 15%, transparent);
+    color: var(--state-paused-fg);
+    background-color: var(--state-paused-bg);
+    border-color: transparent;
   }
 
   .state-error {
-    color: var(--destructive-foreground);
-    background-color: color-mix(in srgb, var(--destructive) 10%, transparent);
-    border-color: color-mix(in srgb, var(--destructive) 15%, transparent);
+    color: var(--state-error-fg);
+    background-color: var(--state-error-bg);
+    border-color: transparent;
   }
 
   .state-info {
-    color: var(--info-foreground);
-    background-color: color-mix(in srgb, var(--info) 10%, transparent);
-    border-color: color-mix(in srgb, var(--info) 15%, transparent);
-  }
-
-  .dark .state-running {
-    color: var(--success);
-    background-color: color-mix(in srgb, var(--success) 15%, transparent);
-    border-color: color-mix(in srgb, var(--success) 25%, transparent);
+    color: var(--state-info-fg);
+    background-color: var(--state-info-bg);
+    border-color: transparent;
   }
 
   .dark .state-idle {
     color: var(--muted-foreground);
     background-color: color-mix(in srgb, var(--input) 32%, transparent);
-    border-color: var(--border);
-  }
-
-  .dark .state-paused {
-    color: var(--warning);
-    background-color: color-mix(in srgb, var(--warning) 15%, transparent);
-    border-color: color-mix(in srgb, var(--warning) 25%, transparent);
-  }
-
-  .dark .state-error {
-    color: var(--destructive);
-    background-color: color-mix(in srgb, var(--destructive) 15%, transparent);
-    border-color: color-mix(in srgb, var(--destructive) 25%, transparent);
-  }
-
-  .dark .state-info {
-    color: var(--info);
-    background-color: color-mix(in srgb, var(--info) 15%, transparent);
-    border-color: color-mix(in srgb, var(--info) 25%, transparent);
+    border-color: transparent;
   }
 }
 
@@ -1461,15 +1454,15 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
   --shadow-overlay: 0 0 0 1px rgb(255 255 255 / 0.06), 0 18px 40px -20px rgb(0 0 0 / 0.7),
     0 8px 16px -10px rgb(0 0 0 / 0.5);
 
-  /* ReUI .dark status tokens */
+  /* ReUI .dark status tokens — *-foreground must stay bright for tinted fills. */
   --destructive: var(--color-red-500);
-  --destructive-foreground: var(--color-red-600);
+  --destructive-foreground: var(--color-red-300);
   --success: var(--color-emerald-500);
-  --success-foreground: var(--color-emerald-600);
+  --success-foreground: var(--color-emerald-300);
   --info: var(--color-violet-500);
-  --info-foreground: var(--color-violet-600);
+  --info-foreground: var(--color-violet-300);
   --warning: var(--color-yellow-500);
-  --warning-foreground: var(--color-yellow-600);
+  --warning-foreground: var(--color-yellow-300);
   --invert: var(--color-zinc-700);
   --invert-foreground: var(--color-zinc-50);
 
