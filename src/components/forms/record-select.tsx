@@ -188,7 +188,7 @@ export function RecordSelect({
           className={cn("flex min-h-9 cursor-pointer items-center gap-2 rounded-[4px] px-3 py-2", index === active && "bg-muted", values.includes(option.value) && "bg-muted font-medium text-foreground", option.disabled && "cursor-not-allowed opacity-50")}
           onMouseMove={() => { if (!option.disabled) setActive(index); }} onClick={() => choose(option)}>
           <span className="min-w-0 flex-1 break-words">{formatRecordOptionLabel(option, metaLabels)}</span>
-          {values.includes(option.value) && <Check aria-hidden="true" className="size-4 shrink-0 text-highlight" />}
+          {values.includes(option.value) && <Check aria-hidden="true" className="size-4 shrink-0 text-foreground" />}
         </div>)}
       </div>, document.body)}
     </div>
