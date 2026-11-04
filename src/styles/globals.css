@@ -681,8 +681,12 @@ body {
   .required-mark,
   .field-required-mark,
   [data-required-marker="true"] {
+    display: inline-block;
     color: var(--destructive) !important;
     font-weight: 600;
+    line-height: 1;
+    /* Optical align * with CJK label caps, not below the baseline. */
+    transform: translateY(-0.06em);
   }
 
   .font-mono,
@@ -1215,9 +1219,10 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
 }
 
 @theme inline {
-  --color-brand: var(--tier0-cta);
-  --color-brand-hover: var(--tier0-cta-hover);
-  --color-brand-active: var(--tier0-cta-active);
+  /* Brand for text / solid selected fills must stay readable on white — not CTA lime. */
+  --color-brand: var(--tier0-highlight-deep);
+  --color-brand-hover: color-mix(in srgb, var(--tier0-highlight-deep) 82%, #050b14);
+  --color-brand-active: color-mix(in srgb, var(--tier0-highlight-deep) 68%, #050b14);
   --color-brand-soft: var(--tier0-primary-bg);
   --color-brand-soft-hover: var(--tier0-primary-bg-hover);
   --color-brand-border: var(--tier0-primary-border);

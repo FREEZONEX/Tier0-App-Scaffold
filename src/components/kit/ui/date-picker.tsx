@@ -290,7 +290,7 @@ export function DatePicker({
               <button
                 type="button"
                 tabIndex={-1}
-                className="text-sm text-brand hover:text-brand-hover"
+                className="text-sm font-medium text-[color:var(--tier0-highlight-deep)] hover:text-[color:color-mix(in_srgb,var(--tier0-highlight-deep)_82%,#050b14)]"
                 onClick={() => {
                   const now = nowWall();
                   if (disabledDate?.(now)) return;
