@@ -27,7 +27,7 @@ const COLLAPSED_STORAGE_EVENT = "tier0-shell-collapsed-change";
 const sidebarItemBase =
   "group flex items-center rounded-[4px] border border-transparent text-sm font-medium transition-[background-color,color,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:ring-offset-1 focus-visible:ring-offset-sidebar";
 const sidebarItemActive =
-  "border-border bg-muted text-foreground shadow-xs";
+  "border-border bg-highlight-bg-accent text-foreground shadow-xs";
 const sidebarItemInactive =
   "text-secondary-foreground hover:bg-sidebar-accent hover:text-foreground active:translate-x-px";
 
