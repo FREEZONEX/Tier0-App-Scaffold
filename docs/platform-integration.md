@@ -79,7 +79,7 @@ publish, and a deployed App (`deployed`) lists its published roles. Do not pass
 response's `published` flag; render the returned roles with a normal empty
 state for a role nobody holds. The node proxy forwards the call with the App's
 key; the hosted key is authorized by the App's `platform.users.read` like
-`listWorkspace` (403 when the App lacks it) and gets the minimal directory:
+`listWorkspace` (403 when the App lacks it) and gets no email:
 `email` is empty, so label members by `userName`.
 
 **Availability in Preview and deployments.** The node proxy forwards only

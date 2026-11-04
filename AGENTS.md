@@ -354,7 +354,7 @@ top-level import or invoke it on SSR startup paths, and keep `vite.config.ts`
 preview, `deployed` online) and the SDK sends the matching `scope`, so preview
 lists the draft roles' members and the live App its published roles'. Never
 pass `scope` by hand, set `TIER0_RUNTIME` in `artifact.toml` or `.env`, or block
-on the response's `published` flag; the hosted key gets the minimal directory
+on the response's `published` flag; the hosted key's response has no email
 (`email` is empty, show `userName`) and needs the App's `platform.users.read`.
 Notification channels, MQTT and credential handling:
 `docs/platform-integration.md`.
