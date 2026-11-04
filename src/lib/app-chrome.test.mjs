@@ -27,11 +27,11 @@ const TEMPLATE_SERVICE_FILES = [];
 const TEMPLATE_STATE_FINGERPRINTS = {
   "roles.json": "b2d07f68818cfc353b2f98543a018fa6ef6157026f910ad359eb7370a4b25172",
   "src/components/Shell.tsx":
-    "9c0e0f0eb8cea26031fa6e2fd88f587ca4f2c8771032a3cbe0eb04bbbfb763a7",
+    "030eb8b75e5e61b2a82b77b0d66aaada2ab60e8332206b42ef4ee10f039ed566",
   "src/components/shell-modules.ts":
     "f4723dafb7d19601437521226a7f58ccce27ac31245d07165d28bbfa6ff9a850",
   "src/data/collections.ts":
-    "be7acc9bd88202e9f8cac79992923bb0cb8a76afb20e93176b3088dada4b5e43",
+    "fd8a2b2dd01cb35048f883252a125757da0b304c82736dfb8ee9372486d45ca7",
   "src/lib/app-chrome.ts":
     "e772ac721e016dcd98a848ea0159ed924c56df75677f3b0016d52210a4008ff8",
   "src/lib/permissions.ts":

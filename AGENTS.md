@@ -136,6 +136,9 @@ manifest, auth and `api/uns/subscribe` routes, the root document structure,
 production entry, and existing Vite SSR policy unless the user explicitly asks
 for platform/runtime work.
 
+Write temporary source copies, backups, and reports to `.tier0-output/` at the
+workspace root. It is not committed and is left out of source downloads.
+
 ## Architecture and Domain Rules
 
 Use three layers:
@@ -170,10 +173,21 @@ the deployed App use the **same** collections and the same records. The full
 API, limits, examples, error codes and tier0 MCP operations are in
 `docs/app-data.md`; read it before data work. Rules that always hold:
 
-- Declare every collection (Zod storage schema, indexes, `seed`) in
+- Declare every collection (`directoryPath`, Zod storage schema, indexes, `seed`) in
   `src/data/collections.ts` and list it in `collections`. Storage schemas use
   the supported Zod subset only; `npm run build` fails with the replacement
   for anything else. Never declare `_id` / `_meta`.
+- Before declarations, inspect and reuse existing business directories. Each
+  collection needs its own `directoryPath` from the workspace root. Industrial
+  data follows the known ISA-95 equipment hierarchy (Enterprise → Site → Area
+  → Work Center → Work Unit); shared data belongs at a suitable common ancestor.
+  Use only real, meaningful levels; do not force five levels, invent facilities,
+  or collect unrelated data under a default root-level App directory. App or
+  business-module directories are valid below the known scope, for example
+  Factory → Line → MES → Work orders. Non-industrial data
+  uses its business hierarchy. See `docs/app-data.md` for path limits and examples.
+  New collections without a path fail; an existing alias stays in place even
+  when its declaration changes. Do not move data or change access to tidy folders.
 - Seed: fixed `_id`s, coherent across lifecycle states, written **once** when a
   collection is created; editing `seed` never reseeds. Never insert baseline
   data from services.

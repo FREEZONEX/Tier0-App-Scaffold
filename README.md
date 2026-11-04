@@ -315,7 +315,10 @@ experience.
 ## Add an API Endpoint
 
 **Step 1: Declare the data** in `src/data/collections.ts` with
-`defineCollection(...)` (schema, indexes, seed) and list it in `collections`.
+`defineCollection(...)` (directoryPath, schema, indexes, seed) and list it in `collections`.
+Choose each path from the actual business scope as described in `docs/app-data.md`;
+reuse known ISA-95 directories for industrial data. An App/module directory such
+as MES may follow the known factory/line scope; do not default to a root App container.
 The App ensures every declared collection on first access; there is no
 migration step. ensure only creates and widens: it never narrows storage and
 never rewrites stored descriptions. Narrowing a schema and editing the
