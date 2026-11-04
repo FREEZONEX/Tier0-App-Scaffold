@@ -33,10 +33,20 @@ test("guidance never says the platform injects TIER0_API_KEY into Preview or dep
   assert.match(agents, /X-Tier0-SDK: 1/);
 });
 
-test("guidance does not build App features on endpoints the node proxy does not forward", () => {
-  // members.listApp 走 /openapi/v2/apps/access-members/list，节点代理白名单不含它（待调度方拍板）。
+test("guidance builds App features only on endpoints the node proxy forwards", () => {
+  // members.listApp (/openapi/v2/apps/access-members/list) is on the proxy allowlist; the others are not.
+  const agents = read("AGENTS.md");
+  const unavailable = agents.match(/Not available to the App in Preview and deployments[\s\S]*?\n\n/)?.[0] ?? "";
+  assert.match(unavailable, /tier0\.system\.whoami/);
+  assert.doesNotMatch(unavailable, /members\.listApp/, "listApp is available through the node proxy");
+  assert.match(agents, /tier0\.members\.listApp\(\{ appId: resolveAppId\(\) \}\)/);
+  const integration = read("docs/platform-integration.md");
+  const forwarded = integration.match(/The node proxy forwards only[\s\S]*?answer/)?.[0] ?? "";
+  assert.match(forwarded, /apps\/access-members\/list/);
+  const refused = integration.match(/`info`\.\s*([\s\S]*?)answer/)?.[1] ?? "";
+  assert.match(refused, /system\.whoami/);
+  assert.doesNotMatch(refused, /listApp/);
   for (const path of GUIDANCE) {
-    assert.doesNotMatch(read(path), /tier0\.members\.listApp\(\{/, `${path} recommends members.listApp`);
+    assert.doesNotMatch(read(path), /listApp[^.\n]*(currently unavailable|sbx_proxy_not_found)/, `${path} says listApp is unavailable`);
   }
-  assert.match(read("AGENTS.md"), /Not available to the App in Preview and deployments[\s\S]*tier0\.members\.listApp/);
 });
