@@ -1,13 +1,15 @@
 import assert from "node:assert/strict";
 import { generateKeyPairSync, sign } from "node:crypto";
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { createServer, type Server } from "node:http";
+import type { AddressInfo } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, before, describe, it } from "node:test";
 import { authBridge } from "../start";
 import { createDevSigner } from "./dev-signer";
 import { isPublicServerFn } from "./server-fn-policy";
-import { readVisitor, visitorRoles } from "./visitor";
+import { readVisitor, visitorReady, visitorRoles } from "./visitor";
 import { WEBHOOK_PATHS } from "./webhooks";
 
 const { publicKey, privateKey } = generateKeyPairSync("ed25519");
@@ -21,6 +23,8 @@ function token(claims: Record<string, unknown> = {}) {
   })}`;
   return `${body}.${sign(null, Buffer.from(body), privateKey).toString("base64url")}`;
 }
+
+const jwks = (key = publicKey, kid = "k1") => JSON.stringify({ keys: [{ ...key.export({ format: "jwk" }), kid }] });
 
 const headers = (value?: string) => new Headers(value ? { "X-Tier0-Visitor": value } : {});
 
@@ -38,7 +42,7 @@ describe("visitor token middleware", () => {
   let dir: string;
   before(() => {
     dir = mkdtempSync(join(tmpdir(), "scaffold-jwks-"));
-    writeFileSync(join(dir, "tier0-frontdoor.json"), JSON.stringify({ keys: [{ ...publicKey.export({ format: "jwk" }), kid: "k1" }] }));
+    writeFileSync(join(dir, "tier0-frontdoor.json"), jwks());
     process.env.TIER0_JWKS_DIR = dir;
     process.env.TIER0_APP_ID = "app_1";
   });
@@ -100,6 +104,87 @@ describe("visitor token middleware", () => {
     } finally {
       process.env.TIER0_JWKS_DIR = saved;
     }
+  });
+});
+
+describe("visitor token middleware with the front door's public JWKS (TIER0_JWKS_URL)", () => {
+  let server: Server;
+  let base: string;
+  let dir: string;
+  const requests: string[] = [];
+  let release = () => {};
+  const held = new Promise<void>((resolve) => { release = resolve; });
+  const other = generateKeyPairSync("ed25519");
+
+  before(async () => {
+    dir = mkdtempSync(join(tmpdir(), "scaffold-jwks-"));
+    writeFileSync(join(dir, "tier0-frontdoor.json"), jwks());
+    server = createServer((request, response) => {
+      requests.push(request.url ?? "");
+      const send = (status: number, body: string) => response.writeHead(status, { "Content-Type": "application/json" }).end(body);
+      if (request.url === "/held/jwks.json") void held.then(() => send(200, jwks()));
+      else if (request.url === "/failing/jwks.json") send(500, "{}");
+      else if (request.url === "/other/jwks.json") send(200, jwks(other.publicKey));
+      else send(200, jwks());
+    });
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+    process.env.TIER0_APP_ID = "app_1";
+  });
+  after(() => {
+    delete process.env.TIER0_JWKS_DIR;
+    delete process.env.TIER0_JWKS_URL;
+    delete process.env.TIER0_APP_ID;
+    server.closeAllConnections();
+    server.close();
+    rmSync(dir, { recursive: true, force: true });
+  });
+  const use = (config: { dir?: string; url?: string }) => {
+    if (config.dir) process.env.TIER0_JWKS_DIR = config.dir;
+    else delete process.env.TIER0_JWKS_DIR;
+    if (config.url) process.env.TIER0_JWKS_URL = `${base}${config.url}`;
+    else delete process.env.TIER0_JWKS_URL;
+  };
+
+  it("holds the first request until the keys have been fetched, then verifies against them", async () => {
+    use({ url: "/held/jwks.json" });
+    let settled = false;
+    const pending = serve("/orders", headers(token())).finally(() => { settled = true; });
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    assert.equal(settled, false);
+    // Before the fetch lands a token is neither verified nor taken for an anonymous caller.
+    assert.throws(() => readVisitor(headers(token())), /CONFIGURATION/);
+    release();
+    assert.deepEqual(await pending, { passed: true, status: undefined });
+    assert.equal(readVisitor(headers(token()))?.subject, "u1");
+    assert.equal(readVisitor(headers(token({ aud: "app:other" }))), null);
+  });
+
+  it("does not wait forever when the fetch fails: the request is refused", async () => {
+    use({ url: "/failing/jwks.json" });
+    assert.deepEqual(await serve("/orders", headers(token())), { passed: false, status: 401 });
+  });
+
+  it("prefers an existing TIER0_JWKS_DIR and fetches nothing", async () => {
+    requests.length = 0;
+    use({ dir, url: "/other/jwks.json" });
+    await visitorReady();
+    assert.equal(readVisitor(headers(token()))?.subject, "u1");
+    assert.deepEqual(requests, []);
+  });
+
+  it("falls back to the URL when TIER0_JWKS_DIR does not exist", async () => {
+    use({ dir: join(dir, "missing"), url: "/other/jwks.json" });
+    await visitorReady();
+    assert.equal(readVisitor(headers(token())), null);
+    const key = other.privateKey;
+    const body = token().split(".").slice(0, 2).join(".");
+    assert.equal(readVisitor(headers(`${body}.${sign(null, Buffer.from(body), key).toString("base64url")}`))?.subject, "u1");
+  });
+
+  it("answers 503 with neither TIER0_JWKS_DIR nor TIER0_JWKS_URL", async () => {
+    use({});
+    assert.deepEqual(await serve("/orders", headers(token())), { passed: false, status: 503 });
   });
 });
 
