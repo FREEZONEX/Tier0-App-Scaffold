@@ -9,7 +9,8 @@ const src = fileURLToPath(new URL("../src", import.meta.url));
 
 export default defineConfig({
   root,
-  publicDir: false,
+  // Serve the app's public assets (app-icon.png, logos) so Shell samples match the app.
+  publicDir: fileURLToPath(new URL("../public", import.meta.url)),
   plugins: [react(), tailwind(), {
     name: "local-review-baseline",
     closeBundle() {
