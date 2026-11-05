@@ -179,8 +179,6 @@ function Gallery() {
     [activeCatalog, filter, query],
   );
 
-  const pills = filter === "business" ? ["business"] : ["all", ...componentCategories];
-
   const siblings = selected
     ? activeCatalog.filter(
         (i) =>
@@ -464,23 +462,6 @@ function Gallery() {
               />
             </label>
             <div className="doc-pills-row">
-              <div className="doc-pills" role="group" aria-label={copy.components}>
-                {pills.map((key) => (
-                  <button
-                    key={key}
-                    type="button"
-                    aria-pressed={filter === key}
-                    onClick={() => choose(key)}
-                  >
-                    {catColor(key) ? (
-                      <i className="doc-dot" style={{ background: catColor(key) }} />
-                    ) : null}
-                    {key === "all"
-                      ? copy.all
-                      : categoryLabel(locale, key)}
-                  </button>
-                ))}
-              </div>
               <span className="doc-showing">
                 {locale === "zh-CN" ? (
                   <>

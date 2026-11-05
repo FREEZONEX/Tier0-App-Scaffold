@@ -257,32 +257,6 @@ html.theme-switching .doc-search * {
   gap: 12px;
   margin: 16px 0 20px;
 }
-.doc-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.doc-pills button {
-  height: 32px;
-  padding: 0 12px;
-  border: 1px solid var(--doc-line);
-  border-radius: 4px;
-  background: var(--card);
-  color: var(--foreground);
-  font: 500 13px/1 var(--font-app-sans);
-  cursor: pointer;
-  transition: background-color var(--motion-fast), border-color var(--motion-fast),
-    color var(--motion-fast);
-}
-.doc-pills button:hover {
-  background: var(--doc-fill);
-}
-.doc-pills button[aria-pressed="true"] {
-  border-color: transparent;
-  background: var(--doc-fill);
-  color: var(--foreground);
-  font-weight: 600;
-}
 .doc-showing {
   color: var(--muted-foreground);
   font-size: 13px;
@@ -667,10 +641,6 @@ html.theme-switching .doc-search * {
   color: #f4f4f5;
 }
 /* Pressed chrome controls stay neutral greys — never CTA lime. */
-.dark .doc-pills button[aria-pressed="true"] {
-  background: #2a2b2e;
-  color: #f4f4f5;
-}
 .dark .doc-group button[aria-pressed="true"] {
   background: #2a2b2e;
   color: #f4f4f5;
@@ -680,14 +650,6 @@ html.theme-switching .doc-search * {
   background: #2a2b2e;
   color: #f4f4f5;
   box-shadow: none;
-}
-.dark .doc-pills button {
-  background: #141518;
-  color: #f4f4f5;
-  border-color: #2e2f33;
-}
-.dark .doc-pills button:hover {
-  background: #1a1b1e;
 }
 .dark .doc-card:hover {
   border-color: #f4f4f5;
@@ -708,11 +670,6 @@ html.theme-switching .doc-search * {
   display: inline-flex;
   align-items: center;
   gap: 9px;
-}
-.doc-pills button {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
 }
 .doc-card-title {
   display: flex;
