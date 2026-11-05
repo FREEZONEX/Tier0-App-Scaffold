@@ -100,10 +100,8 @@ const CATEGORY_EN: Record<string, string> = {
 export const chrome = {
   "zh-CN": {
     portal: "Tier0 组件门户",
-    filterNav: "筛选分类或组件",
-    filterPlaceholder: "分类 / 组件名…",
-    searchComponents: "搜索组件名称、英文名或说明…",
-    searchScenes: "搜索业务场景…",
+    filterNav: "搜索分类、组件或说明",
+    filterPlaceholder: "搜索分类、组件或说明…",
     review: "验收",
     components: "组件",
     allComponents: "全部组件",
@@ -139,10 +137,8 @@ export const chrome = {
   },
   en: {
     portal: "Tier0 Components",
-    filterNav: "Filter categories or components",
-    filterPlaceholder: "Category / component…",
-    searchComponents: "Search name, English id, or description…",
-    searchScenes: "Search business scenes…",
+    filterNav: "Search categories, components, or descriptions",
+    filterPlaceholder: "Search categories, components…",
     review: "Review",
     components: "Components",
     allComponents: "All components",

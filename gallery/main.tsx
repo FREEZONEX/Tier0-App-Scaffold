@@ -200,6 +200,7 @@ function Gallery() {
   function choose(key: string) {
     setFilter(key);
     setQuery("");
+    setNavQuery("");
     setSelected(null);
     setNavigationOpen(false);
     const url = new URL(location.href);
@@ -241,7 +242,7 @@ function Gallery() {
             onChange={(e) => {
               const next = e.target.value;
               setNavQuery(next);
-              /* Sidebar used to only filter category titles — sync to card search. */
+              /* The only search box: filters the nav and the cards on the page. */
               setQuery(next);
             }}
           />
@@ -446,21 +447,6 @@ function Gallery() {
           <>
             <h1>{pageTitle}</h1>
             <p className="doc-lead">{lead}</p>
-            <label className="doc-search">
-              <Search size={16} aria-hidden="true" />
-              <input
-                aria-label={copy.searchComponents}
-                placeholder={
-                  filter === "business" ? copy.searchScenes : copy.searchComponents
-                }
-                value={query}
-                onChange={(e) => {
-                  const next = e.target.value;
-                  setQuery(next);
-                  setNavQuery(next);
-                }}
-              />
-            </label>
             <div className="doc-pills-row">
               <span className="doc-showing">
                 {locale === "zh-CN" ? (

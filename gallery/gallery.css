@@ -96,8 +96,7 @@ body {
   color: var(--muted-foreground);
   font: 500 12px/1 var(--font-geist-mono);
 }
-.doc-filter,
-.doc-search {
+.doc-filter {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -109,22 +108,18 @@ body {
   transition: border-color var(--motion-fast), box-shadow var(--motion-fast);
 }
 html.theme-switching .doc-filter,
-html.theme-switching .doc-search,
-html.theme-switching .doc-filter *,
-html.theme-switching .doc-search * {
+html.theme-switching .doc-filter * {
   transition: none !important;
 }
 .doc-filter {
   height: var(--doc-h);
   padding: 0 10px;
 }
-.doc-filter:focus-within,
-.doc-search:focus-within {
+.doc-filter:focus-within {
   border-color: var(--doc-lime);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--doc-lime) 30%, transparent);
 }
-.doc-filter input,
-.doc-search input {
+.doc-filter input {
   /* Stay inside the 1px frame: globals give inputs a 36px min-height + white fill. */
   height: 100%;
   min-height: 0;
@@ -241,13 +236,6 @@ html.theme-switching .doc-search * {
   color: var(--muted-foreground);
   font-size: 15px;
   line-height: 1.6;
-}
-.doc-search {
-  height: 44px;
-  padding: 0 14px;
-}
-.doc-search input {
-  font-size: 14px;
 }
 .doc-pills-row {
   display: flex;
@@ -615,7 +603,6 @@ html.theme-switching .doc-search * {
 }
 .dark .doc-switch,
 .dark .doc-filter,
-.dark .doc-search,
 .dark .doc-card,
 .dark .doc-stage,
 .dark .doc-import,
