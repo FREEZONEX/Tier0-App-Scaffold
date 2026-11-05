@@ -540,7 +540,6 @@ html.theme-switching .doc-filter * {
   display: flex;
   margin-top: 4px;
   padding-top: 10px;
-  border-top: 1px solid var(--doc-line);
 }
 .doc-prefs-theme {
   width: 100%;

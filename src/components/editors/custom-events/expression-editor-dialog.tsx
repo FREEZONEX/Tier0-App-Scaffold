@@ -94,7 +94,8 @@ function PalettePanel({ onInsert }: { onInsert: (text: string, caret?: number) =
   const shownFunctions = functionName ? EXPRESSION_FUNCTIONS.filter((item) => item.name === functionName) : EXPRESSION_FUNCTIONS;
 
   return (
-    <div className="flex min-w-0 flex-col overflow-hidden rounded-[4px] border border-border-secondary sm:flex-row">
+    // shrink-0: inside the scrolling editor column this panel must keep its full height (the column scrolls), not be squeezed and clipped.
+    <div className="flex min-w-0 shrink-0 flex-col overflow-hidden rounded-[4px] border border-border-secondary sm:flex-row">
       <nav className="flex shrink-0 flex-row flex-wrap gap-1 border-b border-border-secondary bg-muted p-2 sm:w-36 sm:flex-col sm:flex-nowrap sm:border-b-0 sm:border-r" aria-label="常用符号与函数">
         <Button variant={section === "symbols" ? "highlight" : "ghost"} size="sm" className="justify-start" onClick={() => setSection("symbols")}>
           常用符号
