@@ -27,6 +27,11 @@
 .tier0/
 .refs/
 
+# Local-only scaffold compare / WMS previews — never publish
+.local-preview/
+.preview-compare.html
+.preview-migration/
+
 # debug
 npm-debug.log*
 yarn-debug.log*

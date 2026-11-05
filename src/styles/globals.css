@@ -144,8 +144,8 @@
   --border-strong: #cfcfcf;
   --input: var(--tier0-input-border);
   --input-bg: var(--tier0-input-bg);
-  /* Light focus ring: deep green (readable), not pale CTA lime. */
-  --ring: var(--tier0-highlight-deep);
+  /* Focus ring: pale CTA lime (DESIGN.md input.focusColor = highlight). */
+  --ring: var(--tier0-highlight);
 
   --card: #ffffff;
   --card-foreground: var(--tier0-text-color);

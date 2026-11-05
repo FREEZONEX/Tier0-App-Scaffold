@@ -23,9 +23,9 @@ const rows=[{id:'WO-001',name:'装配线巡检',status:'待处理'},{id:'WO-002'
 const impacts=[{id:'1',label:'巡检任务 WO-001',before:'未分派',after:'示例操作员',description:'仅演示，不会修改业务数据'}];
 const labels={basisTitle:'建议依据',impactTitle:'影响范围',impactDescription:'确认受影响的示例记录',reasonTitle:'原因',beforeLabel:'变更前',afterLabel:'变更后'};
 function Table(){return <DataTable><thead><tr><th>任务编号</th><th>任务</th><th>状态</th></tr></thead><tbody>{rows.map((r,i)=><tr key={r.id}><td className="font-mono">{r.id}</td><td><TableCellText>{r.name}</TableCellText></td><TableStatusCell><StatusBadge tone={i?'running':'paused'}>{r.status}</StatusBadge></TableStatusCell></tr>)}</tbody></DataTable>}
-function ShellContent(){const path=useRouterState({select:s=>s.location.pathname});return <Shell user={user} modules={[{key:'tasks',label:'任务队列',href:'/',icon:Package},{key:'assets',label:'设备台账',href:'/assets',icon:Activity}]}><div className="page-shell space-y-6"><PageHeader title={path==='/assets'?'设备台账':'任务队列'}/><Table/></div></Shell>}
+function ShellContent(){return <div className="flex h-[640px] justify-center bg-muted/40 p-6"><Shell sidebarOnly user={user} modules={[{key:'tasks',label:'任务队列',href:'/',icon:Package},{key:'assets',label:'设备台账',href:'/assets',icon:Activity},{key:'people',label:'执行员',href:'/people',icon:Activity}]}/></div>}
 const rootRoute=createRootRoute({component:ShellContent});
-const shellRouter=createRouter({routeTree:rootRoute.addChildren([createRoute({getParentRoute:()=>rootRoute,path:'/',component:()=>null}),createRoute({getParentRoute:()=>rootRoute,path:'/assets',component:()=>null})]),history:createMemoryHistory({initialEntries:['/']})});
+const shellRouter=createRouter({routeTree:rootRoute.addChildren([createRoute({getParentRoute:()=>rootRoute,path:'/',component:()=>null}),createRoute({getParentRoute:()=>rootRoute,path:'/assets',component:()=>null}),createRoute({getParentRoute:()=>rootRoute,path:'/people',component:()=>null})]),history:createMemoryHistory({initialEntries:['/']})});
 export function Sample({name}:{name:string}){
  const [value,setValue]=useState('');const [filter,setFilter]=useState('all');const [open,setOpen]=useState(false);const [count,setCount]=useState(0);const [files,setFiles]=useState<File[]>([]);const [mode,setMode]=useState('ready');const ref=useRef<HTMLButtonElement>(null);
  const done=()=>{setCount(c=>c+1);setOpen(false)};

@@ -137,10 +137,13 @@ export function Shell({
   modules = defaultModules,
   user,
   children,
+  /** Gallery / chrome demos: render only the collapsible sidebar rail. */
+  sidebarOnly = false,
 }: {
   modules?: NavModule[];
   user?: AppUser | null;
-  children: ReactNode;
+  children?: ReactNode;
+  sidebarOnly?: boolean;
 }) {
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
@@ -198,7 +201,7 @@ export function Shell({
     return (
       <nav
         className={cn(
-          "flex h-full shrink-0 flex-col bg-sidebar transition-[width] duration-200 ease-out",
+          "flex h-full shrink-0 flex-col bg-sidebar transition-[width] duration-200 ease-[cubic-bezier(0.2,0,0,1)]",
           showCloseControl
             ? "w-full overflow-hidden rounded-[4px] border border-sidebar-border shadow-lg"
             : "border-r border-sidebar-border",
@@ -209,7 +212,7 @@ export function Shell({
         {/* Brand mark */}
         <div
           className={cn(
-            "flex min-h-14 items-center border-b border-sidebar-border px-3 py-2.5 transition-[gap,padding] duration-200 ease-out",
+            "flex min-h-14 items-center px-3 py-2.5 transition-[gap,padding] duration-200 ease-[cubic-bezier(0.2,0,0,1)]",
             showBrandIdentity ? "gap-3" : "justify-center gap-0",
           )}
         >
@@ -225,7 +228,7 @@ export function Shell({
             </div>
           )}
           {!isCollapsed && showBrandIdentity && (
-            <div className="min-w-0 overflow-hidden transition-[max-width,opacity,transform] duration-200 ease-out">
+            <div className="min-w-0 overflow-hidden transition-[max-width,opacity,transform] duration-200 ease-[cubic-bezier(0.2,0,0,1)]">
               <p
                 className="line-clamp-2 break-words text-sm font-semibold leading-5"
                 title={APP_NAME}
@@ -245,8 +248,9 @@ export function Shell({
                 <button
                   type="button"
                   onClick={toggleCollapsed}
-                  aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-                  title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                  aria-expanded={!isCollapsed}
+                  aria-label={isCollapsed ? "展开侧边栏" : "收起侧边栏"}
+                  title={isCollapsed ? "展开侧边栏" : "收起侧边栏"}
                   className="inline-flex size-8 items-center justify-center rounded-[4px] border border-transparent bg-transparent text-muted-foreground transition-[background-color,color,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] hover:bg-sidebar-accent hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight/35 active:scale-95"
                 >
                   {isCollapsed ? (
@@ -271,7 +275,7 @@ export function Shell({
         </div>
 
         {/* Modules */}
-        <div className="flex-1 overflow-y-auto px-2 py-2.5">
+        <div className="flex-1 overflow-y-auto px-2 pb-2.5 pt-4">
           {sidebarModules.map((mod) => {
             const Icon = mod.icon;
             const hasChildren = Boolean(mod.children?.length);
@@ -313,7 +317,7 @@ export function Shell({
                       "min-h-10 w-full",
                       isDirectActive ? sidebarItemActive : sidebarItemInactive,
                       mod.locked ? "opacity-70" : "",
-                      isCollapsed ? "justify-center px-2" : "gap-2.5 px-3",
+                      "gap-2.5 overflow-hidden pl-4 pr-3",
                     )}
                   >
                     {Icon && (
@@ -321,7 +325,7 @@ export function Shell({
                     )}
                     <span
                       className={cn(
-                        "min-w-0 flex-1 truncate whitespace-nowrap text-left transition-[max-width,opacity,transform] duration-200 ease-out",
+                        "min-w-0 flex-1 truncate whitespace-nowrap text-left transition-[max-width,opacity,transform] duration-200 ease-[cubic-bezier(0.2,0,0,1)]",
                         isCollapsed
                           ? "max-w-0 -translate-x-1 opacity-0"
                           : "max-w-36 translate-x-0 opacity-100",
@@ -440,7 +444,7 @@ export function Shell({
                   "mb-1 min-h-10",
                   isDirectActive ? sidebarItemActive : sidebarItemInactive,
                   mod.locked ? "opacity-70" : "",
-                  isCollapsed ? "justify-center px-2" : "gap-2.5 px-3",
+                  "gap-2.5 overflow-hidden pl-4 pr-3",
                 )}
               >
                 {Icon && (
@@ -448,7 +452,7 @@ export function Shell({
                 )}
                 <span
                   className={cn(
-                    "min-w-0 truncate whitespace-nowrap transition-[max-width,opacity,transform] duration-200 ease-out",
+                    "min-w-0 truncate whitespace-nowrap transition-[max-width,opacity,transform] duration-200 ease-[cubic-bezier(0.2,0,0,1)]",
                     isCollapsed
                       ? "max-w-0 -translate-x-1 opacity-0"
                       : "max-w-40 translate-x-0 opacity-100",
@@ -503,6 +507,14 @@ export function Shell({
     );
   }
 
+  if (sidebarOnly) {
+    return (
+      <div className="flex h-full min-h-[560px] overflow-hidden rounded-[4px] border border-border bg-background text-foreground shadow-xs">
+        {renderSidebar({ isCollapsed: collapsed, showCollapseControl: true })}
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-dvh overflow-hidden bg-background text-foreground">
       <div className="hidden md:block">
@@ -528,7 +540,7 @@ export function Shell({
       )}
 
       <main className="page-y-scroll min-h-0 min-w-0 flex-1">
-        <div className="flex h-14 items-center border-b border-border bg-card px-4 md:hidden">
+        <div className="flex h-14 items-center bg-card px-4 md:hidden">
           <button
             type="button"
             aria-label="Open navigation"

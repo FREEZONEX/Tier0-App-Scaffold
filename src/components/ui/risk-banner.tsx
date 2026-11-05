@@ -32,17 +32,14 @@ export function RiskBanner({
     <div
       role="status"
       className={cn(
-        /* Soft fill only — no outline stroke (border is transparent). */
-        "flex min-w-0 flex-wrap items-center gap-3 rounded-[4px] border border-transparent px-3.5 py-3",
+        "flex items-center gap-3 rounded-[4px] border-0 px-3 py-2.5",
         tone,
         className,
       )}
     >
-      <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-[4px] bg-black/5 dark:bg-white/10">
-        <Icon className="size-4" aria-hidden="true" />
-      </span>
-      <div className="typo-body min-w-0 flex-1 text-pretty">{children}</div>
-      {action && <div className="w-full shrink-0 sm:ml-auto sm:w-auto">{action}</div>}
+      <Icon className="size-4 shrink-0" aria-hidden="true" />
+      <div className="typo-body min-w-0 flex-1">{children}</div>
+      {action && <div className="shrink-0">{action}</div>}
     </div>
   );
 }

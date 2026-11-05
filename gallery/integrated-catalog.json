@@ -1,10 +1,27 @@
 [
   {
+    "name": "Shell",
+    "label": "应用壳",
+    "category": "布局",
+    "layer": "base",
+    "detail": "应用级侧栏导航（样例仅展示侧栏）；箭头可收起/展开，宽度与菜单文案带 200ms 过渡动效。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "Shell",
+        "label": "侧栏折叠",
+        "engine": "original",
+        "importPath": "@/components/Shell",
+        "source": "src/components/Shell.tsx"
+      }
+    ]
+  },
+  {
     "name": "SceneTaskOps",
     "label": "任务运营台",
     "category": "业务场景",
     "layer": "business",
-    "detail": "Tempo 任务工作台：看板/列表切换、KPI、抽屉与确认，数据可本地持久化。",
+    "detail": "Tempo 任务工作台：看板/列表切换、KPI、抽屉与确认；左侧应用壳可折叠并带过渡动效。",
     "reason": "",
     "samples": [
       {
@@ -19,7 +36,7 @@
     "label": "成员目录",
     "category": "业务场景",
     "layer": "business",
-    "detail": "Atlas 成员与角色：页签、权限卡片、邀请对话框。",
+    "detail": "Atlas 成员与角色：页签、权限卡片、邀请对话框；左侧应用壳可折叠。",
     "reason": "",
     "samples": [
       {
@@ -34,7 +51,7 @@
     "label": "产线监控",
     "category": "业务场景",
     "layer": "business",
-    "detail": "Strata 产线监控：风险横幅、KPI 与服务列表。",
+    "detail": "Strata 产线监控：风险横幅、KPI 与服务列表；左侧应用壳可折叠。",
     "reason": "",
     "samples": [
       {
@@ -46,15 +63,15 @@
   },
   {
     "name": "SceneEmptyContrast",
-    "label": "空态对比",
+    "label": "空态展示",
     "category": "业务场景",
     "layer": "business",
-    "detail": "全页与卡片内空态、引导操作按钮。",
+    "detail": "全页与卡片内空态、引导操作按钮；左侧应用壳可折叠。",
     "reason": "",
     "samples": [
       {
         "name": "SceneEmptyContrast",
-        "label": "空态对比",
+        "label": "空态展示",
         "engine": "library"
       }
     ]
@@ -64,7 +81,7 @@
     "label": "工作流总览",
     "category": "业务场景",
     "layer": "business",
-    "detail": "Flowly 仪表盘：KPI、运行动态、待处理与工作流表格。",
+    "detail": "Flowly 仪表盘：KPI、运行动态、待处理与工作流表格；左侧应用壳可折叠。",
     "reason": "",
     "samples": [
       {
@@ -79,7 +96,7 @@
     "label": "审计日志",
     "category": "业务场景",
     "layer": "business",
-    "detail": "Lucent 安全审计：时间范围、类型筛选与可折叠事件行。",
+    "detail": "Lucent 安全审计：时间范围、类型筛选与可折叠事件行；左侧应用壳可折叠。",
     "reason": "",
     "samples": [
       {
@@ -94,7 +111,7 @@
     "label": "用量与成本",
     "category": "业务场景",
     "layer": "business",
-    "detail": "Flux 智能体运维：预算 KPI、消耗进度与提供商分布。",
+    "detail": "Flux 智能体运维：预算 KPI、消耗进度与提供商分布；左侧应用壳可折叠。",
     "reason": "",
     "samples": [
       {
