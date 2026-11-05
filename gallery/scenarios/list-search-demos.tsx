@@ -8,44 +8,44 @@ import { filterListRows, type KeywordField } from '@/lib/component-kit/list-sear
 import type { SearchValues } from '@/lib/component-kit/query-model';
 import type { FieldDef } from '@/lib/component-kit/types';
 
-/** Gallery fixture: production queues (编码 / 名称 / 规格 / 状态 / 计划日期). */
-type Queue = { code: string; name: string; spec: string; status: 'run' | 'wait' | 'done'; due: string };
-const queues: Queue[] = [
-  { code: 'Q-ASM-01', name: '总装一线队列', spec: 'M8 螺栓 · 扭矩 25 N·m', status: 'run', due: '2026-11-04' },
-  { code: 'Q-ASM-02', name: '总装二线队列', spec: 'M6 螺栓 · 扭矩 12 N·m', status: 'wait', due: '2026-11-12' },
-  { code: 'Q-QC-01', name: '来料质检队列', spec: 'AQL 1.0 · 抽样 50', status: 'run', due: '2026-11-08' },
-  { code: 'Q-PKG-01', name: '包装队列', spec: '纸箱 600×400', status: 'done', due: '2026-10-30' },
-  { code: 'Q-CAL-01', name: '量具校准队列', spec: '扭矩扳手 · M1 级', status: 'wait', due: '2026-11-20' },
+/** Gallery fixture: materials (物料编码 / 名称 / 规格 / 状态 / 入库日期). */
+type Material = { code: string; name: string; spec: string; status: 'active' | 'pending' | 'frozen'; date: string };
+const materials: Material[] = [
+  { code: 'MAT-1001', name: '六角螺栓', spec: 'M8×30 · 8.8 级', status: 'active', date: '2026-10-28' },
+  { code: 'MAT-1002', name: '六角螺栓', spec: 'M6×20 · 8.8 级', status: 'pending', date: '2026-11-03' },
+  { code: 'MAT-2101', name: '安全光栅', spec: 'SG-40 / 40mm', status: 'active', date: '2026-11-01' },
+  { code: 'MAT-3302', name: '抽样袋', spec: '200×300mm', status: 'frozen', date: '2026-10-15' },
+  { code: 'MAT-4110', name: '扭矩扳手', spec: 'M8 · 5–25 N·m', status: 'pending', date: '2026-11-05' },
 ];
 const statusOptions = [
-  { value: 'run', label: '执行中' },
-  { value: 'wait', label: '待处理' },
-  { value: 'done', label: '已完成' },
+  { value: 'active', label: '启用' },
+  { value: 'pending', label: '待审核' },
+  { value: 'frozen', label: '冻结' },
 ];
-const statusTone = { run: 'processing', wait: 'default', done: 'success' } as const;
+const statusTone = { active: 'success', pending: 'warning', frozen: 'default' } as const;
 
-/** 关键词搜索 scope for this list: 编码、名称、规格. */
-const keywordFields: KeywordField<Queue>[] = [
-  { key: 'code', label: '编码' },
+/** 关键词搜索 scope for this list: 物料编码、名称、规格. */
+const keywordFields: KeywordField<Material>[] = [
+  { key: 'code', label: '物料编码' },
   { key: 'name', label: '名称' },
   { key: 'spec', label: '规格' },
 ];
 /** 高级筛选 conditions: one control per field. */
 const conditions: FieldDef[] = [
-  { code: 'code', name: '编码', type: 'TEXT', widget: {} },
+  { code: 'code', name: '物料编码', type: 'TEXT', widget: {} },
   { code: 'name', name: '名称', type: 'TEXT', widget: {} },
   { code: 'status', name: '状态', type: 'SINGLE_SELECT', widget: {}, options: statusOptions },
-  { code: 'due', name: '计划日期', type: 'DATETIME', widget: {} },
+  { code: 'date', name: '入库日期', type: 'DATETIME', widget: {} },
 ];
 
-function QueueTable({ rows }: { rows: Queue[] }) {
-  if (!rows.length) return <EmptyState title="没有匹配的队列" description="调整关键词或筛选条件后重试" />;
+function MaterialTable({ rows }: { rows: Material[] }) {
+  if (!rows.length) return <EmptyState title="没有匹配的物料" description="调整关键词或筛选条件后重试" />;
   return (
     <DataGrid
       rows={rows}
       rowKey={(row) => row.code}
       columns={[
-        { key: 'code', title: '编码', width: 110 },
+        { key: 'code', title: '物料编码', width: 110 },
         { key: 'name', title: '名称', width: 140 },
         { key: 'spec', title: '规格', width: 190 },
         {
@@ -58,38 +58,38 @@ function QueueTable({ rows }: { rows: Queue[] }) {
             </StatusTag>
           ),
         },
-        { key: 'due', title: '计划日期', width: 110 },
+        { key: 'date', title: '入库日期', width: 110 },
       ]}
     />
   );
 }
 
-/** 关键词搜索（多字段模糊搜索）: one box over 编码、名称、规格. */
+/** 关键词搜索（多字段模糊搜索）: one box over 物料编码、名称、规格. */
 export function KeywordSearchDemo() {
   const [keyword, setKeyword] = useState('');
-  const rows = filterListRows(queues, { keyword, keywordFields });
+  const rows = filterListRows(materials, { keyword, keywordFields });
   return (
     <div className="flex min-w-0 flex-col gap-3">
-      <KeywordSearch value={keyword} onChange={setKeyword} fields={keywordFields} label="关键词搜索队列" className="w-full sm:w-80" />
+      <KeywordSearch value={keyword} onChange={setKeyword} fields={keywordFields} label="关键词搜索物料" className="w-full sm:w-80" />
       <p role="status" className="caption tabular-nums">
-        {keyword.trim() ? `找到 ${rows.length} / ${queues.length} 个队列 · 编码、名称或规格任一包含「${keyword.trim()}」` : `共 ${queues.length} 个队列 · 试试输入 asm、质检 或 扭矩`}
+        {keyword.trim() ? `找到 ${rows.length} / ${materials.length} 种物料 · 物料编码、名称或规格任一包含「${keyword.trim()}」` : `共 ${materials.length} 种物料 · 试试输入 mat-1、螺栓 或 M8`}
       </p>
-      <QueueTable rows={rows} />
+      <MaterialTable rows={rows} />
     </div>
   );
 }
 
-/** 高级筛选（多条件组合筛选）: 编码 / 名称 / 状态 / 计划日期, filled ones AND-ed. */
+/** 高级筛选（多条件组合筛选）: 物料编码 / 名称 / 状态 / 入库日期, filled ones AND-ed. */
 export function AdvancedFilterDemo() {
   const [values, setValues] = useState<SearchValues>({});
-  const rows = filterListRows(queues, { conditions, values });
+  const rows = filterListRows(materials, { conditions, values });
   return (
     <div className="flex min-w-0 flex-col gap-3">
       <AdvancedFilter conditions={conditions} value={values} onChange={setValues} />
       <p role="status" className="caption tabular-nums">
-        找到 {rows.length} / {queues.length} 个队列 · 已填写的条件需同时满足
+        找到 {rows.length} / {materials.length} 种物料 · 已填写的条件需同时满足
       </p>
-      <QueueTable rows={rows} />
+      <MaterialTable rows={rows} />
     </div>
   );
 }

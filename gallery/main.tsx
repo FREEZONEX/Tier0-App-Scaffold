@@ -69,11 +69,33 @@ const matches = (item: Item, key: string) => {
   if (componentCategories.includes(key)) return isComponent(item) && item.category === key;
   return item.layer === key;
 };
-/** One catalog: portal first, then source-only rows (e.g. 重型组件 extras). */
+/**
+ * One catalog: the portal entries (with written descriptions), plus anything
+ * the source index adds. A source row whose samples the portal already shows is
+ * the same component under another id — its missing samples join that portal
+ * entry instead of becoming a duplicate card (whose description would only be
+ * import paths). Truly new source rows are kept as their own cards.
+ */
 const mergedCatalog = (() => {
-  const seen = new Set(portalCatalog.map((item) => item.name));
-  const extras = sourceCatalog.filter((item) => !seen.has(item.name));
-  return [...portalCatalog, ...extras];
+  const items = portalCatalog.map((item) => ({ ...item, samples: [...item.samples] }));
+  const owner = new Map<string, Item>();
+  for (const item of items) for (const sample of item.samples) if (!owner.has(sample.name)) owner.set(sample.name, item);
+  const known = new Set(items.map((item) => item.name));
+  const extras: Item[] = [];
+  for (const source of sourceCatalog) {
+    if (known.has(source.name)) continue;
+    const host = source.samples.map((sample) => owner.get(sample.name)).find(Boolean);
+    if (!host) {
+      extras.push(source);
+      continue;
+    }
+    for (const sample of source.samples) {
+      if (owner.has(sample.name)) continue;
+      host.samples.push(sample);
+      owner.set(sample.name, host);
+    }
+  }
+  return [...items, ...extras];
 })();
 const navGroupKeys = [
   { id: "review" as const, keys: ["business"] },
@@ -217,9 +239,8 @@ function Gallery() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const totalCount = activeCatalog.filter((item) =>
-    filter === "business" ? item.layer === "business" : isComponent(item),
-  ).length;
+  /** Denominator of 「显示 x / y」: everything in the current view before the search narrows it. */
+  const totalCount = activeCatalog.filter((item) => matches(item, filter)).length;
 
   const nav = (
     <aside id="doc-nav" className={`doc-nav${navigationOpen ? " is-open" : ""}`}>
@@ -321,13 +342,7 @@ function Gallery() {
   const pageTitle =
     filter === "all" ? copy.titleComponents : title;
 
-  const lead =
-    filter === "business"
-      ? copy.leadBusiness(filtered.length)
-      : copy.leadComponents(
-          mergedCatalog.filter(isComponent).length,
-          componentCategories.length,
-        );
+  const lead = copy.leads[filter] ?? copy.leads.all;
 
   return (
     <div className="doc">
@@ -354,9 +369,7 @@ function Gallery() {
             </button>
             <h1>{itemTitle(locale, selected)}</h1>
             <p className="doc-lead">
-              {selected.layer !== "business" && selected.detail
-                ? selected.detail
-                : `${copy.business} · ${selected.name}`}
+              {selected.detail || `${copy.business} · ${selected.name}`}
             </p>
 
             <div className="doc-toolbar">
@@ -488,9 +501,7 @@ function Gallery() {
                         ) : null}
                       </span>
                       <span className="doc-card-desc">
-                        {item.layer !== "business" && item.detail && locale === "zh-CN"
-                          ? item.detail
-                          : item.samples[0]?.importPath || item.name}
+                        {item.detail && locale === "zh-CN" ? item.detail : item.name}
                       </span>
                       <span className="doc-card-foot">
                         <span>

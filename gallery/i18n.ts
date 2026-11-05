@@ -107,10 +107,19 @@ export const chrome = {
     allComponents: "全部组件",
     business: "业务场景",
     titleComponents: "Tier0 组件",
-    leadComponents: (n: number, cats: number) =>
-      `${n} 个组件，${cats} 个分类（含重型组件）。基于同一套 Tier0 设计令牌。`,
-    leadBusiness: (n: number) =>
-      `${n} 个业务场景，含应用侧边栏与工作台副栏，对照真实工作流验收。`,
+    /** One short line under the title of each view. */
+    leads: {
+      all: "脚手架内置的全部组件，点开卡片查看样例和引入方式。",
+      business: "把组件放进真实工作流，整体验收交互与布局。",
+      通用: "按钮、文字、图标，每个页面都会用到的基础元素。",
+      布局: "页面容器、表单栅格与表格滚动区，决定内容如何排布。",
+      导航: "标签页、锚点、分页和下拉菜单，在页面内外切换。",
+      数据录入: "输入、选择、日期、上传等表单控件。",
+      数据展示: "表格、卡片、标签和统计数字，用来呈现数据。",
+      反馈: "对话框、抽屉、提示、进度与加载状态，告知操作结果。",
+      高级组件: "异步状态、图表等由多个基础组件组合而成的能力。",
+      重型组件: "元数据表单、明细表、搜索与筛选等完整业务模块。",
+    } as Record<string, string>,
     scenesUnit: "个场景",
     preview: "预览",
     back: "返回",
@@ -144,10 +153,18 @@ export const chrome = {
     allComponents: "All components",
     business: "Business scenes",
     titleComponents: "Tier0 Components",
-    leadComponents: (n: number, cats: number) =>
-      `${n} components across ${cats} categories (including heavy). Same Tier0 tokens.`,
-    leadBusiness: (n: number) =>
-      `${n} business scenes with app sidebar and workbench rail for workflow review.`,
+    leads: {
+      all: "Every component in the scaffold. Open a card for samples and import paths.",
+      business: "Components in real workflows, for end-to-end review of interaction and layout.",
+      通用: "Buttons, text and icons used on every page.",
+      布局: "Page containers, form grids and table viewports that arrange content.",
+      导航: "Tabs, anchors, pagination and dropdown menus for moving around.",
+      数据录入: "Inputs, selects, dates, uploads and other form controls.",
+      数据展示: "Tables, cards, tags and stats that present data.",
+      反馈: "Dialogs, drawers, toasts, progress and loading states.",
+      高级组件: "Async states, charts and other compositions of base components.",
+      重型组件: "Metadata forms, detail tables, search and filters: complete business modules.",
+    } as Record<string, string>,
     scenesUnit: "samples",
     preview: "Preview",
     back: "Back",
