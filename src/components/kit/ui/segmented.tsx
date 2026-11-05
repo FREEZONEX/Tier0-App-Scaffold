@@ -54,6 +54,7 @@ export function Segmented<V extends string | number = string | number>({
     measure();
     const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
     observer?.observe(track);
+    track.querySelectorAll<HTMLElement>("[data-segment-index]").forEach(element => observer?.observe(element));
     return () => observer?.disconnect();
   }, [selectedIndex, items.length, size]);
 
@@ -72,17 +73,17 @@ export function Segmented<V extends string | number = string | number>({
       aria-label={ariaLabel}
       aria-disabled={disabled || undefined}
       className={cn(
-        "relative inline-flex max-w-full items-stretch gap-0.5 rounded-md border border-border bg-card p-0.5",
+        "relative inline-flex max-w-full items-stretch gap-0.5 rounded-[4px] border border-border bg-muted/60 p-0.5",
         block && "flex w-full",
-        disabled && "tier0-control-disabled",
+        disabled && "pointer-events-none opacity-50",
         className,
       )}
     >
       {thumb ? (
         <span
           aria-hidden="true"
-          className="absolute top-0.5 bottom-0.5 rounded-[4px] bg-brand-soft shadow-[0_1px_2px_0_rgb(0_0_0/0.08),0_1px_4px_-1px_rgb(0_0_0/0.06)] transition-[left,width] duration-200"
-          style={{ left: thumb.left, width: thumb.width }}
+          className="absolute top-0.5 bottom-0.5 rounded-[4px] bg-card shadow-sm ring-1 ring-border/60 transition-transform duration-[var(--motion-base)] ease-[var(--motion-spring)]"
+          style={{ left: 0, transform: `translateX(${thumb.left}px)`, width: thumb.width }}
         />
       ) : null}
       {items.map((item, index) => {
@@ -111,12 +112,12 @@ export function Segmented<V extends string | number = string | number>({
               trackRef.current?.querySelector<HTMLButtonElement>(`[data-segment-index="${next}"]`)?.focus();
             }}
             className={cn(
-              "relative z-10 inline-flex min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-[4px] transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
+              "relative z-10 inline-flex min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-[4px] transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
               ITEM_HEIGHT[size],
               block && "flex-1",
-              isSelected ? "font-medium text-foreground" : "text-text-secondary hover:bg-brand-soft hover:text-foreground",
-              isDisabled && "cursor-not-allowed text-text-placeholder hover:bg-transparent hover:text-text-placeholder",
-              !thumb && isSelected && "bg-brand-soft shadow-sm",
+              isSelected ? "font-medium text-foreground" : "text-muted-foreground hover:text-foreground",
+              isDisabled && "pointer-events-none opacity-50",
+              !thumb && isSelected && "bg-card shadow-sm",
             )}
             onClick={() => choose(index)}
           >

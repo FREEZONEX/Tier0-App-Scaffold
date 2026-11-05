@@ -359,6 +359,11 @@ on the response's `published` flag; the hosted key's response has no email
 (`email` is empty, show `userName`) and needs the App's `platform.users.read`.
 Notification channels, MQTT and credential handling:
 `docs/platform-integration.md`.
+Preview member queries use draft roles automatically through the SDK and the
+platform-injected `TIER0_RUNTIME`; publishing is not a prerequisite. Do not
+block assignment on `published`, hard-code members, set runtime variables in
+App code, or replace App membership with the whole Workspace. Diagnose an
+unexpected empty list using the installed SDK, preview runtime and role bindings.
 - **Not available to the App in Preview and deployments**, so do not use or
   recommend them: `tier0.system.whoami`,
   `tier0.mqttAuth`, `tier0.capabilities`, `tier0.agent` and

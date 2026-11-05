@@ -41,10 +41,11 @@ export function FieldLabel({
       data-required-rendered={required ? "true" : undefined}
       className={cn(
         "field-label typo-label inline-flex items-center gap-1 text-foreground",
+        "mb-0 leading-5 tracking-[0.01em]",
         className,
       )}
     >
-      <span>{children}</span>
+      <span className="min-w-0">{children}</span>
       {required ? <RequiredMark /> : null}
     </label>
   );

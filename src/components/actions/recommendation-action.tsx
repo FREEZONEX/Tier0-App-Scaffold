@@ -99,7 +99,7 @@ export function ImpactPreviewDialog({
     >
       <div className="grid min-w-0 gap-4">
         {basis ? (
-          <section className="min-w-0 rounded-md border border-border bg-surface-inset p-4">
+          <section className="min-w-0 rounded-[4px] border border-border bg-surface-inset p-4">
             <h3 className="text-sm font-semibold leading-6 text-foreground">
               {text.basisTitle}
             </h3>
@@ -109,7 +109,7 @@ export function ImpactPreviewDialog({
           </section>
         ) : null}
 
-        <section className="min-w-0 rounded-md border border-border bg-card">
+        <section className="min-w-0 rounded-[4px] border border-border bg-card">
           <div className="border-b border-border px-4 py-3">
             <div className="flex min-w-0 items-center justify-between gap-2">
               <h3 className="truncate text-sm font-semibold leading-6 text-foreground">
@@ -181,7 +181,7 @@ export function ImpactPreviewDialog({
         </section>
 
         {reason ? (
-          <section className="min-w-0 rounded-md border border-border bg-card p-4">
+          <section className="min-w-0 rounded-[4px] border border-border bg-card p-4">
             <h3 className="text-sm font-semibold leading-6 text-foreground">
               {text.reasonTitle}
             </h3>
@@ -209,7 +209,7 @@ function ImpactPreviewValue({
   return (
     <div
       className={cn(
-        "min-w-0 rounded-sm border border-border bg-surface-inset px-3 py-2",
+        "min-w-0 rounded-[4px] border border-border bg-surface-inset px-3 py-2",
         className,
       )}
     >

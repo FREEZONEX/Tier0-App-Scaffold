@@ -1,9 +1,11 @@
 import type { ReactNode } from "react";
+import { AlertCircle } from "lucide-react";
 
 import { uiText } from "@/lib/app-chrome";
 import type { RequestResult } from "@/lib/hooks";
 import { Button, EmptyState } from "@/components/ui";
 import { cn } from "@/lib/utils";
+import { ENTER_FADE, SKELETON_SHIMMER } from "@/lib/interaction";
 
 /**
  * AsyncView — the one way to render a `useRequest` result. It resolves the
@@ -23,6 +25,8 @@ import { cn } from "@/lib/utils";
  *     {(data) => <OrderTable rows={data} />}
  *   </AsyncView>
  */
+const SKELETON_COLUMNS = ["22%", "30%", "16%", "18%"];
+
 export interface AsyncViewProps<T> {
   result: RequestResult<T>;
   children: (data: T) => ReactNode;
@@ -48,12 +52,20 @@ export function AsyncView<T>({
       <div
         role="alert"
         className={cn(
-          "flex flex-col items-center justify-center gap-3 rounded-lg border border-border bg-card px-6 py-10 text-center",
+          "flex flex-col items-center justify-center gap-3 rounded-[4px] border border-state-error-border/70 bg-card px-6 py-10 text-center shadow-sm",
+          ENTER_FADE,
           className,
         )}
       >
-        <p className="typo-label text-foreground">{uiText("loadError")}</p>
-        <p className="typo-body max-w-md text-muted-foreground">{error.message}</p>
+        <span className="inline-flex size-10 items-center justify-center rounded-[4px] border border-state-error-border bg-state-error-bg text-state-error-fg">
+          <AlertCircle className="size-5" aria-hidden="true" />
+        </span>
+        <div className="space-y-1">
+          <p className="typo-label text-foreground">{uiText("loadError")}</p>
+          <p className="typo-body max-w-md text-muted-foreground">
+            {error.message}
+          </p>
+        </div>
         <Button variant="outline" onClick={refresh}>
           {uiText("retry")}
         </Button>
@@ -67,15 +79,39 @@ export function AsyncView<T>({
   if (data == null && isLoading) {
     return (
       <div
-        className={cn("space-y-3", className)}
+        className={cn(
+          "overflow-hidden rounded-[4px] border border-border/70 bg-card",
+          className,
+        )}
         aria-busy="true"
         aria-live="polite"
       >
-        {[0, 1, 2].map((row) => (
+        <div className="flex items-center gap-4 border-b border-border/70 bg-muted/40 px-4 py-3">
+          {SKELETON_COLUMNS.map((width, col) => (
+            <div
+              key={col}
+              className={cn("h-3 rounded-[4px]", SKELETON_SHIMMER)}
+              style={{ width }}
+            />
+          ))}
+        </div>
+        {[0, 1, 2, 3].map((row) => (
           <div
             key={row}
-            className="h-12 animate-pulse rounded-md bg-surface-inset"
-          />
+            className="flex items-center gap-4 border-b border-border/50 px-4 py-3.5 last:border-b-0"
+            style={{ opacity: 1 - row * 0.18 }}
+          >
+            {SKELETON_COLUMNS.map((width, col) => (
+              <div
+                key={col}
+                className={cn("h-3.5 rounded-[4px]", SKELETON_SHIMMER)}
+                style={{
+                  width: col === 0 ? width : `calc(${width} - ${(row % 3) * 6}%)`,
+                  animationDelay: `${row * 90}ms`,
+                }}
+              />
+            ))}
+          </div>
         ))}
       </div>
     );

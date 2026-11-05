@@ -377,7 +377,7 @@ export function FilterConditionList({
         return (
           <div
             key={row.key}
-            className="flex min-w-0 flex-col gap-2 rounded-md bg-[#f7f8fa] p-2 sm:flex-row sm:items-start"
+            className="flex min-w-0 flex-col gap-2 rounded-[4px] bg-muted p-2 sm:flex-row sm:items-start"
           >
             <div className="flex min-w-0 items-center gap-1 sm:w-40 sm:shrink-0">
               {locked ? <RequiredMark /> : null}

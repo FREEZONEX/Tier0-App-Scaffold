@@ -3,6 +3,8 @@
 // List page and its parts
 export { MetaListPage, type MetaListPageProps } from "@/components/kit/meta/meta-list-page";
 export { SearchPanel, SearchFieldControl, type SearchPanelProps, type SearchFieldControlProps } from "@/components/kit/meta/search-panel";
+export { KeywordSearch, type KeywordSearchProps } from "@/components/kit/meta/keyword-search";
+export { AdvancedFilter, ActiveConditionTags, type AdvancedFilterProps, type ActiveConditionTagsProps } from "@/components/kit/meta/advanced-filter";
 export { FieldConfigPopover, ColumnConfigList, type FieldConfigPopoverProps, type ColumnConfigListProps } from "@/components/kit/meta/field-config-popover";
 export { SortPopover, SortConditionList, type SortPopoverProps, type SortConditionListProps } from "@/components/kit/meta/sort-popover";
 export { RowHeightMenu, type RowHeightMenuProps } from "@/components/kit/meta/row-height-menu";

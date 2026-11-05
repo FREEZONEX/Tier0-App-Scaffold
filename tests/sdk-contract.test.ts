@@ -51,3 +51,38 @@ void retiredProtocol;
 // @ts-expect-error Current native Stream scripts have no interpreter selector.
 const retiredScript: CloudStreamDocument["script"] = { code: "module.exports = api => {};", timeoutMs: 1000, sdkVersion: "tier0-stream/v2" };
 void retiredScript;
+
+// Exercise the actual bundled SDK through the scaffold loader, not a reimplementation.
+test("member pickers use draft scope before publication and preserve failures", async () => {
+  const previous = process.env.TIER0_RUNTIME;
+  const sdk = await loadTier0Sdk();
+  const sent: Record<string, unknown>[] = [];
+  let fail = false;
+  const client = sdk.createClient({
+    apiHost: "https://fixture.invalid",
+    fetch: (async (_input, init) => {
+      sent.push(JSON.parse(String(init?.body)));
+      return new Response(JSON.stringify(fail
+        ? { code: 3003017, msg: "members unavailable" }
+        : { code: 200, data: { published: 2, list: [{ userId: "fixture-user", roles: [] }], total: 1 } }),
+        { status: fail ? 503 : 200 });
+    }) as typeof fetch,
+  });
+  try {
+    for (const [runtime, scope] of [["preview", "draft"], ["deployed", "production"], ["unknown", undefined], [undefined, undefined]] as const) {
+      if (runtime === undefined) delete process.env.TIER0_RUNTIME;
+      else process.env.TIER0_RUNTIME = runtime;
+      const result = await client.members.listApp({ appId: "fixture-app" });
+      assert.deepEqual(sent.at(-1), { appId: "fixture-app", ...(scope ? { scope } : {}) });
+      assert.equal(result.published, 2);
+      assert.equal(result.list.length, 1, "unpublished metadata must not suppress draft members");
+    }
+    process.env.TIER0_RUNTIME = "preview";
+    fail = true;
+    await assert.rejects(client.members.listApp({ appId: "fixture-app" }),
+      (error: unknown) => error instanceof sdk.ApiError && error.status === 503 && error.code === 3003017);
+  } finally {
+    if (previous === undefined) delete process.env.TIER0_RUNTIME;
+    else process.env.TIER0_RUNTIME = previous;
+  }
+});

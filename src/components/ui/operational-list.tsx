@@ -57,7 +57,7 @@ export function OperationalList({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-lg border border-border bg-card shadow-sm",
+        "overflow-hidden rounded-[4px] border border-border bg-card shadow-sm",
         className,
       )}
       {...props}

@@ -36,7 +36,7 @@ export function RowHeightMenu({ value, onChange, disabled = false }: RowHeightMe
         key: option.value,
         label: <span className={cn(option.value === value && "font-medium text-brand")}>{option.label}</span>,
         icon: <RowHeightGlyph value={option.value} />,
-        extra: option.value === value ? <Check className="size-3.5 text-brand" aria-hidden="true" /> : undefined,
+        extra: option.value === value ? <Check className="size-3.5 text-foreground" aria-hidden="true" /> : undefined,
         onClick: () => {
           if (option.value !== value) onChange(option.value);
         },

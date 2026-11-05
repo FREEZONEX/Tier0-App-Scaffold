@@ -48,7 +48,7 @@ export function MobileCard({ config, fields, record, statusFields = [], actions,
   return (
     <article
       className={cn(
-        "min-w-0 rounded-xl border border-[#e8e8e8] bg-card p-3 text-sm shadow-[0_1px_2px_rgb(15_23_42/0.04)]",
+        "min-w-0 rounded-[4px] border border-border bg-card p-3 text-sm shadow-sm",
         onClick && "cursor-pointer transition-shadow hover:shadow-md",
         className,
       )}
@@ -82,7 +82,7 @@ export function MobileCard({ config, fields, record, statusFields = [], actions,
           </div>
           {indicator ? (
             <div className="flex shrink-0 flex-col items-end text-right">
-              <span className="text-xl font-semibold leading-7 tabular-nums text-brand">{indicatorValue}</span>
+              <span className="text-xl font-semibold leading-7 tabular-nums text-foreground">{indicatorValue}</span>
               <span className="text-xs text-text-tertiary">{indicator.name}</span>
             </div>
           ) : null}

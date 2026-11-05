@@ -105,3 +105,80 @@ test('route error components render unknown failures without throwing', async ()
   assert.ok(visible.includes(expected));
  }
 });
+
+test('StatCard keeps numeric precision on first render and after a live update', async () => {
+  const { StatCard } = await import('../src/components/ui/stat-card');
+  const { formatAnimatedNumber, fractionDigitsOf } = await import('../src/components/ui/animated-number');
+  for (const [value, text] of [[0.04, '0.04'], [1.25, '1.25'], [99.99, '99.99'], [12, '12'], [0.000123, '0.000123']] as const) {
+    assert.match(renderToString(createElement(StatCard, { label: 'metric', value })), new RegExp(`>${text.replace('.', '\\.')}<`));
+  }
+  assert.equal(fractionDigitsOf(1.5e-7), 8);
+  // Landing frame of a roll (exact target) and a mid-roll frame both keep the business precision.
+  assert.equal(formatAnimatedNumber(99.99, [0.04, 99.99], undefined, 'en-US'), '99.99');
+  assert.equal(formatAnimatedNumber(0.04, [99.99, 0.04], undefined, 'en-US'), '0.04');
+  assert.equal(formatAnimatedNumber(1.2, [1, 1.25], undefined, 'en-US'), '1.2');
+  assert.equal(formatAnimatedNumber(1.2468, [1, 1.25], undefined, 'en-US'), '1.25');
+  // Explicit format stays the caller's rule, including a minimum above the inferred precision.
+  assert.equal(formatAnimatedNumber(87.46, [87.46], { maximumFractionDigits: 1 }, 'en-US'), '87.5');
+  assert.equal(formatAnimatedNumber(3, [3], { minimumFractionDigits: 2 }, 'en-US'), '3.00');
+  assert.match(renderToString(createElement(StatCard, { label: 'ratio', value: 0.256, format: { style: 'percent', maximumFractionDigits: 1 } })), />25\.6%</);
+});
+
+test('keyword search fuzzy-matches any business-configured field', async () => {
+  const { matchesKeyword, filterListRows } = await import('../src/lib/component-kit/list-search');
+  type Queue = { code: string; name: string; spec: string; lines: { item: string }[] };
+  const rows: Queue[] = [
+    { code: 'Q-ALPHA-01', name: '装配队列', spec: 'M8 螺栓', lines: [{ item: '扭矩扳手' }] },
+    { code: 'Q-BETA-02', name: '质检队列', spec: 'Φ12 轴承', lines: [] },
+  ];
+  const fields = [
+    { key: 'code', label: '编码' },
+    { key: 'name', label: '名称' },
+    { key: 'spec', label: '规格' },
+    { key: 'lines', label: '物料', value: (row: Queue) => row.lines.map((line) => line.item) },
+  ];
+  const codes = (keyword: string, scope = fields) => filterListRows(rows, { keyword, keywordFields: scope }).map((row) => row.code);
+  assert.deepEqual(codes('alpha'), ['Q-ALPHA-01'], 'code, case-insensitive');
+  assert.deepEqual(codes('质检'), ['Q-BETA-02'], 'name');
+  assert.deepEqual(codes('m8'), ['Q-ALPHA-01'], 'spec');
+  assert.deepEqual(codes('扳手'), ['Q-ALPHA-01'], 'custom reader over child rows');
+  assert.deepEqual(codes('队列'), ['Q-ALPHA-01', 'Q-BETA-02'], 'any field may match');
+  assert.deepEqual(codes('不存在'), [], 'no result');
+  assert.deepEqual(codes('  '), ['Q-ALPHA-01', 'Q-BETA-02'], 'cleared keyword restores the list');
+  assert.deepEqual(codes('m8', fields.slice(0, 2)), [], 'scope is what the business configures');
+  assert.equal(matchesKeyword({ owner: { id: 'u1', name: '张明', code: 'EMP-001' } }, 'emp-001', [{ key: 'owner', label: '负责人' }]), true);
+});
+
+test('advanced filter combines filled conditions with AND and ignores empty ones', async () => {
+  const { filterListRows, describeCondition } = await import('../src/lib/component-kit/list-search');
+  const conditions: FieldDef[] = [
+    { code: 'code', name: '编码', type: 'TEXT', widget: {} },
+    { code: 'name', name: '名称', type: 'TEXT', widget: {} },
+    { code: 'status', name: '状态', type: 'SINGLE_SELECT', widget: {}, options: [{ value: 'run', label: '执行中' }, { value: 'done', label: '已完成' }] },
+    { code: 'due', name: '计划日期', type: 'DATETIME', widget: {} },
+  ];
+  const rows = [
+    { code: 'WO-001', name: '装配复核', status: 'run', due: '2026-11-03' },
+    { code: 'WO-002', name: '装配点检', status: 'done', due: '2026-11-20T08:00:00Z' },
+    { code: 'WO-003', name: '质检抽样', status: 'run', due: '2026-12-02' },
+  ];
+  const codes = (values: Record<string, unknown>, keyword = '') =>
+    filterListRows(rows, { conditions, values, keyword, keywordFields: [{ key: 'name', label: '名称' }, { key: 'code', label: '编码' }] }).map((row) => row.code);
+  assert.deepEqual(codes({}), ['WO-001', 'WO-002', 'WO-003'], 'no condition, no filtering');
+  assert.deepEqual(codes({ name: '装配' }), ['WO-001', 'WO-002']);
+  assert.deepEqual(codes({ name: '装配', status: 'run' }), ['WO-001'], 'AND');
+  assert.deepEqual(codes({ name: '装配', status: 'run', due: [null, null], code: '' }), ['WO-001'], 'empty conditions ignored');
+  assert.deepEqual(codes({ due: ['2026-11-01', '2026-11-30'] }), ['WO-001', 'WO-002'], 'date range incl. datetime cells');
+  assert.deepEqual(codes({ due: ['2026-12-01', null] }), ['WO-003'], 'open-ended range');
+  // Clearing one condition only drops that condition.
+  const applied = { name: '装配', status: 'run' };
+  assert.deepEqual(codes({ ...applied, status: null }), ['WO-001', 'WO-002']);
+  assert.deepEqual(codes({ code: 'WO-9' }), [], 'no result');
+  // Keyword + advanced filter on one list: AND.
+  assert.deepEqual(codes({ status: 'run' }, '质检'), ['WO-003']);
+  assert.deepEqual(codes({ status: 'done' }, '质检'), []);
+  assert.equal(describeCondition(conditions[2], 'run'), '状态：执行中');
+  assert.equal(describeCondition(conditions[3], ['2026-11-01', '2026-11-30']), '计划日期：2026-11-01 ~ 2026-11-30');
+  assert.equal(describeCondition(conditions[3], [null, '2026-11-30']), '计划日期 ≤ 2026-11-30');
+  assert.equal(describeCondition(conditions[1], '  '), null);
+});

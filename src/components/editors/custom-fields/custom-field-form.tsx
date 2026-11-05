@@ -77,7 +77,7 @@ function FormRow({ label, required, htmlFor, children, error, className }: { lab
 
 function Notice({ children }: { children: ReactNode }) {
   return (
-    <div className="flex items-start gap-2 rounded-md border border-[#b2ed1d] bg-[#e7f9b9] px-3 py-2.5 text-sm leading-[22px] text-foreground">
+    <div className="flex items-start gap-2 rounded-[4px] border border-[#b2ed1d] bg-[#e7f9b9] px-3 py-2.5 text-sm leading-[22px] text-foreground">
       <Info className="mt-[3px] size-4 shrink-0 text-brand" aria-hidden="true" />
       <span>{children}</span>
     </div>

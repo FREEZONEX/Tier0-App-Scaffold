@@ -134,7 +134,7 @@ export function DropdownMenu({
         aria-haspopup="menu"
         aria-expanded={visible}
         aria-controls={visible ? menuId : undefined}
-        className={cn("inline-flex w-fit max-w-full self-start", anchorClassName)}
+        className={cn("inline-flex w-fit max-w-full items-center self-center", anchorClassName)}
         onClick={
           disabled
             ? undefined

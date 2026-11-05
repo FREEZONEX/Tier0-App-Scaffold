@@ -12,10 +12,10 @@ export function ReviewLayout({
   children: ReactNode;
 }) {
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background text-foreground">
+    <div className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
       <header className="flex shrink-0 flex-col gap-3 border-b border-border bg-card px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-5">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-md border border-state-info-border bg-state-info-bg text-state-info-fg">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-[4px] border border-state-info-border bg-state-info-bg text-state-info-fg">
             <ClipboardCheck className="size-5" />
           </div>
           <div className="min-w-0">
@@ -24,7 +24,7 @@ export function ReviewLayout({
           </div>
         </div>
         <div className="flex min-w-0 items-stretch gap-2 sm:items-center">
-          <div className="flex min-w-0 flex-1 items-center gap-2 rounded-md border border-border bg-surface-inset px-3 py-2 sm:flex-none">
+          <div className="flex min-w-0 flex-1 items-center gap-2 rounded-[4px] border border-border bg-surface-inset px-3 py-2 sm:flex-none">
             <ShieldCheck className="size-4 shrink-0 text-muted-foreground" />
             <div className="min-w-0 text-right">
               <p className="truncate text-sm font-medium leading-5">

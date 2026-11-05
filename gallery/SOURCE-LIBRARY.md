@@ -1,6 +1,6 @@
 # 脚手架源码组件库
 
-入口：`scaffold-library.html`。分类参考 https://ant.design/components/overview-cn/ ，只使用当前脚手架 `src/components` 中存在的组件，不从旧图库的 integrated-catalog.json 生成，也不导入 gallery/library 的 Lingo 副本。
+入口已并入组件门户 `index.html`（`scaffold-library.html` 会跳转过去）。分类参考 https://ant.design/components/overview-cn/ ，只使用当前脚手架 `src/components` 中存在的组件；源码索引由 `scaffold-catalog.json` / `scaffold-index.json` 提供，并入门户对应组件（同一组件不重复成卡片），每个组件详情页顶部显示引入语句与源码文件路径。
 
 `extract-source-catalog.py` 根据实际组件导入路径核对文件，记录每个条目的导出名称、来源和源码 SHA；目录为 58 个条目、102 个实际导出。基础控件按通用、布局、导航、数据录入、数据展示、反馈分类；元数据表单、明细编辑和查询视图等应用组合单列重型组件。同族导出在详情内切换，不虚构不存在的 Ant Design 组件名。
 

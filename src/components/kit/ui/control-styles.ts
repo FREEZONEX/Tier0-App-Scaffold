@@ -1,13 +1,13 @@
 /**
  * Shared class recipes for form controls (Input, Select, pickers…).
- * Kept in a.ts module so component files only export components.
+ * Visual recipe follows ReUI/shadcn; colors come from Tier0 tokens.
  */
 import { cn } from "@/lib/utils";
 
-/** sm = 36px, md = 40px (default), lg = 44px. */
+/** sm = 32px, md = 36px (default), lg = 40px. */
 export type ControlSize = "sm" | "md" | "lg";
 export type ControlStatus = "error" | "warning";
-/** outlined = white box with border; filled = white themed box; borderless = no frame (table cells). */
+/** outlined = bordered field; filled = same surface; borderless = table cells. */
 export type ControlVariant = "outlined" | "filled" | "borderless";
 
 export const CONTROL_HEIGHT: Record<ControlSize, string> = {
@@ -23,21 +23,21 @@ export const CONTROL_FIXED_HEIGHT: Record<ControlSize, string> = {
 };
 
 export const CONTROL_TEXT: Record<ControlSize, string> = {
-  sm: "text-sm",
+  sm: "text-[0.8rem]",
   md: "text-sm",
-  lg: "text-base",
+  lg: "text-sm",
 };
 
 export const CONTROL_PADDING_X: Record<ControlSize, string> = {
-  sm: "px-[7px]",
-  md: "px-[11px]",
-  lg: "px-[11px]",
+  sm: "px-2",
+  md: "px-2.5",
+  lg: "px-3",
 };
 
 export const CONTROL_RADIUS: Record<ControlSize, string> = {
-  sm: "rounded-sm",
-  md: "rounded-md",
-  lg: "rounded-lg",
+  sm: "rounded-[4px]",
+  md: "rounded-[4px]",
+  lg: "rounded-[4px]",
 };
 
 export interface ControlFrameOptions {
@@ -52,9 +52,7 @@ export interface ControlFrameOptions {
 }
 
 /**
- * Outer frame of a composite control: border, radius, hover/focus ring,
- * status colors and disabled fill. Inner native elements carry
- * `data-bare-control` so the global input backstops leave them alone.
+ * Outer frame of a composite control — ReUI focus ring + Tier0 colors.
  */
 export function controlFrameClass({
   size = "md",
@@ -65,47 +63,43 @@ export function controlFrameClass({
   fixedHeight = false,
 }: ControlFrameOptions = {}): string {
   return cn(
-    "relative flex w-full min-w-0 items-center border text-foreground transition-[border-color,box-shadow,background-color] duration-150",
+    "relative flex w-full min-w-0 items-center border bg-transparent text-foreground outline-none transition-[color,background-color,border-color,box-shadow] duration-[var(--motion-fast)] ease-[var(--motion-ease)]",
     fixedHeight ? CONTROL_FIXED_HEIGHT[size] : CONTROL_HEIGHT[size],
     CONTROL_TEXT[size],
     CONTROL_RADIUS[size],
-    variant === "outlined" && "border-border-strong bg-card",
-    variant === "filled" && "border-border-strong bg-card",
+    variant === "outlined" && "border-input bg-card shadow-xs",
+    variant === "filled" && "border-input bg-card",
     variant === "borderless" && "border-transparent bg-transparent",
     !disabled &&
-      variant === "outlined" &&
+      variant !== "borderless" &&
       !status &&
-      "hover:border-brand-hover focus-within:border-brand focus-within:shadow-[0_0_0_2px_rgb(115_178_0/0.15)]",
-    !disabled &&
-      variant === "filled" &&
-      !status &&
-      "hover:bg-card focus-within:border-brand focus-within:bg-card focus-within:shadow-[0_0_0_2px_rgb(115_178_0/0.15)]",
+      "hover:border-[color-mix(in_srgb,var(--input)_70%,var(--foreground))] focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50",
     !disabled &&
       variant === "borderless" &&
-      "hover:bg-fill-hover focus-within:bg-card focus-within:shadow-[inset_0_0_0_1px_var(--tier0-primary)]",
+      "hover:bg-muted/60 focus-within:bg-card focus-within:ring-3 focus-within:ring-ring/40",
     !disabled &&
       active &&
       !status &&
       variant !== "borderless" &&
-      "border-brand bg-card shadow-[0_0_0_2px_rgb(115_178_0/0.15)]",
+      "border-ring ring-3 ring-ring/50",
     status === "error" &&
-      "border-danger hover:border-[#ffa39e] focus-within:border-danger focus-within:shadow-[0_0_0_2px_rgb(255_38_5/0.06)]",
-    status === "error" && active && "border-danger shadow-[0_0_0_2px_rgb(255_38_5/0.06)]",
+      "border-destructive focus-within:border-destructive focus-within:ring-3 focus-within:ring-destructive/20",
+    status === "error" && active && "border-destructive ring-3 ring-destructive/20",
     status === "warning" &&
-      "border-warning hover:border-[#ffd666] focus-within:border-warning focus-within:shadow-[0_0_0_2px_rgb(255_215_5/0.1)]",
+      "border-warning focus-within:border-warning focus-within:ring-3 focus-within:ring-warning/20",
     disabled &&
-      "tier0-control-disabled cursor-not-allowed border-border-strong bg-input-disabled text-text-placeholder hover:border-border-strong",
-    disabled && variant === "borderless" && "border-transparent bg-transparent",
+      "tier0-control-disabled cursor-not-allowed border-input bg-input/50 text-muted-foreground opacity-50",
+    disabled && variant === "borderless" && "border-transparent bg-transparent opacity-50",
   );
 }
 
 /** Class for the bare native <input>/<textarea> inside a control frame. */
 export const BARE_INPUT_CLASS =
-  "m-0 min-h-0 w-full min-w-0 flex-1 appearance-none rounded-none border-0 bg-transparent p-0 text-inherit leading-[22px] shadow-none outline-none placeholder:text-text-placeholder disabled:cursor-not-allowed disabled:bg-transparent disabled:text-text-placeholder";
+  "m-0 min-h-0 w-full min-w-0 flex-1 appearance-none rounded-none border-0 bg-transparent p-0 text-inherit leading-5 shadow-none outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:bg-transparent";
 
-/** Floating panel surface (dropdowns, popovers, pickers). */
+/** Floating panel surface (dropdowns, popovers, pickers) — ReUI popup recipe. */
 export const FLOATING_PANEL_CLASS =
-  "rounded-lg bg-popover text-popover-foreground shadow-popup outline-none";
+  "rounded-[4px] border border-border/70 bg-popover text-popover-foreground shadow-popup outline-none animate-[tier0-pop_160ms_var(--motion-spring)]";
 
 /** One option row inside dropdown lists and menus. */
 export function optionRowClass({
@@ -120,10 +114,15 @@ export function optionRowClass({
   danger?: boolean;
 }): string {
   return cn(
-    "flex min-h-8 w-full cursor-pointer select-none items-center gap-2 rounded-sm px-3 py-[5px] text-left text-sm leading-[22px] transition-colors duration-100",
-    danger ? "text-danger" : "text-foreground",
-    active && !disabled && (danger ? "bg-danger-soft" : "bg-fill-hover"),
-    selected && !disabled && "bg-brand-soft font-medium",
-    disabled && "cursor-not-allowed text-text-placeholder",
+    "flex min-h-8 w-full cursor-pointer select-none items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-sm leading-5 transition-colors duration-100",
+    danger ? "text-destructive" : "text-foreground",
+    /* Light gray hover/active — never bg-muted (muted is white in light theme). */
+    !disabled &&
+      (danger
+        ? "hover:bg-danger-soft focus:bg-danger-soft"
+        : "hover:bg-fill-hover focus:bg-fill-hover"),
+    active && !disabled && (danger ? "bg-destructive/10" : "bg-fill-hover"),
+    selected && !disabled && !danger && "bg-fill-hover font-medium text-foreground",
+    disabled && "cursor-not-allowed opacity-50",
   );
 }

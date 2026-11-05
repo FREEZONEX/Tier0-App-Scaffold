@@ -200,6 +200,8 @@ const dataAccessRule = {
 
 const eslintConfig = defineConfig([
   globalIgnores([
+    "backup-pre-reactbits/**",
+    ".refs/**",
     ".output/**",
     "dist/**",
     "build/**",

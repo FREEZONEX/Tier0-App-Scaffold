@@ -49,7 +49,7 @@ export function PageCard({ padding = "md", fill = false, className, children, ..
     <div
       {...rest}
       className={cn(
-        "min-w-0 rounded-xl border border-[#e8e8e8] bg-card shadow-card",
+        "min-w-0 rounded-[4px] border border-[#e8e8e8] bg-card shadow-card",
         CARD_PADDING[padding],
         fill && "flex flex-1 flex-col",
         className,
@@ -73,7 +73,7 @@ export interface PageHeaderLinkProps {
 }
 
 const LINK_CLASS =
-  "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm text-sm text-text-secondary transition-colors hover:text-brand focus-visible:outline-2 focus-visible:outline-brand-border [&_svg]:size-4";
+  "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[4px] text-sm text-text-secondary transition-colors hover:text-brand focus-visible:outline-2 focus-visible:outline-brand-border [&_svg]:size-4";
 
 /** PageHeaderLink — quiet text link in the page title row. */
 export function PageHeaderLink({ icon, children, to, href, newTab = false, onClick, className }: PageHeaderLinkProps) {

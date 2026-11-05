@@ -86,7 +86,7 @@ function ExportBody({
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
-      <div className="flex items-start gap-2 rounded-md bg-[#fffbe6] px-3 py-2 text-sm text-[#ad6800]">
+      <div className="flex items-start gap-2 rounded-[4px] border border-warning/20 bg-warning/10 px-3 py-2 text-sm text-warning-foreground dark:border-warning/25 dark:bg-warning/15 dark:text-warning">
         <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
         <span>提示：导出时不能操作系统,关闭弹框会导致导出失败</span>
       </div>
