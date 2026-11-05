@@ -83,7 +83,7 @@ export function Tooltip({
         id={tooltipId}
         role="tooltip"
         className={cn(
-          "pointer-events-none max-w-[min(320px,calc(100vw-16px))] break-words rounded-md bg-[rgb(0_0_0/0.85)] px-2 py-1.5 text-xs leading-5 text-white shadow-popup",
+          "pointer-events-none max-w-[min(320px,calc(100vw-16px))] break-words rounded-[4px] bg-[rgb(5_11_20/0.92)] px-2.5 py-1.5 text-xs leading-5 text-white shadow-popup animate-[tier0-fade_120ms_ease-out]",
           className,
         )}
       >

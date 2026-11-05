@@ -80,8 +80,8 @@ function PersonRow({
   return (
     <li
       className={cn(
-        "flex min-w-0 items-center gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-fill-hover",
-        checked && "bg-brand-soft hover:bg-brand-soft",
+        "flex min-w-0 items-center gap-2 rounded-[4px] px-2 py-1.5 transition-colors hover:bg-fill-hover",
+        checked && "bg-muted hover:bg-muted",
       )}
       onDoubleClick={onActivate}
     >
@@ -179,9 +179,9 @@ function PersonPickerBody({
 
   return (
     <div className="flex min-w-0 flex-col gap-3">
-      <div className="flex min-w-0 flex-col gap-3 rounded-lg bg-[#f0f3f8] p-3 sm:flex-row sm:items-stretch">
+      <div className="flex min-w-0 flex-col gap-3 rounded-[4px] bg-muted p-3 sm:flex-row sm:items-stretch">
         {/* 左：公司 + 部门/岗位 */}
-        <div className="flex min-h-0 min-w-0 flex-col gap-2 rounded-md bg-card p-3 sm:w-[30%]">
+        <div className="flex min-h-0 min-w-0 flex-col gap-2 rounded-[4px] bg-card p-3 sm:w-[30%]">
           <AsyncView result={tree} isEmpty={() => false}>
             {(org) => (
               <>
@@ -225,7 +225,7 @@ function PersonPickerBody({
         </div>
 
         {/* 中：搜索 + 人员列表 */}
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 rounded-md bg-card p-3">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 rounded-[4px] bg-card p-3">
           <Input
             aria-label="搜索人员"
             allowClear
@@ -296,7 +296,7 @@ function PersonPickerBody({
         {/* 右：已选 */}
         <div className="flex min-h-0 min-w-0 flex-col gap-2 sm:w-[28%]">
           <div className="text-sm text-foreground">已选：{selected.length}</div>
-          <div className="flex min-h-40 flex-1 flex-col rounded-md bg-card p-2 sm:h-[min(46vh,420px)]">
+          <div className="flex min-h-40 flex-1 flex-col rounded-[4px] bg-card p-2 sm:h-[min(46vh,420px)]">
             <div className="border-b border-border-secondary px-2 pb-2">
               <Checkbox
                 checked={allSelectedChecked}
@@ -311,7 +311,7 @@ function PersonPickerBody({
               {selected.map((person) => (
                 <li
                   key={person.id}
-                  className="flex min-w-0 items-center gap-2 rounded-md px-2 py-1.5 hover:bg-fill-hover"
+                  className="flex min-w-0 items-center gap-2 rounded-[4px] px-2 py-1.5 hover:bg-fill-hover"
                   onDoubleClick={() => removePersons([person.id])}
                 >
                   <Checkbox

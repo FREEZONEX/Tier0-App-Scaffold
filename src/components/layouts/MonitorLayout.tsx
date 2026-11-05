@@ -15,10 +15,10 @@ export function MonitorLayout({
   children: ReactNode;
 }) {
   return (
-    <div className="monitor-frame flex h-screen flex-col overflow-hidden bg-background text-foreground">
+    <div className="monitor-frame flex h-dvh flex-col overflow-hidden bg-background text-foreground">
       <header className="monitor-header flex shrink-0 items-center justify-between border-b border-border bg-card">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="monitor-header-icon flex shrink-0 items-center justify-center rounded-md border border-highlight-bg-primary bg-highlight-bg-accent text-highlight-text">
+          <div className="monitor-header-icon flex shrink-0 items-center justify-center rounded-[4px] bg-muted text-foreground">
             <Activity className="size-4" />
           </div>
           <div className="min-w-0">

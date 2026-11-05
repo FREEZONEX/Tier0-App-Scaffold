@@ -26,6 +26,8 @@
     "start": "node server.mjs",
     "lint": "eslint .",
     "gallery:build": "vite build --config gallery/vite.config.ts",
+    "gallery:serve": "node scripts/gallery-serve.mjs",
+    "gallery:dev": "npm run gallery:build && npm run gallery:serve",
     "test:components": "node --import tsx --test tests/component-kit.test.ts",
     "test:data": "node --import tsx --test tests/data-layer.test.ts tests/data-schema.test.ts tests/record-changes.test.ts tests/sdk-contract.test.ts tests/collection-directory.test.mjs",
     "test": "npm run test:components && npm run test:data && npm run test:streams",

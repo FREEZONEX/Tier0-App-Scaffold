@@ -175,9 +175,9 @@ export function FileUpload({
       <div
         data-drag-active={dragActive ? "true" : "false"}
         className={cn(
-          "flex min-h-28 min-w-0 flex-col items-center justify-center gap-3 rounded-md border border-dashed border-input bg-surface-inset px-4 py-5 text-center transition-[border-color,background-color] duration-150",
+          "flex min-h-28 min-w-0 flex-col items-center justify-center gap-3 rounded-[4px] border border-dashed border-input bg-surface-inset px-4 py-5 text-center transition-[border-color,background-color] duration-150",
           "hover:border-border-strong hover:bg-card",
-          "data-[drag-active=true]:border-highlight data-[drag-active=true]:bg-highlight-bg-accent",
+          "data-[drag-active=true]:border-foreground/30 data-[drag-active=true]:bg-muted",
           disabled && "pointer-events-none opacity-55",
           visibleError && "border-destructive",
           dropzoneClassName,
@@ -190,7 +190,7 @@ export function FileUpload({
         onDragLeave={() => setDragActive(false)}
         onDrop={handleDrop}
       >
-        <div className="grid size-9 place-items-center rounded-md border border-border bg-card text-secondary-foreground shadow-sm">
+        <div className="grid size-9 place-items-center rounded-[4px] border border-border bg-card text-secondary-foreground shadow-sm">
           <Upload className="size-4" aria-hidden="true" />
         </div>
         <div className="grid gap-1">
@@ -222,7 +222,7 @@ export function FileUpload({
           {selectedFiles.map((file, index) => (
             <div
               key={`${file.name}-${file.size}-${file.lastModified}-${index}`}
-              className="flex min-w-0 items-center gap-3 rounded-md border border-border bg-card px-3 py-2 shadow-sm"
+              className="flex min-w-0 items-center gap-3 rounded-[4px] border border-border bg-card px-3 py-2 shadow-sm"
             >
               <FileText
                 className="size-4 shrink-0 text-muted-foreground"
@@ -238,7 +238,7 @@ export function FileUpload({
               </div>
               <button
                 type="button"
-                className="grid size-8 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-surface-inset hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-55"
+                className="grid size-8 shrink-0 place-items-center rounded-[4px] text-muted-foreground transition-colors hover:bg-surface-inset hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-55"
                 aria-label={`${copy.removeFile}: ${file.name}`}
                 disabled={disabled}
                 onClick={() => removeFile(index)}

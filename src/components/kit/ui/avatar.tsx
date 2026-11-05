@@ -39,7 +39,7 @@ export function Avatar({ name, src, size = "md", shape = "circle", color, title,
       aria-label={trimmed || undefined}
       className={cn(
         "inline-flex shrink-0 select-none items-center justify-center overflow-hidden font-medium leading-none text-white",
-        shape === "circle" ? "rounded-full" : "rounded-md",
+        shape === "circle" ? "rounded-full" : "rounded-[4px]",
         className,
       )}
       style={{ width: pixels, height: pixels, backgroundColor: background, fontSize: Math.max(10, Math.round(pixels * 0.45)) }}

@@ -130,7 +130,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           type="button"
           tabIndex={-1}
           aria-label="清除"
-          className="flex shrink-0 items-center text-text-placeholder opacity-0 transition-opacity hover:text-text-tertiary group-focus-within:opacity-100 group-hover:opacity-100"
+          className="flex shrink-0 items-center rounded-[4px] text-text-placeholder opacity-0 transition-[opacity,color,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] hover:text-text-tertiary group-focus-within:opacity-100 group-hover:opacity-100 active:scale-95"
           onMouseDown={(event) => event.preventDefault()}
           onClick={() => {
             setText("");

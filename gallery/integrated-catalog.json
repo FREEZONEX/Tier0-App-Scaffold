@@ -1,5 +1,127 @@
 [
   {
+    "name": "Shell",
+    "label": "应用壳",
+    "category": "布局",
+    "layer": "base",
+    "detail": "应用级侧栏导航（样例仅展示侧栏）；箭头可收起/展开，宽度与菜单文案带 200ms 过渡动效。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "Shell",
+        "label": "侧栏折叠",
+        "engine": "original",
+        "importPath": "@/components/Shell",
+        "source": "src/components/Shell.tsx"
+      }
+    ]
+  },
+  {
+    "name": "SceneTaskOps",
+    "label": "任务运营台",
+    "category": "业务场景",
+    "layer": "business",
+    "detail": "Tempo 任务工作台：看板/列表切换、KPI、抽屉与确认；左侧应用壳可折叠并带过渡动效。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "SceneTaskOps",
+        "label": "任务运营台",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "SceneAdminDirectory",
+    "label": "成员目录",
+    "category": "业务场景",
+    "layer": "business",
+    "detail": "Atlas 成员与角色：页签、权限卡片、邀请对话框；左侧应用壳可折叠。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "SceneAdminDirectory",
+        "label": "成员目录",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "SceneOpsMonitor",
+    "label": "产线监控",
+    "category": "业务场景",
+    "layer": "business",
+    "detail": "Strata 产线监控：风险横幅、KPI 与服务列表；左侧应用壳可折叠。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "SceneOpsMonitor",
+        "label": "产线监控",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "SceneEmptyContrast",
+    "label": "空态展示",
+    "category": "业务场景",
+    "layer": "business",
+    "detail": "全页与卡片内空态、引导操作按钮；左侧应用壳可折叠。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "SceneEmptyContrast",
+        "label": "空态展示",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "SceneWorkflowHub",
+    "label": "工作流总览",
+    "category": "业务场景",
+    "layer": "business",
+    "detail": "Flowly 仪表盘：KPI、运行动态、待处理与工作流表格；左侧应用壳可折叠。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "SceneWorkflowHub",
+        "label": "工作流总览",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "SceneAuditTimeline",
+    "label": "审计日志",
+    "category": "业务场景",
+    "layer": "business",
+    "detail": "Lucent 安全审计：时间范围、类型筛选与可折叠事件行；左侧应用壳可折叠。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "SceneAuditTimeline",
+        "label": "审计日志",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "SceneAgentSpend",
+    "label": "用量与成本",
+    "category": "业务场景",
+    "layer": "business",
+    "detail": "Flux 智能体运维：预算 KPI、消耗进度与提供商分布；左侧应用壳可折叠。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "SceneAgentSpend",
+        "label": "用量与成本",
+        "engine": "library"
+      }
+    ]
+  },
+  {
     "name": "Button",
     "label": "按钮",
     "category": "通用",
@@ -10,22 +132,30 @@
       {
         "name": "Button",
         "label": "按钮",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/ui/button",
+        "source": "src/components/ui/button.tsx"
       },
       {
         "name": "IconButton",
         "label": "图标按钮",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/buttons",
+        "source": "src/components/kit/ui/buttons.tsx"
       },
       {
         "name": "TextButton",
         "label": "文字按钮",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/buttons",
+        "source": "src/components/kit/ui/buttons.tsx"
       },
       {
         "name": "Button",
         "label": "基础用法 · 按钮",
-        "engine": "original"
+        "engine": "original",
+        "importPath": "@/components/ui/button",
+        "source": "src/components/ui/button.tsx"
       }
     ]
   },
@@ -40,7 +170,9 @@
       {
         "name": "FieldTypeIcon",
         "label": "字段类型图标",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/field-type-icon",
+        "source": "src/components/kit/ui/field-type-icon.tsx"
       },
       {
         "name": "ViewIcon",
@@ -60,12 +192,16 @@
       {
         "name": "HighlightText",
         "label": "关键词高亮",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/text",
+        "source": "src/components/kit/ui/text.tsx"
       },
       {
         "name": "EllipsisText",
         "label": "省略文本",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/tooltip",
+        "source": "src/components/kit/ui/tooltip.tsx"
       },
       {
         "name": "TableCellText",
@@ -80,7 +216,9 @@
       {
         "name": "PageHeaderLink",
         "label": "页头链接",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/shell/page-layout",
+        "source": "src/components/kit/shell/page-layout.tsx"
       }
     ]
   },
@@ -95,7 +233,9 @@
       {
         "name": "ResponsivePage",
         "label": "响应式页面",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/ui/responsive-page",
+        "source": "src/components/ui/responsive-page.tsx"
       },
       {
         "name": "WorkbenchLayout",
@@ -115,7 +255,9 @@
       {
         "name": "AnchorTabs",
         "label": "锚点导航",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/tabs",
+        "source": "src/components/kit/ui/tabs.tsx"
       }
     ]
   },
@@ -130,12 +272,16 @@
       {
         "name": "DropdownMenu",
         "label": "下拉菜单",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/dropdown-menu",
+        "source": "src/components/kit/ui/dropdown-menu.tsx"
       },
       {
         "name": "SplitButton",
         "label": "分裂按钮",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/buttons",
+        "source": "src/components/kit/ui/buttons.tsx"
       }
     ]
   },
@@ -150,7 +296,9 @@
       {
         "name": "Pagination",
         "label": "分页",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/pagination",
+        "source": "src/components/kit/ui/pagination.tsx"
       }
     ]
   },
@@ -165,7 +313,9 @@
       {
         "name": "Tabs",
         "label": "页签",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/tabs",
+        "source": "src/components/kit/ui/tabs.tsx"
       }
     ]
   },
@@ -180,7 +330,9 @@
       {
         "name": "ReferenceCascader",
         "label": "参照级联选择",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/editors/custom-fields/reference-cascader",
+        "source": "src/components/editors/custom-fields/reference-cascader.tsx"
       }
     ]
   },
@@ -195,12 +347,16 @@
       {
         "name": "Checkbox",
         "label": "复选框",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/checkbox",
+        "source": "src/components/kit/ui/checkbox.tsx"
       },
       {
         "name": "CheckboxGroup",
         "label": "复选组",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/checkbox",
+        "source": "src/components/kit/ui/checkbox.tsx"
       },
       {
         "name": "CheckboxIndicator",
@@ -220,12 +376,16 @@
       {
         "name": "DatePicker",
         "label": "日期时间选择",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/date-picker",
+        "source": "src/components/kit/ui/date-picker.tsx"
       },
       {
         "name": "DateRangePicker",
         "label": "日期范围",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/date-picker",
+        "source": "src/components/kit/ui/date-picker.tsx"
       },
       {
         "name": "CalendarPanel",
@@ -250,62 +410,86 @@
       {
         "name": "MetaForm",
         "label": "动态表单",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/meta/meta-form",
+        "source": "src/components/kit/meta/meta-form.tsx"
       },
       {
         "name": "FieldControl",
         "label": "动态字段控件",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/meta/field-control",
+        "source": "src/components/kit/meta/field-control.tsx"
       },
       {
         "name": "FieldGroup",
         "label": "字段组",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/forms/form-layout",
+        "source": "src/components/forms/form-layout.tsx"
       },
       {
         "name": "FormGrid",
         "label": "表单网格",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/forms/form-layout",
+        "source": "src/components/forms/form-layout.tsx"
       },
       {
         "name": "FieldLabel",
         "label": "字段标签",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/forms/field-label",
+        "source": "src/components/forms/field-label.tsx"
       },
       {
         "name": "RequiredMark",
         "label": "必填标记",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/forms/field-label",
+        "source": "src/components/forms/field-label.tsx"
       },
       {
         "name": "FormDialog",
         "label": "表单对话框",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/overlays/form-dialog",
+        "source": "src/components/overlays/form-dialog.tsx"
       },
       {
         "name": "FieldGroup",
         "label": "基础用法 · 字段组",
-        "engine": "original"
+        "engine": "original",
+        "importPath": "@/components/forms/form-layout",
+        "source": "src/components/forms/form-layout.tsx"
       },
       {
         "name": "FormGrid",
         "label": "基础用法 · 表单网格",
-        "engine": "original"
+        "engine": "original",
+        "importPath": "@/components/forms/form-layout",
+        "source": "src/components/forms/form-layout.tsx"
       },
       {
         "name": "FieldLabel",
         "label": "基础用法 · 字段标签",
-        "engine": "original"
+        "engine": "original",
+        "importPath": "@/components/forms/field-label",
+        "source": "src/components/forms/field-label.tsx"
       },
       {
         "name": "RequiredMark",
         "label": "基础用法 · 必填标记",
-        "engine": "original"
+        "engine": "original",
+        "importPath": "@/components/forms/field-label",
+        "source": "src/components/forms/field-label.tsx"
       },
       {
         "name": "FormDialog",
         "label": "基础用法 · 表单对话框",
-        "engine": "original"
+        "engine": "original",
+        "importPath": "@/components/overlays/form-dialog",
+        "source": "src/components/overlays/form-dialog.tsx"
       }
     ]
   },
@@ -320,12 +504,16 @@
       {
         "name": "Input",
         "label": "文本输入",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/input",
+        "source": "src/components/kit/ui/input.tsx"
       },
       {
         "name": "TextArea",
         "label": "多行文本",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/input",
+        "source": "src/components/kit/ui/input.tsx"
       }
     ]
   },
@@ -340,12 +528,16 @@
       {
         "name": "NumberInput",
         "label": "数字输入",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/number-input",
+        "source": "src/components/kit/ui/number-input.tsx"
       },
       {
         "name": "NumberRangeInput",
         "label": "数值区间",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/number-input",
+        "source": "src/components/kit/ui/number-input.tsx"
       }
     ]
   },
@@ -360,7 +552,9 @@
       {
         "name": "RadioGroup",
         "label": "单选组",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/radio",
+        "source": "src/components/kit/ui/radio.tsx"
       }
     ]
   },
@@ -375,12 +569,16 @@
       {
         "name": "Select",
         "label": "下拉选择",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/select",
+        "source": "src/components/kit/ui/select.tsx"
       },
       {
         "name": "ReferenceSelect",
         "label": "参照下拉选择",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/meta/reference-select",
+        "source": "src/components/kit/meta/reference-select.tsx"
       }
     ]
   },
@@ -395,7 +593,9 @@
       {
         "name": "Switch",
         "label": "开关",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/switch",
+        "source": "src/components/kit/ui/switch.tsx"
       }
     ]
   },
@@ -410,22 +610,30 @@
       {
         "name": "ImageUpload",
         "label": "图片选择",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/upload",
+        "source": "src/components/kit/ui/upload.tsx"
       },
       {
         "name": "AttachmentUpload",
         "label": "附件选择",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/upload",
+        "source": "src/components/kit/ui/upload.tsx"
       },
       {
         "name": "FileUpload",
         "label": "文件选择",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/forms/file-upload",
+        "source": "src/components/forms/file-upload.tsx"
       },
       {
         "name": "FileUpload",
         "label": "基础用法 · 文件选择",
-        "engine": "original"
+        "engine": "original",
+        "importPath": "@/components/forms/file-upload",
+        "source": "src/components/forms/file-upload.tsx"
       }
     ]
   },
@@ -440,7 +648,9 @@
       {
         "name": "Avatar",
         "label": "头像",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/avatar",
+        "source": "src/components/kit/ui/avatar.tsx"
       }
     ]
   },
@@ -455,7 +665,9 @@
       {
         "name": "Badge",
         "label": "徽标",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/avatar",
+        "source": "src/components/kit/ui/avatar.tsx"
       }
     ]
   },
@@ -470,17 +682,23 @@
       {
         "name": "Card",
         "label": "内容卡片",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/ui/card",
+        "source": "src/components/ui/card.tsx"
       },
       {
         "name": "PageCard",
         "label": "页面卡片",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/shell/page-layout",
+        "source": "src/components/kit/shell/page-layout.tsx"
       },
       {
         "name": "Card",
         "label": "基础用法 · 内容卡片",
-        "engine": "original"
+        "engine": "original",
+        "importPath": "@/components/ui/card",
+        "source": "src/components/ui/card.tsx"
       }
     ]
   },
@@ -495,7 +713,9 @@
       {
         "name": "CollapseSection",
         "label": "折叠分区",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/collapse-section",
+        "source": "src/components/kit/ui/collapse-section.tsx"
       }
     ]
   },
@@ -510,17 +730,23 @@
       {
         "name": "Empty",
         "label": "空状态",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/feedback",
+        "source": "src/components/kit/ui/feedback.tsx"
       },
       {
         "name": "EmptyState",
         "label": "空态",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/ui/empty-state",
+        "source": "src/components/ui/empty-state.tsx"
       },
       {
         "name": "EmptyState",
         "label": "基础用法 · 空态",
-        "engine": "original"
+        "engine": "original",
+        "importPath": "@/components/ui/empty-state",
+        "source": "src/components/ui/empty-state.tsx"
       }
     ]
   },
@@ -535,12 +761,16 @@
       {
         "name": "ImageThumbs",
         "label": "图片缩略图",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/upload",
+        "source": "src/components/kit/ui/upload.tsx"
       },
       {
         "name": "ImagePreview",
         "label": "图片预览",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/preview",
+        "source": "src/components/kit/ui/preview.tsx"
       }
     ]
   },
@@ -555,7 +785,9 @@
       {
         "name": "Popover",
         "label": "气泡浮层",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/popover",
+        "source": "src/components/kit/ui/popover.tsx"
       }
     ]
   },
@@ -570,12 +802,16 @@
       {
         "name": "Segmented",
         "label": "分段选择",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/segmented",
+        "source": "src/components/kit/ui/segmented.tsx"
       },
       {
         "name": "CapsuleGroup",
         "label": "胶囊分组",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/tabs",
+        "source": "src/components/kit/ui/tabs.tsx"
       },
       {
         "name": "StatusFilterChips",
@@ -600,12 +836,16 @@
       {
         "name": "StatCard",
         "label": "指标卡",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/ui/stat-card",
+        "source": "src/components/ui/stat-card.tsx"
       },
       {
         "name": "StatCard",
         "label": "基础用法 · 指标卡",
-        "engine": "original"
+        "engine": "original",
+        "importPath": "@/components/ui/stat-card",
+        "source": "src/components/ui/stat-card.tsx"
       }
     ]
   },
@@ -620,17 +860,23 @@
       {
         "name": "DataGrid",
         "label": "数据网格",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/data-grid",
+        "source": "src/components/kit/ui/data-grid.tsx"
       },
       {
         "name": "DataTable",
         "label": "数据表外壳",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/data/table-layout",
+        "source": "src/components/data/table-layout.tsx"
       },
       {
         "name": "TableViewport",
         "label": "表格滚动容器",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/data/table-layout",
+        "source": "src/components/data/table-layout.tsx"
       },
       {
         "name": "TableStatusCell",
@@ -660,12 +906,16 @@
       {
         "name": "DataTable",
         "label": "基础用法 · 数据表外壳",
-        "engine": "original"
+        "engine": "original",
+        "importPath": "@/components/data/table-layout",
+        "source": "src/components/data/table-layout.tsx"
       },
       {
         "name": "TableViewport",
         "label": "基础用法 · 表格滚动容器",
-        "engine": "original"
+        "engine": "original",
+        "importPath": "@/components/data/table-layout",
+        "source": "src/components/data/table-layout.tsx"
       },
       {
         "name": "TableStatusCell",
@@ -685,27 +935,37 @@
       {
         "name": "Tag",
         "label": "标签",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/tag",
+        "source": "src/components/kit/ui/tag.tsx"
       },
       {
         "name": "StatusTag",
         "label": "状态标签",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/tag",
+        "source": "src/components/kit/ui/tag.tsx"
       },
       {
         "name": "ColorDotLabel",
         "label": "色点标签",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/tag",
+        "source": "src/components/kit/ui/tag.tsx"
       },
       {
         "name": "StatusBadge",
         "label": "状态标签",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/ui/status-badge",
+        "source": "src/components/ui/status-badge.tsx"
       },
       {
         "name": "StatusBadge",
         "label": "基础用法 · 状态标签",
-        "engine": "original"
+        "engine": "original",
+        "importPath": "@/components/ui/status-badge",
+        "source": "src/components/ui/status-badge.tsx"
       }
     ]
   },
@@ -720,7 +980,9 @@
       {
         "name": "Tooltip",
         "label": "提示气泡",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/tooltip",
+        "source": "src/components/kit/ui/tooltip.tsx"
       }
     ]
   },
@@ -735,7 +997,9 @@
       {
         "name": "TreeList",
         "label": "树形列表",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/tree-list",
+        "source": "src/components/kit/ui/tree-list.tsx"
       }
     ]
   },
@@ -750,12 +1014,16 @@
       {
         "name": "RiskBanner",
         "label": "风险横幅",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/ui/risk-banner",
+        "source": "src/components/ui/risk-banner.tsx"
       },
       {
         "name": "RiskBanner",
         "label": "基础用法 · 风险横幅",
-        "engine": "original"
+        "engine": "original",
+        "importPath": "@/components/ui/risk-banner",
+        "source": "src/components/ui/risk-banner.tsx"
       }
     ]
   },
@@ -770,7 +1038,9 @@
       {
         "name": "Drawer",
         "label": "侧边抽屉",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/overlays/drawer",
+        "source": "src/components/overlays/drawer.tsx"
       },
       {
         "name": "FormDrawer",
@@ -780,7 +1050,9 @@
       {
         "name": "Drawer",
         "label": "基础用法 · 侧边抽屉",
-        "engine": "original"
+        "engine": "original",
+        "importPath": "@/components/overlays/drawer",
+        "source": "src/components/overlays/drawer.tsx"
       }
     ]
   },
@@ -795,12 +1067,16 @@
       {
         "name": "Toaster",
         "label": "消息提示宿主",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/toaster",
+        "source": "src/components/toaster.tsx"
       },
       {
         "name": "Toaster",
         "label": "基础用法 · 消息提示宿主",
-        "engine": "original"
+        "engine": "original",
+        "importPath": "@/components/toaster",
+        "source": "src/components/toaster.tsx"
       }
     ]
   },
@@ -815,17 +1091,23 @@
       {
         "name": "Dialog",
         "label": "通用对话框",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/overlays/dialog",
+        "source": "src/components/overlays/dialog.tsx"
       },
       {
         "name": "ConfirmDialog",
         "label": "确认对话框",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/overlays/confirm-dialog",
+        "source": "src/components/overlays/confirm-dialog.tsx"
       },
       {
         "name": "FullscreenModal",
         "label": "全屏弹窗",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/meta/fullscreen-modal",
+        "source": "src/components/kit/meta/fullscreen-modal.tsx"
       },
       {
         "name": "SessionExpiredDialog",
@@ -835,12 +1117,16 @@
       {
         "name": "Dialog",
         "label": "基础用法 · 通用对话框",
-        "engine": "original"
+        "engine": "original",
+        "importPath": "@/components/overlays/dialog",
+        "source": "src/components/overlays/dialog.tsx"
       },
       {
         "name": "ConfirmDialog",
         "label": "基础用法 · 确认对话框",
-        "engine": "original"
+        "engine": "original",
+        "importPath": "@/components/overlays/confirm-dialog",
+        "source": "src/components/overlays/confirm-dialog.tsx"
       }
     ]
   },
@@ -855,12 +1141,16 @@
       {
         "name": "ProgressBar",
         "label": "进度条",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/feedback",
+        "source": "src/components/kit/ui/feedback.tsx"
       },
       {
         "name": "ProgressRing",
         "label": "进度环",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/feedback",
+        "source": "src/components/kit/ui/feedback.tsx"
       }
     ]
   },
@@ -890,12 +1180,16 @@
       {
         "name": "Skeleton",
         "label": "骨架屏",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/feedback",
+        "source": "src/components/kit/ui/feedback.tsx"
       },
       {
         "name": "TableSkeleton",
         "label": "表格骨架",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/feedback",
+        "source": "src/components/kit/ui/feedback.tsx"
       }
     ]
   },
@@ -910,7 +1204,9 @@
       {
         "name": "Spin",
         "label": "加载指示",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/feedback",
+        "source": "src/components/kit/ui/feedback.tsx"
       }
     ]
   },
@@ -925,12 +1221,16 @@
       {
         "name": "AsyncView",
         "label": "异步状态",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/data/async-view",
+        "source": "src/components/data/async-view.tsx"
       },
       {
         "name": "AsyncView",
         "label": "基础用法 · 异步状态",
-        "engine": "original"
+        "engine": "original",
+        "importPath": "@/components/data/async-view",
+        "source": "src/components/data/async-view.tsx"
       }
     ]
   },
@@ -952,7 +1252,7 @@
   {
     "name": "CodeRuleEditor",
     "label": "编码规则编辑器",
-    "category": "高级组件",
+    "category": "重型组件",
     "layer": "extension",
     "detail": "日期、流水号和补位规则片段的顺序与预览。规则作用域由业务适配。",
     "reason": "",
@@ -960,14 +1260,16 @@
       {
         "name": "CodeRuleEditor",
         "label": "编码规则编辑",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/editors/code-rules/code-rule-editor",
+        "source": "src/components/editors/code-rules/code-rule-editor.tsx"
       }
     ]
   },
   {
     "name": "DataView",
     "label": "数据列表视图",
-    "category": "高级组件",
+    "category": "重型组件",
     "layer": "extension",
     "detail": "组合查询、工具栏、分页与表格，报表列和聚合由业务提供；不是新增另一种基础 Table。",
     "reason": "",
@@ -975,7 +1277,9 @@
       {
         "name": "MetaListPage",
         "label": "元数据列表页",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/meta/meta-list-page",
+        "source": "src/components/kit/meta/meta-list-page.tsx"
       },
       {
         "name": "OperationalList",
@@ -987,7 +1291,7 @@
   {
     "name": "EditableTable",
     "label": "可编辑明细表",
-    "category": "高级组件",
+    "category": "重型组件",
     "layer": "extension",
     "detail": "行增删复制、批量填充、拖动、汇总与校验；批量建产品为保存适配示例。不能把所有业务明细计算吸收到本组件。",
     "reason": "",
@@ -995,24 +1299,30 @@
       {
         "name": "DetailTable",
         "label": "可编辑明细表",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/meta/detail-table",
+        "source": "src/components/kit/meta/detail-table.tsx"
       },
       {
         "name": "LineItemSection",
         "label": "明细分区",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/forms/form-layout",
+        "source": "src/components/forms/form-layout.tsx"
       },
       {
         "name": "LineItemSection",
         "label": "基础用法 · 明细分区",
-        "engine": "original"
+        "engine": "original",
+        "importPath": "@/components/forms/form-layout",
+        "source": "src/components/forms/form-layout.tsx"
       }
     ]
   },
   {
     "name": "ExpressionEditor",
     "label": "表达式编辑器",
-    "category": "高级组件",
+    "category": "重型组件",
     "layer": "extension",
     "detail": "变量插入、光标编辑、函数与校验；VariablePicker 是内部变量浏览器。",
     "reason": "",
@@ -1020,19 +1330,23 @@
       {
         "name": "ExpressionEditorDialog",
         "label": "条件表达式编辑",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/editors/custom-events/expression-editor-dialog",
+        "source": "src/components/editors/custom-events/expression-editor-dialog.tsx"
       },
       {
         "name": "VariablePicker",
         "label": "变量选择",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/editors/custom-events/variable-picker",
+        "source": "src/components/editors/custom-events/variable-picker.tsx"
       }
     ]
   },
   {
     "name": "FieldDesigner",
     "label": "字段配置器",
-    "category": "高级组件",
+    "category": "重型组件",
     "layer": "extension",
     "detail": "字段类型、必填、默认值与选项编辑；级联选择已独立提取 Cascader，再由本配置器复用。",
     "reason": "",
@@ -1040,17 +1354,23 @@
       {
         "name": "CustomFieldForm",
         "label": "自定义字段表单",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/editors/custom-fields/custom-field-form",
+        "source": "src/components/editors/custom-fields/custom-field-form.tsx"
       },
       {
         "name": "CustomFieldTable",
         "label": "自定义字段表格",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/editors/custom-fields/custom-field-table",
+        "source": "src/components/editors/custom-fields/custom-field-table.tsx"
       },
       {
         "name": "OptionListEditor",
         "label": "选项列表编辑",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/editors/custom-fields/option-list-editor",
+        "source": "src/components/editors/custom-fields/option-list-editor.tsx"
       }
     ]
   },
@@ -1065,7 +1385,9 @@
       {
         "name": "FieldValue",
         "label": "字段值展示",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/meta/field-value",
+        "source": "src/components/kit/meta/field-value.tsx"
       }
     ]
   },
@@ -1080,7 +1402,9 @@
       {
         "name": "FilePreview",
         "label": "文件预览",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/ui/preview",
+        "source": "src/components/kit/ui/preview.tsx"
       }
     ]
   },
@@ -1117,7 +1441,7 @@
   {
     "name": "ImportExport",
     "label": "表格导入与导出",
-    "category": "高级组件",
+    "category": "重型组件",
     "layer": "extension",
     "detail": "文件模板、字段校验、结果和日志；导入与导出是两个独立流程入口，共享文件任务与日志模型，均非基础 Upload 功能。",
     "reason": "",
@@ -1125,24 +1449,30 @@
       {
         "name": "ImportDialog",
         "label": "导入对话框",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/meta/import-dialog",
+        "source": "src/components/kit/meta/import-dialog.tsx"
       },
       {
         "name": "ExportDialog",
         "label": "导出对话框",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/meta/export-dialog",
+        "source": "src/components/kit/meta/export-dialog.tsx"
       },
       {
         "name": "ExcelLogModal",
         "label": "导入导出日志",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/meta/excel-log-modal",
+        "source": "src/components/kit/meta/excel-log-modal.tsx"
       }
     ]
   },
   {
     "name": "PrintTemplate",
     "label": "打印模板",
-    "category": "高级组件",
+    "category": "重型组件",
     "layer": "extension",
     "detail": "模板、字段编排、预览与打印；字段顺序选择为附属构件。",
     "reason": "",
@@ -1155,12 +1485,16 @@
       {
         "name": "PrintTemplateEditor",
         "label": "打印模板编辑",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/editors/print-templates/print-template-editor",
+        "source": "src/components/editors/print-templates/print-template-editor.tsx"
       },
       {
         "name": "PrintTemplatePreview",
         "label": "打印模板预览",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/editors/print-templates/print-template-preview",
+        "source": "src/components/editors/print-templates/print-template-preview.tsx"
       },
       {
         "name": "FieldOrderPicker",
@@ -1172,7 +1506,7 @@
   {
     "name": "QueryBuilder",
     "label": "查询条件构建器",
-    "category": "高级组件",
+    "category": "重型组件",
     "layer": "extension",
     "detail": "动态字段、操作符、条件值与排序定义；简单搜索表单可直接用 Form。规则模型是本扩展的可复用价值。",
     "reason": "",
@@ -1180,7 +1514,9 @@
       {
         "name": "SearchPanel",
         "label": "查询面板",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/meta/search-panel",
+        "source": "src/components/kit/meta/search-panel.tsx"
       },
       {
         "name": "SearchFieldControl",
@@ -1190,7 +1526,9 @@
       {
         "name": "FilterConditionList",
         "label": "筛选条件列表",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/meta/filter-condition-list",
+        "source": "src/components/kit/meta/filter-condition-list.tsx"
       },
       {
         "name": "FilterValueEditor",
@@ -1200,7 +1538,9 @@
       {
         "name": "SortConditionList",
         "label": "排序条件列表",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/meta/sort-popover",
+        "source": "src/components/kit/meta/sort-popover.tsx"
       },
       {
         "name": "SortPopover",
@@ -1212,7 +1552,7 @@
   {
     "name": "RecordCard",
     "label": "配置记录卡片",
-    "category": "高级组件",
+    "category": "重型组件",
     "layer": "extension",
     "detail": "按字段配置渲染标题、指标、正文与动作；配置器是同一扩展的编辑入口，基础 Card 仅提供容器。",
     "reason": "",
@@ -1220,19 +1560,23 @@
       {
         "name": "MobileCard",
         "label": "移动端卡片",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/meta/mobile-card",
+        "source": "src/components/kit/meta/mobile-card.tsx"
       },
       {
         "name": "MobileCardConfigDialog",
         "label": "移动卡片配置",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/meta/mobile-card-config-dialog",
+        "source": "src/components/kit/meta/mobile-card-config-dialog.tsx"
       }
     ]
   },
   {
     "name": "RecordPicker",
     "label": "记录选择弹窗",
-    "category": "高级组件",
+    "category": "重型组件",
     "layer": "extension",
     "detail": "查询、分页、跨页保留选中与确认回填。物料/工序是数据适配；下拉 ReferenceSelect 独立归 Select，组织穿梭另列组织选择。",
     "reason": "",
@@ -1240,29 +1584,37 @@
       {
         "name": "ReferencePicker",
         "label": "对象参照弹窗",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/meta/reference-picker",
+        "source": "src/components/kit/meta/reference-picker.tsx"
       },
       {
         "name": "ReferenceInput",
         "label": "参照输入",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/meta/reference-input",
+        "source": "src/components/kit/meta/reference-input.tsx"
       },
       {
         "name": "RecordSelect",
         "label": "记录选择",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/forms/record-select",
+        "source": "src/components/forms/record-select.tsx"
       },
       {
         "name": "RecordSelect",
         "label": "基础用法 · 记录选择",
-        "engine": "original"
+        "engine": "original",
+        "importPath": "@/components/forms/record-select",
+        "source": "src/components/forms/record-select.tsx"
       }
     ]
   },
   {
     "name": "ViewManager",
     "label": "保存视图管理",
-    "category": "高级组件",
+    "category": "重型组件",
     "layer": "extension",
     "detail": "保存、命名、排序和编辑查询视图；权限范围调用组织范围适配，Tabs 只负责外观切换。",
     "reason": "",
@@ -1270,17 +1622,47 @@
       {
         "name": "ViewTabs",
         "label": "视图页签",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/meta/view-tabs",
+        "source": "src/components/kit/meta/view-tabs.tsx"
       },
       {
         "name": "ViewEditorDrawer",
         "label": "视图编辑抽屉",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/meta/view-editor-drawer",
+        "source": "src/components/kit/meta/view-editor-drawer.tsx"
       },
       {
         "name": "ViewListDrawer",
         "label": "视图管理抽屉",
-        "engine": "library"
+        "engine": "library",
+        "importPath": "@/components/kit/meta/view-list-drawer",
+        "source": "src/components/kit/meta/view-list-drawer.tsx"
+      }
+    ]
+  },
+  {
+    "name": "PageHeader",
+    "label": "页头与工具栏",
+    "category": "布局",
+    "layer": "base",
+    "detail": "页面标题区：标题、操作与可选说明。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "PageHeader",
+        "label": "页头",
+        "engine": "library",
+        "importPath": "@/components/ui/page-header",
+        "source": "src/components/ui/page-header.tsx"
+      },
+      {
+        "name": "PageToolbar",
+        "label": "页工具栏",
+        "engine": "library",
+        "importPath": "@/components/ui/responsive-page",
+        "source": "src/components/ui/responsive-page.tsx"
       }
     ]
   }

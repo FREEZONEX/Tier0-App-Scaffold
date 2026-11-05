@@ -97,7 +97,7 @@ function PickerFrame({
               key={item.id}
               size="sm"
               closable={!disabled}
-              className="max-w-[10rem] bg-[#f3f3f3]"
+              className="max-w-[10rem] bg-muted"
               bordered={false}
               title={item.code ? `${item.name}（${item.code}）` : item.name}
               onClose={(event: MouseEvent<HTMLButtonElement>) => {

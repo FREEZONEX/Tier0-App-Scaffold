@@ -25,11 +25,11 @@ const COLLAPSED_STORAGE_KEY = "tier0-shell-collapsed";
 const COLLAPSED_STORAGE_EVENT = "tier0-shell-collapsed-change";
 
 const sidebarItemBase =
-  "group flex items-center rounded-sm border text-sm font-medium transition-[background-color,border-color,color,box-shadow] duration-150 focus:outline-none focus:ring-2 focus:ring-highlight/30";
+  "group flex items-center rounded-[4px] border border-transparent text-sm font-medium transition-[background-color,color,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:ring-offset-1 focus-visible:ring-offset-sidebar";
 const sidebarItemActive =
-  "border-border bg-highlight-bg-accent text-accent-foreground shadow-sm";
+  "border-border bg-highlight-bg-accent text-foreground shadow-xs";
 const sidebarItemInactive =
-  "border-transparent text-secondary-foreground hover:border-border-secondary hover:bg-sidebar-accent/70 hover:text-foreground";
+  "text-secondary-foreground hover:bg-sidebar-accent hover:text-foreground active:translate-x-px";
 
 function normalizeMenuPath(value: string): string {
   if (!value) {
@@ -137,10 +137,13 @@ export function Shell({
   modules = defaultModules,
   user,
   children,
+  /** Gallery / chrome demos: render only the collapsible sidebar rail. */
+  sidebarOnly = false,
 }: {
   modules?: NavModule[];
   user?: AppUser | null;
-  children: ReactNode;
+  children?: ReactNode;
+  sidebarOnly?: boolean;
 }) {
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
@@ -198,9 +201,9 @@ export function Shell({
     return (
       <nav
         className={cn(
-          "flex h-full shrink-0 flex-col bg-sidebar transition-[width] duration-200 ease-out",
+          "flex h-full shrink-0 flex-col bg-sidebar transition-[width] duration-200 ease-[cubic-bezier(0.2,0,0,1)]",
           showCloseControl
-            ? "w-full overflow-hidden rounded-md border border-sidebar-border shadow-lg"
+            ? "w-full overflow-hidden rounded-[4px] border border-sidebar-border shadow-lg"
             : "border-r border-sidebar-border",
           !showCloseControl && isCollapsed ? "w-16" : "",
           !showCloseControl && !isCollapsed ? "w-60" : "",
@@ -209,23 +212,23 @@ export function Shell({
         {/* Brand mark */}
         <div
           className={cn(
-            "flex min-h-14 items-center border-b border-sidebar-border px-3 py-2.5 transition-[gap,padding] duration-200 ease-out",
+            "flex min-h-14 items-center px-3 py-2.5 transition-[gap,padding] duration-200 ease-[cubic-bezier(0.2,0,0,1)]",
             showBrandIdentity ? "gap-3" : "justify-center gap-0",
           )}
         >
           {showBrandIdentity && (
             <div className="flex shrink-0 items-center">
-              <div className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-md">
+              <div className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-[4px]">
                 <img
                   src={APP_ICON}
                   alt={`${APP_NAME} icon`}
-                  className="size-full rounded-[inherit] object-cover"
+                  className="size-full rounded-[inherit] object-cover dark:opacity-90"
                 />
               </div>
             </div>
           )}
           {!isCollapsed && showBrandIdentity && (
-            <div className="min-w-0 overflow-hidden transition-[max-width,opacity,transform] duration-200 ease-out">
+            <div className="min-w-0 overflow-hidden transition-[max-width,opacity,transform] duration-200 ease-[cubic-bezier(0.2,0,0,1)]">
               <p
                 className="line-clamp-2 break-words text-sm font-semibold leading-5"
                 title={APP_NAME}
@@ -245,9 +248,10 @@ export function Shell({
                 <button
                   type="button"
                   onClick={toggleCollapsed}
-                  aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-                  title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-                  className="inline-flex size-8 items-center justify-center rounded-sm border border-transparent bg-transparent text-muted-foreground transition-[background-color,color] duration-150 hover:bg-sidebar-accent hover:text-foreground focus:outline-none focus:ring-2 focus:ring-highlight/30"
+                  aria-expanded={!isCollapsed}
+                  aria-label={isCollapsed ? "展开侧边栏" : "收起侧边栏"}
+                  title={isCollapsed ? "展开侧边栏" : "收起侧边栏"}
+                  className="inline-flex size-8 items-center justify-center rounded-[4px] border border-transparent bg-transparent text-muted-foreground transition-[background-color,color,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] hover:bg-sidebar-accent hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight/35 active:scale-95"
                 >
                   {isCollapsed ? (
                     <ChevronRight className="size-4" />
@@ -260,7 +264,7 @@ export function Shell({
                 <button
                   type="button"
                   aria-label="Close navigation"
-                  className="inline-flex size-8 items-center justify-center rounded-sm border border-transparent bg-transparent text-muted-foreground transition-[background-color,color] duration-150 hover:bg-sidebar-accent hover:text-foreground focus:outline-none focus:ring-2 focus:ring-highlight/30"
+                  className="inline-flex size-8 items-center justify-center rounded-[4px] border border-transparent bg-transparent text-muted-foreground transition-[background-color,color,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] hover:bg-sidebar-accent hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight/35 active:scale-95"
                   onClick={() => setMobileOpen(false)}
                 >
                   <X className="size-4" />
@@ -271,7 +275,7 @@ export function Shell({
         </div>
 
         {/* Modules */}
-        <div className="flex-1 overflow-y-auto px-2 py-2.5">
+        <div className="flex-1 overflow-y-auto px-2 pb-2.5 pt-4">
           {sidebarModules.map((mod) => {
             const Icon = mod.icon;
             const hasChildren = Boolean(mod.children?.length);
@@ -313,7 +317,7 @@ export function Shell({
                       "min-h-10 w-full",
                       isDirectActive ? sidebarItemActive : sidebarItemInactive,
                       mod.locked ? "opacity-70" : "",
-                      isCollapsed ? "justify-center px-2" : "gap-2.5 px-3",
+                      "gap-2.5 overflow-hidden pl-4 pr-3",
                     )}
                   >
                     {Icon && (
@@ -321,7 +325,7 @@ export function Shell({
                     )}
                     <span
                       className={cn(
-                        "min-w-0 flex-1 truncate whitespace-nowrap text-left transition-[max-width,opacity,transform] duration-200 ease-out",
+                        "min-w-0 flex-1 truncate whitespace-nowrap text-left transition-[max-width,opacity,transform] duration-200 ease-[cubic-bezier(0.2,0,0,1)]",
                         isCollapsed
                           ? "max-w-0 -translate-x-1 opacity-0"
                           : "max-w-36 translate-x-0 opacity-100",
@@ -331,7 +335,7 @@ export function Shell({
                       {mod.label}
                     </span>
                     {!isCollapsed && mod.badge ? (
-                      <span className="shrink-0 rounded-sm border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] leading-none text-muted-foreground">
+                      <span className="shrink-0 rounded-[4px] border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] leading-none text-muted-foreground">
                         {mod.badge}
                       </span>
                     ) : null}
@@ -388,7 +392,7 @@ export function Shell({
                               {child.label}
                             </span>
                             {child.badge ? (
-                              <span className="ml-auto shrink-0 rounded-sm border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] leading-none text-muted-foreground">
+                              <span className="ml-auto shrink-0 rounded-[4px] border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] leading-none text-muted-foreground">
                                 {child.badge}
                               </span>
                             ) : null}
@@ -440,7 +444,7 @@ export function Shell({
                   "mb-1 min-h-10",
                   isDirectActive ? sidebarItemActive : sidebarItemInactive,
                   mod.locked ? "opacity-70" : "",
-                  isCollapsed ? "justify-center px-2" : "gap-2.5 px-3",
+                  "gap-2.5 overflow-hidden pl-4 pr-3",
                 )}
               >
                 {Icon && (
@@ -448,7 +452,7 @@ export function Shell({
                 )}
                 <span
                   className={cn(
-                    "min-w-0 truncate whitespace-nowrap transition-[max-width,opacity,transform] duration-200 ease-out",
+                    "min-w-0 truncate whitespace-nowrap transition-[max-width,opacity,transform] duration-200 ease-[cubic-bezier(0.2,0,0,1)]",
                     isCollapsed
                       ? "max-w-0 -translate-x-1 opacity-0"
                       : "max-w-40 translate-x-0 opacity-100",
@@ -458,7 +462,7 @@ export function Shell({
                   {mod.label}
                 </span>
                 {!isCollapsed && mod.badge ? (
-                  <span className="ml-auto shrink-0 rounded-sm border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] leading-none text-muted-foreground">
+                  <span className="ml-auto shrink-0 rounded-[4px] border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] leading-none text-muted-foreground">
                     {mod.badge}
                   </span>
                 ) : null}
@@ -478,16 +482,24 @@ export function Shell({
         {/* User block */}
         {!isCollapsed && (
           <div className="border-t border-sidebar-border bg-sidebar px-3 py-3">
-            <div className="min-w-0 overflow-hidden">
-              <p className="truncate text-sm font-medium leading-5">
-                {user?.displayName ?? "Loading"}
-              </p>
-              <p
-                className="mt-0.5 truncate font-mono text-xs uppercase leading-4 text-muted-foreground"
-                title={roleLabel}
+            <div className="flex min-w-0 items-center gap-2.5 overflow-hidden">
+              <span
+                aria-hidden="true"
+                className="inline-flex size-8 shrink-0 items-center justify-center rounded-[4px] bg-muted text-xs font-semibold text-foreground"
               >
-                {roleLabel}
-              </p>
+                {(user?.displayName ?? "?").slice(0, 1).toUpperCase()}
+              </span>
+              <div className="min-w-0 overflow-hidden">
+                <p className="truncate text-sm font-medium leading-5">
+                  {user?.displayName ?? "Loading"}
+                </p>
+                <p
+                  className="mt-0.5 truncate font-mono text-xs uppercase leading-4 text-muted-foreground"
+                  title={roleLabel}
+                >
+                  {roleLabel}
+                </p>
+              </div>
             </div>
           </div>
         )}
@@ -495,8 +507,16 @@ export function Shell({
     );
   }
 
+  if (sidebarOnly) {
+    return (
+      <div className="flex h-full min-h-[560px] overflow-hidden rounded-[4px] border border-border bg-background text-foreground shadow-xs">
+        {renderSidebar({ isCollapsed: collapsed, showCollapseControl: true })}
+      </div>
+    );
+  }
+
   return (
-    <div className="flex h-screen overflow-hidden bg-background text-foreground">
+    <div className="flex h-dvh overflow-hidden bg-background text-foreground">
       <div className="hidden md:block">
         {renderSidebar({ isCollapsed: collapsed, showCollapseControl: true })}
       </div>
@@ -506,10 +526,10 @@ export function Shell({
           <button
             type="button"
             aria-label="Close navigation"
-            className="absolute inset-0 bg-primary/35"
+            className="absolute inset-0 bg-black/40 supports-[backdrop-filter]:bg-black/30 supports-[backdrop-filter]:backdrop-blur-[2px] animate-[tier0-fade_160ms_ease-out]"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="relative z-10 h-full w-full max-w-[min(18rem,calc(100vw-0.75rem))] p-2">
+          <div className="relative z-10 h-full w-full max-w-[min(18rem,calc(100vw-0.75rem))] p-2 animate-[tier0-drawer-left_220ms_var(--motion-ease)]">
             {renderSidebar({
               isCollapsed: false,
               showCollapseControl: false,
@@ -520,11 +540,11 @@ export function Shell({
       )}
 
       <main className="page-y-scroll min-h-0 min-w-0 flex-1">
-        <div className="flex h-14 items-center border-b border-border bg-card px-4 md:hidden">
+        <div className="flex h-14 items-center bg-card px-4 md:hidden">
           <button
             type="button"
             aria-label="Open navigation"
-            className="inline-flex size-10 items-center justify-center rounded-md border border-border bg-card text-foreground shadow-sm transition-[background-color,border-color,box-shadow] duration-150 hover:border-border-strong hover:bg-background hover:shadow-md focus:border-highlight focus:outline-none"
+            className="inline-flex size-10 items-center justify-center rounded-[4px] border border-border bg-card text-foreground shadow-sm transition-[background-color,border-color,box-shadow,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] hover:border-border-strong hover:bg-background hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight/35 active:scale-95"
             onClick={() => setMobileOpen(true)}
           >
             <Menu className="size-4" />

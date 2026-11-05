@@ -141,8 +141,12 @@ function ImportBody({
       <div className="flex min-w-0 flex-col gap-4">
         <div
           className={cn(
-            "flex items-start gap-3 rounded-lg p-4",
-            result.failed === 0 ? "bg-[#f6ffed]" : result.succeeded > 0 ? "bg-[#fffbe6]" : "bg-[#fff2f0]",
+            "flex items-start gap-3 rounded-[4px] p-4",
+            result.failed === 0
+              ? "bg-success/10 dark:bg-success/15"
+              : result.succeeded > 0
+                ? "bg-warning/10 dark:bg-warning/15"
+                : "bg-destructive/10 dark:bg-destructive/15",
           )}
         >
           {result.failed === 0 ? (
@@ -163,7 +167,7 @@ function ImportBody({
         {failures.length > 0 ? (
           <div className="min-w-0">
             <p className="mb-2 text-sm font-medium text-foreground">失败明细</p>
-            <div className="max-h-64 overflow-y-auto rounded-md border border-border-secondary">
+            <div className="max-h-64 overflow-y-auto rounded-[4px] border border-border-secondary">
               <ul className="divide-y divide-border-secondary text-sm">
                 {failures.map((row) => (
                   <li key={`${row.row}-${row.message}`} className="flex min-w-0 gap-3 px-3 py-2">
@@ -245,7 +249,7 @@ function ImportBody({
         </div>
       </div>
 
-      <section className="rounded-lg bg-[#f7f8fa] p-4">
+      <section className="rounded-[4px] border border-border bg-muted/60 p-4">
         <h3 className="text-sm font-medium text-foreground">1. 下载导入模板</h3>
         <ul className="mt-2 space-y-1 text-sm text-text-secondary">
           <li>· 下载模板后，请按照导入说明填写完善表格中的内容</li>
@@ -256,10 +260,10 @@ function ImportBody({
         </Button>
       </section>
 
-      <section className="rounded-lg bg-[#f7f8fa] p-4">
+      <section className="rounded-[4px] border border-border bg-muted/60 p-4">
         <h3 className="text-sm font-medium text-foreground">2. 上传完善好的表格</h3>
         {picked ? (
-          <div className="mt-3 flex min-w-0 items-center gap-3 rounded-md border border-border-secondary bg-card px-3 py-3">
+          <div className="mt-3 flex min-w-0 items-center gap-3 rounded-[4px] border border-border-secondary bg-card px-3 py-3">
             <FileSpreadsheet className="size-8 shrink-0 text-[#1d7044]" aria-hidden="true" />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm text-foreground" title={picked.file.name}>
@@ -278,8 +282,8 @@ function ImportBody({
             aria-label="上传表格"
             data-file-dropzone=""
             className={cn(
-              "mt-3 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-md border border-dashed bg-card px-4 py-8 text-center transition-colors",
-              dragging ? "border-brand bg-brand-soft" : "border-[#d9dde4] hover:border-brand",
+              "mt-3 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-[4px] border border-dashed bg-card px-4 py-8 text-center transition-colors",
+              dragging ? "border-foreground/30 bg-muted" : "border-border hover:border-foreground/40",
               parsing && "pointer-events-none opacity-60",
             )}
             onClick={() => inputRef.current?.click()}

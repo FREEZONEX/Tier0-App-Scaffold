@@ -261,7 +261,7 @@ function BatchEditDialog({
       }
     >
       <div className="flex flex-col gap-4">
-        <p className="rounded-md bg-[#e7f9b9] px-3 py-2 text-sm text-[#050b14]">
+        <p className="rounded-[4px] bg-[#e7f9b9] px-3 py-2 text-sm text-[#050b14]">
           提示：批量修改仅作用于当前已勾选的 {count} 条明细，其他明细不受影响。
         </p>
         <div className="flex flex-col gap-1.5">
@@ -615,7 +615,7 @@ export function DetailTable({
       ) : null}
 
       {errorsList.length > 0 ? (
-        <div role="alert" className="rounded-md border border-[#ffccc7] bg-[#fff2f0] px-3 py-2 text-sm text-danger">
+        <div role="alert" className="rounded-[4px] border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive dark:border-destructive/25 dark:bg-destructive/15">
           {errorsList.slice(0, 3).map((error) => error.message).join("；")}
           {errorsList.length > 3 ? `；等 ${errorsList.length} 处需要修改` : ""}
         </div>
