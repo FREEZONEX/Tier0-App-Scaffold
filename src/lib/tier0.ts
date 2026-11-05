@@ -19,6 +19,7 @@ export type {
   TopicHandler as Tier0TopicHandler,
 } from "@tier0/sdk/mq";
 
+export type Tier0SdkModule = typeof import("@tier0/sdk");
 export type Tier0OpenApiModule = typeof import("@tier0/sdk/openapi");
 export type Tier0FilesModule = typeof import("@tier0/sdk/files");
 export type Tier0MqModule = typeof import("@tier0/sdk/mq");
@@ -46,18 +47,37 @@ export async function loadTier0Mq(): Promise<Tier0MqModule> {
   return require("@tier0/sdk/mq") as Tier0MqModule;
 }
 
+/** The platform-injected key identifies the App, never the current human user. */
+export async function getTier0AppClient() {
+  assertServerOnly("Tier0 App SDK");
+  const apiKey = process.env.TIER0_API_KEY;
+  if (!apiKey?.trim()) {
+    throw new Error("Tier0 App SDK requires the platform-injected TIER0_API_KEY");
+  }
+  const { createTier0Client } = require("@tier0/sdk") as Tier0SdkModule;
+  if (typeof createTier0Client !== "function") {
+    throw new Error("Tier0 App SDK requires a version with createTier0Client");
+  }
+  return createTier0Client({ apiHost: process.env.TIER0_API_HOST, apiKey });
+}
+
 export async function getTier0UnsApi() {
-  return (await loadTier0OpenApi()).unsApi;
+  return (await getTier0AppClient()).unsApi;
 }
 
 export async function getTier0FlowApi() {
-  return (await loadTier0OpenApi()).flowApi;
+  return (await getTier0AppClient()).flowApi;
 }
 
 export async function getTier0SystemApi() {
-  return (await loadTier0OpenApi()).systemApi;
+  return (await getTier0AppClient()).systemApi;
 }
 
+export async function getTier0AppFiles() {
+  return (await getTier0AppClient()).files;
+}
+
+/** Legacy process-wide configuration; do not use to switch request identities. */
 export async function getTier0ClientHelpers() {
   const { configureClient, getClient } = await loadTier0OpenApi();
   return { configureClient, getClient };
