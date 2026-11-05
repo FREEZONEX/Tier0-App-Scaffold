@@ -12,6 +12,8 @@ body{margin:0;background:var(--background)!important;color:var(--tier0-text-colo
 .demo-note{padding:8px 12px;font:12px var(--font-app-sans);background:#f0f5ff;color:#43608b;border-radius:10px}
 .demo-status{font:12px var(--font-app-sans);color:#607086;margin-top:12px}
 .sample-body{padding:24px}
+/* Business scenes fill the frame edge to edge; their <main> is the scroller. */
+.sample-body:has([data-scene-shell]){padding:0;gap:0;animation:none}
 
 .task-workspace{display:flex;flex-direction:column;gap:24px;min-width:0;padding:24px}
 .task-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}

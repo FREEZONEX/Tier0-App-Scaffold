@@ -243,7 +243,8 @@ export function SceneShell({
   }, [mobileOpen]);
 
   return (
-    <div className="flex min-h-[min(720px,100dvh)] min-w-0 bg-background">
+    // Same frame as the app Shell: one viewport high, only <main> scrolls (the rail stays put).
+    <div data-scene-shell className="flex h-dvh min-h-0 min-w-0 overflow-hidden bg-background">
       <div className="hidden md:flex">
         <SceneNav
           active={active}
