@@ -6,6 +6,41 @@ The scaffold declares `@tier0/sdk` `^0.5.4` and locks `0.5.4`. Load OpenAPI,
 Files and MQ through the existing `@/lib/tier0` server-side lazy helpers.
 Updating injected guidance alone does not upgrade an application's installed SDK.
 
+### App credentials and concurrent requests
+
+`getTier0AppClient()` and the `getTier0UnsApi`, `getTier0FlowApi`,
+`getTier0SystemApi`, and `getTier0AppFiles` helpers bind the platform-injected
+App key to an SDK instance. They require an SDK release containing
+`createTier0Client` (SDK PR #47); until that release is selected and installed,
+these helpers fail with a clear version error. This branch must not be released
+with the current 0.5.4 lockfile.
+
+Call them from a server-side service after authenticating and authorizing the
+human request through `requireAuth` and the application's permission matrix:
+
+```typescript
+import { getTier0AppClient } from "@/lib/tier0";
+
+// After the route has checked the user's permission:
+const tier0 = await getTier0AppClient();
+const info = await tier0.systemApi.openapiv1info({});
+const file = await tier0.files.getFileUrl({ filePath: "saved/file/path" });
+```
+
+These operations use the **App's** key. They do not convey the human's identity
+to Tier0 or replace user-level authorization and audit attribution inside the
+application. Do not derive a user API key from gateway identity headers, accept
+one from the browser, or call `configureClient` per request. The gateway
+supplies authenticated user and role information for application authorization,
+not a delegated OpenAPI credential. User-scoped Tier0 authorization requires a
+separate trusted, scoped and short-lived credential exchange and corresponding
+Tier0 validation; no such exchange is provided by this scaffold.
+
+The raw `loadTier0OpenApi`, `loadTier0Files`, and legacy client helpers remain
+available for compatibility and use the SDK's process-wide default. Never use
+them to switch identities between concurrent requests. Existing deployed Apps
+must be upgraded separately; changing the scaffold does not update them.
+
 ### Notification channels
 
 The SDK expands channels before sending the HTTP request:
