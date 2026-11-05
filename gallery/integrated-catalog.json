@@ -21,7 +21,7 @@
     "label": "任务运营台",
     "category": "业务场景",
     "layer": "business",
-    "detail": "Tempo 任务工作台：看板/列表切换、KPI、抽屉与确认；左侧应用壳可折叠并带过渡动效。",
+    "detail": "Tempo 任务工作台：看板/列表切换、KPI、抽屉与确认；关键词搜索（多字段模糊）与高级筛选（多条件 AND）同时作用于任务列表，任务抽屉用可编辑明细表维护领料明细并实时汇总；左侧应用壳可折叠并带过渡动效。",
     "reason": "",
     "samples": [
       {
@@ -1278,7 +1278,7 @@
     "label": "可编辑明细表",
     "category": "重型组件",
     "layer": "extension",
-    "detail": "行增删复制、批量填充、拖动、汇总与校验；批量建产品为保存适配示例。不能把所有业务明细计算吸收到本组件。",
+    "detail": "行增删复制、批量填充、拖动、汇总与校验；批量建产品为保存适配示例。不能把所有业务明细计算吸收到本组件。业务示例：「任务运营台」任务抽屉中的领料明细，增删改后数量与金额合计实时变化。",
     "reason": "",
     "samples": [
       {
@@ -1531,6 +1531,40 @@
         "name": "SortPopover",
         "label": "排序配置浮层",
         "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "KeywordSearch",
+    "label": "关键词搜索",
+    "category": "重型组件",
+    "layer": "extension",
+    "detail": "多字段模糊搜索：只有一个输入框，同一关键词同时模糊匹配业务配置的多个字段（如编码、名称、规格），任一字段包含即返回；范围是当前列表的字段，不是跨应用或全平台搜索。与高级筛选同时启用时两者取交集（AND）。业务示例见「任务运营台」。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "KeywordSearch",
+        "label": "关键词搜索",
+        "engine": "library",
+        "importPath": "@/components/kit/meta/keyword-search",
+        "source": "src/components/kit/meta/keyword-search.tsx"
+      }
+    ]
+  },
+  {
+    "name": "AdvancedFilter",
+    "label": "高级筛选",
+    "category": "重型组件",
+    "layer": "extension",
+    "detail": "多条件组合筛选：每个字段一个独立控件（编码、名称、状态、日期范围…），已填写的条件需同时满足（AND），未填写的不参与；已应用条件以标签展示，关闭单个标签只移除该条件。与关键词搜索同时启用时两者取交集。业务示例见「任务运营台」。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "AdvancedFilter",
+        "label": "高级筛选",
+        "engine": "library",
+        "importPath": "@/components/kit/meta/advanced-filter",
+        "source": "src/components/kit/meta/advanced-filter.tsx"
       }
     ]
   },

@@ -1,4 +1,5 @@
 import { TaskWorkspace } from './scenarios/task-workspace';
+import { AdvancedFilterDemo, KeywordSearchDemo } from './scenarios/list-search-demos';
 import { ViewEditorExample } from './scenarios/view-editor';
 import { AnchorNavigationExample, DropdownLayoutExample } from './scenarios/layout-controls';
 import {
@@ -122,6 +123,8 @@ case'PageContainer':case'PageCard':case'ResponsivePage':case'PageToolbar':body=<
 case'PageHeaderLink':body=<Comp to="/" onClick={(e:any)=>{e.preventDefault();hit()}}>返回物料档案</Comp>;break;
 
 case'RouteError':body=<Comp error={new Error('示例加载错误')} reset={hit}/>;break;
+case'KeywordSearch':body=<KeywordSearchDemo/>;break;
+case'AdvancedFilter':body=<AdvancedFilterDemo/>;break;
 case'SceneTaskOps':body=<SceneShell active="SceneTaskOps"><TaskWorkspace/></SceneShell>;break;
 case'SceneOpsMonitor':body=<SceneShell active="SceneOpsMonitor"><SceneOpsMonitor/></SceneShell>;break;
 case'SceneEmptyContrast':body=<SceneShell active="SceneEmptyContrast"><SceneEmptyContrast/></SceneShell>;break;
