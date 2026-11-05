@@ -374,6 +374,8 @@ export function DataGrid<Row>({
   }, [fillGap, fillMin]);
 
   /* ---------------- shared tooltip for truncated cells ---------------- */
+  const isClipped = (element: HTMLElement) =>
+    element.scrollWidth > element.clientWidth + 1 || element.scrollHeight > element.clientHeight + 1;
   const tipLayerId = useId();
   const tipAnchorRef = useRef<HTMLElement | null>(null);
   const tipFloatingRef = useRef<HTMLDivElement | null>(null);
@@ -408,7 +410,10 @@ export function DataGrid<Row>({
     if (target === tipAnchorRef.current) return;
     hideTip();
     if (!target) return;
-    const truncated = target.scrollWidth > target.clientWidth + 1 || target.scrollHeight > target.clientHeight + 1;
+    // The cell itself, or an ellipsized element inside it (a tag, a link), may be what is cut off.
+    const truncated = isClipped(target) || Array.from(target.querySelectorAll("*")).some(
+      (element) => element instanceof HTMLElement && getComputedStyle(element).textOverflow === "ellipsis" && isClipped(element),
+    );
     const text = target.getAttribute("data-grid-tip") || target.textContent || "";
     if (!truncated || !text.trim() || text === EMPTY_TEXT) return;
     tipTimerRef.current = window.setTimeout(() => {
@@ -464,6 +469,30 @@ export function DataGrid<Row>({
         given += add;
       });
     }
+    // Too wide: shrink data columns proportionally (cells ellipsize) when that
+    // makes the table fit, so ordinary tables never scroll sideways. When even
+    // the floors cannot fit, keep the full widths and scroll instead —
+    // truncating text would hide content without saving the scrollbar.
+    if (free < 0 && flexWidth > 0 && viewportWidth > 0) {
+      // Columns that opt out of ellipsis (actions, tags) keep their width.
+      const floor = (cell: LayoutCell<Row>) =>
+        cell.column?.ellipsis === false
+          ? cell.width
+          : Math.min(cell.width, Math.max(72, Math.round(cell.width * 0.55)));
+      const shrinkable = flexCells.reduce((sum, cell) => sum + (cell.width - floor(cell)), 0);
+      // No slack: inside a shrink-wrapping parent the viewport equals the table width,
+      // so any margin here ratchets the table narrower every resize (endless flicker).
+      const take = -free;
+      if (take > 0 && take <= shrinkable) {
+        let taken = 0;
+        flexCells.forEach((cell, index) => {
+          const room = cell.width - floor(cell);
+          const cut = index === flexCells.length - 1 ? Math.min(room, take - taken) : Math.floor((take * room) / shrinkable);
+          cell.width -= cut;
+          taken += cut;
+        });
+      }
+    }
 
     let leftOffset = 0;
     let lastLeft = -1;
@@ -496,7 +525,9 @@ export function DataGrid<Row>({
     const left = element.scrollLeft > 1;
     const right = element.scrollLeft + element.clientWidth < element.scrollWidth - 1;
     setEdges((previous) => (previous.left === left && previous.right === right ? previous : { left, right }));
-    setViewportWidth((previous) => (previous === element.clientWidth ? previous : element.clientWidth));
+    // Floor the fractional width (clientWidth rounds up at .5) so a fitted table never overflows by a sub-pixel.
+    const viewport = Math.floor(element.getBoundingClientRect().width) - (element.offsetWidth - element.clientWidth);
+    setViewportWidth((previous) => (previous === viewport ? previous : viewport));
     const narrow = typeof window !== "undefined" && window.innerWidth < NARROW_SCREEN;
     setNarrowScreen((previous) => (previous === narrow ? previous : narrow));
   }, []);
@@ -633,7 +664,10 @@ export function DataGrid<Row>({
   const colSpan = layout.cells.length;
 
   return (
-    <div className={cn("relative min-w-0 max-w-full", bordered && `overflow-hidden rounded-lg border ${BORDER}`, className)}>
+    <div
+      data-slot="data-grid"
+      className={cn("relative min-w-0 max-w-full", bordered && `overflow-hidden rounded-[4px] border ${BORDER}`, className)}
+    >
       <div
         ref={scrollRef}
         data-table-scroll="true"
@@ -665,7 +699,7 @@ export function DataGrid<Row>({
                     scope="col"
                     style={stickyStyle(cell)}
                     className={cn(
-                      "sticky top-0 z-[2] h-11 border-b px-3 py-2 text-left text-sm font-semibold leading-5 whitespace-nowrap text-foreground",
+                      "sticky top-0 z-[2] h-10 border-b border-border/80 bg-muted/40 px-3 py-2 text-left text-xs font-medium uppercase tracking-wide whitespace-nowrap text-muted-foreground",
                       BORDER,
                       HEADER_BG,
                       cell.sticky && "z-[3]",
@@ -807,7 +841,7 @@ export function DataGrid<Row>({
                                   type="button"
                                   aria-label={expanded ? "收起子级" : "展开子级"}
                                   aria-expanded={expanded}
-                                  className="inline-flex size-5 shrink-0 items-center justify-center rounded-sm text-text-secondary hover:bg-fill-hover hover:text-brand focus-visible:outline-2 focus-visible:outline-brand-border"
+                                  className="inline-flex size-5 shrink-0 items-center justify-center rounded-[4px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
                                   onClick={() => toggleTreeRow(entry)}
                                 >
                                   {treeNode?.status === "loading" ? (
@@ -908,7 +942,7 @@ export function DataGrid<Row>({
       </div>
       {loading ? (
         <div className="absolute inset-0 z-[4] flex items-center justify-center bg-card/55" aria-live="polite">
-          <span className="flex items-center gap-2 rounded-md bg-card px-3 py-2 text-sm text-muted-foreground shadow-sm">
+          <span className="flex items-center gap-2 rounded-[4px] bg-card px-3 py-2 text-sm text-muted-foreground shadow-sm">
             <LoaderCircle className="size-4 animate-spin text-brand" aria-hidden="true" />
             加载中
           </span>
@@ -922,7 +956,7 @@ export function DataGrid<Row>({
         placement={tipPosition.placement}
         role="tooltip"
         animate={false}
-        className="pointer-events-none max-w-[min(360px,calc(100vw-16px))] break-words rounded-md bg-[rgb(0_0_0/0.85)] px-2 py-1.5 text-xs leading-5 text-white shadow-popup"
+        className="pointer-events-none max-w-[min(360px,calc(100vw-16px))] break-words rounded-[4px] bg-[rgb(0_0_0/0.85)] px-2 py-1.5 text-xs leading-5 text-white shadow-popup"
       >
         {tipText}
       </FloatingLayer>

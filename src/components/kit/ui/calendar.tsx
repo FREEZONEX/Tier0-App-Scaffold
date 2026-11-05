@@ -53,7 +53,7 @@ function HeaderButton({
       title={label}
       tabIndex={-1}
       className={cn(
-        "inline-flex size-7 items-center justify-center rounded-sm text-text-tertiary transition-colors hover:bg-fill-hover hover:text-foreground",
+        "inline-flex size-7 items-center justify-center rounded-[4px] text-text-tertiary transition-colors hover:bg-fill-hover hover:text-foreground",
         hidden && "invisible",
       )}
       onClick={onClick}
@@ -121,7 +121,7 @@ export function CalendarPanel({
               <button
                 type="button"
                 tabIndex={-1}
-                className="rounded-sm px-1 hover:text-brand"
+                className="rounded-[4px] px-1 hover:text-[color:var(--tier0-highlight-deep)]"
                 onClick={() => setMode("year")}
               >
                 {viewYear}年
@@ -130,7 +130,7 @@ export function CalendarPanel({
                 <button
                   type="button"
                   tabIndex={-1}
-                  className="rounded-sm px-1 hover:text-brand"
+                  className="rounded-[4px] px-1 hover:text-[color:var(--tier0-highlight-deep)]"
                   onClick={() => setMode("month")}
                 >
                   {viewMonth}月
@@ -182,7 +182,7 @@ export function CalendarPanel({
                   key={`${wall.year}-${wall.month}-${wall.day}`}
                   className={cn(
                     "flex h-8 items-center justify-center",
-                    (inRange || isRangeEdge) && inMonth && "bg-brand-soft",
+                    (inRange || isRangeEdge) && inMonth && "bg-muted",
                     isRangeEdge && lowBound && isSameDay(wall, lowBound) && "rounded-l-sm",
                     isRangeEdge && highBound && isSameDay(wall, highBound) && "rounded-r-sm",
                   )}
@@ -194,11 +194,12 @@ export function CalendarPanel({
                     aria-pressed={isSelected}
                     aria-label={`${wall.year}年${wall.month}月${wall.day}日`}
                     className={cn(
-                      "relative size-6 rounded-sm text-sm leading-6 tabular-nums transition-colors",
+                      "relative size-6 rounded-[4px] text-sm leading-6 tabular-nums transition-colors",
                       inMonth ? "text-foreground" : "text-text-placeholder",
                       !isSelected && !disabled && "hover:bg-fill-hover",
                       isToday && !isSelected && "shadow-[inset_0_0_0_1px_var(--tier0-primary)]",
-                      isSelected && "bg-brand text-white",
+                      /* Deep green + white: CTA lime fails contrast for day numerals. */
+                      isSelected && "bg-[color:var(--tier0-highlight-deep)] font-medium text-white",
                       disabled && "cursor-not-allowed bg-input-disabled text-text-placeholder",
                     )}
                     onMouseEnter={() => onHoverDay?.(wall)}
@@ -219,9 +220,14 @@ export function CalendarPanel({
                 type="button"
                 tabIndex={-1}
                 className={cn(
-                  "h-7 w-14 rounded-sm text-sm transition-colors",
-                  month === viewMonth ? "bg-brand text-white" : "hover:bg-fill-hover",
-                  month === today.month && viewYear === today.year && month !== viewMonth && "text-brand",
+                  "h-7 w-14 rounded-[4px] text-sm transition-colors",
+                  month === viewMonth
+                    ? "bg-[color:var(--tier0-highlight-deep)] font-medium text-white"
+                    : "hover:bg-fill-hover",
+                  month === today.month &&
+                    viewYear === today.year &&
+                    month !== viewMonth &&
+                    "text-[color:var(--tier0-highlight-deep)]",
                 )}
                 onClick={() => {
                   onViewChange(viewYear, month);
@@ -241,9 +247,13 @@ export function CalendarPanel({
                 type="button"
                 tabIndex={-1}
                 className={cn(
-                  "h-7 w-14 rounded-sm text-sm tabular-nums transition-colors",
-                  year === viewYear ? "bg-brand text-white" : "hover:bg-fill-hover",
-                  (year < decadeStart || year > decadeStart + 9) && year !== viewYear && "text-text-placeholder",
+                  "h-7 w-14 rounded-[4px] text-sm tabular-nums transition-colors",
+                  year === viewYear
+                    ? "bg-[color:var(--tier0-highlight-deep)] font-medium text-white"
+                    : "hover:bg-fill-hover",
+                  (year < decadeStart || year > decadeStart + 9) &&
+                    year !== viewYear &&
+                    "text-text-placeholder",
                 )}
                 onClick={() => {
                   onViewChange(year, viewMonth);
@@ -304,8 +314,8 @@ function TimeColumn({
           tabIndex={-1}
           aria-selected={item === selected}
           className={cn(
-            "mx-1 flex h-7 w-12 items-center justify-center rounded-sm text-sm tabular-nums transition-colors",
-            item === selected ? "bg-brand-soft font-medium text-foreground" : "hover:bg-fill-hover",
+            "mx-1 flex h-7 w-12 items-center justify-center rounded-[4px] text-sm tabular-nums transition-colors",
+            item === selected ? "bg-muted font-medium text-foreground" : "hover:bg-fill-hover",
           )}
           onClick={() => onSelect(item)}
         >

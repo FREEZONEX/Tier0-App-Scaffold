@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState, type ReactNode } from "react";
+import { useId, useState, useEffect, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { useControllableState } from "@/components/kit/ui/floating";
 
@@ -21,7 +21,7 @@ export interface CollapseSectionProps {
   contentClassName?: string;
 }
 
-/** CollapseSection — 「▼ 基础信息」 form / detail section with animated collapse. */
+/** CollapseSection — 「▼ 基础信息」form / detail section with animated collapse. */
 export function CollapseSection({
   title,
   open,
@@ -39,16 +39,27 @@ export function CollapseSection({
   const [isOpen, setOpen] = useControllableState(open, defaultOpen, onOpenChange);
   const expanded = !collapsible || isOpen;
   const [settled, setSettled] = useState(expanded);
+  useEffect(() => {
+    // Also settle controlled changes and reduced-motion transitions, where
+    // transitionend is not guaranteed to fire.
+    const timer = setTimeout(() => setSettled(true), 220);
+    return () => clearTimeout(timer);
+  }, [expanded]);
 
   return (
     <section data-anchor-key={anchorKey} className={cn("min-w-0", className)}>
-      <div className={cn("flex min-h-9 items-center gap-2", headerClassName)}>
+      <div
+        className={cn(
+          "flex min-h-10 items-center gap-2",
+          headerClassName,
+        )}
+      >
         {collapsible ? (
           <button
             type="button"
             aria-expanded={expanded}
             aria-controls={contentId}
-            className="group -ml-1 inline-flex min-w-0 items-center gap-1.5 rounded-sm px-1 py-1 text-left text-[15px] font-semibold leading-6 text-foreground hover:text-brand focus-visible:outline-2 focus-visible:outline-brand-border"
+            className="group grid min-w-0 flex-1 grid-cols-[12px_minmax(0,1fr)] items-center gap-x-2 rounded-[4px] px-1.5 py-1.5 text-left text-[15px] font-semibold leading-6 text-foreground transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--tier0-highlight-deep)]"
             onClick={() => {
               setSettled(false);
               setOpen(!isOpen);
@@ -58,18 +69,22 @@ export function CollapseSection({
               viewBox="0 0 10 10"
               aria-hidden="true"
               className={cn(
-                "size-2.5 shrink-0 fill-current text-text-secondary transition-transform duration-200 group-hover:text-brand",
+                "size-3 justify-self-center fill-current text-muted-foreground transition-transform duration-200 group-hover:text-foreground",
                 !expanded && "-rotate-90",
               )}
             >
               <path d="M1 3h8L5 8z" />
             </svg>
-            <span className="min-w-0 truncate">{title}</span>
+            <span className="min-w-0">{title}</span>
           </button>
         ) : (
-          <h3 className="min-w-0 truncate text-[15px] font-semibold leading-6 text-foreground">{title}</h3>
+          <h3 className="min-w-0 truncate text-[15px] font-semibold leading-6 text-foreground">
+            {title}
+          </h3>
         )}
-        {extra ? <div className="ml-auto flex shrink-0 items-center gap-2">{extra}</div> : null}
+        {extra ? (
+          <div className="ml-auto flex shrink-0 items-center gap-2">{extra}</div>
+        ) : null}
       </div>
       <div
         id={contentId}
@@ -82,10 +97,23 @@ export function CollapseSection({
         }}
       >
         <div
-          className={cn("min-h-0 min-w-0", expanded && settled ? "overflow-visible" : "overflow-hidden")}
+          className={cn(
+            "min-h-0 min-w-0",
+            expanded && settled ? "overflow-visible" : "overflow-hidden",
+          )}
           inert={!expanded || undefined}
         >
-          <div className={cn("pt-2", contentClassName)}>{children}</div>
+          <div
+            className={cn(
+              "pb-3 pt-3",
+              /* Same 12px + 8px gap as the header caret column → body under title */
+              collapsible && "grid grid-cols-[12px_minmax(0,1fr)] gap-x-2",
+              contentClassName,
+            )}
+          >
+            {collapsible ? <span aria-hidden className="block" /> : null}
+            <div className="min-w-0">{children}</div>
+          </div>
         </div>
       </div>
     </section>

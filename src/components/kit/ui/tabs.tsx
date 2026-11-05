@@ -123,17 +123,17 @@ export function Tabs<K extends string = string>({
                   tabIndex={selected ? 0 : -1}
                   disabled={item.disabled}
                   className={cn(
-                    "relative inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap outline-none transition-colors duration-150 focus-visible:text-brand",
+                    "relative inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50",
                     type === "line"
-                      ? cn(LINE_SIZE[size], selected ? "font-medium text-brand" : "text-foreground hover:text-brand-hover")
+                      ? cn(LINE_SIZE[size], selected ? "font-medium text-foreground" : "text-muted-foreground hover:text-foreground")
                       : cn(
-                          "-mb-px rounded-t-md border px-4",
-                          size === "sm" ? "h-8 text-sm" : size === "lg" ? "h-10 text-base" : "h-9 text-sm",
+                          "-mb-px rounded-t-lg border px-4",
+                          size === "sm" ? "h-8 text-sm" : size === "lg" ? "h-10 text-sm" : "h-9 text-sm",
                           selected
-                            ? "border-border-secondary border-b-card bg-card font-medium text-brand"
-                            : "border-border-secondary bg-[#fafafa] text-foreground hover:text-brand-hover",
+                            ? "border-border border-b-popover bg-popover font-medium text-foreground"
+                            : "border-transparent bg-muted/50 text-muted-foreground hover:text-foreground",
                         ),
-                    item.disabled && "cursor-not-allowed text-text-placeholder hover:text-text-placeholder",
+                    item.disabled && "pointer-events-none opacity-50",
                   )}
                   onClick={() => select(index)}
                   onKeyDown={(event) => focusSibling(event, select, items.length, index)}
@@ -149,8 +149,12 @@ export function Tabs<K extends string = string>({
             {type === "line" && ink ? (
               <span
                 aria-hidden="true"
-                className="absolute bottom-0 h-0.5 rounded-full bg-brand transition-[left,width] duration-300"
-                style={{ left: ink.left, width: ink.width }}
+                className="absolute bottom-0 h-0.5 origin-left rounded-full bg-[color:var(--tier0-highlight-deep)] transition-transform duration-[var(--motion-base)] ease-[var(--motion-spring)] motion-reduce:transition-none"
+                style={{
+                  left: 0,
+                  width: 1,
+                  transform: `translateX(${ink.left}px) scaleX(${ink.width})`,
+                }}
               />
             ) : null}
           </div>
@@ -192,23 +196,24 @@ export function CapsuleGroup<K extends string | number = string>({
 }: CapsuleGroupProps<K>) {
   const [selected, setSelected] = useControllableState<K | undefined>(value, defaultValue ?? items[0]?.key);
   return (
-    <div role="tablist" aria-label={ariaLabel} className={cn("flex min-w-0 flex-wrap items-center gap-2", className)}>
+    <div role="group" aria-label={ariaLabel} className={cn("flex min-w-0 flex-wrap items-center gap-2", className)}>
       {items.map((item) => {
         const active = item.key === selected;
         return (
           <button
             type="button"
             key={String(item.key)}
-            role="tab"
-            aria-selected={active}
+            aria-pressed={active}
             disabled={item.disabled}
             className={cn(
-              "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand-border",
-              size === "sm" ? "h-7 px-3 text-sm" : "h-8 px-4 text-sm",
+              "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full outline-none",
+              "transition-[color,background-color,box-shadow,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)]",
+              "focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-[0.98] motion-reduce:transition-none",
+              size === "sm" ? "h-7 px-3 text-xs" : "h-8 px-3.5 text-sm",
               active
-                ? "bg-brand-soft font-medium text-brand"
-                : "bg-[#f3f5f8] text-text-secondary hover:bg-[#e9edf2] hover:text-foreground",
-              item.disabled && "cursor-not-allowed opacity-50",
+                ? "bg-[color:var(--tier0-highlight-bg-primary)] font-medium text-[color:var(--tier0-highlight-foreground)] shadow-sm"
+                : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground",
+              item.disabled && "pointer-events-none opacity-50",
             )}
             onClick={() => {
               setSelected(item.key);
@@ -334,9 +339,11 @@ export function AnchorTabs({
               aria-selected={selected}
               tabIndex={selected ? 0 : -1}
               className={cn(
-                "relative inline-flex shrink-0 items-center whitespace-nowrap outline-none transition-colors duration-150 focus-visible:text-brand",
+                "relative inline-flex shrink-0 items-center whitespace-nowrap outline-none transition-colors duration-150 focus-visible:text-[color:var(--tier0-highlight-deep)]",
                 size === "sm" ? "py-2 text-sm" : "py-3 text-sm",
-                selected ? "font-medium text-brand" : "text-foreground hover:text-brand-hover",
+                selected
+                  ? "font-medium text-[color:var(--tier0-highlight-deep)]"
+                  : "text-foreground hover:text-foreground",
               )}
               onClick={() => jump(item.key)}
               onKeyDown={(event) => focusSibling(event, (next) => {
@@ -351,8 +358,12 @@ export function AnchorTabs({
         {ink ? (
           <span
             aria-hidden="true"
-            className="absolute bottom-0 h-0.5 rounded-full bg-brand transition-[left,width] duration-300"
-            style={{ left: ink.left, width: ink.width }}
+            className="absolute bottom-0 h-0.5 origin-left rounded-full bg-[color:var(--tier0-highlight-deep)] transition-transform duration-[var(--motion-base)] ease-[var(--motion-spring)] motion-reduce:transition-none"
+            style={{
+              left: 0,
+              width: 1,
+              transform: `translateX(${ink.left}px) scaleX(${ink.width})`,
+            }}
           />
         ) : null}
       </div>

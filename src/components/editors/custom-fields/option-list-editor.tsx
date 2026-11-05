@@ -39,7 +39,7 @@ function ColorSwatch({ color, onChange }: { color: string; onChange: (color: str
               size="sm"
               label={item === color ? "当前颜色" : "选择此颜色"}
               tooltip={false}
-              className="size-6 rounded-sm"
+              className="size-6 rounded-[4px]"
               style={{ backgroundColor: item }}
               icon={item === color ? <Check className="size-3.5 text-white" /> : <span />}
               onClick={() => {
@@ -180,7 +180,7 @@ export function OptionListEditor({ type, options, onChange, error }: OptionListE
         submitLabel="确定"
         onSubmit={submitBatch}
       >
-        <div className="flex items-start gap-2 rounded-md border border-[#b2ed1d] bg-[#e7f9b9] px-3 py-2 text-sm text-foreground">
+        <div className="flex items-start gap-2 rounded-[4px] border border-[#b2ed1d] bg-[#e7f9b9] px-3 py-2 text-sm text-foreground">
           <Info className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden="true" />
           <span>每个选项单列一行，多个选项之间用回车符分隔，最多{MAX_OPTIONS}个选项。</span>
         </div>

@@ -73,7 +73,10 @@ const YES_NO = [
 function SectionTitle({ children }: { children: ReactNode }) {
   return (
     <h3 className="flex items-center gap-2 text-base font-semibold text-foreground">
-      <span className="h-4 w-1 rounded-full bg-gradient-to-b from-[#050b14] to-[#69b1ff]" aria-hidden="true" />
+      <span
+        className="h-4 w-1 rounded-full bg-gradient-to-b from-[#050b14] to-[color:var(--tier0-highlight-deep)]"
+        aria-hidden="true"
+      />
       {children}
     </h3>
   );
@@ -368,8 +371,17 @@ function EditorBody({
           </dl>
         ) : (
           <div className="flex flex-wrap gap-x-8 gap-y-3">
-            <label className="flex min-w-[240px] flex-1 flex-col gap-1 text-sm sm:flex-row sm:items-center" data-required-rendered="true">
-              <span className="shrink-0 text-foreground">规则编码：</span>
+            {/*
+              items-start + label h-8 keeps the title/asterisk aligned to the
+              control row even when an error line sits under the field.
+            */}
+            <label
+              className="flex min-w-[240px] flex-1 flex-col gap-1.5 text-sm sm:flex-row sm:items-start sm:gap-2"
+              data-required-rendered="true"
+            >
+              <span className="inline-flex h-8 shrink-0 items-center text-foreground">
+                规则编码：
+              </span>
               <span className="flex min-w-0 flex-1 flex-col gap-1">
                 <Input
                   aria-label="规则编码"
@@ -383,17 +395,24 @@ function EditorBody({
                 {problems.code ? <span className="text-xs text-danger">{problems.code}</span> : null}
               </span>
             </label>
-            <div className="flex min-w-[240px] flex-1 flex-col gap-1 text-sm sm:flex-row sm:items-center">
-              <FieldLabel required className="shrink-0 font-normal">
+            <div className="flex min-w-[240px] flex-1 flex-col gap-1.5 text-sm sm:flex-row sm:items-start sm:gap-2">
+              <FieldLabel required className="h-8 shrink-0 font-normal">
                 规则名称：
               </FieldLabel>
               <span className="flex min-w-0 flex-1 flex-col gap-1">
-                <Input aria-label="规则名称" placeholder="请输入规则名称" maxLength={50} status={problems.name ? "error" : undefined} value={draft.name} onChange={(value) => patch({ name: value })} />
+                <Input
+                  aria-label="规则名称"
+                  placeholder="请输入规则名称"
+                  maxLength={50}
+                  status={problems.name ? "error" : undefined}
+                  value={draft.name}
+                  onChange={(value) => patch({ name: value })}
+                />
                 {problems.name ? <span className="text-xs text-danger">{problems.name}</span> : null}
               </span>
             </div>
-            <div className="flex min-w-[240px] flex-1 flex-col gap-1 text-sm sm:flex-row sm:items-center">
-              <FieldLabel required className="shrink-0 font-normal">
+            <div className="flex min-w-[240px] flex-1 flex-col gap-1.5 text-sm sm:flex-row sm:items-start sm:gap-2">
+              <FieldLabel required className="h-8 shrink-0 font-normal">
                 业务类型：
               </FieldLabel>
               <span className="flex min-w-0 flex-1 flex-col gap-1">
@@ -401,11 +420,16 @@ function EditorBody({
                   aria-label="业务类型"
                   placeholder="请选择业务类型"
                   status={problems.businessType ? "error" : undefined}
-                  options={CODE_RULE_BUSINESS_TYPES.map((option) => ({ value: String(option.value), label: option.label }))}
+                  options={CODE_RULE_BUSINESS_TYPES.map((option) => ({
+                    value: String(option.value),
+                    label: option.label,
+                  }))}
                   value={draft.businessType}
                   onChange={(value) => patch({ businessType: value })}
                 />
-                {problems.businessType ? <span className="text-xs text-danger">{problems.businessType}</span> : null}
+                {problems.businessType ? (
+                  <span className="text-xs text-danger">{problems.businessType}</span>
+                ) : null}
               </span>
             </div>
           </div>
@@ -415,7 +439,7 @@ function EditorBody({
 
       <section className="flex min-w-0 flex-1 flex-col gap-4">
         <SectionTitle>编码规则</SectionTitle>
-        <div className="flex min-h-[88px] flex-col items-center justify-center gap-1 rounded-md border border-dashed border-[#c9d6ea] bg-[#f5f7fa] px-4 py-4 text-center">
+        <div className="flex min-h-[88px] flex-col items-center justify-center gap-1 rounded-[4px] border border-dashed border-border bg-muted px-4 py-4 text-center">
           {format ? (
             <>
               <span className="break-all font-mono text-2xl tracking-wide text-foreground sm:text-3xl">{format}</span>

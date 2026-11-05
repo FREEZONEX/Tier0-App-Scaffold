@@ -349,6 +349,11 @@ live App its published roles'. Never pass `scope` by hand, set
 `TIER0_RUNTIME` in `artifact.toml` or `.env`, or block on the response's
 `published` flag. Notification channels,
 MQTT and credential handling: `docs/platform-integration.md`.
+Preview member queries use draft roles automatically through the SDK and the
+platform-injected `TIER0_RUNTIME`; publishing is not a prerequisite. Do not
+block assignment on `published`, hard-code members, set runtime variables in
+App code, or replace App membership with the whole Workspace. Diagnose an
+unexpected empty list using the installed SDK, preview runtime and role bindings.
 
 - The platform injects SDK hosts, keys and connection details
   (`TIER0_API_HOST`, `TIER0_API_KEY`, `APP_ID`, `VITE_BASE_PATH`). Do not add

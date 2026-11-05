@@ -120,7 +120,7 @@ function FieldLayout({
   const options = useRequest(`print-template-options:${draft.objectCode}`, (signal) => api.getJson<TemplateOptions>(apiUrl(`/api/system/print-template-options/${draft.objectCode}`), { signal }), {
     enabled: Boolean(draft.objectCode),
   });
-  if (!draft.objectCode) return <p className="rounded-md bg-[#f5f7fa] px-3 py-6 text-center text-sm text-text-tertiary">请先选择适用对象</p>;
+  if (!draft.objectCode) return <p className="rounded-[4px] bg-[#f5f7fa] px-3 py-6 text-center text-sm text-text-tertiary">请先选择适用对象</p>;
   return (
     <AsyncView result={options} isEmpty={() => false}>
       {(data) => {
@@ -278,7 +278,7 @@ function EditorBody({
         </div>
         <section className="flex min-w-0 flex-col gap-3 xl:sticky xl:top-0 xl:self-start">
           <h3 className="text-base font-semibold text-foreground">预览</h3>
-          <div className="overflow-x-auto rounded-lg bg-[#eef1f6] p-4">
+          <div className="overflow-x-auto rounded-[4px] bg-[#eef1f6] p-4">
             <PrintTemplatePreview name={draft.name} layout={draft.layout} showQrCode={draft.showQrCode} headerFields={draft.headerFields} detailFields={draft.layout === "CARD" && draft.detailSection ? draft.detailFields : []} />
           </div>
           <p className="text-xs text-text-tertiary">预览中的 xxxx 为示例值；在业务列表中勾选数据点击「打印」即可按此模板打印真实数据。</p>

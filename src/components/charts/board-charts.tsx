@@ -7,7 +7,7 @@
  * - ProgressRingChain：工序进度圆环链（02 §1.2）：每道工序一个百分比圆环、环下工序名、环间短线，100% 为绿色。
  * 尺寸按容器实际像素绘制（useElementSize），不做整体缩放。
  */
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useElementSize } from "@/lib/component-kit/use-element-size";
 import { BOARD, niceMax, ringDash, ringSlot, roundedBarPath, tickText, ticks, uText } from "@/components/charts/board-theme";
 
@@ -34,15 +34,76 @@ export interface DualAxisChartProps {
   bar: DualAxisSeries;
   line: DualAxisSeries;
   title: string;
+  /** board = dark console; card = light workspace (fig.4 navy/amber). */
+  surface?: "board" | "card";
 }
 
 const INTERVALS = 4;
 
-export function DualAxisChart({ points, bar, line, title }: DualAxisChartProps) {
+const CARD_INK_LIGHT = {
+  axis: "#e8e8e8",
+  grid: "#f4f4f5",
+  ink: "#050b14",
+  ink2: "#242424",
+  ink3: "#878787",
+  surface: "#ffffff",
+  raised: "#ffffff",
+  border: "#dcdcdc",
+} as const;
+
+const CARD_INK_DARK = {
+  axis: "#2e2f33",
+  grid: "#1a1b1e",
+  ink: "#f4f4f5",
+  ink2: "#d4d4d8",
+  ink3: "#a1a1aa",
+  surface: "#141518",
+  raised: "#1a1b1e",
+  border: "#2e2f33",
+} as const;
+
+function useHtmlDark() {
+  const [dark, setDark] = useState(() =>
+    typeof document !== "undefined" ? document.documentElement.classList.contains("dark") : false,
+  );
+  useEffect(() => {
+    const root = document.documentElement;
+    const sync = () => setDark(root.classList.contains("dark"));
+    sync();
+    const obs = new MutationObserver(sync);
+    obs.observe(root, { attributes: true, attributeFilter: ["class"] });
+    return () => obs.disconnect();
+  }, []);
+  return dark;
+}
+
+export function DualAxisChart({
+  points,
+  bar,
+  line,
+  title,
+  surface = "board",
+}: DualAxisChartProps) {
   const plotRef = useRef<HTMLDivElement | null>(null);
   const size = useElementSize(plotRef);
   const [hovered, setHovered] = useState<number | null>(null);
   const titleId = useId();
+  const htmlDark = useHtmlDark();
+  const light = surface === "card";
+  const ink = light
+    ? htmlDark
+      ? CARD_INK_DARK
+      : CARD_INK_LIGHT
+    : {
+        axis: BOARD.axis,
+        grid: BOARD.line,
+        ink: BOARD.ink,
+        ink2: BOARD.ink2,
+        ink3: BOARD.ink3,
+        surface: BOARD.surface,
+        raised: BOARD.surfaceRaised,
+        border: BOARD.axis,
+      };
 
   const { width, height } = size;
   const font = Math.max(11, Math.min(16, Math.round(Math.min(width / 30, height / 11))));
@@ -52,7 +113,7 @@ export function DualAxisChart({ points, bar, line, title }: DualAxisChartProps) 
   const barMax = niceMax(Math.max(0, ...points.map((point) => point.bar)), INTERVALS, bar.integer);
   const lineMax = niceMax(Math.max(0, ...points.map((point) => point.line ?? 0)), INTERVALS, line.integer);
   const band = points.length ? plotWidth / points.length : 0;
-  const barWidth = Math.max(4, Math.min(24, band * 0.42));
+  const barWidth = Math.max(4, Math.min(28, band * 0.48));
   const yBar = (value: number) => margin.top + plotHeight - (value / barMax) * plotHeight;
   const yLine = (value: number) => margin.top + plotHeight - (value / lineMax) * plotHeight;
   const xCenter = (index: number) => margin.left + band * index + band / 2;
@@ -74,10 +135,14 @@ export function DualAxisChart({ points, bar, line, title }: DualAxisChartProps) 
     }
     if (lastLineLabelY < font) lastLineLabelY = lastLine.y + font + 6;
   }
+  const lastLineLabelOnBar =
+    lastLine !== undefined &&
+    points[lastLine.index].bar > 0 &&
+    lastLineLabelY - font * 0.75 >= yBar(points[lastLine.index].bar);
 
   return (
     <div className="flex h-full min-h-0 flex-col" style={{ gap: 4 }}>
-      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1" style={{ fontSize: uText(13), color: BOARD.ink2 }}>
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1" style={{ fontSize: light ? 12 : uText(13), color: ink.ink2 }}>
         <span className="inline-flex items-center gap-1.5">
           <span aria-hidden="true" className="inline-block size-2.5 rounded-[2px]" style={{ background: bar.color }} />
           {bar.name}（{bar.unit}，左轴）
@@ -85,7 +150,7 @@ export function DualAxisChart({ points, bar, line, title }: DualAxisChartProps) 
         <span className="inline-flex items-center gap-1.5">
           <svg aria-hidden="true" width="18" height="10" viewBox="0 0 18 10">
             <line x1="1" y1="5" x2="17" y2="5" stroke={line.color} strokeWidth="2" strokeLinecap="round" />
-            <circle cx="9" cy="5" r="3" fill={line.color} />
+            <circle cx="9" cy="5" r="3" fill="#ffffff" stroke={line.color} strokeWidth="2" />
           </svg>
           {line.name}（{line.unit}，右轴）
         </span>
@@ -110,8 +175,15 @@ export function DualAxisChart({ points, bar, line, title }: DualAxisChartProps) 
               const lineValue = (lineMax / INTERVALS) * index;
               return (
                 <g key={`tick-${index}`}>
-                  <line x1={margin.left} x2={margin.left + plotWidth} y1={y} y2={y} stroke={index === 0 ? BOARD.axis : BOARD.line} strokeWidth={1} />
-                  <text x={margin.left - 6} y={y} dy="0.32em" textAnchor="end" fontSize={font - 1} fill={BOARD.ink3} className="tabular-nums">
+                  <line
+                    x1={margin.left}
+                    x2={margin.left + plotWidth}
+                    y1={y}
+                    y2={y}
+                    stroke={index === 0 ? ink.axis : ink.grid}
+                    strokeWidth={1}
+                  />
+                  <text x={margin.left - 6} y={y} dy="0.32em" textAnchor="end" fontSize={font - 1} fill={ink.ink3} className="tabular-nums">
                     {tickText(value, bar.tickSuffix)}
                   </text>
                   <text
@@ -120,7 +192,7 @@ export function DualAxisChart({ points, bar, line, title }: DualAxisChartProps) 
                     dy="0.32em"
                     textAnchor="start"
                     fontSize={font - 1}
-                    fill={BOARD.ink3}
+                    fill={ink.ink3}
                     className="tabular-nums"
                   >
                     {tickText(lineValue, line.tickSuffix)}
@@ -129,7 +201,7 @@ export function DualAxisChart({ points, bar, line, title }: DualAxisChartProps) 
               );
             })}
             {hovered !== null ? (
-              <rect x={margin.left + band * hovered} y={margin.top} width={band} height={plotHeight} fill={BOARD.ink} opacity={0.06} rx={4} />
+              <rect x={margin.left + band * hovered} y={margin.top} width={band} height={plotHeight} fill={ink.ink} opacity={0.06} rx={4} />
             ) : null}
             {points.map((point, index) => {
               const barHeight = plotHeight * (point.bar / barMax);
@@ -150,41 +222,71 @@ export function DualAxisChart({ points, bar, line, title }: DualAxisChartProps) 
                       textAnchor="middle"
                       fontSize={font - 1}
                       fontWeight={labelInside ? 600 : undefined}
-                      fill={labelInside ? BOARD.plane : BOARD.ink2}
+                      fill={labelInside ? inkOnFill(bar.color) : ink.ink2}
                       className="tabular-nums"
                     >
                       {bar.format(point.bar)}
                     </text>
                   ) : null}
-                  <text x={xCenter(index)} y={margin.top + plotHeight + font + 4} textAnchor="middle" fontSize={font - 1} fill={BOARD.ink3}>
+                  <text x={xCenter(index)} y={margin.top + plotHeight + font + 4} textAnchor="middle" fontSize={font - 1} fill={ink.ink3}>
                     {point.label}
                   </text>
                 </g>
               );
             })}
             {linePoints.length > 1 ? (
-              <polyline
-                points={linePoints.map((point) => `${point.x},${point.y}`).join(" ")}
-                fill="none"
-                stroke={line.color}
-                strokeWidth={2}
-                strokeLinejoin="round"
-                strokeLinecap="round"
-              />
+              <>
+                {light ? (
+                  <>
+                    <defs>
+                      <linearGradient id={`${titleId}-area`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={line.color} stopOpacity={0.28} />
+                        <stop offset="100%" stopColor={line.color} stopOpacity={0.02} />
+                      </linearGradient>
+                    </defs>
+                    <path
+                      d={[
+                        `M${linePoints[0].x},${margin.top + plotHeight}`,
+                        ...linePoints.map((point) => `L${point.x},${point.y}`),
+                        `L${linePoints[linePoints.length - 1].x},${margin.top + plotHeight}`,
+                        "Z",
+                      ].join(" ")}
+                      fill={`url(#${titleId}-area)`}
+                    />
+                  </>
+                ) : null}
+                <polyline
+                  points={linePoints.map((point) => `${point.x},${point.y}`).join(" ")}
+                  fill="none"
+                  stroke={line.color}
+                  strokeWidth={2.25}
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                />
+              </>
             ) : null}
             {linePoints.map((point) => (
               <circle
                 key={`dot-${point.index}`}
                 cx={point.x}
                 cy={point.y}
-                r={hovered === point.index ? 5 : 4}
-                fill={line.color}
-                stroke={BOARD.surface}
+                r={hovered === point.index ? 5 : 3.5}
+                fill="#ffffff"
+                stroke={line.color}
                 strokeWidth={2}
+                className="transition-[r] duration-150 ease-out motion-reduce:transition-none"
               />
             ))}
             {lastLine && hovered === null ? (
-              <text x={lastLine.x} y={lastLineLabelY} textAnchor="middle" fontSize={font - 1} fontWeight={600} fill={BOARD.ink}>
+              <text
+                x={lastLine.x}
+                y={lastLineLabelY}
+                textAnchor="middle"
+                fontSize={font - 1}
+                fontWeight={600}
+                fill={lastLineLabelOnBar ? inkOnFill(bar.color) : ink.ink}
+                className="tabular-nums"
+              >
                 {line.format(points[lastLine.index].line ?? 0)}
               </text>
             ) : null}
@@ -210,31 +312,31 @@ export function DualAxisChart({ points, bar, line, title }: DualAxisChartProps) 
         {hoveredPoint && hovered !== null && width > 0 ? (
           <div
             role="status"
-            className="pointer-events-none absolute z-10 min-w-28 rounded-md border px-2.5 py-2 shadow-lg"
+            className="pointer-events-none absolute z-10 min-w-28 rounded-[4px] border px-2.5 py-2 shadow-lg"
             style={{
               left: Math.min(Math.max(4, xCenter(hovered) - 60), Math.max(4, width - 132)),
               top: 4,
-              background: BOARD.surfaceRaised,
-              borderColor: BOARD.axis,
+              background: ink.raised,
+              borderColor: ink.border,
               fontSize: font,
             }}
           >
-            <div style={{ color: BOARD.ink2 }}>{hoveredPoint.label}</div>
+            <div style={{ color: ink.ink2 }}>{hoveredPoint.label}</div>
             <div className="mt-1 flex items-center justify-between gap-3">
-              <span className="inline-flex items-center gap-1.5" style={{ color: BOARD.ink2 }}>
+              <span className="inline-flex items-center gap-1.5" style={{ color: ink.ink2 }}>
                 <span aria-hidden="true" className="inline-block h-0.5 w-3 rounded" style={{ background: bar.color }} />
                 {bar.name}
               </span>
-              <span className="font-semibold tabular-nums" style={{ color: BOARD.ink }}>
+              <span className="font-semibold tabular-nums" style={{ color: ink.ink }}>
                 {bar.format(hoveredPoint.bar)}
               </span>
             </div>
             <div className="mt-0.5 flex items-center justify-between gap-3">
-              <span className="inline-flex items-center gap-1.5" style={{ color: BOARD.ink2 }}>
+              <span className="inline-flex items-center gap-1.5" style={{ color: ink.ink2 }}>
                 <span aria-hidden="true" className="inline-block h-0.5 w-3 rounded" style={{ background: line.color }} />
                 {line.name}
               </span>
-              <span className="font-semibold tabular-nums" style={{ color: BOARD.ink }}>
+              <span className="font-semibold tabular-nums" style={{ color: ink.ink }}>
                 {hoveredPoint.line === null ? "-" : line.format(hoveredPoint.line)}
               </span>
             </div>
@@ -334,6 +436,214 @@ export function ProgressRingChain({ tasks, ringSize, availableWidth }: ProgressR
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+/**
+ * Ink for text drawn ON a filled shape: dark on light fills (lime, yellow),
+ * white on dark ones. Non-hex fills (CSS variables) fall back to dark ink, the
+ * readable choice on the scaffold's lime / tinted bars.
+ */
+export function inkOnFill(fill: string): string {
+  const hex = fill.trim().replace(/^#/, "");
+  const full = /^[0-9a-f]{3}$/i.test(hex) ? hex.split("").map((c) => c + c).join("") : hex;
+  if (!/^[0-9a-f]{6}$/i.test(full)) return "#050b14";
+  const [r, g, b] = [0, 2, 4].map((i) => {
+    const c = parseInt(full.slice(i, i + 2), 16) / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  });
+  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  // Pick whichever ink has the higher contrast ratio against the fill.
+  return (luminance + 0.05) / 0.05 >= 1.05 / (luminance + 0.05) ? "#050b14" : "#ffffff";
+}
+
+/** Chart series: lime / Tier0 blue / neutral tertiary (not cool slate fills). */
+export const STACKED_PALETTE = ["#73b200", "#1d4ed8", "#7c3aed"] as const;
+
+export interface StackedUsageSeries {
+  key: string;
+  name: string;
+  color: string;
+}
+
+export interface StackedUsagePoint {
+  key: string;
+  label: string;
+  values: Record<string, number>;
+}
+
+export interface StackedUsageChartProps {
+  points: readonly StackedUsagePoint[];
+  series: readonly StackedUsageSeries[];
+  title: string;
+  height?: number;
+}
+
+export function StackedUsageChart({
+  points,
+  series,
+  title,
+  height = 280,
+}: StackedUsageChartProps) {
+  const plotRef = useRef<HTMLDivElement | null>(null);
+  const size = useElementSize(plotRef);
+  const [hovered, setHovered] = useState<number | null>(null);
+  const titleId = useId();
+  const htmlDark = useHtmlDark();
+  const grid = htmlDark ? "#2e2f33" : "#e8e8e8";
+  const axis = htmlDark ? "#2e2f33" : "#dcdcdc";
+  const label = htmlDark ? "#a1a1aa" : "#878787";
+  const { width } = size;
+  const chartH = height;
+  const font = 12;
+  const margin = { top: 12, right: 12, bottom: 28, left: 36 };
+  const plotWidth = Math.max(0, width - margin.left - margin.right);
+  const plotHeight = Math.max(0, chartH - margin.top - margin.bottom);
+  const totals = points.map((p) => series.reduce((s, ser) => s + (p.values[ser.key] ?? 0), 0));
+  const yMax = niceMax(Math.max(0, ...totals), INTERVALS, false);
+  const band = points.length ? plotWidth / points.length : 0;
+  const barWidth = Math.max(6, Math.min(28, band * 0.55));
+  const y = (value: number) => margin.top + plotHeight - (value / yMax) * plotHeight;
+  const hoveredPoint = hovered !== null ? points[hovered] : null;
+  const hoveredTotal = hovered !== null ? totals[hovered] : 0;
+
+  return (
+    <div className="flex min-h-0 flex-col gap-3">
+      <div ref={plotRef} className="relative w-full" style={{ height: chartH }}>
+        {width > 0 ? (
+          <svg
+            width={width}
+            height={chartH}
+            role="img"
+            aria-labelledby={titleId}
+            className="block overflow-visible"
+            onPointerLeave={() => setHovered(null)}
+          >
+            <title id={titleId}>{title}</title>
+            {ticks(yMax, INTERVALS).map((value, index) => {
+              const yy = y(value);
+              return (
+                <g key={`g-${index}`}>
+                  <line
+                    x1={margin.left}
+                    x2={margin.left + plotWidth}
+                    y1={yy}
+                    y2={yy}
+                    stroke={index === 0 ? axis : grid}
+                    strokeWidth={1}
+                  />
+                  <text
+                    x={margin.left - 6}
+                    y={yy}
+                    dy="0.32em"
+                    textAnchor="end"
+                    fontSize={font - 1}
+                    fill={label}
+                    className="tabular-nums"
+                  >
+                    {tickText(value)}
+                  </text>
+                </g>
+              );
+            })}
+            {points.map((point, index) => {
+              const x = margin.left + band * index + band / 2 - barWidth / 2;
+              let stacked = 0;
+              const segments = series
+                .map((ser) => {
+                  const value = point.values[ser.key] ?? 0;
+                  const h = (value / yMax) * plotHeight;
+                  const top = y(stacked + value);
+                  stacked += value;
+                  return { ser, value, h, top };
+                })
+                .filter((s) => s.h > 0);
+              return (
+                <g key={point.key}>
+                  {segments.map((seg, segIndex) => {
+                    const isTop = segIndex === segments.length - 1;
+                    return (
+                      <path
+                        key={seg.ser.key}
+                        d={
+                          isTop
+                            ? roundedBarPath(x, seg.top, barWidth, seg.h, 3)
+                            : `M${x},${seg.top + seg.h}V${seg.top}H${x + barWidth}V${seg.top + seg.h}Z`
+                        }
+                        fill={seg.ser.color}
+                      />
+                    );
+                  })}
+                  <text
+                    x={x + barWidth / 2}
+                    y={margin.top + plotHeight + font + 6}
+                    textAnchor="middle"
+                    fontSize={font - 1}
+                    fill={label}
+                  >
+                    {point.label}
+                  </text>
+                  <rect
+                    x={margin.left + band * index}
+                    y={0}
+                    width={band}
+                    height={chartH}
+                    fill="transparent"
+                    onPointerEnter={() => setHovered(index)}
+                    onPointerMove={() => setHovered(index)}
+                  />
+                </g>
+              );
+            })}
+          </svg>
+        ) : null}
+        {hoveredPoint && hovered !== null && width > 0 ? (
+          <div
+            role="status"
+            className="pointer-events-none absolute z-10 min-w-36 rounded-[4px] border border-border bg-card px-3 py-2 shadow-lg"
+            style={{
+              left: Math.min(
+                Math.max(4, margin.left + band * hovered + band / 2 - 70),
+                Math.max(4, width - 160),
+              ),
+              top: 8,
+              fontSize: font,
+            }}
+          >
+            <div className="font-semibold tabular-nums text-foreground">
+              Total {Math.round(hoveredTotal * 10) / 10}
+            </div>
+            <ul className="mt-1.5 space-y-1">
+              {series.map((ser) => (
+                <li
+                  key={ser.key}
+                  className="flex items-center justify-between gap-4 text-muted-foreground"
+                >
+                  <span className="inline-flex items-center gap-1.5">
+                    <span
+                      className="inline-block size-2 rounded-[2px]"
+                      style={{ background: ser.color }}
+                    />
+                    {ser.name}
+                  </span>
+                  <span className="tabular-nums text-foreground">
+                    {hoveredPoint.values[ser.key] ?? 0}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </div>
+      <ul className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground">
+        {series.map((ser) => (
+          <li key={ser.key} className="inline-flex items-center gap-1.5">
+            <span className="size-2 rounded-[2px]" style={{ background: ser.color }} />
+            {ser.name}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

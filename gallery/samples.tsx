@@ -23,14 +23,14 @@ const rows=[{id:'WO-001',name:'装配线巡检',status:'待处理'},{id:'WO-002'
 const impacts=[{id:'1',label:'巡检任务 WO-001',before:'未分派',after:'示例操作员',description:'仅演示，不会修改业务数据'}];
 const labels={basisTitle:'建议依据',impactTitle:'影响范围',impactDescription:'确认受影响的示例记录',reasonTitle:'原因',beforeLabel:'变更前',afterLabel:'变更后'};
 function Table(){return <DataTable><thead><tr><th>任务编号</th><th>任务</th><th>状态</th></tr></thead><tbody>{rows.map((r,i)=><tr key={r.id}><td className="font-mono">{r.id}</td><td><TableCellText>{r.name}</TableCellText></td><TableStatusCell><StatusBadge tone={i?'running':'paused'}>{r.status}</StatusBadge></TableStatusCell></tr>)}</tbody></DataTable>}
-function ShellContent(){const path=useRouterState({select:s=>s.location.pathname});return <Shell user={user} modules={[{key:'tasks',label:'任务队列',href:'/',icon:Package},{key:'assets',label:'设备台账',href:'/assets',icon:Activity}]}><div className="page-shell space-y-6"><PageHeader title={path==='/assets'?'设备台账':'任务队列'}/><Table/></div></Shell>}
+function ShellContent(){return <div className="flex h-[640px] justify-center bg-muted/40 p-6"><Shell sidebarOnly user={user} modules={[{key:'tasks',label:'任务队列',href:'/',icon:Package},{key:'assets',label:'设备台账',href:'/assets',icon:Activity},{key:'people',label:'执行员',href:'/people',icon:Activity}]}/></div>}
 const rootRoute=createRootRoute({component:ShellContent});
-const shellRouter=createRouter({routeTree:rootRoute.addChildren([createRoute({getParentRoute:()=>rootRoute,path:'/',component:()=>null}),createRoute({getParentRoute:()=>rootRoute,path:'/assets',component:()=>null})]),history:createMemoryHistory({initialEntries:['/']})});
+const shellRouter=createRouter({routeTree:rootRoute.addChildren([createRoute({getParentRoute:()=>rootRoute,path:'/',component:()=>null}),createRoute({getParentRoute:()=>rootRoute,path:'/assets',component:()=>null}),createRoute({getParentRoute:()=>rootRoute,path:'/people',component:()=>null})]),history:createMemoryHistory({initialEntries:['/']})});
 export function Sample({name}:{name:string}){
  const [value,setValue]=useState('');const [filter,setFilter]=useState('all');const [open,setOpen]=useState(false);const [count,setCount]=useState(0);const [files,setFiles]=useState<File[]>([]);const [mode,setMode]=useState('ready');const ref=useRef<HTMLButtonElement>(null);
  const done=()=>{setCount(c=>c+1);setOpen(false)};
  const input=<input className="w-full max-w-sm" aria-label="任务名称" value={value} onChange={e=>setValue(e.target.value)} placeholder="输入任务名称"/>;
- const field=<FieldGroup label="任务名称" required htmlFor="task-name" helperText="输入后可观察示例状态"><input id="task-name" required className="w-full max-w-sm" value={value} onChange={e=>setValue(e.target.value)} placeholder="输入任务名称"/></FieldGroup>;
+ const field=<FieldGroup label="任务名称" required htmlFor="task-name" helperText="输入后可观察示例状态"><input id="task-name" required className="w-full" value={value} onChange={e=>setValue(e.target.value)} placeholder="输入任务名称"/></FieldGroup>;
  const footer=<><Button variant="outline" onClick={()=>setOpen(false)}>取消</Button><Button onClick={done}>确认</Button></>;
  let body:ReactNode;
  switch(name){
@@ -53,7 +53,7 @@ export function Sample({name}:{name:string}){
  case 'TableViewport':body=<TableViewport><Table/></TableViewport>;break;
  case 'TableCellText':body=<div className="max-w-xs"><TableCellText clamp>{'设备检查记录需要保留完整的信息说明。'.repeat(12)}</TableCellText><p className="caption mt-3">两行截断示例</p></div>;break;
  case 'AsyncView':body=<><div className="flex flex-wrap gap-2">{['ready','loading','empty','error'].map(s=><Button key={s} size="sm" variant={mode===s?'primary':'outline'} onClick={()=>setMode(s)}>{s}</Button>)}</div><AsyncView result={{data:mode==='ready'?rows:mode==='empty'?[]:undefined,error:mode==='error'?new Error('示例加载失败'):null,isLoading:mode==='loading',refresh:()=>setMode('ready')}}>{()=> <Table/>}</AsyncView></>;break;
- case 'Dialog':case 'DialogActions':body=<><Button onClick={()=>setOpen(true)}>打开对话框</Button><Dialog open={open} onOpenChange={setOpen} title="任务详情" footer={<DialogActions>{footer}</DialogActions>}><p>这是由脚手架 Dialog 渲染的对话框。</p>{field}</Dialog></>;break;
+ case 'Dialog':case 'DialogActions':body=<><Button onClick={()=>setOpen(true)}>打开对话框</Button><Dialog open={open} onOpenChange={setOpen} title="任务详情" description="这是由脚手架 Dialog 渲染的对话框。" footer={<DialogActions>{footer}</DialogActions>}>{field}</Dialog></>;break;
  case 'FormDialog':body=<><Button onClick={()=>setOpen(true)}>新建任务</Button><FormDialog open={open} onOpenChange={setOpen} title="新建任务" submitLabel="保存" cancelLabel="取消" onSubmit={e=>{e.preventDefault();done()}}>{field}</FormDialog><p className="caption">已保存 {count} 次：{value||'—'}</p></>;break;
  case 'ConfirmDialog':body=<><Button onClick={()=>setOpen(true)}>停用示例设备</Button><ConfirmDialog open={open} onOpenChange={setOpen} title="停用设备？" description="只更新当前样例计数，不修改真实设备。" destructive confirmLabel="停用" cancelLabel="取消" onConfirm={done}/><p className="caption">已确认 {count} 次</p></>;break;
  case 'Drawer':body=<><Button onClick={()=>setOpen(true)}>打开详情抽屉</Button><Drawer open={open} onOpenChange={setOpen} title="设备详情" footer={footer}>{field}<Table/></Drawer></>;break;

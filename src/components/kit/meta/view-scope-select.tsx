@@ -69,14 +69,14 @@ function ScopeRow({
       role="treeitem"
       aria-expanded={expandable ? expanded : undefined}
       aria-selected={onToggleCheck ? Boolean(checked) : undefined}
-      className="flex min-h-8 min-w-0 items-center gap-1 rounded-sm pr-2 text-sm hover:bg-fill-hover"
+      className="flex min-h-8 min-w-0 items-center gap-1 rounded-[4px] pr-2 text-sm hover:bg-fill-hover"
       style={{ paddingLeft: depth * 18 + 4 }}
     >
       {expandable ? (
         <button
           type="button"
           aria-label={expanded ? "收起" : "展开"}
-          className="inline-flex size-5 shrink-0 items-center justify-center rounded-sm text-text-secondary hover:text-brand"
+          className="inline-flex size-5 shrink-0 items-center justify-center rounded-[4px] text-text-secondary hover:text-brand"
           onClick={onToggleExpand}
         >
           <svg
@@ -95,7 +95,7 @@ function ScopeRow({
           type="button"
           role="checkbox"
           aria-checked={Boolean(checked)}
-          className="flex h-7 min-w-0 flex-1 items-center gap-2 rounded-sm px-1 text-left text-foreground"
+          className="flex h-7 min-w-0 flex-1 items-center gap-2 rounded-[4px] px-1 text-left text-foreground"
           onClick={onToggleCheck}
         >
           <CheckboxIndicator checked={checked} />

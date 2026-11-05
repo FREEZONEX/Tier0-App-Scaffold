@@ -220,7 +220,7 @@ function EditorForm({
       <div className="flex min-h-0 min-w-0 flex-1 flex-col sm:flex-row">
         <nav
           aria-label="视图设置"
-          className="scrollbar-none flex shrink-0 overflow-x-auto border-b border-border-secondary bg-[#fafbfc] sm:w-36 sm:flex-col sm:overflow-visible sm:border-r sm:border-b-0 sm:py-2"
+          className="scrollbar-none flex shrink-0 overflow-x-auto border-b border-border-secondary bg-muted sm:w-36 sm:flex-col sm:overflow-visible sm:border-r sm:border-b-0 sm:py-2"
         >
           {TABS.map((item) => (
             <button
@@ -230,7 +230,7 @@ function EditorForm({
               className={cn(
                 "relative flex shrink-0 items-center gap-2 px-4 py-3 text-sm transition-colors [&_svg]:size-4",
                 tab === item.key
-                  ? "bg-brand-soft font-medium text-brand sm:after:absolute sm:after:inset-y-2 sm:after:right-0 sm:after:w-0.5 sm:after:bg-brand"
+                  ? "bg-muted font-medium text-foreground sm:after:absolute sm:after:inset-y-2 sm:after:right-0 sm:after:w-0.5 sm:after:bg-foreground"
                   : "text-foreground hover:text-brand",
               )}
               onClick={() => setTab(item.key)}
@@ -278,8 +278,8 @@ function EditorForm({
                         aria-checked={draft.icon === icon}
                         aria-label={`图标 ${icon}`}
                         className={cn(
-                          "flex size-8 items-center justify-center rounded-md border transition-colors",
-                          draft.icon === icon ? "border-brand bg-brand-soft" : "border-transparent hover:bg-fill-hover",
+                          "flex size-8 items-center justify-center rounded-[4px] border transition-colors",
+                          draft.icon === icon ? "border-transparent bg-muted" : "border-transparent hover:bg-fill-hover",
                         )}
                         onClick={() => patch({ icon })}
                       >
@@ -351,7 +351,7 @@ function EditorForm({
                 {options.columnCandidates.map((field) => {
                   const on = draft.visibleFields === null || draft.visibleFields.includes(field.code);
                   return (
-                    <li key={field.code} className="flex min-w-0 items-center gap-2 rounded-md px-1 py-1.5 hover:bg-fill-hover">
+                    <li key={field.code} className="flex min-w-0 items-center gap-2 rounded-[4px] px-1 py-1.5 hover:bg-fill-hover">
                       <Switch size="sm" aria-label={`${field.name}可见`} checked={on} onChange={(next) => setPermission(field.code, next)} />
                       <FieldTypeIcon kind={resolveFieldIconKind(field)} />
                       <span className="truncate text-sm">{field.name}</span>
