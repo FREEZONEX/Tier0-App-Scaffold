@@ -212,7 +212,7 @@ export function Shell({
         {/* Brand mark */}
         <div
           className={cn(
-            "flex min-h-14 items-center px-3 py-2.5 transition-[gap,padding] duration-200 ease-[cubic-bezier(0.2,0,0,1)]",
+            "flex min-h-14 items-center overflow-hidden px-3 py-2.5 transition-[gap,padding] duration-200 ease-[cubic-bezier(0.2,0,0,1)]",
             showBrandIdentity ? "gap-3" : "justify-center gap-0",
           )}
         >
@@ -228,7 +228,13 @@ export function Shell({
             </div>
           )}
           {!isCollapsed && showBrandIdentity && (
-            <div className="min-w-0 overflow-hidden transition-[max-width,opacity,transform] duration-200 ease-[cubic-bezier(0.2,0,0,1)]">
+            <div
+              className={cn(
+                "overflow-hidden animate-in fade-in-0 duration-200",
+                // Desktop rail animates its width: lay the name out at the expanded width (w-60 minus icon, button, gaps, padding) so it never reflows mid-transition.
+                showCloseControl ? "min-w-0" : "w-[126px] shrink-0",
+              )}
+            >
               <p
                 className="line-clamp-2 break-words text-sm font-semibold leading-5"
                 title={APP_NAME}

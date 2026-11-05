@@ -43,7 +43,7 @@ export function CheckboxIndicator({
     >
       {filled ? (
         <Check
-          className={cn("size-3 animate-in zoom-in-50 fade-in-0 duration-150", disabled ? "text-text-placeholder" : "text-white")}
+          className={cn("size-3 animate-in zoom-in-50 fade-in-0 duration-150", disabled ? "text-text-placeholder" : "text-primary-foreground")}
           strokeWidth={3.2}
         />
       ) : null}

@@ -480,8 +480,9 @@ export function DataGrid<Row>({
           ? cell.width
           : Math.min(cell.width, Math.max(72, Math.round(cell.width * 0.55)));
       const shrinkable = flexCells.reduce((sum, cell) => sum + (cell.width - floor(cell)), 0);
-      // +4px slack absorbs container borders and sub-pixel rounding.
-      const take = -free + 4;
+      // No slack: inside a shrink-wrapping parent the viewport equals the table width,
+      // so any margin here ratchets the table narrower every resize (endless flicker).
+      const take = -free;
       if (take > 0 && take <= shrinkable) {
         let taken = 0;
         flexCells.forEach((cell, index) => {
@@ -524,7 +525,9 @@ export function DataGrid<Row>({
     const left = element.scrollLeft > 1;
     const right = element.scrollLeft + element.clientWidth < element.scrollWidth - 1;
     setEdges((previous) => (previous.left === left && previous.right === right ? previous : { left, right }));
-    setViewportWidth((previous) => (previous === element.clientWidth ? previous : element.clientWidth));
+    // Floor the fractional width (clientWidth rounds up at .5) so a fitted table never overflows by a sub-pixel.
+    const viewport = Math.floor(element.getBoundingClientRect().width) - (element.offsetWidth - element.clientWidth);
+    setViewportWidth((previous) => (previous === viewport ? previous : viewport));
     const narrow = typeof window !== "undefined" && window.innerWidth < NARROW_SCREEN;
     setNarrowScreen((previous) => (previous === narrow ? previous : narrow));
   }, []);

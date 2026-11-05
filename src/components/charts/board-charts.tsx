@@ -135,6 +135,10 @@ export function DualAxisChart({
     }
     if (lastLineLabelY < font) lastLineLabelY = lastLine.y + font + 6;
   }
+  const lastLineLabelOnBar =
+    lastLine !== undefined &&
+    points[lastLine.index].bar > 0 &&
+    lastLineLabelY - font * 0.75 >= yBar(points[lastLine.index].bar);
 
   return (
     <div className="flex h-full min-h-0 flex-col" style={{ gap: 4 }}>
@@ -274,18 +278,14 @@ export function DualAxisChart({
               />
             ))}
             {lastLine && hovered === null ? (
-              // The line label can land on a bar: a halo in the card color keeps it readable on any fill.
               <text
                 x={lastLine.x}
                 y={lastLineLabelY}
                 textAnchor="middle"
                 fontSize={font - 1}
                 fontWeight={600}
-                fill={ink.ink}
-                stroke={ink.surface}
-                strokeWidth={3}
-                strokeLinejoin="round"
-                paintOrder="stroke"
+                fill={lastLineLabelOnBar ? inkOnFill(bar.color) : ink.ink}
+                className="tabular-nums"
               >
                 {line.format(points[lastLine.index].line ?? 0)}
               </text>
