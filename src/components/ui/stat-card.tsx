@@ -30,6 +30,12 @@ export interface StatCardProps {
   value: ReactNode;
   /** Unit or short qualifier rendered after the value (e.g. "kg", "项"). */
   unit?: ReactNode;
+  /**
+   * Explicit display rule for a numeric `value` (currency, percent, fixed
+   * decimals). Omit it to show the value at its own precision — `0.04` stays
+   * `0.04`; the live-update roll never rounds the business number.
+   */
+  format?: Intl.NumberFormatOptions;
   icon?: ReactNode;
   /** Small line under the value: trend, scope, or a link to the module. */
   footer?: ReactNode;
@@ -72,6 +78,7 @@ export function StatCard({
   label,
   value,
   unit,
+  format,
   icon,
   footer,
   trend,
@@ -110,7 +117,7 @@ export function StatCard({
           "text-foreground",
         )}
       >
-        {typeof value === "number" ? <AnimatedNumber value={value} /> : value}
+        {typeof value === "number" ? <AnimatedNumber value={value} format={format} /> : value}
         {unit && (
           <span className="ml-1 text-base font-normal text-muted-foreground">
             {unit}

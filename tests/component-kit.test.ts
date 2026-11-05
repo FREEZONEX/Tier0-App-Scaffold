@@ -105,3 +105,21 @@ test('route error components render unknown failures without throwing', async ()
   assert.ok(visible.includes(expected));
  }
 });
+
+test('StatCard keeps numeric precision on first render and after a live update', async () => {
+  const { StatCard } = await import('../src/components/ui/stat-card');
+  const { formatAnimatedNumber, fractionDigitsOf } = await import('../src/components/ui/animated-number');
+  for (const [value, text] of [[0.04, '0.04'], [1.25, '1.25'], [99.99, '99.99'], [12, '12'], [0.000123, '0.000123']] as const) {
+    assert.match(renderToString(createElement(StatCard, { label: 'metric', value })), new RegExp(`>${text.replace('.', '\\.')}<`));
+  }
+  assert.equal(fractionDigitsOf(1.5e-7), 8);
+  // Landing frame of a roll (exact target) and a mid-roll frame both keep the business precision.
+  assert.equal(formatAnimatedNumber(99.99, [0.04, 99.99], undefined, 'en-US'), '99.99');
+  assert.equal(formatAnimatedNumber(0.04, [99.99, 0.04], undefined, 'en-US'), '0.04');
+  assert.equal(formatAnimatedNumber(1.2, [1, 1.25], undefined, 'en-US'), '1.2');
+  assert.equal(formatAnimatedNumber(1.2468, [1, 1.25], undefined, 'en-US'), '1.25');
+  // Explicit format stays the caller's rule, including a minimum above the inferred precision.
+  assert.equal(formatAnimatedNumber(87.46, [87.46], { maximumFractionDigits: 1 }, 'en-US'), '87.5');
+  assert.equal(formatAnimatedNumber(3, [3], { minimumFractionDigits: 2 }, 'en-US'), '3.00');
+  assert.match(renderToString(createElement(StatCard, { label: 'ratio', value: 0.256, format: { style: 'percent', maximumFractionDigits: 1 } })), />25\.6%</);
+});
