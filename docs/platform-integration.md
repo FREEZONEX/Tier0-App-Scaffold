@@ -20,18 +20,36 @@ Load the SDK only on the server through the lazy helpers in `@/lib/tier0`:
 
 | Helper | Module | Use |
 |---|---|---|
+| `getTier0AppClient()` | `@tier0/sdk-v2` | Server-side v2 client explicitly bound to the injected App key; system, files and authorized operations |
 | `loadTier0Sdk()` | `@tier0/sdk-v2` | `createClient()`: `tier0.system`, `members`, `notifications`, `files`, `uns`, `mqttAuth`, `capabilities`, `source`, `stream`, `agent` |
 | `loadTier0OpenApi()` | `@tier0/sdk-v2/openapi` | `createOpenAPI()` / `configureClient()` for the raw generated operations |
 | `loadTier0Files()` | `@tier0/sdk-v2/files` | `createFilesClient()` |
 | `loadTier0Mq()` | `@tier0/sdk-v2/mq` | `Tier0MQClient`, `toWebSocketUrl()`, `parseMqttBroker()` |
 
 ```ts
-import { loadTier0Sdk } from "@/lib/tier0";
+import { getTier0AppClient } from "@/lib/tier0";
 
-const { createClient } = await loadTier0Sdk();
-const tier0 = createClient(); // reads TIER0_API_HOST / TIER0_API_KEY
-const user = await tier0.system.whoami();
+const tier0 = await getTier0AppClient();
+const appCredential = await tier0.system.whoami();
+const file = await tier0.files.url({ filePath: "saved/report.pdf" });
 ```
+
+The helper requires a non-empty injected App key and captures it in an isolated
+client. `whoami` reports the App credential context, not the human user.
+Authenticate and authorize human requests with the App's gateway identity and
+permission checks before a service uses the App key. Do not use
+`configureClient` to switch request identities.
+
+The current bundled SDK 0.9.8 sends two credential headers and is incompatible
+with Cloud Gateway `SysRPCCaller.Mode=enforce`. Update the archive and lockfile
+to a formally released SDK containing [the single-header fix](https://github.com/FREEZONEX/Tier0-sdk-v2/pull/68)
+before using this integration in enforce mode.
+
+The old Flow API has no v2 equivalent. Source and Stream have distinct
+contracts and are not aliases; management operations such as
+`source.protocols.list` and `stream.documents.validate` are not available to
+App credentials on the target backend. Do not substitute a more privileged key
+or bypass the Gateway. App business records remain on `@/lib/data`.
 
 `createClient()` instances share no configuration. Reuse one for work done as
 the App; create a fresh instance per request when passing employee data
