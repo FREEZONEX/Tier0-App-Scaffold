@@ -17,6 +17,7 @@ test("v2 App helpers isolate platform and file credentials and preserve data and
     calls.push({ path: url.pathname, key: req.headers["x-api-key"] as string | undefined, authorization: req.headers.authorization });
     req.resume();
     res.setHeader("content-type", "application/json");
+    if (url.pathname === "/openapi/v2/auth/whoami" && req.headers["x-api-key"] === "sk-app-a") started();
     if (!req.headers["x-api-key"] || req.headers.authorization) return void res.writeHead(401).end("invalid credentials");
     if (url.pathname === "/openapi/v2/uns/sources/protocols/list" || url.pathname === "/openapi/v2/uns/streams/documents/validate") {
       res.writeHead(403);
@@ -24,7 +25,7 @@ test("v2 App helpers isolate platform and file credentials and preserve data and
         error: { code: "FORBIDDEN", reason: "operation is not available to App credentials", details: [], execution: "notStarted", retry: { safe: false } } }));
     }
     if (url.pathname === "/openapi/v2/auth/whoami" && req.headers["x-api-key"] === "sk-app-a") {
-      hold = res; started(); return;
+      hold = res; return;
     }
     let data: unknown = {};
     if (url.pathname === "/openapi/v2/auth/whoami") data = { userID: 7, userName: "app-context" };
@@ -84,4 +85,52 @@ test("an absent injected App key fails closed", async () => {
   const original = process.env.TIER0_API_KEY;
   try { delete process.env.TIER0_API_KEY; await assert.rejects(getTier0AppClient(), /platform-injected TIER0_API_KEY/); }
   finally { if (original !== undefined) process.env.TIER0_API_KEY = original; }
+});
+
+test("captures App host and key together before asynchronous SDK loading", async () => {
+  const calls: Array<{ workspace: string; key?: string }> = [];
+  const servers = ["a", "b"].map(workspace => createServer((req, res) => {
+    calls.push({ workspace, key: req.headers["x-api-key"] as string | undefined });
+    req.resume();
+    res.setHeader("content-type", "application/json");
+    res.end(JSON.stringify({ code: 200, msg: "", requestId: "fixture", data: { userName: workspace } }));
+  }));
+  const originalHost = process.env.TIER0_API_HOST;
+  const originalKey = process.env.TIER0_API_KEY;
+  try {
+    for (const server of servers) { server.listen(0, "127.0.0.1"); await once(server, "listening"); }
+    const hosts = servers.map(server => {
+      const address = server.address(); assert(address && typeof address !== "string");
+      return `http://127.0.0.1:${address.port}`;
+    });
+    process.env.TIER0_API_HOST = hosts[0]; process.env.TIER0_API_KEY = "sk-app-a";
+    const first = getTier0AppClient();
+    process.env.TIER0_API_HOST = hosts[1]; process.env.TIER0_API_KEY = "sk-app-b";
+    const second = getTier0AppClient();
+    const [a, b] = await Promise.all([first, second]);
+    const results = await Promise.all([a.system.whoami(), b.system.whoami()]);
+    assert.deepEqual(results.map(result => result.userName), ["a", "b"]);
+    assert.deepEqual(calls.sort((x, y) => x.workspace.localeCompare(y.workspace)), [
+      { workspace: "a", key: "sk-app-a" },
+      { workspace: "b", key: "sk-app-b" },
+    ]);
+  } finally {
+    if (originalHost === undefined) delete process.env.TIER0_API_HOST; else process.env.TIER0_API_HOST = originalHost;
+    if (originalKey === undefined) delete process.env.TIER0_API_KEY; else process.env.TIER0_API_KEY = originalKey;
+    for (const server of servers) { server.closeAllConnections(); await new Promise<void>(resolve => server.close(() => resolve())); }
+  }
+});
+
+test("an absent injected App host fails before a later environment change", async () => {
+  const originalHost = process.env.TIER0_API_HOST;
+  const originalKey = process.env.TIER0_API_KEY;
+  try {
+    delete process.env.TIER0_API_HOST; process.env.TIER0_API_KEY = "sk-app-a";
+    const client = getTier0AppClient();
+    process.env.TIER0_API_HOST = "http://127.0.0.1:1";
+    await assert.rejects(client, /platform-injected TIER0_API_HOST/);
+  } finally {
+    if (originalHost === undefined) delete process.env.TIER0_API_HOST; else process.env.TIER0_API_HOST = originalHost;
+    if (originalKey === undefined) delete process.env.TIER0_API_KEY; else process.env.TIER0_API_KEY = originalKey;
+  }
 });
