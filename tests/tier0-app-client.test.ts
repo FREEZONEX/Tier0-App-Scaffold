@@ -17,7 +17,6 @@ test("v2 App helpers isolate platform and file credentials and preserve data and
     calls.push({ path: url.pathname, key: req.headers["x-api-key"] as string | undefined, authorization: req.headers.authorization });
     req.resume();
     res.setHeader("content-type", "application/json");
-    if (url.pathname === "/openapi/v2/auth/whoami" && req.headers["x-api-key"] === "sk-app-a") started();
     if (!req.headers["x-api-key"] || req.headers.authorization) return void res.writeHead(401).end("invalid credentials");
     if (url.pathname === "/openapi/v2/uns/sources/protocols/list" || url.pathname === "/openapi/v2/uns/streams/documents/validate") {
       res.writeHead(403);
@@ -25,7 +24,7 @@ test("v2 App helpers isolate platform and file credentials and preserve data and
         error: { code: "FORBIDDEN", reason: "operation is not available to App credentials", details: [], execution: "notStarted", retry: { safe: false } } }));
     }
     if (url.pathname === "/openapi/v2/auth/whoami" && req.headers["x-api-key"] === "sk-app-a") {
-      hold = res; return;
+      hold = res; started(); return;
     }
     let data: unknown = {};
     if (url.pathname === "/openapi/v2/auth/whoami") data = { userID: 7, userName: "app-context" };
@@ -47,7 +46,7 @@ test("v2 App helpers isolate platform and file credentials and preserve data and
     const a = await getTier0AppClient();
     const first = a.system.whoami();
     void first.catch(() => {});
-    await waiting;
+    await Promise.race([waiting, first.then(() => { throw new Error("first whoami completed before the fixture held it"); })]);
     process.env.TIER0_API_KEY = "sk-app-b";
     const b = await getTier0AppClient();
     const orders = defineCollection({ alias: "orders", name: "Orders", directoryPath: ["Fixture"], schema: z.object({ code: z.string() }) });
