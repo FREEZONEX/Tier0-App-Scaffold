@@ -3,7 +3,7 @@ import type { AppUser } from "./users";
 import { ROLE_REQUIRED_MESSAGE_PREFIX } from "./preview-bridge";
 import { HttpError } from "./route-handlers";
 import { hasAnyRole, toRoleList } from "./permissions";
-import { readVisitor, visitorRoles, type Visitor } from "./visitor";
+import { readVisitor, visitorReady, visitorRoles, type Visitor } from "./visitor";
 
 function toAppUser(visitor: Visitor): AppUser {
   const roles = toRoleList(visitorRoles(visitor));
@@ -25,6 +25,7 @@ function toAppUser(visitor: Visitor): AppUser {
  * the scaffold reserves no fallback role. Machine callers are not users.
  */
 export async function getCurrentUser(): Promise<AppUser | null> {
+  await visitorReady();
   const visitor = readVisitor(new Headers(getRequestHeaders()));
   return visitor?.subType === "employee" ? toAppUser(visitor) : null;
 }

@@ -225,7 +225,8 @@ These variables are platform-driven. Local development does not need them.
 | `TIER0_MQTT_URL` | — | `mqtt://mqtt.sbx.internal:1883`, the node proxy in front of the broker |
 | `TIER0_WORKSPACE_ID` | — | Workspace of the App; the SDK uses it for MQTT |
 | `TIER0_RUNTIME` | The SDK uses `TIER0_API_KEY` (local development) | `deployed` or `preview` (both behave the same). With it and no `TIER0_API_KEY` the SDK sends no credential; the node proxy injects the App's key. Any other value is a configuration error |
-| `TIER0_JWKS_DIR` | Requests answer 503 outside `vite dev` | Directory of the front door's public keys, used to verify `X-Tier0-Visitor` |
+| `TIER0_JWKS_DIR` | `TIER0_JWKS_URL` is used | Directory of the front door's public keys, used to verify `X-Tier0-Visitor`; set in platform sessions |
+| `TIER0_JWKS_URL` | Without `TIER0_JWKS_DIR` either, requests answer 503 outside `vite dev` | The front door's public JWKS (`https://<app>.<apps domain>/__tier0/jwks.json`); published Apps verify `X-Tier0-Visitor` with it |
 
 None of these is a secret. No credential is injected into the App: there is no
 `TIER0_API_KEY` in Preview or deployments; the node proxy injects the App's key.
@@ -288,8 +289,11 @@ Browser -> front door authorizes and signs the visitor -> App
 
 The signature, `kid`, `iss`, `typ`, `aud` and time window are checked with 60
 seconds of tolerance. The release is not: the front door cannot know which release
-serves the request. Keys are read from `TIER0_JWKS_DIR`, and a rotation takes
-effect without a restart. Without keys the App answers 503.
+serves the request. Keys are read from `TIER0_JWKS_DIR` when that directory
+exists, otherwise fetched from `TIER0_JWKS_URL` (refreshed every 60 seconds, and
+early for an unknown `kid`); either way a rotation takes effect without a
+restart. The first request waits for the first fetch (at most about 10 seconds).
+Without keys the App answers 503.
 
 `app_roles` is the complete role set and permissions are its union. An empty set
 means zero permissions. The token has no name or email; read them through

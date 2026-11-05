@@ -265,7 +265,8 @@ on every request. The App does not manage passwords, users, cookies, local
 sessions, login/register APIs, or logout, and reads no plain identity header.
 
 - `src/start.ts` verifies the token on every request (keys from
-  `TIER0_JWKS_DIR`); any failure is a 401.
+  `TIER0_JWKS_DIR`, or `TIER0_JWKS_URL` in published Apps); any failure is a
+  401.
 - `app_roles` in the token is the complete role set. Effective permissions are
   the union of all roles. The active role / `user.primaryRole` is display
   metadata only; never choose one "highest" role for authorization.
@@ -367,7 +368,7 @@ Notification channels, MQTT and credential handling:
 
 - The platform provides the SDK's hosts and the App's identity
   (`TIER0_API_HOST`, `TIER0_MQTT_URL`, `TIER0_WORKSPACE_ID`, `TIER0_APP_ID`,
-  `TIER0_RUNTIME`, `TIER0_JWKS_DIR`,
+  `TIER0_RUNTIME`, `TIER0_JWKS_DIR`, `TIER0_JWKS_URL`,
   `VITE_BASE_PATH`); see `docs/platform-integration.md`. Do not add them to
   `.env.example`, collections or user-facing settings. Apps have no database
   connection variables.

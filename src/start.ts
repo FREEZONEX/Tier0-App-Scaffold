@@ -24,7 +24,7 @@ import { createMiddleware, createStart } from "@tanstack/react-start";
 import { runWithRequestContext } from "@tier0/sdk-v2/data";
 import { requireAuth } from "@/lib/auth";
 import { isPublicServerFn } from "@/lib/server-fn-policy";
-import { readVisitor } from "@/lib/visitor";
+import { readVisitor, visitorReady } from "@/lib/visitor";
 import { isWebhookPath } from "@/lib/webhooks";
 
 // Exact path or proper child segment. This avoids `/login-attempts` matching
@@ -76,6 +76,9 @@ export const authBridge = createMiddleware().server(({ request, pathname, next }
       return next();
     }
 
+    // Published Apps fetch the front door keys in the background; the first
+    // request waits for that fetch instead of being refused for want of keys.
+    await visitorReady();
     let visitor;
     try {
       visitor = readVisitor(request.headers);

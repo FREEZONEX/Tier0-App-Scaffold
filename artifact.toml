@@ -12,7 +12,9 @@
 #   TIER0_WORKSPACE_ID      - workspace of the App
 #   TIER0_APP_ID            - agent-platform App id
 #   TIER0_RUNTIME           - deployed or preview
-#   TIER0_JWKS_DIR          - keys for verifying the visitor token
+#   TIER0_JWKS_DIR          - keys for verifying the visitor token (sessions)
+#   TIER0_JWKS_URL          - the front door's public JWKS, used without
+#                             TIER0_JWKS_DIR (published Apps)
 #   No credential is injected: the node proxy injects the App's key, so
 #   the SDK sends none. A direct fetch to TIER0_API_HOST sends X-Tier0-SDK: 1.
 #   PORT                    - injected by the runtime from localPort

@@ -72,7 +72,8 @@ identifiers, not secrets:
 | `TIER0_MQTT_URL` | `mqtt://mqtt.sbx.internal:1883`, the node proxy in front of the broker |
 | `TIER0_WORKSPACE_ID` | Workspace of the App |
 | `TIER0_RUNTIME` | `deployed` or `preview`; both behave the same |
-| `TIER0_JWKS_DIR` | Front-door public keys for verifying `X-Tier0-Visitor` |
+| `TIER0_JWKS_DIR` | Front-door public keys for verifying `X-Tier0-Visitor` (sessions) |
+| `TIER0_JWKS_URL` | Front-door public JWKS, fetched when `TIER0_JWKS_DIR` does not exist (published Apps) |
 
 A direct `fetch` / `curl` to `TIER0_API_HOST` (not through the SDK) must send
 `X-Tier0-SDK: 1` and no `Authorization`. Platform permissions and message
