@@ -37,7 +37,8 @@ export function StatusFilterChips({
 }: StatusFilterChipsProps) {
   return (
     <div
-      role="tablist"
+      role="group"
+      aria-label="状态筛选"
       className={cn("flex flex-wrap items-center gap-1.5", className)}
     >
       {items.map((item) => {
@@ -46,15 +47,15 @@ export function StatusFilterChips({
           <button
             key={item.key}
             type="button"
-            role="tab"
-            aria-selected={active}
+            aria-pressed={active}
             onClick={() => onChange(item.key)}
             className={cn(
-              "inline-flex h-8 items-center gap-1.5 rounded-md border px-2.5 text-sm leading-none transition-colors duration-150",
-              "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+              "inline-flex h-8 items-center gap-1.5 rounded-[4px] border px-3 text-sm leading-none outline-none",
+              "transition-[color,background-color,border-color,box-shadow,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)]",
+              "focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-[0.98] motion-reduce:transition-none",
               active
-                ? "border-highlight-bg-primary bg-highlight-bg-accent font-medium text-foreground"
-                : "border-border bg-card text-secondary-foreground hover:bg-surface-inset",
+                ? "border-transparent bg-[color:var(--tier0-highlight-bg-primary)] font-medium text-[color:var(--tier0-highlight-foreground)] shadow-sm"
+                : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
             <span>{item.label}</span>

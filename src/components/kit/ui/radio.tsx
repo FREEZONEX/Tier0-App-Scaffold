@@ -141,7 +141,7 @@ export function RadioGroup<V extends string | number = string | number>({
                 )}
               >
                 {isSelected ? (
-                  <span className={cn("size-1.5 rounded-full", isDisabled ? "bg-text-placeholder" : "bg-white")} />
+                  <span className={cn("size-1.5 rounded-full animate-in zoom-in-0 duration-150", isDisabled ? "bg-text-placeholder" : "bg-white")} />
                 ) : null}
               </span>
             </span>

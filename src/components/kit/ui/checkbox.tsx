@@ -33,20 +33,22 @@ export function CheckboxIndicator({
     <span
       aria-hidden="true"
       className={cn(
-        "pointer-events-none relative flex size-4 shrink-0 items-center justify-center rounded-[4px] border transition-[background-color,border-color] duration-150",
-        filled ? "border-brand bg-brand" : "border-border-strong bg-card",
-        disabled && (filled ? "border-border-strong bg-input-disabled" : "border-border-strong bg-input-disabled"),
+        "pointer-events-none relative flex size-4 shrink-0 items-center justify-center rounded-[4px] border border-input transition-[background-color,border-color,box-shadow] duration-[var(--motion-fast)] ease-[var(--motion-ease)]",
+        filled
+          ? "border-primary bg-primary text-primary-foreground"
+          : "bg-card",
+        disabled && "opacity-50",
         className,
       )}
     >
       {filled ? (
         <Check
-          className={cn("size-3", disabled ? "text-text-placeholder" : "text-white")}
+          className={cn("size-3 animate-in zoom-in-50 fade-in-0 duration-150", disabled ? "text-text-placeholder" : "text-primary-foreground")}
           strokeWidth={3.2}
         />
       ) : null}
       {indeterminate ? (
-        <span className={cn("size-2 rounded-[2px]", disabled ? "bg-text-placeholder" : "bg-brand")} />
+        <span className={cn("size-2 rounded-[2px] animate-in zoom-in-50 fade-in-0 duration-150", disabled ? "bg-text-placeholder" : "bg-brand")} />
       ) : null}
     </span>
   );

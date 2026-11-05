@@ -177,7 +177,7 @@ function ConfigForm({
             <div className="min-w-0 flex-1">
               <div
                 className={cn(
-                  "flex min-w-0 flex-col overflow-hidden rounded-md border sm:flex-row",
+                  "flex min-w-0 flex-col overflow-hidden rounded-[4px] border sm:flex-row",
                   errors.display ? "border-danger" : "border-border-strong",
                 )}
               >
@@ -187,7 +187,7 @@ function ConfigForm({
                   </div>
                   {/* 只有一个页签时列表里已有「全选」，这里不再重复。 */}
                   {options.components.length ? (
-                    <div className="border-y border-border-secondary bg-[#fafbfc] px-3 py-2">
+                    <div className="border-y border-border-secondary bg-muted px-3 py-2">
                       <Checkbox
                         checked={everything}
                         indeterminate={anything && !everything}
@@ -291,8 +291,8 @@ function ConfigForm({
                           }}
                           onDragEnd={() => setDragIndex(null)}
                           className={cn(
-                            "flex min-w-0 items-center gap-2 rounded-md border border-dashed border-border-strong bg-card px-2 py-1.5 text-sm",
-                            fixed && "bg-[#f5f5f5] text-text-tertiary",
+                            "flex min-w-0 items-center gap-2 rounded-[4px] border border-dashed border-border-strong bg-card px-2 py-1.5 text-sm",
+                            fixed && "bg-muted text-text-tertiary",
                             dragIndex === index && "opacity-40",
                           )}
                         >
@@ -320,7 +320,7 @@ function ConfigForm({
             </div>
           </div>
         </div>
-        <aside className="flex min-w-0 flex-col gap-3 rounded-lg bg-[#f2f4f7] p-4 lg:w-80 lg:shrink-0">
+        <aside className="flex min-w-0 flex-col gap-3 rounded-[4px] bg-muted p-4 lg:w-80 lg:shrink-0">
           <span className="text-sm text-foreground">模板效果预览</span>
           <MobileCard
             config={{ titleFields, indicatorField, displayFields, components }}

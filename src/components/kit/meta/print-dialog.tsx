@@ -256,7 +256,7 @@ function PrintBody({
             打印
           </Button>
         </div>
-        <div className="min-w-0 flex-1 overflow-auto rounded-lg bg-[#eef0f3] p-4 sm:p-6">
+        <div className="min-w-0 flex-1 overflow-auto rounded-[4px] bg-muted p-4 sm:p-6">
           <PrintPages pages={pages} layout={previewTemplate.layout} />
         </div>
         {typeof document !== "undefined"

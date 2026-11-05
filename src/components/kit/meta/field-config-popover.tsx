@@ -115,7 +115,7 @@ export function ColumnConfigList({
           setDropTarget(null);
         }}
         className={cn(
-          "group relative flex h-8 min-w-0 items-center gap-1.5 rounded-md pr-1 pl-1 text-sm transition-colors hover:bg-fill-hover",
+          "group relative flex h-8 min-w-0 items-center gap-1.5 rounded-[4px] pr-1 pl-1 text-sm transition-colors hover:bg-fill-hover",
           dragging === state.code && "opacity-40",
           indicator === "before" && "before:absolute before:inset-x-1 before:-top-px before:h-0.5 before:rounded before:bg-brand",
           indicator === "after" && "after:absolute after:inset-x-1 after:-bottom-px after:h-0.5 after:rounded after:bg-brand",

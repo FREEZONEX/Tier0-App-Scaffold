@@ -91,6 +91,30 @@ refused for the App's key (403). Do not build App features on them.
 App records still go through `@/lib/data` (see [App Data](#app-data)).
 Updating injected guidance alone does not upgrade an application's installed SDK.
 
+### Members before publication
+
+The SDK maps platform-injected `TIER0_RUNTIME=preview` to `scope=draft` and
+`deployed` to `scope=production`. Without `TIER0_RUNTIME` (local development
+with a key of its own) the SDK sends no `scope` and the server's production
+default applies; any other value without `TIER0_API_KEY` is a configuration
+error the SDK throws before sending. App code calls `members.listApp({ appId })`
+without selecting scope or writing `TIER0_RUNTIME` to `.env` / `artifact.toml`.
+Preview uses current draft roles and effective direct/group assignments even
+when `published=2`; that flag is deployment metadata, not an assignment gate.
+Production continues to use published-version roles.
+
+An unexpected empty picker is not evidence that publication is required.
+Check the actual installed SDK version, App ID, current role bindings, filters,
+and the preview process runtime (an Agent shell is not the preview process).
+When available, compare `list_app_role_members` with the App response to isolate
+SDK/runtime/API drift. Preserve API errors instead of converting them to `[]`.
+The no-role `allActiveMembers=1` state is distinct from no assigned members;
+do not silently substitute the entire Workspace or fabricate users.
+
+Existing Apps require the new vendor archive, matching package.json/lockfile,
+and a managed preview restart. Upgrading a Skill or the default template alone
+does not modify an existing App.
+
 ### Browser App Stream requests and messages
 
 **Currently unavailable in Preview and deployments; do not generate these

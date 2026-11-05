@@ -10,15 +10,22 @@
   --tier0-disabled-bg: #ededee;
   --tier0-disabled-text: #929296;
   --tier0-disabled-border: #d4d4d6;
+  /* Ink primary actions (DESIGN.md). Lime is --tier0-cta / Button highlight only. */
   --tier0-primary: #050b14;
   --tier0-primary-hover: #1c1f1e;
   --tier0-on-primary: #ffffff;
+
+  /* Signal / CTA green — reserved for highlight buttons & selected emphasis. */
+  --tier0-cta: #cbf368;
+  --tier0-cta-hover: #b8e055;
+  --tier0-cta-active: #a8d04a;
+  --tier0-cta-foreground: #050b14;
 
   --tier0-highlight: #b2ed1d;
   --tier0-highlight-foreground: #050b14;
   --tier0-highlight-text: #a2db1a;
   --tier0-highlight-deep: #73b200;
-  --tier0-highlight-bg-primary: #cef368;
+  --tier0-highlight-bg-primary: #cbf368;
   --tier0-highlight-bg-accent: #e7f9b9;
   --tier0-highlight-20: color-mix(in srgb, var(--tier0-highlight) 20%, transparent);
 
@@ -39,6 +46,16 @@
   --tier0-surface-muted: #e3e3e3;
   --tier0-border: #dcdcdc;
   --tier0-border-secondary: #e8e8e8;
+  /* Skeleton bars: soft shimmer; never near-white in dark. */
+  --tier0-skeleton-base: #e8e8e8;
+  --tier0-skeleton-shine: #f1f1f2;
+  /* View document icons — fills must stay visible on both canvases. */
+  --view-icon-dark: #1f2329;
+  --view-icon-green: #00b96b;
+  --view-icon-blue: #3b6be8;
+  --view-icon-orange: #e07a2f;
+  --view-icon-red: #b91c1c;
+  --view-icon-stroke: #ffffff;
   /* Editable fields use a white fill and a defined border; gray fill is disabled state. */
   --tier0-input-bg: #ffffff;
   --tier0-input-border: #c2c2c4;
@@ -51,13 +68,17 @@
   --tier0-warning-tertiary: #ffedd5;
   --tier0-blue-color: #1d4ed8;
   --tier0-blue-tertiary: #dbeafe;
+  --tier0-chart-lime: #b2ed1d;
+  --tier0-chart-lime-deep: #73b200;
 
+  /* Hard rule: every corner is 4px. Pill stays for switches/chips only. */
   --tier0-radius: 4px;
-  --tier0-radius-xs: 2px;
+  --tier0-radius-xs: 4px;
   --tier0-radius-sm: 4px;
-  --tier0-radius-md: 6px;
-  --tier0-radius-lg: 8px;
-  --tier0-radius-xl: 12px;
+  --tier0-radius-md: 4px;
+  --tier0-radius-lg: 4px;
+  --tier0-radius-xl: 4px;
+  --tier0-radius-2xl: 4px;
   --tier0-radius-pill: 9999px;
 
   --tier0-space-xxs: 4px;
@@ -68,8 +89,10 @@
   --tier0-space-xl: 24px;
   --tier0-space-xxl: 32px;
   --tier0-space-section: 48px;
-  --tier0-control-height-sm: 36px;
-  --tier0-control-height-md: 40px;
+  /* Control heights closer to ReUI density while remaining touch-usable. */
+  --tier0-control-height-sm: 32px;
+  --tier0-control-height-md: 36px;
+  --tier0-control-height-lg: 40px;
   --tier0-control-height-touch: 44px;
   --tier0-control-height-station: 48px;
 
@@ -114,12 +137,14 @@
   /* Minimal scaffold compatibility aliases */
   --background: var(--tier0-canvas);
   --foreground: var(--tier0-text-color);
-  --muted: var(--tier0-bg-tertiary);
+  /* Soft gray for hover/selected rows — must not equal white card. */
+  --muted: var(--tier0-fill-hover);
   --muted-foreground: var(--tier0-text-tertiary);
   --border: var(--tier0-border);
   --border-strong: #cfcfcf;
   --input: var(--tier0-input-border);
   --input-bg: var(--tier0-input-bg);
+  /* Focus ring: pale CTA lime (DESIGN.md input.focusColor = highlight). */
   --ring: var(--tier0-highlight);
 
   --card: #ffffff;
@@ -132,15 +157,16 @@
   --sidebar: #ffffff;
   --sidebar-foreground: var(--tier0-text-color);
   --sidebar-border: #e3e3e3;
-  --sidebar-primary: var(--tier0-primary);
-  --sidebar-primary-foreground: var(--tier0-on-primary);
-  --sidebar-accent: var(--tier0-highlight-bg-accent);
+  --sidebar-primary: var(--tier0-cta);
+  --sidebar-primary-foreground: var(--tier0-cta-foreground);
+  --sidebar-accent: #f4f4f5;
   --sidebar-accent-foreground: var(--tier0-text-color);
   --sidebar-ring: var(--tier0-highlight);
 
-  --accent: var(--tier0-highlight-bg-primary);
-  --accent-strong: var(--tier0-highlight-deep);
-  --accent-foreground: var(--tier0-highlight-foreground);
+  /* Accent surfaces stay neutral. Lime is highlight / selected emphasis only. */
+  --accent: #f4f4f5;
+  --accent-strong: var(--tier0-cta);
+  --accent-foreground: var(--tier0-text-color);
   --primary: var(--tier0-primary);
   --primary-foreground: var(--tier0-on-primary);
   --secondary: var(--tier0-bg-accent);
@@ -179,21 +205,35 @@
   --gantt-locked-bg: #ede9fe;
   --gantt-locked-border: #ddd6fe;
 
-  --chart-1: var(--tier0-primary);
-  --chart-2: var(--tier0-highlight-deep);
-  --chart-3: var(--tier0-blue-color);
+  --chart-1: var(--tier0-highlight-deep);
+  --chart-2: var(--tier0-blue-color);
+  --chart-3: var(--tier0-text-tertiary);
   --chart-4: var(--tier0-warning-color);
   --chart-5: var(--tier0-error-color);
 
   --radius: var(--tier0-radius);
-  --shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.06);
-  --shadow-md: 0 12px 24px -18px rgb(15 23 42 / 0.28), 0 1px 2px 0 rgb(15 23 42 / 0.06);
-  --shadow-lg: 0 24px 48px -28px rgb(15 23 42 / 0.34), 0 2px 8px 0 rgb(15 23 42 / 0.08);
+  --shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.05);
+  --shadow-md: 0 8px 24px -12px rgb(15 23 42 / 0.14), 0 2px 6px -2px rgb(15 23 42 / 0.06);
+  --shadow-lg: 0 18px 40px -20px rgb(15 23 42 / 0.18), 0 4px 12px -4px rgb(15 23 42 / 0.08);
+  /* Dialog / sheet elevation — soft diffused float like marketing cards. */
+  --shadow-overlay: 0 0 0 1px rgb(15 23 42 / 0.04), 0 18px 40px -20px rgb(15 23 42 / 0.22),
+    0 8px 16px -10px rgb(15 23 42 / 0.08);
 
   --motion-fast: 150ms;
   --motion-base: 200ms;
   --motion-slow: 500ms;
   --motion-ease: cubic-bezier(0.2, 0, 0, 1);
+  --motion-spring: cubic-bezier(0.22, 1, 0.36, 1);
+  /* ReUI status tokens (see ReUI color skill / @reui/badge). */
+  --destructive-foreground: var(--color-red-800);
+  --success: var(--color-emerald-500);
+  --success-foreground: var(--color-emerald-900);
+  --info: var(--color-violet-500);
+  --info-foreground: var(--color-violet-900);
+  --warning: var(--color-yellow-500);
+  --warning-foreground: var(--color-yellow-900);
+  --invert: var(--color-zinc-900);
+  --invert-foreground: var(--color-zinc-50);
 }
 
 @theme inline {
@@ -203,7 +243,7 @@
   --color-highlight-text: var(--tier0-highlight-text);
   --color-highlight-bg-primary: var(--tier0-highlight-bg-primary);
   --color-highlight-bg-accent: var(--tier0-highlight-bg-accent);
-  --color-button-primary: var(--tier0-primary);
+  --color-button-primary: var(--tier0-cta);
   --color-button-highlight: var(--tier0-highlight-bg-primary);
   --color-border-secondary: var(--tier0-border-secondary);
 
@@ -284,10 +324,13 @@
   --shadow-md: var(--shadow-md);
   --shadow-lg: var(--shadow-lg);
 
-  --radius-sm: var(--tier0-radius-xs);
-  --radius-md: var(--tier0-radius-sm);
-  --radius-lg: var(--tier0-radius);
-  --radius-xl: var(--tier0-radius-md);
+  --radius-sm: 4px;
+  --radius-md: 4px;
+  --radius-lg: 4px;
+  --radius-xl: 4px;
+  --radius-2xl: 4px;
+  --radius-3xl: 4px;
+  --radius-4xl: 4px;
   --radius-2xl: var(--tier0-radius-lg);
   --radius-3xl: var(--tier0-radius-lg);
   --radius-4xl: var(--tier0-radius-lg);
@@ -344,11 +387,69 @@
   --text-monitor-header-title: clamp(13px, 0.9vmin, 16px);
   --text-monitor-header-subtitle: clamp(11px, 0.72vmin, 13px);
   --text-monitor-header-meta: clamp(10px, 0.66vmin, 12px);
+  --color-invert-foreground: var(--invert-foreground);
+  --color-invert: var(--invert);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning: var(--warning);
+  --color-info-foreground: var(--info-foreground);
+  --color-info: var(--info);
+  --color-success-foreground: var(--success-foreground);
+  --color-success: var(--success);
+  --color-destructive-foreground: var(--destructive-foreground);
 }
 
 body {
   font-family: var(--font-app-sans);
   font-feature-settings: "ss01", "cv11";
+}
+
+/* Scrollbars — thin, theme-aware (no stark white tracks in dark). */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--foreground) 28%, transparent) transparent;
+}
+
+/* Opt-out for tab strips / chip rows that only scroll on one axis. */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+.dark * {
+  scrollbar-color: #3f3f46 #141518;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+.dark *::-webkit-scrollbar-track {
+  background: #141518;
+}
+*::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--foreground) 28%, transparent);
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+}
+.dark *::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border: 2px solid #141518;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--foreground) 42%, transparent);
+  background-clip: padding-box;
+}
+.dark *::-webkit-scrollbar-thumb:hover {
+  background: #52525b;
+  background-clip: padding-box;
 }
 
 /* The scaffold route stays structurally blank so generated apps can replace it
@@ -593,8 +694,12 @@ body {
   .required-mark,
   .field-required-mark,
   [data-required-marker="true"] {
+    display: inline-block;
     color: var(--destructive) !important;
     font-weight: 600;
+    line-height: 1;
+    /* Optical align * with CJK label caps, not below the baseline. */
+    transform: translateY(-0.06em);
   }
 
   .font-mono,
@@ -749,7 +854,7 @@ body {
   }
 
   .monitor-panel {
-    @apply min-h-0 min-w-0 overflow-hidden rounded-md border border-border bg-card;
+    @apply min-h-0 min-w-0 overflow-hidden rounded-[4px] border border-border bg-card;
     padding: var(--monitor-panel-pad);
   }
 
@@ -940,34 +1045,45 @@ body {
     font-feature-settings: "tnum", "zero";
   }
 
+  /*
+   * Soft status fills — use --state-*-fg/bg (theme-swapped), never
+   * --*-foreground which stays dark (600) under .dark and becomes unreadable.
+   * No outline stroke on these banners.
+   */
   .state-running {
     color: var(--state-running-fg);
     background-color: var(--state-running-bg);
-    border-color: var(--state-running-border);
+    border-color: transparent;
   }
 
   .state-idle {
-    color: var(--state-idle-fg);
-    background-color: var(--state-idle-bg);
-    border-color: var(--state-idle-border);
+    color: var(--muted-foreground);
+    background-color: var(--muted);
+    border-color: transparent;
   }
 
   .state-paused {
     color: var(--state-paused-fg);
     background-color: var(--state-paused-bg);
-    border-color: var(--state-paused-border);
+    border-color: transparent;
   }
 
   .state-error {
     color: var(--state-error-fg);
     background-color: var(--state-error-bg);
-    border-color: var(--state-error-border);
+    border-color: transparent;
   }
 
   .state-info {
     color: var(--state-info-fg);
     background-color: var(--state-info-bg);
-    border-color: var(--state-info-border);
+    border-color: transparent;
+  }
+
+  .dark .state-idle {
+    color: var(--muted-foreground);
+    background-color: color-mix(in srgb, var(--input) 32%, transparent);
+    border-color: transparent;
   }
 }
 
@@ -1022,6 +1138,43 @@ body {
   }
 }
 
+/* Force every corner to 4px (pill/full excluded). Library templates often ship rounded-lg/xl. */
+:where(
+  .rounded,
+  .rounded-xs,
+  .rounded-sm,
+  .rounded-md,
+  .rounded-lg,
+  .rounded-xl,
+  .rounded-2xl,
+  .rounded-3xl,
+  .rounded-4xl,
+  .rounded-t,
+  .rounded-t-sm,
+  .rounded-t-md,
+  .rounded-t-lg,
+  .rounded-t-xl,
+  .rounded-b,
+  .rounded-b-sm,
+  .rounded-b-md,
+  .rounded-b-lg,
+  .rounded-b-xl,
+  .rounded-l,
+  .rounded-r,
+  .rounded-s,
+  .rounded-e,
+  .rounded-tl,
+  .rounded-tr,
+  .rounded-bl,
+  .rounded-br
+),
+:where([class*="rounded-["]) {
+  border-radius: 4px !important;
+}
+:where(.rounded-full, .rounded-pill) {
+  border-radius: 9999px !important;
+}
+
 /* Enabled surfaces remain white. Gray is reserved for disabled controls; enabled text entry is white. */
 select:not(:disabled),[role="listbox"]:not([aria-disabled="true"]),[role="menu"]:not([aria-disabled="true"]),[role="combobox"]:not(input):not([aria-disabled="true"]){background-color:var(--card)!important}
 button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select:disabled,[role="button"][aria-disabled="true"],.tier0-control-disabled{background-color:var(--tier0-disabled-bg)!important;color:var(--tier0-disabled-text)!important;border-color:var(--tier0-disabled-border)!important;opacity:1!important;box-shadow:none!important;cursor:not-allowed}
@@ -1036,10 +1189,11 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
   --tier0-primary-border: #b2ed1d;
   --tier0-text-disabled: #bfbfbf;
   --tier0-canvas-gradient: #ffffff;
-  --tier0-fill-hover: var(--tier0-highlight-bg-accent);
+  /* Selection/hover fills stay neutral — never flood with brand lime. */
+  --tier0-fill-hover: #f4f4f5;
   --tier0-fill-active: rgb(0 0 0 / 0.07);
-  --tier0-row-hover: #f3f7ea;
-  --tier0-row-selected: #e7f9b9;
+  --tier0-row-hover: #f4f4f5;
+  --tier0-row-selected: #eeeeef;
   --tier0-input-disabled-bg: #f5f5f5;
   --tier0-success-deep: #166534;
   --tier0-success-border: #b7eb8f;
@@ -1047,17 +1201,21 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
   --tier0-error-border: #ffa39e;
   --tier0-warning-deep: #9a3412;
   --tier0-warning-border: #ffd591;
-  --tier0-radius-2xl: 16px;
-  --tier0-control-height-lg: 44px;
-  --tier0-shadow-card: 0 1px 2px 0 rgb(16 24 40 / 0.04), 0 2px 10px -2px rgb(16 24 40 / 0.05);
-  --tier0-shadow-popup: var(--shadow-md);
-  --tier0-shadow-primary-button: 0 2px 0 rgb(5 145 255 / 0.1);
+  /* --tier0-radius-2xl / --tier0-control-height-lg declared with the core scale above */
+  --tier0-shadow-card: 0 1px 2px 0 rgb(16 24 40 / 0.04), 0 8px 24px -10px rgb(16 24 40 / 0.1);
+  --tier0-shadow-popup: 0 0 0 1px rgb(15 23 42 / 0.04), 0 12px 28px -14px rgb(15 23 42 / 0.2),
+    0 4px 10px -6px rgb(15 23 42 / 0.08);
+  --tier0-shadow-primary-button: 0 1px 2px rgb(5 11 20 / 0.1);
+  --tier0-shadow-highlight-button: 0 1px 2px rgb(115 178 0 / 0.18), 0 6px 14px -8px rgb(178 237 29 / 0.55);
+  --tier0-shadow-overlay: var(--shadow-overlay);
+  --tier0-focus-ring: 0 0 0 3px color-mix(in srgb, var(--tier0-highlight) 35%, transparent);
 }
 
 @theme inline {
-  --color-brand: var(--tier0-primary);
-  --color-brand-hover: var(--tier0-primary-hover);
-  --color-brand-active: var(--tier0-primary-active);
+  /* Brand for text / solid selected fills must stay readable on white — not CTA lime. */
+  --color-brand: var(--tier0-highlight-deep);
+  --color-brand-hover: color-mix(in srgb, var(--tier0-highlight-deep) 82%, #050b14);
+  --color-brand-active: color-mix(in srgb, var(--tier0-highlight-deep) 68%, #050b14);
   --color-brand-soft: var(--tier0-primary-bg);
   --color-brand-soft-hover: var(--tier0-primary-bg-hover);
   --color-brand-border: var(--tier0-primary-border);
@@ -1070,11 +1228,11 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
   --color-row-hover: var(--tier0-row-hover);
   --color-row-selected: var(--tier0-row-selected);
   --color-input-disabled: var(--tier0-input-disabled-bg);
-  --color-success: var(--tier0-success-color);
+  /* Keep --color-success / --color-warning bound to ReUI semantic tokens above.
+   * Kit-only deep/soft/border variants stay on the Tier0 palette. */
   --color-success-deep: var(--tier0-success-deep);
   --color-success-soft: var(--tier0-success-tertiary);
   --color-success-border: var(--tier0-success-border);
-  --color-warning: var(--tier0-warning-color);
   --color-warning-deep: var(--tier0-warning-deep);
   --color-warning-soft: var(--tier0-warning-tertiary);
   --color-warning-border: var(--tier0-warning-border);
@@ -1085,17 +1243,20 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
   --shadow-card: var(--tier0-shadow-card);
   --shadow-popup: var(--tier0-shadow-popup);
   --shadow-primary: var(--tier0-shadow-primary-button);
+  --shadow-overlay: var(--tier0-shadow-overlay);
   --radius-xs: var(--tier0-radius-xs);
-  --animate-tier0-pop: tier0-pop 160ms var(--motion-ease);
+  --animate-tier0-pop: tier0-pop 180ms var(--motion-spring);
   --animate-tier0-fade: tier0-fade 160ms ease-out;
   --animate-tier0-drawer-left: tier0-drawer-left 220ms var(--motion-ease);
+  --animate-tier0-drawer-right: tier0-drawer-right 220ms var(--motion-ease);
+  --animate-tier0-rise: tier0-rise 220ms var(--motion-spring);
   --animate-tier0-shimmer: shimmer 1.6s linear infinite;
 }
 
 @keyframes tier0-pop {
   from {
     opacity: 0;
-    transform: scale(0.97) translateY(-2px);
+    transform: scale(0.96) translateY(-6px);
   }
   to {
     opacity: 1;
@@ -1119,4 +1280,270 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
   to {
     transform: none;
   }
+}
+
+@keyframes tier0-drawer-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes tier0-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes tier0-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes tier0-pop-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.97) translateY(-4px);
+  }
+}
+
+@keyframes tier0-drawer-left-out {
+  from {
+    transform: none;
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes tier0-drawer-right-out {
+  from {
+    transform: none;
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes tier0-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes tier0-content-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Toast tone accents — Tier0 status colors, not sonner's richColors palette. */
+.tier0-toast[data-type="success"] {
+  box-shadow: inset 3px 0 0 var(--tier0-success-color), var(--shadow-overlay) !important;
+}
+.tier0-toast[data-type="error"] {
+  box-shadow: inset 3px 0 0 var(--tier0-error-color), var(--shadow-overlay) !important;
+}
+.tier0-toast[data-type="warning"] {
+  box-shadow: inset 3px 0 0 var(--tier0-warning-color), var(--shadow-overlay) !important;
+}
+.tier0-toast[data-type="success"] [data-icon] {
+  color: var(--tier0-success-color);
+}
+.tier0-toast[data-type="error"] [data-icon] {
+  color: var(--tier0-error-color);
+}
+.tier0-toast[data-type="warning"] [data-icon] {
+  color: var(--tier0-warning-color);
+}
+.tier0-toast [data-close-button] {
+  background: var(--card);
+  border-color: var(--tier0-border);
+  color: var(--muted-foreground);
+}
+
+.dark {
+  /* Neutral dark canvas. CTA stays lime — never invert to stark white. */
+  --tier0-primary: #f4f4f5;
+  --tier0-primary-hover: #e4e4e7;
+  --tier0-on-primary: #050b14;
+  --tier0-cta: #cbf368;
+  --tier0-cta-hover: #d4f87a;
+  --tier0-cta-active: #b8e055;
+  --tier0-cta-foreground: #050b14;
+  --tier0-highlight-bg-primary: #cbf368;
+  --tier0-highlight-bg-accent: color-mix(in srgb, var(--tier0-highlight) 18%, transparent);
+  --tier0-text-color: #f4f4f5;
+  --tier0-text-secondary: #d4d4d8;
+  --tier0-text-tertiary: #a1a1aa;
+  --tier0-text-placeholder: #52525b;
+  --tier0-bg-color: #0c0d0f;
+  --tier0-canvas: #0c0d0f;
+  --tier0-bg-secondary: #141518;
+  --tier0-bg-tertiary: #141518;
+  --tier0-bg-accent: #1a1b1e;
+  --tier0-surface-muted: #2a2b2e;
+  --tier0-border: #2e2f33;
+  --tier0-border-secondary: #232428;
+  --tier0-skeleton-base: #222326;
+  --tier0-skeleton-shine: #2e2f33;
+  --tier0-input-bg: #141518;
+  --tier0-input-border: #3f3f46;
+  --tier0-input-disabled-bg: #1a1b1e;
+  --tier0-disabled-bg: #1a1b1e;
+  --tier0-disabled-text: #71717a;
+  --tier0-disabled-border: #3f3f46;
+  --tier0-fill-hover: #1a1b1e;
+  --tier0-fill-active: rgb(255 255 255 / 0.08);
+  --tier0-row-hover: #1a1b1e;
+  --tier0-row-selected: #222326;
+
+  --background: #0c0d0f;
+  --foreground: #f4f4f5;
+  --muted: #1a1b1e;
+  --muted-foreground: #a1a1aa;
+  --border: #2e2f33;
+  --border-strong: #3f3f46;
+  --input: #3f3f46;
+  --input-bg: #141518;
+  --card: #141518;
+  --card-foreground: #f4f4f5;
+  --popover: #141518;
+  --popover-foreground: #f4f4f5;
+  --surface-raised: #1a1b1e;
+  --surface-inset: #101114;
+  --sidebar: #101114;
+  --sidebar-foreground: #f4f4f5;
+  --sidebar-border: #2e2f33;
+  --sidebar-accent: #1a1b1e;
+  --sidebar-accent-foreground: #f4f4f5;
+  --sidebar-primary: var(--tier0-cta);
+  --sidebar-primary-foreground: var(--tier0-cta-foreground);
+  --accent: #1a1b1e;
+  --accent-foreground: #f4f4f5;
+  --secondary: #1a1b1e;
+  --secondary-foreground: #d4d4d8;
+  --primary: var(--tier0-primary);
+  --primary-foreground: var(--tier0-on-primary);
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.35);
+  --shadow-md: 0 8px 24px -12px rgb(0 0 0 / 0.55), 0 2px 6px -2px rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 18px 40px -20px rgb(0 0 0 / 0.65), 0 4px 12px -4px rgb(0 0 0 / 0.45);
+  --shadow-overlay: 0 0 0 1px rgb(255 255 255 / 0.06), 0 18px 40px -20px rgb(0 0 0 / 0.7),
+    0 8px 16px -10px rgb(0 0 0 / 0.5);
+
+  /* ReUI .dark status tokens — *-foreground must stay bright for tinted fills. */
+  --destructive: var(--color-red-500);
+  --destructive-foreground: var(--color-red-300);
+  --success: var(--color-emerald-500);
+  --success-foreground: var(--color-emerald-300);
+  --info: var(--color-violet-500);
+  --info-foreground: var(--color-violet-300);
+  --warning: var(--color-yellow-500);
+  --warning-foreground: var(--color-yellow-300);
+  --invert: var(--color-zinc-700);
+  --invert-foreground: var(--color-zinc-50);
+
+  /* Soft state fills — never keep light-mode pastels under .dark. */
+  --tier0-error-color: var(--color-red-500);
+  /* Light-mode #166534 is unreadable on dark surfaces (progress fills, positive trends). */
+  --tier0-success-color: var(--color-green-500);
+  --tier0-error-tertiary: color-mix(in srgb, var(--color-red-500) 22%, transparent);
+  --tier0-warning-color: var(--color-yellow-500);
+  --tier0-warning-tertiary: color-mix(in srgb, var(--color-yellow-500) 18%, transparent);
+  --tier0-blue-color: var(--color-violet-400);
+  --tier0-blue-tertiary: color-mix(in srgb, var(--color-violet-500) 18%, transparent);
+  --state-error-fg: var(--color-red-400);
+  --state-error-bg: color-mix(in srgb, var(--color-red-500) 22%, transparent);
+  --state-error-border: color-mix(in srgb, var(--color-red-500) 35%, transparent);
+  --state-paused-fg: var(--color-yellow-400);
+  --state-paused-bg: color-mix(in srgb, var(--color-yellow-500) 18%, transparent);
+  --state-paused-border: color-mix(in srgb, var(--color-yellow-500) 32%, transparent);
+  --state-info-fg: var(--color-violet-400);
+  --state-info-bg: color-mix(in srgb, var(--color-violet-500) 18%, transparent);
+  --state-info-border: color-mix(in srgb, var(--color-violet-500) 32%, transparent);
+  --state-running-fg: var(--tier0-cta);
+  --state-running-bg: color-mix(in srgb, var(--tier0-cta) 16%, transparent);
+  --state-running-border: color-mix(in srgb, var(--tier0-cta) 40%, transparent);
+
+  --view-icon-dark: #52525b;
+  --view-icon-green: #22c55e;
+  --view-icon-blue: #6b8ef5;
+  --view-icon-orange: #f0a04b;
+  --view-icon-red: #f87171;
+  /* Keep white glyph strokes — fills are vivid enough on dark canvas. */
+  --view-icon-stroke: #ffffff;
+}
+
+
+/* Tier0 category palette — auxiliary hues for categorical data (series, modules,
+ * resource types). Lime stays the brand accent; use these only to tell
+ * categories apart, always in this order, and pair each with its soft tint. */
+:root {
+  --tier0-cat-1: #7cb342; /* lime-green */
+  --tier0-cat-1-soft: #eef7e3;
+  --tier0-cat-2: #3b6be8; /* blue */
+  --tier0-cat-2-soft: #e8eefc;
+  --tier0-cat-3: #7c3aed; /* purple */
+  --tier0-cat-3-soft: #f0e9fd;
+  --tier0-cat-4: #e0a24e; /* amber */
+  --tier0-cat-4-soft: #fcf3e6;
+  --tier0-cat-5: #8fc7d9; /* sky (secondary series) */
+  --tier0-cat-5-soft: #ebf5f9;
+  --tier0-cat-6: #050b14; /* ink */
+  --tier0-cat-6-soft: #eeeff1;
+}
+
+/* Must follow :root cats — same specificity; last wins when html.dark. */
+.dark {
+  --tier0-cat-1: #9acc4a;
+  --tier0-cat-1-soft: #1f2a18;
+  --tier0-cat-2: #6b8ef5;
+  --tier0-cat-2-soft: #1a2238;
+  --tier0-cat-3: #a78bfa;
+  --tier0-cat-3-soft: #241a38;
+  --tier0-cat-4: #f0b55c;
+  --tier0-cat-4-soft: #2a2216;
+  --tier0-cat-5: #7eb8cc;
+  --tier0-cat-5-soft: #162228;
+  /* Ink cat must stay visible on dark chrome (not near-black). */
+  --tier0-cat-6: #c4c4c8;
+  --tier0-cat-6-soft: #222326;
+}
+
+@theme inline {
+  --color-cat-1: var(--tier0-cat-1);
+  --color-cat-1-soft: var(--tier0-cat-1-soft);
+  --color-cat-2: var(--tier0-cat-2);
+  --color-cat-2-soft: var(--tier0-cat-2-soft);
+  --color-cat-3: var(--tier0-cat-3);
+  --color-cat-3-soft: var(--tier0-cat-3-soft);
+  --color-cat-4: var(--tier0-cat-4);
+  --color-cat-4-soft: var(--tier0-cat-4-soft);
+  --color-cat-5: var(--tier0-cat-5);
+  --color-cat-5-soft: var(--tier0-cat-5-soft);
+  --color-cat-6: var(--tier0-cat-6);
+  --color-cat-6-soft: var(--tier0-cat-6-soft);
 }

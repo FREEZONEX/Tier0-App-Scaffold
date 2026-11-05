@@ -403,7 +403,7 @@ export function Select<V extends Primitive = Primitive>(props: SelectProps<V>) {
             {selectedList.slice(0, visibleCount).map((option) => (
               <span
                 key={String(option.value)}
-                className="inline-flex h-6 min-w-0 max-w-[180px] shrink-0 items-center gap-1 rounded-sm bg-fill-active pl-2 pr-1 text-sm leading-6 text-foreground"
+                className="inline-flex h-6 min-w-0 max-w-[180px] shrink-0 items-center gap-1 rounded-[4px] bg-fill-active pl-2 pr-1 text-sm leading-6 text-foreground"
               >
                 <span className="min-w-0 truncate">
                   <OptionLabel option={option} labelRender={labelRender} />
@@ -414,7 +414,7 @@ export function Select<V extends Primitive = Primitive>(props: SelectProps<V>) {
                     data-select-ignore=""
                     tabIndex={-1}
                     aria-label="移除"
-                    className="inline-flex size-4 shrink-0 items-center justify-center rounded-sm text-text-tertiary hover:text-foreground"
+                    className="inline-flex size-4 shrink-0 items-center justify-center rounded-[4px] text-text-tertiary hover:text-foreground"
                     onMouseDown={(event) => event.preventDefault()}
                     onClick={(event) => {
                       event.stopPropagation();
@@ -432,7 +432,7 @@ export function Select<V extends Primitive = Primitive>(props: SelectProps<V>) {
                   title={hiddenLabels.map((option) => optionSearchText(option)).join("、")}
                   placement="top"
                 >
-                  <span className="inline-flex h-6 shrink-0 items-center rounded-sm bg-fill-active px-2 text-sm leading-6 text-text-secondary">
+                  <span className="inline-flex h-6 shrink-0 items-center rounded-[4px] bg-fill-active px-2 text-sm leading-6 text-text-secondary">
                     +{hiddenLabels.length}
                   </span>
                 </Tooltip>
@@ -490,7 +490,7 @@ export function Select<V extends Primitive = Primitive>(props: SelectProps<V>) {
               {selectedList.map((option) => (
                 <span
                   key={String(option.value)}
-                  className="inline-flex h-6 max-w-[180px] shrink-0 items-center gap-1 rounded-sm pl-2 pr-1 text-sm"
+                  className="inline-flex h-6 max-w-[180px] shrink-0 items-center gap-1 rounded-[4px] pl-2 pr-1 text-sm"
                 >
                   <span className="min-w-0 truncate">
                     <OptionLabel option={option} labelRender={labelRender} />
@@ -661,7 +661,7 @@ export function Select<V extends Primitive = Primitive>(props: SelectProps<V>) {
                       ) : null}
                     </span>
                   )}
-                  {!multiple && selected ? <Check className="size-4 shrink-0 text-brand" /> : null}
+                  {!multiple && selected ? <Check className="size-4 shrink-0 text-foreground" /> : null}
                 </div>
               );
             })

@@ -1,16 +1,11 @@
 import { forwardRef, type ReactNode, type ButtonHTMLAttributes } from "react";
+import { Button as ButtonPrimitive } from "@base-ui/react/button";
+import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 /**
- * Button — implements the DESIGN.md button recipes. Use this instead of
- * hand-styling native buttons: variants carry the brand palette and states.
- *
- * - highlight: optional lime emphasis for a deliberately highlighted workflow
- *   action; importance alone does not require this variant.
- * - primary:   ink fill — standard primary/submit actions.
- * - secondary: soft surface fill — supporting actions.
- * - outline:   white with border — cancel/neutral actions.
- * - ghost:     borderless — low-emphasis inline/row actions.
+ * Button — ReUI (@base-ui/react + CVA) recipe.
+ * Keeps Tier0 color tokens and business variants; every corner is 4px.
  */
 export type ButtonVariant =
   | "highlight"
@@ -21,30 +16,56 @@ export type ButtonVariant =
   | "danger"
   | "link";
 
-export type ButtonSize = "sm" | "md" | "lg";
+/** icon-* sizes keep shadcn/ReUI registry components compatible with this Button. */
+export type ButtonSize = "sm" | "md" | "lg" | "icon-xs" | "icon-sm" | "icon" | "icon-lg";
 
-const variantClasses: Record<ButtonVariant, string> = {
-  danger: "bg-destructive text-white border border-transparent hover:brightness-95",
-  link: "bg-transparent text-primary border border-transparent underline-offset-4 hover:underline",
-  highlight:
-    "bg-highlight-bg-primary text-accent-foreground border border-transparent hover:brightness-95",
-  primary:
-    "bg-primary text-primary-foreground border border-transparent hover:bg-[color:var(--tier0-primary-hover)]",
-  secondary:
-    "bg-surface-inset text-secondary-foreground border border-border hover:bg-secondary",
-  outline:
-    "bg-card text-foreground border border-border-strong hover:bg-surface-inset",
-  ghost:
-    "bg-transparent text-secondary-foreground border border-transparent hover:bg-surface-inset",
-};
+const buttonVariants = cva(
+  [
+    "group/button inline-flex shrink-0 items-center justify-center rounded-[4px] border border-transparent",
+    "bg-clip-padding text-sm font-medium whitespace-nowrap outline-none select-none",
+    "transition-[color,background-color,border-color,box-shadow,transform,filter] duration-[var(--motion-fast)] ease-[var(--motion-ease)]",
+    "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
+    "active:not-aria-[haspopup]:scale-[0.97]",
+    "disabled:pointer-events-none disabled:opacity-50",
+    "aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20",
+    "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  ].join(" "),
+  {
+    variants: {
+      variant: {
+        highlight:
+          "bg-[color:var(--tier0-cta)] text-[color:var(--tier0-cta-foreground)] shadow-[var(--tier0-shadow-highlight-button)] hover:bg-[color:var(--tier0-cta-hover)] active:bg-[color:var(--tier0-cta-active)]",
+        primary:
+          "bg-primary text-primary-foreground shadow-primary hover:bg-[color:var(--tier0-primary-hover)] active:brightness-95",
+        secondary:
+          "bg-secondary text-secondary-foreground hover:bg-[color-mix(in_srgb,var(--secondary),var(--foreground)_5%)]",
+        outline:
+          "border-border bg-card text-foreground shadow-xs hover:border-[color-mix(in_srgb,var(--border)_70%,var(--foreground))] hover:bg-muted aria-pressed:border-transparent aria-pressed:bg-primary aria-pressed:text-primary-foreground aria-pressed:hover:bg-[color:var(--tier0-primary-hover)]",
+        ghost: "hover:bg-muted hover:text-foreground",
+        danger:
+          "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        sm: "h-7 gap-1 px-2.5 text-[0.8rem] [&_svg:not([class*='size-'])]:size-3.5",
+        md: "h-8 gap-1.5 px-2.5",
+        lg: "h-9 gap-1.5 px-3",
+        "icon-xs": "size-6 [&_svg:not([class*='size-'])]:size-3",
+        "icon-sm": "size-7 [&_svg:not([class*='size-'])]:size-3.5",
+        icon: "size-8",
+        "icon-lg": "size-9",
+      },
+    },
+    defaultVariants: {
+      variant: "primary",
+      size: "md",
+    },
+  },
+);
 
-const sizeClasses: Record<ButtonSize, string> = {
-  lg: "h-11 px-5 text-base",
-  sm: "h-9 px-3 text-sm",
-  md: "h-10 px-4 text-sm",
-};
-
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps
+  extends ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   icon?: ReactNode;
@@ -54,29 +75,46 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   function Button(
-    { variant = "primary", size = "md", type = "button", className, icon, loading = false, block = false, disabled, children, ...props },
+    {
+      variant = "primary",
+      size = "md",
+      type = "button",
+      className,
+      icon,
+      loading = false,
+      block = false,
+      disabled,
+      children,
+      ...props
+    },
     ref,
   ) {
     return (
-      <button
+      <ButtonPrimitive
         ref={ref}
         type={type}
         disabled={disabled || loading}
         aria-busy={loading || undefined}
+        data-slot="button"
         className={cn(
-          "inline-flex shrink-0 items-center justify-center gap-2 rounded-md font-medium leading-none transition-colors duration-150",
-          "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
-          "disabled:pointer-events-none disabled:opacity-55",
-          variantClasses[variant],
-          sizeClasses[size],
+          buttonVariants({ variant, size }),
           block && "w-full",
           className,
         )}
         {...props}
       >
-        {loading ? <span aria-hidden="true" className="size-4 animate-spin rounded-full border-2 border-current border-r-transparent" /> : icon}
+        {loading ? (
+          <span
+            className="size-3.5 shrink-0 animate-spin rounded-full border-2 border-current border-r-transparent animate-in fade-in-0 zoom-in-50"
+            aria-hidden
+          />
+        ) : (
+          icon
+        )}
         {children}
-      </button>
+      </ButtonPrimitive>
     );
   },
 );
+
+export { buttonVariants };

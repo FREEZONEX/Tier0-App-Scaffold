@@ -32,7 +32,7 @@ export const APP_NAME = "Manufacturing App";
  * `update_app_info` tool (`icon_path`). Do both together — see AGENTS.md
  * "Branding". The default below is a neutral placeholder.
  */
-export const APP_ICON = "/app-icon.svg";
+export const APP_ICON = "/app-icon.png";
 
 /**
  * Product locale. Set it together with APP_NAME — it drives `<html lang>`

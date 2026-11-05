@@ -133,7 +133,7 @@ export function ImageUpload({
       {files.map((file, index) => (
         <div
           key={file.uid}
-          className="group relative overflow-hidden rounded-lg border border-border bg-[#fafafa]"
+          className="group relative overflow-hidden rounded-[4px] border border-border bg-muted"
           style={tileStyle}
         >
           <img src={file.url} alt={file.name} className="size-full object-cover" draggable={false} />
@@ -142,7 +142,7 @@ export function ImageUpload({
               type="button"
               aria-label={`预览 ${file.name}`}
               title="预览"
-              className="inline-flex size-7 items-center justify-center rounded-md text-white hover:bg-white/20"
+              className="inline-flex size-7 items-center justify-center rounded-[4px] text-white hover:bg-white/20"
               onClick={() => setPreviewIndex(index)}
             >
               <Eye className="size-4" />
@@ -152,7 +152,7 @@ export function ImageUpload({
                 type="button"
                 aria-label={`删除 ${file.name}`}
                 title="删除"
-                className="inline-flex size-7 items-center justify-center rounded-md text-white hover:bg-white/20"
+                className="inline-flex size-7 items-center justify-center rounded-[4px] text-white hover:bg-white/20"
                 onClick={() => onChange?.(files.filter((item) => item.uid !== file.uid))}
               >
                 <Trash2 className="size-4" />
@@ -164,7 +164,7 @@ export function ImageUpload({
       {Array.from({ length: reading }, (_, index) => (
         <div
           key={`reading-${index}`}
-          className="flex items-center justify-center rounded-lg border border-dashed border-border-strong bg-[#fafafa]"
+          className="flex items-center justify-center rounded-[4px] border border-dashed border-border-strong bg-muted"
           style={tileStyle}
         >
           <span className="size-5 animate-spin rounded-full border-2 border-brand border-r-transparent" />
@@ -175,11 +175,11 @@ export function ImageUpload({
           type="button"
           disabled={disabled}
           className={cn(
-            "flex flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed bg-[#fafafa] text-xs text-text-secondary transition-colors duration-150",
+            "flex flex-col items-center justify-center gap-1.5 rounded-[4px] border border-dashed bg-muted text-xs text-text-secondary transition-colors duration-150",
             disabled
               ? "cursor-not-allowed border-border-strong text-text-placeholder"
               : "border-border-strong hover:border-brand hover:text-brand",
-            dragging && "border-brand bg-brand-soft text-brand",
+            dragging && "border-foreground/30 bg-muted text-foreground",
           )}
           style={tileStyle}
           onClick={() => inputRef.current?.click()}
@@ -323,7 +323,7 @@ export function AttachmentUpload({
             return (
               <li
                 key={file.uid}
-                className="group flex min-w-0 items-center gap-2 rounded-md px-2 py-1 transition-colors hover:bg-fill-hover"
+                className="group flex min-w-0 items-center gap-2 rounded-[4px] px-2 py-1 transition-colors hover:bg-fill-hover"
               >
                 <Icon className="size-4 shrink-0 text-text-tertiary" />
                 <button
@@ -341,7 +341,7 @@ export function AttachmentUpload({
                   type="button"
                   aria-label={`下载 ${file.name}`}
                   title="下载"
-                  className="inline-flex size-6 shrink-0 items-center justify-center rounded-sm text-text-tertiary hover:bg-fill-active hover:text-brand"
+                  className="inline-flex size-6 shrink-0 items-center justify-center rounded-[4px] text-text-tertiary hover:bg-fill-active hover:text-brand"
                   onClick={() => downloadFileValue(file)}
                 >
                   <Download className="size-3.5" />
@@ -351,7 +351,7 @@ export function AttachmentUpload({
                     type="button"
                     aria-label={`删除 ${file.name}`}
                     title="删除"
-                    className="inline-flex size-6 shrink-0 items-center justify-center rounded-sm text-text-tertiary hover:bg-danger-soft hover:text-danger"
+                    className="inline-flex size-6 shrink-0 items-center justify-center rounded-[4px] text-text-tertiary hover:bg-danger-soft hover:text-danger"
                     onClick={() => onChange?.(files.filter((item) => item.uid !== file.uid))}
                   >
                     <Trash2 className="size-3.5" />
@@ -396,7 +396,7 @@ export function ImageThumbs({ value, size = 32, max = 3, emptyText = "-", classN
           type="button"
           key={image.uid}
           aria-label={`预览 ${image.name}`}
-          className="shrink-0 overflow-hidden rounded-sm border border-border transition-[box-shadow] hover:shadow-[0_0_0_2px_var(--tier0-primary-bg-hover)]"
+          className="shrink-0 overflow-hidden rounded-[4px] border border-border transition-[box-shadow] hover:shadow-[0_0_0_2px_var(--tier0-primary-bg-hover)]"
           style={{ width: size, height: size }}
           onClick={(event) => {
             event.stopPropagation();
@@ -410,7 +410,7 @@ export function ImageThumbs({ value, size = 32, max = 3, emptyText = "-", classN
         <button
           type="button"
           aria-label={`查看全部 ${images.length} 张图片`}
-          className="inline-flex shrink-0 items-center justify-center rounded-sm bg-fill-active text-xs text-text-secondary hover:text-brand"
+          className="inline-flex shrink-0 items-center justify-center rounded-[4px] bg-fill-active text-xs text-text-secondary hover:text-brand"
           style={{ width: size, height: size }}
           onClick={(event) => {
             event.stopPropagation();
