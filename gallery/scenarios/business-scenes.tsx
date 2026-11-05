@@ -313,12 +313,7 @@ export function SceneOpsMonitor() {
           <RiskBanner
             severity="error"
             action={
-              <Button
-                size="sm"
-                variant="secondary"
-                className="border border-border bg-card text-foreground shadow-xs"
-                onClick={() => acknowledge(critical)}
-              >
+              <Button size="sm" variant="outline" className="dark:border-white/15 dark:bg-white/10 dark:hover:bg-white/15" onClick={() => acknowledge(critical)}>
                 确认告警
               </Button>
             }
@@ -372,7 +367,7 @@ export function SceneOpsMonitor() {
                 key={l.id}
                 style={{ "--i": i } as CSSProperties}
                 className={cn(
-                  "space-y-3 rounded-[4px] bg-[#fafafa] p-3 transition-[background-color,box-shadow] duration-[var(--motion-fast)] hover:bg-fill-hover",
+                  "space-y-3 rounded-[4px] bg-muted p-3 transition-[background-color,box-shadow] duration-[var(--motion-fast)] hover:bg-[color:var(--tier0-fill-active)]",
                   l.state === "error" &&
                     "bg-[color:var(--state-error-bg)] hover:bg-[color:var(--state-error-bg)]",
                   STAGGER_ITEM,
@@ -414,12 +409,15 @@ export function SceneOpsMonitor() {
                   size="sm"
                   showInfo={false}
                   status={l.state === "error" ? "exception" : "normal"}
+                  trailColor="var(--tier0-surface-muted)"
                 />
                 {l.state !== "running" && (
                   <Button
                     size="sm"
                     variant="outline"
                     block
+                    // On a tinted card a card-colored button reads as a black slab in dark mode.
+                    className="dark:border-white/15 dark:bg-white/10 dark:hover:bg-white/15"
                     onClick={() => restart(l)}
                   >
                     {l.state === "error"

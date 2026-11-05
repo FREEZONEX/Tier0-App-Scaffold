@@ -28,7 +28,8 @@ import { StatusTag } from '@/components/kit/ui/tag';
 import { DataGrid } from '@/components/kit/ui/data-grid';
 import { ProgressBar } from '@/components/kit/ui/feedback';
 import { Avatar } from '@/components/kit/ui/avatar';
-import { IconButton } from '@/components/kit/ui/buttons';
+import { IconButton, TextButton } from '@/components/kit/ui/buttons';
+import { EllipsisText } from '@/components/kit/ui/tooltip';
 import { Drawer } from '@/components/overlays/drawer';
 import { ConfirmDialog } from '@/components/overlays/confirm-dialog';
 import { FieldGroup } from '@/components/forms/form-layout';
@@ -254,25 +255,18 @@ export function TaskWorkspace() {
 
   function actions(t: Task) {
     return (
-      <div className="flex flex-wrap items-center gap-1.5">
-        {t.status !== 'closed' && (
-          <Button size="sm" variant="outline" onClick={() => advance(t)}>
-            {t.status === 'todo' ? '开始' : t.status === 'running' ? '完成' : '重新打开'}
-            <ArrowRight size={12} />
-          </Button>
-        )}
-        {t.status === 'closed' && (
-          <Button size="sm" variant="outline" onClick={() => advance(t)}>
-            重新打开
-          </Button>
-        )}
-        <Button size="sm" variant="ghost" onClick={() => edit(t)}>
+      // One style for every row action: text buttons, same size and spacing; 关闭 is the only danger tone.
+      <div className="flex items-center gap-4 whitespace-nowrap">
+        <TextButton size="sm" onClick={() => advance(t)}>
+          {t.status === 'todo' ? '开始' : t.status === 'running' ? '完成' : '重新打开'}
+        </TextButton>
+        <TextButton size="sm" onClick={() => edit(t)}>
           编辑
-        </Button>
+        </TextButton>
         {t.status !== 'closed' && (
-          <Button size="sm" variant="ghost" className="text-muted-foreground" onClick={() => setClosing([t])}>
+          <TextButton size="sm" tone="danger" onClick={() => setClosing([t])}>
             关闭
-          </Button>
+          </TextButton>
         )}
       </div>
     );
@@ -325,7 +319,7 @@ export function TaskWorkspace() {
                     <div className="flex items-center gap-2">
                       <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
                         <Avatar name={t.owner} size="sm" />
-                        <span className="truncate">{t.owner}</span>
+                        <EllipsisText>{t.owner}</EllipsisText>
                       </span>
                       <span className="ml-auto flex items-center gap-0.5">
                         <Button size="sm" variant="ghost" className="h-6 px-2 text-xs" onClick={() => advance(t)}>
@@ -357,42 +351,53 @@ export function TaskWorkspace() {
     <DataGrid
       rows={filtered}
       rowKey={(t) => t.id}
+      // 编号 already identifies each row; a 序号 column would only take width from 任务.
+      showIndex={false}
       selection={{ mode: 'multiple', selectedKeys: selected, onChange: (keys) => setSelected(keys.map(String)) }}
       columns={[
-        { key: 'id', title: '编号', width: 120 },
+        // Short fixed-format columns never shrink (ellipsis: false); only 任务 gives way and shows the full text on hover.
+        { key: 'id', title: '编号', width: 108, ellipsis: false, render: (t) => <span className="whitespace-nowrap">{t.id}</span> },
         {
           key: 'name',
           title: '任务',
-          width: 260,
+          width: 240,
+          tooltip: (t) => `${t.name}（${t.priority}优先级）`,
           render: (t) => (
-            <span className="flex items-center gap-2">
-              <span className={cn('size-1.5 shrink-0 rounded-full', priorityDot[t.priority])} aria-hidden />
-              {t.name}
+            <span className="flex min-w-0 items-center gap-2">
+              <span
+                className={cn('size-1.5 shrink-0 rounded-full', priorityDot[t.priority])}
+                title={`${t.priority}优先级`}
+                aria-label={`${t.priority}优先级`}
+                role="img"
+              />
+              <span className="min-w-0 truncate">{t.name}</span>
             </span>
           ),
         },
+        // 状态 right after 任务: it stays in view when narrow screens scroll the table sideways.
+        { key: 'status', title: '状态', width: 104, ellipsis: false, render: (t) => <StatusTag tone={stageTone[t.status]} dot>{stageLabel(t.status)}</StatusTag> },
         {
           key: 'owner',
           title: '负责人',
-          width: 110,
+          width: 104,
+          ellipsis: false,
           render: (t) => (
-            <span className="flex items-center gap-1.5">
+            <span className="flex min-w-0 items-center gap-1.5 whitespace-nowrap">
               <Avatar name={t.owner} size="sm" />
-              {t.owner}
+              <span className="min-w-0 truncate">{t.owner}</span>
             </span>
           ),
         },
-        { key: 'priority', title: '优先级', width: 80 },
-        { key: 'due', title: '计划日期', width: 120, render: (t) => <span className="tabular-nums">{t.due || '—'}</span> },
+        { key: 'due', title: '计划日期', width: 112, ellipsis: false, render: (t) => <span className="whitespace-nowrap tabular-nums">{t.due || '—'}</span> },
         {
           key: 'amount',
           title: '领料金额',
-          width: 120,
+          width: 112,
           align: 'right',
-          render: (t) => <span className="tabular-nums">{t.lines.length ? money(totalOf(t.lines, 'amount')) : '—'}</span>,
+          ellipsis: false,
+          render: (t) => <span className="whitespace-nowrap tabular-nums">{t.lines.length ? money(totalOf(t.lines, 'amount')) : '—'}</span>,
         },
-        { key: 'status', title: '状态', width: 100, render: (t) => <StatusTag tone={stageTone[t.status]} dot>{stageLabel(t.status)}</StatusTag> },
-        { key: 'actions', title: '操作', width: 240, ellipsis: false, render: actions },
+        { key: 'actions', title: '操作', width: 168, fixed: 'right', ellipsis: false, render: actions },
       ]}
     />
   );
@@ -441,7 +446,7 @@ export function TaskWorkspace() {
                 {attention.map((t) => (
                   <li key={t.id} className="flex items-center gap-3 px-4 py-3">
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">{t.name}</p>
+                      <EllipsisText className="text-sm font-medium">{t.name}</EllipsisText>
                       <p className="caption">
                         高优先级 · {stageLabel(t.status)} · {t.owner}
                       </p>
@@ -494,21 +499,25 @@ export function TaskWorkspace() {
                 ...stages.map((s) => ({ key: s.value as string, label: s.label, count: count(s.value) })),
               ]}
             />
+            {/* Narrow screens: the search takes its own full-width row under the compact controls. */}
             <KeywordSearch
               label="关键词搜索任务"
               value={query}
               onChange={setQuery}
               fields={keywordFields}
-              className="w-full sm:w-72"
+              className="order-last w-full sm:order-none sm:w-72"
             />
+            {/* size lg = the 36px control height of the select / search / view toggle beside it. */}
             <Button
+              size="lg"
               variant={filterOpen ? 'secondary' : 'outline'}
               icon={<SlidersHorizontal size={14} />}
+              aria-label={activeConditions > 0 ? `高级筛选，已应用 ${activeConditions} 个条件` : '高级筛选'}
               aria-expanded={filterOpen}
               aria-controls="task-advanced-filter"
               onClick={() => setFilterOpen((open) => !open)}
             >
-              高级筛选
+              <span className="hidden sm:inline">高级筛选</span>
               {activeConditions > 0 && <span className="tabular-nums text-muted-foreground">{activeConditions}</span>}
             </Button>
             <ViewToggle

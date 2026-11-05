@@ -218,7 +218,7 @@ export function DualAxisChart({
                       textAnchor="middle"
                       fontSize={font - 1}
                       fontWeight={labelInside ? 600 : undefined}
-                      fill={labelInside ? "#ffffff" : ink.ink2}
+                      fill={labelInside ? inkOnFill(bar.color) : ink.ink2}
                       className="tabular-nums"
                     >
                       {bar.format(point.bar)}
@@ -274,7 +274,19 @@ export function DualAxisChart({
               />
             ))}
             {lastLine && hovered === null ? (
-              <text x={lastLine.x} y={lastLineLabelY} textAnchor="middle" fontSize={font - 1} fontWeight={600} fill={ink.ink}>
+              // The line label can land on a bar: a halo in the card color keeps it readable on any fill.
+              <text
+                x={lastLine.x}
+                y={lastLineLabelY}
+                textAnchor="middle"
+                fontSize={font - 1}
+                fontWeight={600}
+                fill={ink.ink}
+                stroke={ink.surface}
+                strokeWidth={3}
+                strokeLinejoin="round"
+                paintOrder="stroke"
+              >
                 {line.format(points[lastLine.index].line ?? 0)}
               </text>
             ) : null}
@@ -426,6 +438,24 @@ export function ProgressRingChain({ tasks, ringSize, availableWidth }: ProgressR
       ))}
     </div>
   );
+}
+
+/**
+ * Ink for text drawn ON a filled shape: dark on light fills (lime, yellow),
+ * white on dark ones. Non-hex fills (CSS variables) fall back to dark ink, the
+ * readable choice on the scaffold's lime / tinted bars.
+ */
+export function inkOnFill(fill: string): string {
+  const hex = fill.trim().replace(/^#/, "");
+  const full = /^[0-9a-f]{3}$/i.test(hex) ? hex.split("").map((c) => c + c).join("") : hex;
+  if (!/^[0-9a-f]{6}$/i.test(full)) return "#050b14";
+  const [r, g, b] = [0, 2, 4].map((i) => {
+    const c = parseInt(full.slice(i, i + 2), 16) / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  });
+  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  // Pick whichever ink has the higher contrast ratio against the fill.
+  return (luminance + 0.05) / 0.05 >= 1.05 / (luminance + 0.05) ? "#050b14" : "#ffffff";
 }
 
 /** Chart series: lime / Tier0 blue / neutral tertiary (not cool slate fills). */

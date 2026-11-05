@@ -374,6 +374,8 @@ export function DataGrid<Row>({
   }, [fillGap, fillMin]);
 
   /* ---------------- shared tooltip for truncated cells ---------------- */
+  const isClipped = (element: HTMLElement) =>
+    element.scrollWidth > element.clientWidth + 1 || element.scrollHeight > element.clientHeight + 1;
   const tipLayerId = useId();
   const tipAnchorRef = useRef<HTMLElement | null>(null);
   const tipFloatingRef = useRef<HTMLDivElement | null>(null);
@@ -408,7 +410,10 @@ export function DataGrid<Row>({
     if (target === tipAnchorRef.current) return;
     hideTip();
     if (!target) return;
-    const truncated = target.scrollWidth > target.clientWidth + 1 || target.scrollHeight > target.clientHeight + 1;
+    // The cell itself, or an ellipsized element inside it (a tag, a link), may be what is cut off.
+    const truncated = isClipped(target) || Array.from(target.querySelectorAll("*")).some(
+      (element) => element instanceof HTMLElement && getComputedStyle(element).textOverflow === "ellipsis" && isClipped(element),
+    );
     const text = target.getAttribute("data-grid-tip") || target.textContent || "";
     if (!truncated || !text.trim() || text === EMPTY_TEXT) return;
     tipTimerRef.current = window.setTimeout(() => {
@@ -464,9 +469,10 @@ export function DataGrid<Row>({
         given += add;
       });
     }
-    // Too wide: shrink data columns proportionally (cells ellipsize) before
-    // falling back to horizontal scroll, which only remains once every column
-    // has reached its floor — so ordinary tables never scroll sideways.
+    // Too wide: shrink data columns proportionally (cells ellipsize) when that
+    // makes the table fit, so ordinary tables never scroll sideways. When even
+    // the floors cannot fit, keep the full widths and scroll instead —
+    // truncating text would hide content without saving the scrollbar.
     if (free < 0 && flexWidth > 0 && viewportWidth > 0) {
       // Columns that opt out of ellipsis (actions, tags) keep their width.
       const floor = (cell: LayoutCell<Row>) =>
@@ -475,8 +481,8 @@ export function DataGrid<Row>({
           : Math.min(cell.width, Math.max(72, Math.round(cell.width * 0.55)));
       const shrinkable = flexCells.reduce((sum, cell) => sum + (cell.width - floor(cell)), 0);
       // +4px slack absorbs container borders and sub-pixel rounding.
-      const take = Math.min(-free + 4, shrinkable);
-      if (take > 0) {
+      const take = -free + 4;
+      if (take > 0 && take <= shrinkable) {
         let taken = 0;
         flexCells.forEach((cell, index) => {
           const room = cell.width - floor(cell);

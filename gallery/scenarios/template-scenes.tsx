@@ -10,13 +10,13 @@ import {
   Coins,
   Download,
   Gauge,
-  Pause,
   Play,
   Search,
   Workflow,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { TextButton } from "@/components/kit/ui/buttons";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard } from "@/components/ui/stat-card";
@@ -296,7 +296,7 @@ export function SceneWorkflowHub() {
             {
               key: "state",
               title: "状态",
-              width: 100,
+              width: 112,
               render: (f) => (
                 <StatusBadge tone={f.state} pulse={f.state === "running"}>
                   {flowLabel[f.state]}
@@ -325,35 +325,23 @@ export function SceneWorkflowHub() {
             {
               key: "actions",
               title: "操作",
-              width: 170,
+              width: 128,
+              fixed: "right",
               ellipsis: false,
               render: (f) => (
-                <span className="flex gap-1">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    icon={<Play size={12} />}
-                    onClick={() => run(f)}
-                  >
+                // Same row-action style as the task list: text buttons only.
+                <span className="flex items-center gap-4 whitespace-nowrap">
+                  <TextButton size="sm" onClick={() => run(f)}>
                     运行
-                  </Button>
+                  </TextButton>
                   {f.state === "paused" ? (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setState(f, "running")}
-                    >
+                    <TextButton size="sm" onClick={() => setState(f, "running")}>
                       恢复
-                    </Button>
+                    </TextButton>
                   ) : (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      icon={<Pause size={12} />}
-                      onClick={() => setPausing(f)}
-                    >
+                    <TextButton size="sm" tone="warning" onClick={() => setPausing(f)}>
                       暂停
-                    </Button>
+                    </TextButton>
                   )}
                 </span>
               ),
@@ -640,7 +628,7 @@ export function SceneAuditTimeline() {
                             <dt className="text-xs leading-5 text-muted-foreground">
                               {k}
                             </dt>
-                            <dd className="mt-1 truncate font-medium leading-5 text-foreground">
+                            <dd className="mt-1 truncate font-medium leading-5 text-foreground" title={String(v)}>
                               {v}
                             </dd>
                           </div>

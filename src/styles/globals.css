@@ -1468,6 +1468,8 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
 
   /* Soft state fills — never keep light-mode pastels under .dark. */
   --tier0-error-color: var(--color-red-500);
+  /* Light-mode #166534 is unreadable on dark surfaces (progress fills, positive trends). */
+  --tier0-success-color: var(--color-green-500);
   --tier0-error-tertiary: color-mix(in srgb, var(--color-red-500) 22%, transparent);
   --tier0-warning-color: var(--color-yellow-500);
   --tier0-warning-tertiary: color-mix(in srgb, var(--color-yellow-500) 18%, transparent);

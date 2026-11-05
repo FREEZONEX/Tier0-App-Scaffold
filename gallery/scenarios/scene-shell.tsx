@@ -99,7 +99,7 @@ function SceneNav({
             </span>
             {!collapsed ? (
               <div className="min-w-0 flex-1 overflow-hidden transition-[max-width,opacity,transform] duration-200 ease-[cubic-bezier(0.2,0,0,1)]">
-                <p className="truncate whitespace-nowrap text-sm font-semibold tracking-tight">
+                <p className="truncate whitespace-nowrap text-sm font-semibold tracking-tight" title={APP_NAME}>
                   {APP_NAME}
                 </p>
                 <p className="truncate whitespace-nowrap text-xs text-muted-foreground">
@@ -285,8 +285,8 @@ export function SceneShell({
             <Menu size={16} aria-hidden />
           </button>
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">{activeLabel}</p>
-            <p className="truncate text-xs text-muted-foreground">{APP_NAME}</p>
+            <p className="truncate text-sm font-semibold" title={activeLabel}>{activeLabel}</p>
+            <p className="truncate text-xs text-muted-foreground" title={APP_NAME}>{APP_NAME}</p>
           </div>
         </div>
 
