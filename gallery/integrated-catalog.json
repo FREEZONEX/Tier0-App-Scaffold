@@ -32,21 +32,6 @@
     ]
   },
   {
-    "name": "SceneAdminDirectory",
-    "label": "成员目录",
-    "category": "业务场景",
-    "layer": "business",
-    "detail": "Atlas 成员与角色：页签、权限卡片、邀请对话框；左侧应用壳可折叠。",
-    "reason": "",
-    "samples": [
-      {
-        "name": "SceneAdminDirectory",
-        "label": "成员目录",
-        "engine": "library"
-      }
-    ]
-  },
-  {
     "name": "SceneOpsMonitor",
     "label": "产线监控",
     "category": "业务场景",

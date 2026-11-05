@@ -2,7 +2,6 @@ import { TaskWorkspace } from './scenarios/task-workspace';
 import { ViewEditorExample } from './scenarios/view-editor';
 import { AnchorNavigationExample, DropdownLayoutExample } from './scenarios/layout-controls';
 import {
-  SceneAdminDirectory,
   SceneEmptyContrast,
   SceneOpsMonitor,
 } from './scenarios/business-scenes';
@@ -124,7 +123,6 @@ case'PageHeaderLink':body=<Comp to="/" onClick={(e:any)=>{e.preventDefault();hit
 
 case'RouteError':body=<Comp error={new Error('示例加载错误')} reset={hit}/>;break;
 case'SceneTaskOps':body=<SceneShell active="SceneTaskOps"><TaskWorkspace/></SceneShell>;break;
-case'SceneAdminDirectory':body=<SceneShell active="SceneAdminDirectory"><SceneAdminDirectory/></SceneShell>;break;
 case'SceneOpsMonitor':body=<SceneShell active="SceneOpsMonitor"><SceneOpsMonitor/></SceneShell>;break;
 case'SceneEmptyContrast':body=<SceneShell active="SceneEmptyContrast"><SceneEmptyContrast/></SceneShell>;break;
 case'SceneWorkflowHub':body=<SceneShell active="SceneWorkflowHub"><SceneWorkflowHub/></SceneShell>;break;

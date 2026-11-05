@@ -17,7 +17,6 @@ const categories = [
 const scenes = [
   ["SceneTaskOps", "任务运营台"],
   ["SceneWorkflowHub", "工作流总览"],
-  ["SceneAdminDirectory", "组织与主数据"],
   ["SceneAuditTimeline", "审计日志"],
   ["SceneOpsMonitor", "运营监控"],
   ["SceneAgentSpend", "用量与成本"],

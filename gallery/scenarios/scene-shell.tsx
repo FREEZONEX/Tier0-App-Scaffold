@@ -11,7 +11,6 @@ import {
   LayoutDashboard,
   Menu,
   ScrollText,
-  Users,
   Workflow,
   X,
 } from "lucide-react";
@@ -20,7 +19,6 @@ import { cn } from "@/lib/utils";
 
 type SceneKey =
   | "SceneTaskOps"
-  | "SceneAdminDirectory"
   | "SceneOpsMonitor"
   | "SceneEmptyContrast"
   | "SceneWorkflowHub"
@@ -43,7 +41,6 @@ const GROUPS: {
   {
     title: "Organization",
     items: [
-      { key: "SceneAdminDirectory", label: "成员目录", icon: Users },
       { key: "SceneAuditTimeline", label: "审计日志", icon: ScrollText },
     ],
   },
