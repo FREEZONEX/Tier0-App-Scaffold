@@ -527,7 +527,7 @@ export function TaskWorkspace() {
         }
       >
         {filterOpen ? (
-          <div id="task-advanced-filter" className="border-b border-border px-4 py-3">
+          <div id="task-advanced-filter" className="border-b border-border bg-muted/50 px-4 py-4">
             <AdvancedFilter conditions={filterConditions} value={applied} onChange={setApplied} />
           </div>
         ) : activeConditions > 0 ? (
