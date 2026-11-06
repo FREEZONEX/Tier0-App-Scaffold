@@ -12,7 +12,7 @@ mechanisms and neither one syncs the other automatically:
 
 | Plane | Where it lives | What it controls | Who writes it |
 |---|---|---|---|
-| **Registration plane** (platform) | Platform DB (`workspace_business_roles`, `app_business_role_bindings`) | Whether the platform *knows* the role exists, shows it in the Roles tab / preview role picker, and can assign it to members | `roles.json` at import/fork, or the agent's `sync_business_roles` tool |
+| **Registration plane** (platform) | Platform DB (`workspace_business_roles`, `app_business_role_bindings`) | Whether the platform *knows* the role exists, shows it in the Roles tab / preview role picker, and can assign it to members | `roles.json` at import/fork, or the agent's `sync_business_roles` tool; new or reused roles after Builder confirmation |
 | **Permission plane** (this app) | `src/lib/permissions.ts` `PERMISSION_MATRIX` (+ `role-metadata.ts`) | What the role is *allowed to do* once a request carrying it reaches the app | The agent editing this app's source |
 
 **The classic failure:** a role is visible everywhere in the platform UI
@@ -69,10 +69,25 @@ not block builds; registration, metadata and permission checks still apply.
 
 ### How the platform consumes it
 
-- **On import / template fork**, the platform reads root `roles.json` and runs
-  `SyncAppRoles`: it creates or reuses each `role_key` as a workspace business role and
-  binds it to the new app, in one transaction. This is the *only* automatic
-  registration step.
+- **Role plan first.** Before every sync the platform computes a role plan:
+  roles it would create in the workspace, existing workspace roles it would
+  newly bind to this app (reuse), and bindings the app already has. When the
+  plan creates or newly reuses a role, nothing is written until a Builder
+  confirms it; a plan without either applies directly. For each reused role
+  the Builder chooses on the plan card to rename it or keep its current name;
+  its `role_key` never changes and a new description is appended to the
+  existing one. An app with a pending role plan cannot be published, whether
+  it was created in the conversation, imported or forked.
+- **On import / template fork**, the platform reads root `roles.json` (the
+  upload reports `contents.roles: true`) and shows the plan in an extra
+  **Confirm roles** wizard step, or in the Use template dialog. Confirming
+  creates or reuses each `role_key` and binds it to the new app in one
+  transaction.
+- **Via `sync_business_roles`**, a plan that needs confirmation is stored on
+  the app and the tool returns `confirmation_required`. Ask the user to
+  confirm it in the role card and end the turn. Do not retry or switch
+  `role_key`s to get around it; that replaces the pending plan, which still
+  needs confirmation. Check the outcome next turn with `list_business_roles`.
 - **On export**, the platform *regenerates* `roles.json` from its DB — the file
   you shipped is overwritten with the authoritative registered set. Do not treat
   a hand-edited `roles.json` inside an exported package as durable; it is an
