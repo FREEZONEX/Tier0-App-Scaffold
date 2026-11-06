@@ -38,6 +38,21 @@ export async function loadTier0Sdk(): Promise<Tier0SdkModule> {
   return require("@tier0/sdk-v2") as Tier0SdkModule;
 }
 
+/** Bind the platform-injected App credential to a server-side v2 client. */
+export async function getTier0AppClient() {
+  assertServerOnly("Tier0 App SDK");
+  const apiHost = process.env.TIER0_API_HOST;
+  const apiKey = process.env.TIER0_API_KEY;
+  if (!apiKey?.trim()) {
+    throw new Error("Tier0 App SDK requires the platform-injected TIER0_API_KEY");
+  }
+  if (!apiHost?.trim()) {
+    throw new Error("Tier0 App SDK requires the platform-injected TIER0_API_HOST");
+  }
+  const { createClient } = await loadTier0Sdk();
+  return createClient({ apiHost, apiKey });
+}
+
 export async function loadTier0OpenApi(): Promise<Tier0OpenApiModule> {
   assertServerOnly("Tier0 OpenAPI SDK");
   return require("@tier0/sdk-v2/openapi") as Tier0OpenApiModule;

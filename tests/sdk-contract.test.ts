@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import type { CloudSourceDocument, CloudStreamDocument } from "@tier0/sdk-v2";
+import type { SourceDefinition, CloudStreamDocument } from "@tier0/sdk-v2";
 import { loadTier0Sdk, loadTier0Mq } from "../src/lib/tier0";
 
 const require = createRequire(import.meta.url);
@@ -46,7 +46,7 @@ test("native Stream validation preserves the current script object without a ret
 
 // These assignments are compile-time contract checks, never live requests.
 // @ts-expect-error The installed SDK must not recreate a retired Push protocol.
-const retiredProtocol: CloudSourceDocument["protocol"] = "http_push";
+const retiredProtocol: SourceDefinition["protocol"] = "http_push";
 void retiredProtocol;
 // @ts-expect-error Current native Stream scripts have no interpreter selector.
 const retiredScript: CloudStreamDocument["script"] = { code: "module.exports = api => {};", timeoutMs: 1000, sdkVersion: "tier0-stream/v2" };
