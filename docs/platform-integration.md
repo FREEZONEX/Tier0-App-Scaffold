@@ -2,12 +2,12 @@
 
 ## Tier0 SDK (`@tier0/sdk-v2`)
 
-The unified `@tier0/sdk-v2@0.9.8` is pinned to the bundled archive
-`file:vendor/tier0-sdk-v2-0.9.8.tgz`. It supplies data, platform, Stream request
+This draft pins the unpublished `@tier0/sdk-v2@0.9.11` candidate in
+`file:vendor/tier0-sdk-v2-0.9.11.tgz` for consumer verification only. It supplies data, platform, Stream request
 and message APIs using `/openapi/v2`. The archive integrity is checked by the
 lockfile and tests; installation alone does not prove a live deployment.
-This 0.9.8 artifact uses the committed backend contract and is distributed with
-the scaffold. Follow [the directory rollout plan](collection-directory-release.md)
+Before distribution verify the final published archive and deployed backend
+contract. Follow [the directory rollout plan](collection-directory-release.md)
 before distributing the template or deploying its backend dependency.
 
 HTTP Sources use `http-api` with `config.role: client | server`. New Source
@@ -40,10 +40,9 @@ Authenticate and authorize human requests with the App's gateway identity and
 permission checks before a service uses the App key. Do not use
 `configureClient` to switch request identities.
 
-The current bundled SDK 0.9.8 sends two credential headers and is incompatible
-with Cloud Gateway `SysRPCCaller.Mode=enforce`. Update the archive and lockfile
-to a formally released SDK containing [the single-header fix](https://github.com/FREEZONEX/Tier0-sdk-v2/pull/68)
-before using this integration in enforce mode.
+The 0.9.11 candidate uses a single credential header for Gateway enforce mode.
+It must be replaced or verified against the formally published artifact before
+distribution; local tests do not prove deployment or authorization.
 
 The old Flow API has no v2 equivalent. Source and Stream have distinct
 contracts and are not aliases; management operations such as
