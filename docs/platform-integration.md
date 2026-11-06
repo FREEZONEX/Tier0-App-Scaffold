@@ -342,8 +342,8 @@ Role definitions belong to the app. Role assignment belongs to the platform.
 2. The platform registers the `roles.json` roles on import/fork (or via the
    builder's `sync_business_roles` tool). It computes a role plan first:
    roles it would create or newly reuse are written only after a Builder
-   confirms the plan (on import, an extra Confirm roles step). An imported or
-   forked app cannot be published until its plan is confirmed
+   confirms the plan (on import, an extra Confirm roles step). An app with a
+   pending role plan cannot be published, however it was created
 3. The platform assigns one or more registered roles to each user in its admin UI
 4. The gateway injects all assigned app roles in `X-Tier0-Business-Roles`
 5. The gateway may also inject one `X-Tier0-Active-Role` as the primary label

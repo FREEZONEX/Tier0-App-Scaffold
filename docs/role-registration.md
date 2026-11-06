@@ -73,14 +73,16 @@ not block builds; registration, metadata and permission checks still apply.
   roles it would create in the workspace, existing workspace roles it would
   newly bind to this app (reuse), and bindings the app already has. When the
   plan creates or newly reuses a role, nothing is written until a Builder
-  confirms it; a plan without either applies directly. A reused role keeps
-  its name, and a new description is appended to the existing one.
+  confirms it; a plan without either applies directly. For each reused role
+  the Builder chooses on the plan card to rename it or keep its current name;
+  its `role_key` never changes and a new description is appended to the
+  existing one. An app with a pending role plan cannot be published, whether
+  it was created in the conversation, imported or forked.
 - **On import / template fork**, the platform reads root `roles.json` (the
   upload reports `contents.roles: true`) and shows the plan in an extra
   **Confirm roles** wizard step, or in the Use template dialog. Confirming
   creates or reuses each `role_key` and binds it to the new app in one
-  transaction. Until the plan is confirmed the app's roles are not
-  initialized and the app cannot be published.
+  transaction.
 - **Via `sync_business_roles`**, a plan that needs confirmation is stored on
   the app and the tool returns `confirmation_required`. Ask the user to
   confirm it in the role card and end the turn. Do not retry or switch
