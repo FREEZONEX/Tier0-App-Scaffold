@@ -25,7 +25,14 @@ test("the unified SDK pins one bundled artifact and its integrity", () => {
   assert.equal(unknown.outcomeUnknown, true);
   assert.equal(known.retryable, false);
   assert.equal(unknown.retryable, false);
-  assert.equal("execution" in known, false);
+  assert.equal(known.execution, undefined);
+  assert.equal(unknown.execution, undefined);
+  const notStarted = new StreamRequestError("credential resolution failed", {
+    errorCode: "STREAM_REQUEST_TRANSPORT_ERROR", execution: "notStarted",
+  });
+  assert.equal(notStarted.execution, "notStarted");
+  assert.equal(notStarted.outcomeUnknown, false);
+  assert.equal(notStarted.retryable, false);
 });
 
 test("browser Stream calls require the trusted runtime and never fall back to fetch", async (t) => {
