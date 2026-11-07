@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { readPlatformError, reportAuthError, type PlatformError } from "@tier0/sdk-v2/page-runtime";
 import { sendPreviewError } from "@/lib/preview-bridge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -69,16 +70,50 @@ export class ApiRequestError extends Error {
   readonly status: number;
   readonly path: string;
   readonly detail: string;
+  /** Platform error code (`sbx_sleeping`, `grant_expired`, ...); absent on the App's own answers. */
+  readonly code?: string;
   /** Already written to console.error; hooks must not log it again. */
   readonly reported = true;
 
-  constructor(status: number, path: string, detail: string) {
+  constructor(status: number, path: string, detail: string, code?: string) {
     super(`HTTP ${status} ${path}${detail ? `: ${detail}` : ""}`);
     this.name = "ApiRequestError";
     this.status = status;
     this.path = path;
     this.detail = detail;
+    this.code = code;
   }
+}
+
+/**
+ * The page has nothing to show for these: the platform runtime owns the
+ * banner, and `resumed` makes the hooks load again.
+ */
+export function isAppWaiting(error: unknown): boolean {
+  const code = (error as { code?: unknown } | null)?.code;
+  return code === "sbx_sleeping" || code === "sbx_starting";
+}
+
+/** A node agent restart or a dropped instance: a read may go again, once. */
+const TRANSIENT_CODES = new Set(["node_restarting", "upstream_error"]);
+const TRANSIENT_RETRY_MAX_MS = 5_000;
+const TRANSIENT_RETRY_DEFAULT_MS = 1_000;
+
+function transientWait(failure: PlatformError | undefined, method: string): number | undefined {
+  if (!failure || !TRANSIENT_CODES.has(failure.code) || (method !== "GET" && method !== "HEAD")) return undefined;
+  return Math.min(failure.retryAfterMs ?? TRANSIENT_RETRY_DEFAULT_MS, TRANSIENT_RETRY_MAX_MS);
+}
+
+function wait(ms: number, signal: AbortSignal | null | undefined): Promise<void> {
+  return new Promise((resolve) => {
+    const done = () => {
+      clearTimeout(timer);
+      signal?.removeEventListener("abort", done);
+      resolve();
+    };
+    const timer = setTimeout(done, ms);
+    signal?.addEventListener("abort", done);
+  });
 }
 
 function extractApiErrorDetail(body: string): string {
@@ -120,19 +155,29 @@ export async function requestJson<T>(
   path: string,
   init: RequestInit = {},
 ): Promise<T> {
-  const res = await fetch(apiUrl(path), { cache: "no-store", ...init });
+  let res = await fetch(apiUrl(path), { cache: "no-store", ...init });
+  let failure = res.ok ? undefined : await readPlatformError(res);
+  const retryAfter = transientWait(failure, (init.method ?? "GET").toUpperCase());
+  if (retryAfter !== undefined) {
+    await wait(retryAfter, init.signal);
+    res = await fetch(apiUrl(path), { cache: "no-store", ...init });
+    failure = res.ok ? undefined : await readPlatformError(res);
+  }
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     const error = new ApiRequestError(
       res.status,
       path,
       extractApiErrorDetail(body),
+      failure?.code,
     );
-    console.error("[api]", error.message);
+    reportAuthError(failure?.code);
+    if (!isAppWaiting(error)) console.error("[api]", error.message);
     // Server-side failure: surface it to the Builder preview card. 4xx are
     // client-facing outcomes (validation, missing record) the page handles
-    // itself; only the browser can post to the parent window.
-    if (res.status >= 500 && typeof window !== "undefined") {
+    // itself, and platform states have the runtime's banner; only the browser
+    // can post to the parent window.
+    if (res.status >= 500 && !failure && typeof window !== "undefined") {
       sendPreviewError(error.message, "network");
     }
     throw error;

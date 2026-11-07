@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "tier0Scaffold": {
-    "version": 23,
-    "ref": "a1ed8f0"
+    "version": 26,
+    "ref": "9433898"
   },
   "engines": {
     "node": ">=22.12.0"
@@ -16,7 +16,7 @@
     "dev:force": "vite dev --host 0.0.0.0 --port 5173 --force",
     "build": "vite build",
     "postbuild": "npm run test:guidance && npm run build:verify && npm run auth:union:test && npm run runtime:audit && npm run test:components && npm run test:data && npm run test:streams",
-    "test:guidance": "node --test tests/guidance.test.mjs tests/role-contract.test.mjs tests/lint-config.test.mjs",
+    "test:guidance": "node --test tests/guidance.test.mjs tests/credential-guidance.test.mjs tests/role-contract.test.mjs tests/lint-config.test.mjs tests/artifact-contract.test.mjs",
     "typecheck": "tsc --noEmit",
     "build:verify": "node scripts/post-build-verify.mjs",
     "build:check": "npm run build",
@@ -41,7 +41,7 @@
     "@fontsource/inter": "^5.2.8",
     "@tanstack/react-router": "^1.168.0",
     "@tanstack/react-start": "^1.167.0",
-    "@tier0/sdk-v2": "file:vendor/tier0-sdk-v2-0.9.8.tgz",
+    "@tier0/sdk-v2": "file:vendor/tier0-sdk-v2-0.10.0-aenv.9.tgz",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.577.0",

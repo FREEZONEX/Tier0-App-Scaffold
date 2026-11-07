@@ -1,36 +1,35 @@
 /**
- * TanStack Start global request middleware — Gateway auth + CSRF guard.
+ * TanStack Start global middleware: visitor token verification and CSRF guard.
  *
- * Deployed Tier0 requests carry the user's complete app role assignment in
- * `X-Tier0-Business-Roles`; downstream permission checks compute the union
- * across all roles. The App does not maintain a second session cookie.
+ * The front door signs the visitor into `X-Tier0-Visitor` on every request, and
+ * strips any `X-Tier0-*` the client sent. Failure to verify is always a 401; no
+ * plain identity header is read anywhere, and the App has no session cookie.
  *
- * Preview carries the developer's selected "view as" role set in
- * `X-Tier0-Preview-Role` (one or several roles, same permission union). Legacy role
- * headers remain single-role and must match PERMISSION_MATRIX because the
- * Tier0 gateway does not strip/re-inject those headers.
+ * - Pages and API routes need a verified visitor. A `machine` visitor (App call
+ *   token) only reaches the paths of `src/lib/webhooks.ts`.
+ * - Server functions all arrive on one path, so they are checked per function:
+ *   `requireEmployeeFn` demands an employee unless the function opted out
+ *   (`src/lib/server-fn-policy.ts`).
  *
- * Every request — including public paths such as `/_serverFn` — runs inside
- * the data-layer request context, so App data calls made while serving it
- * forward the Gateway's `X-Tier0-App-Data-Subject`. The header is an
- * assertion signed by the platform Gateway and verified by UNS; the App can
- * neither forge nor widen it, so opening the context unconditionally is safe.
- * The context gets the request itself, so its abort signal reaches the data
- * layer: when the caller goes away, data calls still queued are dropped and
- * those in flight are cancelled.
+ * Every request, public paths included, runs inside the data-layer request
+ * context, so platform calls made while serving it forward the front door's
+ * `X-Tier0-Delegation`. Backend verifies it and binds it to this App's
+ * credential, so the App can neither forge nor widen it. The context gets the
+ * request itself, so its abort signal reaches the data layer: when the caller
+ * goes away, data calls still queued are dropped and those in flight are
+ * cancelled.
  */
 
 import { createMiddleware, createStart } from "@tanstack/react-start";
-import {
-  getGatewayRuntime,
-  getTrustedGatewayRoles,
-  parseGatewayUser,
-} from "@/lib/gateway";
-import { PERMISSION_MATRIX } from "@/lib/permissions";
 import { runWithRequestContext } from "@tier0/sdk-v2/data";
+import { requireAuth } from "@/lib/auth";
+import { isPublicServerFn } from "@/lib/server-fn-policy";
+import { readVisitor, visitorReady } from "@/lib/visitor";
+import { isWebhookPath } from "@/lib/webhooks";
 
 // Exact path or proper child segment. This avoids `/login-attempts` matching
-// the public `/login` prefix.
+// the public `/login` prefix. `/_server` and `/_serverFn` pass here because
+// `requireEmployeeFn` decides per function.
 const PUBLIC_PATHS = [
   "/login",
   "/api/health",
@@ -77,48 +76,33 @@ export const authBridge = createMiddleware().server(({ request, pathname, next }
       return next();
     }
 
-    const validRoles = Object.keys(PERMISSION_MATRIX);
-    const gatewayUser = parseGatewayUser(request.headers);
-    const runtime = getGatewayRuntime(request.headers);
-    const trustedRoles = getTrustedGatewayRoles(request.headers);
-
-    if (gatewayUser && trustedRoles !== undefined) {
-      // The Tier0 gateway strips and re-injects these headers after validating
-      // workspace membership and app role bindings. Unknown roles are therefore
-      // trusted identities but contribute zero permissions until configured.
-      // A deployed empty list is also authoritative and must stay zero-access.
-      return next();
+    // Published Apps fetch the front door keys in the background; the first
+    // request waits for that fetch instead of being refused for want of keys.
+    await visitorReady();
+    let visitor;
+    try {
+      visitor = readVisitor(request.headers);
+    } catch {
+      return jsonError(503, "Visitor verification is not configured");
     }
-
-    if (gatewayUser?.role) {
-      if (!validRoles.includes(gatewayUser.role)) {
-        if (validRoles.length === 0) {
-          return jsonError(503, "No roles configured for this app");
-        }
-        return jsonError(
-          403,
-          `Platform role is not recognized by this app: ${gatewayUser.role}`,
-        );
-      }
-
-      return next();
+    if (!visitor) {
+      return jsonError(401, "Platform authentication required");
     }
-
-    if (gatewayUser && runtime === "preview") {
-      // Preview before role registration: the platform sends no role headers
-      // and the request enters with zero roles. Nothing is granted implicitly;
-      // can() stays false for every action until business roles are defined.
-      return next();
+    if (visitor.subType === "machine" && !isWebhookPath(pathname)) {
+      return jsonError(403, "This path does not accept machine callers");
     }
-
-    if (gatewayUser) {
-      return jsonError(403, "Gateway role context missing");
-    }
-
-    return jsonError(401, "Platform authentication required");
+    return next();
   }),
+);
+
+export const requireEmployeeFn = createMiddleware({ type: "function" }).server(
+  async ({ serverFnMeta, next }) => {
+    if (!isPublicServerFn(serverFnMeta.name)) await requireAuth();
+    return next();
+  },
 );
 
 export const startInstance = createStart(() => ({
   requestMiddleware: [authBridge],
+  functionMiddleware: [requireEmployeeFn],
 }));

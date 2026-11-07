@@ -43,6 +43,9 @@ export const Route = createRootRoute({
       { rel: "stylesheet", href: globalsCss },
       { rel: "icon", type: "image/svg+xml", href: "/builder-logo-dark.svg" },
     ],
+    // Page runtime served by the platform front door at the host root, never
+    // part of this build. Not async: App code finds it already installed.
+    scripts: [{ src: "/__tier0/runtime.js" }],
   }),
   component: RootDocument,
   notFoundComponent: NotFound,

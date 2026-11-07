@@ -19,13 +19,14 @@ import { RouteErrorBoundary } from "@/components/ui";
 import { getCurrentUser } from "@/lib/auth";
 import type { AppUser } from "@/lib/users";
 
-const fetchMonitorGatewayUser = createServerFn().handler(
+// Public: it answers null without a visitor, and the route redirects to /login.
+const publicServerFnCurrentUser = createServerFn().handler(
   async (): Promise<AppUser | null> => getCurrentUser(),
 );
 
 export const Route = createFileRoute("/monitor")({
   beforeLoad: async ({ location }) => {
-    const user = await fetchMonitorGatewayUser();
+    const user = await publicServerFnCurrentUser();
     if (!user) {
       throw redirect({
         to: "/login",

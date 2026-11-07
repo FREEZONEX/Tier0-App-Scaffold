@@ -26,7 +26,8 @@ import { getCurrentUser } from "@/lib/auth";
 import { sendPreviewReady } from "@/lib/preview-bridge";
 import type { AppUser } from "@/lib/users";
 
-const loadGatewayUser = createServerFn().handler(
+// Public: it answers null without a visitor, and the route redirects to /login.
+const publicServerFnCurrentUser = createServerFn().handler(
   async (): Promise<AppUser | null> => getCurrentUser(),
 );
 
@@ -42,7 +43,7 @@ function requireWorkspaceUser(user: AppUser | null, pathname: string) {
 
 export const Route = createFileRoute("/_app")({
   beforeLoad: ({ location }) => {
-    return loadGatewayUser().then((user) => {
+    return publicServerFnCurrentUser().then((user) => {
       return requireWorkspaceUser(user, location.pathname);
     });
   },

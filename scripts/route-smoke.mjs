@@ -11,12 +11,6 @@ const FAILURE_MARKER = /<[^>]+\sdata-route-error(?:=|[\s>])/;
 const FAILURE_TEXT = ["Application error", "Internal Server Error"];
 // Preview identity with no selected role: the platform sends no role headers
 // before roles are registered, and the app must render with zero permissions.
-const DEFAULT_GATEWAY_HEADERS = {
-  "X-App-User-ID": "preview-user",
-  "X-App-User-Name": "Preview User",
-  "X-App-User-Email": "preview-user@example.com",
-  "X-Tier0-Runtime": "preview",
-};
 const MAX_AUTH_REDIRECTS = 3;
 
 export function evaluateSmokeResponse({ path, status, body }) {
@@ -83,7 +77,6 @@ function resolveRedirectUrl(currentUrl, location) {
 function buildSmokeHeaders(extraHeaders = {}) {
   return {
     accept: "text/html,*/*",
-    ...DEFAULT_GATEWAY_HEADERS,
     ...extraHeaders,
   };
 }

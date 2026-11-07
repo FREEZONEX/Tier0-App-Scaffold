@@ -2,12 +2,12 @@
 
 ## Tier0 SDK (`@tier0/sdk-v2`)
 
-The unified `@tier0/sdk-v2@0.9.8` is pinned to the bundled archive
-`file:vendor/tier0-sdk-v2-0.9.8.tgz`. It supplies data, platform, Stream request
+The unified `@tier0/sdk-v2@0.10.0-aenv.9` is pinned to the verified published archive
+`file:vendor/tier0-sdk-v2-0.10.0-aenv.9.tgz`. It supplies data, platform, Stream request
 and message APIs using `/openapi/v2`. The archive integrity is checked by the
 lockfile and tests; installation alone does not prove a live deployment.
-This 0.9.8 artifact uses the committed backend contract and is distributed with
-the scaffold. Follow [the directory rollout plan](collection-directory-release.md)
+The SDK must preserve `directoryPath` in collection ensure payloads (Backend
+`app-collections/2`); follow [the directory rollout plan](collection-directory-release.md)
 before distributing the template or deploying its backend dependency.
 
 HTTP Sources use `http-api` with `config.role: client | server`. New Source
@@ -20,7 +20,7 @@ Load the SDK only on the server through the lazy helpers in `@/lib/tier0`:
 
 | Helper | Module | Use |
 |---|---|---|
-| `loadTier0Sdk()` | `@tier0/sdk-v2` | `createClient()`: `tier0.system`, `members`, `notifications`, `files`, `uns`, `mqttAuth`, `capabilities`, `source`, `stream`, `agent` |
+| `loadTier0Sdk()` | `@tier0/sdk-v2` | `createClient()`: `tier0.system.info()`, `members.listWorkspace()`, `notifications`, `files`, `uns` (see the availability note below) |
 | `loadTier0OpenApi()` | `@tier0/sdk-v2/openapi` | `createOpenAPI()` / `configureClient()` for the raw generated operations |
 | `loadTier0Files()` | `@tier0/sdk-v2/files` | `createFilesClient()` |
 | `loadTier0Mq()` | `@tier0/sdk-v2/mq` | `Tier0MQClient`, `toWebSocketUrl()`, `parseMqttBroker()` |
@@ -29,35 +29,75 @@ Load the SDK only on the server through the lazy helpers in `@/lib/tier0`:
 import { loadTier0Sdk } from "@/lib/tier0";
 
 const { createClient } = await loadTier0Sdk();
-const tier0 = createClient(); // reads TIER0_API_HOST / TIER0_API_KEY
-const user = await tier0.system.whoami();
+const tier0 = createClient(); // reads TIER0_API_HOST; the node proxy injects the App's key
+const info = await tier0.system.info();
 ```
+
+In Preview and deployments the SDK needs no credential and none can be found:
+there is no `TIER0_API_KEY` and no credential file. The node proxy
+(`sbx-api-proxy`) recognizes the App's VM by its address and injects the App's
+long-lived API key; the App never holds it. Preview and deployments use the
+same key and behave the same. The SDK sends no `Authorization` and marks every request with `X-Tier0-SDK: 1`. A
+direct `fetch` / `curl` to `TIER0_API_HOST` must do the same, or the proxy
+answers `403 sbx_proxy_forbidden`:
+
+```ts
+await fetch(`${process.env.TIER0_API_HOST}/openapi/v2/info`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "X-Tier0-SDK": "1" },
+  body: "{}",
+});
+```
+
+Through the proxy the App's key reaches `/openapi/v2/uns/**`,
+`/openapi/v2/assets/**`, `notifications/send`, `notifications/get`,
+`platform/getMembers` and `info`; other paths answer `404 sbx_proxy_not_found`.
+The proxy's own answers carry `X-Tier0-Proxy: not-forwarded` and a
+`sbx_proxy_*` code (`not_ready` 503, `credential_pending` 503, `limited` 429,
+`no_credential` 403, `unbound` 403, `bad_request` 400, `forbidden` 403,
+`not_found` 404); the SDK resends only the 503 and 429, at most 3 times. The App's platform
+permissions and message topics are managed by workspace admins in the App
+settings and apply immediately; external collections are confirmed when
+publishing.
 
 `createClient()` instances share no configuration. Reuse one for work done as
 the App; create a fresh instance per request when passing employee data
-delegation. The App key represents the App, never the current user, and never
-reaches the browser — browser pages call the App's own server routes.
+The App's key represents the App, never the current user, and never reaches
+the browser — browser pages call the App's own server routes. Calls made while
+serving a request forward its `X-Tier0-Delegation`; `runAsApp` calls do not.
 
 v2 has no UNS v1, legacy Flow, project member queries or `getCurrentProjectId()`.
 Workspace members are not the members who can use this App: use
 `tier0.members.listApp({ appId: resolveAppId() })` for App-scoped member pickers.
 Locally `resolveAppId()` is the `local-app` placeholder, so the platform rejects
 the call; that failure is expected — App-scoped calls only work in Preview and
-deployed runs, where `APP_ID` is injected.
+deployed runs, where `TIER0_APP_ID` is injected.
 The SDK sends `scope` from the platform-injected `TIER0_RUNTIME`: Preview
 (`preview`) lists members of the current draft roles, even before the first
 publish, and a deployed App (`deployed`) lists its published roles. Do not pass
 `scope`, set `TIER0_RUNTIME` in `artifact.toml` or `.env`, or block on the
 response's `published` flag; render the returned roles with a normal empty
-state for a role nobody holds.
+state for a role nobody holds. The node proxy forwards the call with the App's
+key; the hosted key is authorized by the App's `platform.users.read` like
+`listWorkspace` (403 when the App lacks it) and gets no email:
+`email` is empty, so label members by `userName`.
+
+**Availability in Preview and deployments.** The node proxy forwards only
+`/openapi/v2/uns/**`, `assets/**`, `notifications/send`, `notifications/get`,
+`platform/getMembers`, `apps/access-members/list` (`members.listApp()`) and
+`info`. `system.whoami()`, `mqttAuth`, `capabilities`, `agent` and `client.streams` answer
+`404 sbx_proxy_not_found`; `source` and `stream` management is forwarded but
+refused for the App's key (403). Do not build App features on them.
 App records still go through `@/lib/data` (see [App Data](#app-data)).
 Updating injected guidance alone does not upgrade an application's installed SDK.
 
 ### Members before publication
 
 The SDK maps platform-injected `TIER0_RUNTIME=preview` to `scope=draft` and
-`deployed` to `scope=production`. Missing or unknown runtime values preserve
-the server's production default. App code calls `members.listApp({ appId })`
+`deployed` to `scope=production`. Without `TIER0_RUNTIME` (local development
+with a key of its own) the SDK sends no `scope` and the server's production
+default applies; any other value without `TIER0_API_KEY` is a configuration
+error the SDK throws before sending. App code calls `members.listApp({ appId })`
 without selecting scope or writing `TIER0_RUNTIME` to `.env` / `artifact.toml`.
 Preview uses current draft roles and effective direct/group assignments even
 when `published=2`; that flag is deployment metadata, not an assignment gate.
@@ -73,10 +113,12 @@ do not silently substitute the entire Workspace or fabricate users.
 
 Existing Apps require the new vendor archive, matching package.json/lockfile,
 and a managed preview restart. Upgrading a Skill or the default template alone
-does not modify an existing App. Runtime acceptance also requires the v2 Gateway
-and SYS scope passthrough plus the Platform/Worker draft-members implementation.
+does not modify an existing App.
 
 ### Browser App Stream requests and messages
+
+**Currently unavailable in Preview and deployments; do not generate these
+calls.** The description below is kept for when the platform enables them.
 
 The same `@tier0/sdk-v2` package provides browser Stream interactions. The
 trusted App Gateway runtime supplies identity; no browser key or endpoint is
@@ -113,8 +155,8 @@ makes one POST without automatic retries; `outcomeUnknown` is an SDK classifier,
 not proof that execution did not start. Reconcile uncertain results before replay.
 Installation alone does not prove Gateway, SYS, broker or browser readiness.
 
-Node Apps use the same SDK with automatically injected `TIER0_API_HOST`,
-`TIER0_API_KEY` and `APP_ID`. Fresh App/internal Keys use unified persisted
+Node Apps use the same SDK with automatically injected `TIER0_API_HOST` and
+`TIER0_APP_ID`; the node proxy injects the App's key. Fresh App/internal Keys use unified persisted
 request/message mode ceilings; current Workspace/App policy and entry/topic
 grants still constrain every operation. Existing Keys lacking those stored
 scopes require explicit migration/reissue, never silent expansion. Pure system
@@ -164,24 +206,24 @@ ports are not WebSocket ports and must not be reused.
 
 ### MQTT credentials
 
-`Tier0MQClient` reads `TIER0_MQTT_HOST` / `TIER0_MQTT_PORT` and uses
-`TIER0_API_KEY` as the password. A workspace-encoded key
-(`sk-<type>-ws<base36>_<secret>`) supplies the MQTT identity: the client derives
-username and clientId from it. A key it cannot parse is rejected unless
-username, clientId and password are all passed explicitly; there is no
-Enterprise fallback. Alternatively create dedicated credentials with
-`tier0.mqttAuth.create()` — the full credential is returned only once.
+On the server `Tier0MQClient` sends no password: it connects over TCP to
+`TIER0_MQTT_URL` (`mqtt://`, the node proxy), which puts in the App's key.
+It builds username `<ws>&open` and clientId `<ws>&h.<app>.<random>` from
+`TIER0_WORKSPACE_ID` and `TIER0_APP_ID`, the same in Preview and deployments,
+so pass neither, and
+pass no `host`: an explicit host means WebSocket, which does not go through the
+proxy. In the browser it takes a fresh token from the page runtime for every
+connection.
 
-Changing the key through `connect({ password })` recalculates derived fields
-while preserving explicitly passed ones. Disconnect an established connection
-before reconnecting with new credentials.
-
-For `Not authorized`, CONNACK code 5 or repeated reconnects, check the installed
-version with `npm ls @tier0/sdk-v2`, the key type in the failing runtime (without
-printing its value), the broker endpoint/transport, and backend support for that
-key type. Do not hard-code username/clientId to bypass identity derivation,
-never log the complete key, and never hard-code a Workspace identity. A build
-does not prove broker authorization or message delivery.
+`clean` defaults to `false`: with QoS 1 a subscriber crosses a reconnect without
+losing messages. Messages beyond the broker's offline queue (`max_mqueue_len`,
+EMQX default 1000) during a disconnect are still lost. A disconnected client
+queues `publish`; it never opens a second client. The server reconnects forever
+with a backoff of up to 5 minutes; when the App's key is rotated the proxy drops
+the connection and the reconnect uses the new key. The browser
+stops when authorization fails and continues on `resumed`. MQTT covers the
+message topics that workspace admins set in the App settings only;
+real-time collection data goes through `useRecordChanges`.
 
 ## Environment Variables
 
@@ -190,24 +232,30 @@ local/default behavior. If the variable is present, the corresponding platform
 capability is enabled.
 
 Apps have no database connection variables: App data lives in Tier0 UNS
-collections reached with `TIER0_API_HOST` / `TIER0_API_KEY` (see
+collections reached with `TIER0_API_HOST` through the node proxy (see
 [App Data](#app-data)).
 
-### Platform-Injected
+### Platform-Provided
 
 These variables are platform-driven. Local development does not need them.
 
 | Variable | Behavior when unset | Behavior when set |
 |---|---|---|
-| `APP_ID` | `local-app` (local-development placeholder only) | Platform-injected agent-platform App UUID (36 chars); echoed by `/api/manifest` and used wherever the app identifies itself to the platform (e.g. notification `sender.id`) |
+| `TIER0_APP_ID` | Falls back to `APP_ID`, then `local-app` (local-development placeholder only) | The agent-platform App id; used wherever the app identifies itself to the platform |
+| `APP_ID` | `local-app` (local-development placeholder only) | Older name of `TIER0_APP_ID`; echoed by `/api/manifest` |
 | `VITE_BASE_PATH` | No URL prefix | Applied by `apiUrl()` and Vite `base` |
 | `NEXT_PUBLIC_BASE_PATH` | Legacy fallback only | Read by `apiUrl()` if `VITE_BASE_PATH` is missing |
-| `TIER0_API_HOST` | App data calls fail with `DATA_NOT_CONFIGURED` (503) | Tier0 OpenAPI gateway host injected by the platform (Preview: the sandbox-reachable public API host; deployment: the in-cluster gateway). No scheme means `http://` |
-| `TIER0_API_KEY` | App data calls fail with `DATA_NOT_CONFIGURED` (503) | The platform-issued App key (`app` / `internal` / `full_access`); shared by OpenAPI, MQTT and the App data layer |
-| `TIER0_MQTT_HOST` | — | Tier0 MQTT WebSocket broker host injected by the platform |
-| `TIER0_MQTT_PORT` | Defaults to `8084` | Tier0 MQTT WebSocket port injected by the platform |
+| `TIER0_API_HOST` | App data calls fail with `DATA_NOT_CONFIGURED` (503) | `http://api.sbx.internal:8080`, the node proxy in front of the platform API. A bare host name means `https://` (local development) |
+| `TIER0_MQTT_URL` | — | `mqtt://mqtt.sbx.internal:1883`, the node proxy in front of the broker |
+| `TIER0_WORKSPACE_ID` | — | Workspace of the App; the SDK uses it for MQTT |
+| `TIER0_RUNTIME` | The SDK uses `TIER0_API_KEY` (local development) | `deployed` or `preview` (both behave the same). With it and no `TIER0_API_KEY` the SDK sends no credential; the node proxy injects the App's key. Any other value is a configuration error |
+| `TIER0_JWKS_DIR` | `TIER0_JWKS_URL` is used | Directory of the front door's public keys, used to verify `X-Tier0-Visitor`; set in platform sessions |
+| `TIER0_JWKS_URL` | Without `TIER0_JWKS_DIR` either, requests answer 503 outside `vite dev` | The front door's public JWKS (`https://<app>.<apps domain>/__tier0/jwks.json`); published Apps verify `X-Tier0-Visitor` with it |
 
-`APP_ID` is platform-owned: the agent-platform App UUID the platform can
+None of these is a secret. No credential is injected into the App: there is no
+`TIER0_API_KEY` in Preview or deployments; the node proxy injects the App's key.
+
+`TIER0_APP_ID` is platform-owned: the agent-platform App UUID the platform can
 resolve back to the app's name, icon and Open button. Read it at runtime
 through `resolveAppId()` (`src/lib/app-id.ts`) — never hard-code the value at
 generation time, because an imported copy of the app gets a new UUID and a
@@ -242,96 +290,43 @@ Agent workspace.
 
 ## Authentication Model
 
-Authentication is handled by the platform gateway. The app does not manage
-passwords or user accounts. The platform's `_t0_gw_session` remains owned and
-verified by the Gateway. The App resolves identity
-and roles from trusted headers on every request.
-
-### Supported Identity Header Formats
-
-At minimum, a user id must be present. The app accepts these identity formats:
-
-**Format 1: JSON `user` header**
+Authentication belongs to the platform front door. The App has no passwords,
+accounts or session cookie. It trusts one thing: the visitor token
+`X-Tier0-Visitor`, signed by the front door with Ed25519 and valid for 60 seconds.
 
 ```text
-user: {"userID":"uuid-123","userName":"mercy","email":"mercy@example.com","role":"operator"}
+{iss: tier0-frontdoor, aud: app:<app_id>, typ: visitor, sub_type: employee|machine,
+ sub, grant, ws, runtime: deployed|preview, app_roles, active_role, iat, exp, jti}
 ```
-
-**Format 2: separate headers**
 
 ```text
-X-App-User-ID:    uuid-123
-X-App-User-Name:  mercy
-X-App-User-Email: mercy@example.com
-X-App-User-Role:  operator
+Browser -> front door authorizes and signs the visitor -> App
+        -> src/start.ts:
+
+            mutating request with cross-origin Origin  -> 403
+            public path (/login, /api/health, /api/manifest, assets) -> allow
+            server function -> an employee, unless named publicServerFn<Name>
+            no token, or it does not verify -> 401
+            machine visitor outside src/lib/webhooks.ts -> 403
+            otherwise -> continue
 ```
 
-**Format 3: minimum set**
+The signature, `kid`, `iss`, `typ`, `aud` and time window are checked with 60
+seconds of tolerance. The release is not: the front door cannot know which release
+serves the request. Keys are read from `TIER0_JWKS_DIR` when that directory
+exists, otherwise fetched from `TIER0_JWKS_URL` (refreshed every 60 seconds, and
+early for an unknown `kid`); either way a rotation takes effect without a
+restart. The first request waits for the first fetch (at most about 10 seconds).
+Without keys the App answers 503.
 
-```text
-X-App-User-ID: uuid-123
-```
+`app_roles` is the complete role set and permissions are its union. An empty set
+means zero permissions. The token has no name or email; read them through
+`tier0.members` under `platform.users.read`.
 
-If `name` is missing, the app falls back to the user id. If `email` is
-missing, the app stores an empty string.
-
-Role header values may be plain ASCII, percent-encoded UTF-8, or raw UTF-8
-bytes read as latin-1. The gateway parser normalizes all three before matching
-`PERMISSION_MATRIX`, so non-ASCII role keys remain stable across proxies.
-
-### Runtime Role Resolution
-
-When the platform is authoritative, the app resolves roles as follows:
-
-1. Preview: use every comma-separated `X-Tier0-Preview-Role` value as the
-   developer-selected view-as role set; the first value is the primary display role.
-2. Deployed: use every comma-separated `X-Tier0-Business-Roles` value;
-   `X-Tier0-Active-Role` goes first as the primary display role when it is one
-   of them, and grants nothing on its own.
-3. Legacy fallback: `X-Tier0-Active-Role`, `X-Tier0-Preview-Role`,
-   `X-App-User-Role`, then `user.role`.
-
-Effective deployed permissions are the union across all assigned roles. The
-active role does not limit or replace that union.
-
-### Authentication Flow (platform roles are authoritative)
-
-```text
-Browser -> Platform resolves the user's app role assignments
-        -> Gateway injects user + all business roles -> App
-        -> src/start.ts middleware:
-
-            mutating request with cross-origin Origin
-              -> 403 blocked
-
-            public path (/login, /api/health, /api/manifest, runtime/build assets)
-              -> allow request
-
-            Tier0 runtime role set is authoritative
-              -> continue the same request
-              -> known roles contribute their permission union
-              -> unknown trusted roles contribute zero permissions
-
-            role present but unknown AND not gateway-injected
-            (a forgeable legacy/login value)
-              -> 403 fail closed
-
-            preview gateway user present but no selected role
-              -> enter with zero roles and zero permissions
-                 (the scaffold reserves no fallback role)
-
-            gateway user present but no applicable role context
-              -> 403
-
-            no gateway user
-              -> 401
-```
-
-An explicit empty deployed role set stays empty; no request falls back to any role.
-The App does not read, write, or clear platform login Cookies.
-
-`/login` is only a hidden platform-auth error bridge. It does not mint a Cookie
-or render a role picker.
+Under `npm run dev` a development signer stands in for the front door: set
+`PREVIEW_USER_ID` and `PREVIEW_USER_ROLE` (comma-separated). Its key is generated
+at each start and a production build ignores it. Inside a platform session it only
+signs loopback requests without a token, for the route smoke.
 
 ### Role Management
 
@@ -345,19 +340,23 @@ Role definitions belong to the app. Role assignment belongs to the platform.
    confirms the plan (on import, an extra Confirm roles step). An app with a
    pending role plan cannot be published, however it was created
 3. The platform assigns one or more registered roles to each user in its admin UI
-4. The gateway injects all assigned app roles in `X-Tier0-Business-Roles`
-5. The gateway may also inject one `X-Tier0-Active-Role` as the primary label
-6. The app unions permissions across every role for the current request
+4. The front door signs all assigned App roles into `app_roles`
+5. The app unions permissions across every role for the current request
 
-Each injected role key should match a `PERMISSION_MATRIX` key exactly
-(`"Operator"` ≠ `"operator"`) so it carries permissions. A gateway-injected
-Tier0 role with no matrix entry still contributes zero permissions; only unknown
-roles that are NOT gateway-injected fail closed. Full rules and the three-file
-sync convention are in [`role-registration.md`](./role-registration.md).
+Each role key should match a `PERMISSION_MATRIX` key exactly (`"Operator"` ≠
+`"operator"`). A role with no matrix entry contributes zero permissions. Full
+rules are in [`role-registration.md`](./role-registration.md).
 
-The Shell should not be treated as the authority for role switching. In the
-platform-authoritative model, the platform owns role assignment and the iframe
-app only consumes the forwarded identity and role set.
+---
+
+### Page runtime and sleep
+
+`src/routes/__root.tsx` loads `/__tier0/runtime.js` from the front door. It owns
+presence and the sleep and reauthorization banners; App code does not send
+heartbeats. `requestJson`, `useRequest`, `usePolling` and `useRecordChanges` follow
+it: nothing refreshes while the App sleeps, `resumed` reloads, and authorization
+failures go to the runtime. Keep client timeouts at 20 seconds or more: the front
+door holds a request for up to 15 seconds while the App starts.
 
 ---
 
@@ -366,7 +365,7 @@ app only consumes the forwarded identity and role set.
 ```text
 Workspace
   ├─ App (APP_ID = agent-platform App UUID)
-  │    ├─ App key (TIER0_API_KEY)          <- issued by the platform, injected into Preview and deployments
+  │    ├─ App API key                      <- issued by the platform, injected by the node proxy, never in the VM
   │    └─ App data policy (UNS)            <- grants of this App's collections (record:read/write[/delete])
   └─ UNS
        └─ North Plant                     <- verified business scope, shared directory
@@ -393,32 +392,6 @@ collection requires a separate authorized metadata operation. Preview and the
 deployed App use the same App key and therefore the same collections and
 records. Deleting the App does not reclaim shared business directories.
 
-**Environment injection:**
-
-```env
-APP_ID="<agent-platform App UUID>"
-VITE_BASE_PATH="/<app base path>"
-TIER0_API_HOST="<platform-injected>"
-TIER0_API_KEY="<platform-injected>"
-TIER0_MQTT_HOST="<platform-injected>"
-TIER0_MQTT_PORT="8084"
-# Optional legacy fallback:
-# NEXT_PUBLIC_BASE_PATH="/<app base path>"
-```
-
-**Gateway routing:**
-
-For matched requests, the gateway must inject user headers in either JSON or
-separate-header format and then proxy the request to the app.
-
-For deployed apps, the gateway must inject `X-Tier0-Runtime: deployed`,
-`X-Tier0-Business-Roles` with every assigned app role, and optionally
-`X-Tier0-Active-Role` as the primary display role. Preview uses
-`X-Tier0-Runtime: preview` plus `X-Tier0-Preview-Role` carrying the selected
-view-as role set (comma-separated; absent when no role is selected).
-The gateway also signs the current employee into `X-Tier0-App-Data-Subject`;
-the App forwards it to UNS (see below) and never reads or forges it.
-
 ### App Container Startup
 
 ```bash
@@ -437,8 +410,9 @@ on first data access.
 App records go through `data` from `@/lib/data`, the App's instance of the
 `@tier0/sdk-v2/data` client (Mongo-driver style) built from
 `src/data/collections.ts`; services never use `tier0.uns` or fetch UNS for
-App records. All calls are `POST {TIER0_API_HOST}/openapi/v2/...` with
-`x-api-key: TIER0_API_KEY`; responses use the `{ code, msg, requestId, data }`
+App records. All calls are `POST {TIER0_API_HOST}/openapi/v2/...`; the node
+proxy adds the App's key as `Authorization: Bearer` (local development: the SDK
+sends `TIER0_API_KEY`); responses use the `{ code, msg, requestId, data }`
 envelope, errors add `error` (below). The data layer's call policy:
 
 - 25 s per attempt (the gateway gives UNS at most 20 s);
@@ -576,7 +550,8 @@ so one call being safe to repeat does not make the request safe to resend.
 | timeout / network failure | 503 `DATA_TIMEOUT` / `DATA_UNREACHABLE`; the message never contains the gateway address |
 | other invalid response | 502 `DATA_BAD_RESPONSE` |
 | other 5xx | 502 |
-| missing `TIER0_API_HOST` / `TIER0_API_KEY` | 503 `DATA_NOT_CONFIGURED` |
+| missing `TIER0_API_HOST` (or, in local development, `TIER0_API_KEY`) | 503 `DATA_NOT_CONFIGURED` |
+| refused by the node proxy (`X-Tier0-Proxy: not-forwarded`) | the `sbx_proxy_*` code; never started, the 503 and 429 already resent by the SDK |
 | batch over 200 items | 400 `BATCH_LIMIT_EXCEEDED` (not sent) |
 
 Without an error body (timeouts, network failures, unenveloped 502/503/504)
@@ -599,128 +574,18 @@ active record) carry their own hints. Structured details stay in
 `DataError.details`. Validation failures against the declaration are
 `ZodError`s (400) raised before any call.
 
-### Data subject
+### Delegation
 
-`src/start.ts` runs every request — public paths such as `/_serverFn`
-included — inside the `@tier0/sdk-v2/data` request context
-(`runWithRequestContext(request, ...)`) holding the request's
-`X-Tier0-App-Data-Subject` and its abort signal: when the caller goes away,
-data calls still waiting for a slot are dropped unsent and those in flight
-are cancelled.
-The App has no context of its own: a second context would leave the data
-client without the subject and silently run calls as the App. The header is signed by the Gateway and verified
-by UNS, so the App can neither forge nor widen it. Record calls made
-while serving that request forward the header, so UNS applies employee data
-rules and binds record leases to that employee. Ensure, seed writes, calls made
-outside a request and calls inside `runAsApp(...)` carry no subject; a lease
-taken with a subject cannot be released by such App-level work. A subject
-that is not a compact three-segment base64url token (≤8192 bytes) is a
-`TypeError` from the SDK, i.e. a 500 that points at the Gateway, not a
-`DataError`.
+`src/start.ts` runs every request inside the `@tier0/sdk-v2/data` request context
+(`runWithRequestContext(request, ...)`), which holds the request's
+`X-Tier0-Delegation` and abort signal. Every platform call made while serving it
+forwards the token as received, together with the App's key, so Backend
+applies the employee's data rules and binds record leases to that employee. Ensure,
+seed writes, calls outside a request and calls inside `runAsApp(...)` carry none.
+When the caller goes away, data calls still waiting for a slot are dropped unsent
+and those in flight are cancelled. A delegation lasts 10 minutes; longer background
+work uses `runAsApp` and records who started it.
 
-### Change stream
-
-`GET /api/uns/subscribe?collections=<alias,...>&recordIds=<id,...>`
-(`src/routes/api/uns/subscribe.ts`, after `requireAuth()`) answers
-`text/event-stream` for `useRecordChanges` (`src/lib/record-changes.ts`).
-Aliases must be declared (400 otherwise; all declared collections when
-absent), at most 100 `recordIds`.
-
-| SSE event | Meaning |
-|---|---|
-| `change` (`id` = `eventId`) | `{ eventId, collection, recordId, revision, change: "record" \| "delete", occurredAt }` (`occurredAt` in Unix ms); `delete` covers deletes and TTL expiry. `data.subscribe` drops a non-delete change at or below the revision it already passed on for that record; every `delete` passes, a late one too, and forgets that revision, so a record written again under the same ID may restart at revision 1 |
-| `change` of a collection with employee data rules | `{ eventId, collection, change: "collection", occurredAt }`, sent to every subscriber of the collection, `recordIds` or not |
-| `reset` (with an `id`) | `{ reason }`: changes may have been missed; reload. The hub's `unknown-event-id` or `upstream-failed`, or the upstream's: `CURSOR_EXPIRED` (resume position cleaned up after 24 h, undecodable after a key rotation, or the tenant database moved), `SCOPE_CHANGED` (access changed, e.g. a collection no longer readable), `COLLECTION_RECREATED` (SDK self-healing gave a collection a new ID) |
-| id-only frame | sent on connect: the browser's resume point, dispatches nothing |
-| `: heartbeat` comment | every 15 s; the stream starts with `retry: 5000` |
-
-`src/lib/data/changes.ts` keeps one upstream `data.subscribe` per server
-process, opened as the App (`runAsApp`) over every declared collection when
-the first browser connects and closed 30 s after the last one leaves. The
-SDK resumes it across connections itself and does not count it against the
-6 data requests in flight. Each browser stream gets the events matching its
-filter.
-
-`eventId` is the hub's own position, `<epoch>.<seq>`, never a UNS cursor:
-nothing a browser sends reaches UNS, and the upstream always starts from
-now. Each upstream session has its own random epoch and keeps its latest
-1000 events:
-
-- a reconnect whose `Last-Event-ID` is in the current session's buffer gets
-  the events after it; the id-only frame on connect gives even a browser
-  that saw no event yet such a position;
-- any other `Last-Event-ID` (another session, too old, forged) gets `reset`,
-  for that browser only.
-
-A session ends when the upstream fails (after the SDK's own reconnects),
-when the upstream sends `reset`, or when the upstream closes for lack of
-browsers. After an upstream `reset` the SDK subscribes again from now,
-without a resume position, on the same iteration.
-Connected browsers then get a `reset` carrying the new session's position
-and stay connected; a failed upstream reopens after 5 s, doubling per
-consecutive failure up to 5 minutes. Each browser stream ends after about 10
-minutes (±10 %): the browser reconnects with its position, and the route
-authenticates it again.
-
-UNS limits change subscriptions per App server process, not per user, which
-is why browsers never get an upstream of their own. Because the upstream
-runs as the App, employee data rules cannot filter its events: UNS marks
-changes of collections with such rules `restricted`, and `data.subscribe`
-turns them into collection-level events by default (alias, no record ID or
-revision), so a browser never learns of records the employee cannot read. Events carry no record data in any case; the browser reloads
-through routes where the rules apply. The route is locked: removing its
-`requireAuth()` would open the stream to anyone.
-
-## Where Each Variable Is Read
-
-| Variable | Read from |
-|---|---|
-| `APP_ID` | `lib/app-id.ts` (`resolveAppId`), used by `routes/api/manifest.ts` and by application code wherever it identifies itself to the platform (e.g. SDK notification `sender.id`); always read at runtime |
-| `VITE_BASE_PATH` | `vite.config.ts` (`base`), `router.tsx` (`basepath`), `lib/utils.ts` (`apiUrl` primary source) |
-| `NEXT_PUBLIC_BASE_PATH` | `lib/utils.ts`, and as a fallback in `vite.config.ts` / `router.tsx` |
-| `TIER0_API_HOST` | Injected by the platform; read by the SDK at call time (`createClient()` and the `@tier0/sdk-v2/data` client) |
-| `TIER0_API_KEY` | Injected by the platform; read by the SDK client, the `@tier0/sdk-v2/data` client and `@tier0/sdk-v2/mq` |
-| `TIER0_RUNTIME` | Injected by the platform into the running process; SDK member queries select draft for preview and production for deployed |
-| `NODE_ENV` | `@tier0/sdk-v2/data` `createDataClient`: `production` selects deployed ensure behavior, anything else Preview behavior |
-| `TIER0_MQTT_HOST` | Injected by the platform; read by `@tier0/sdk-v2/mq` |
-| `TIER0_MQTT_PORT` | Injected by the platform; read by `@tier0/sdk-v2/mq` |
-
-## Scaffold Version Marker
-
-`package.json` carries a top-level `tier0Scaffold` field:
-
-```json
-"tier0Scaffold": { "version": 14, "ref": "e4f1c2a" }
-```
-
-| Field | Format | Meaning |
-|---|---|---|
-| `version` | positive integer | Scaffold version the App was generated from. Bumped by one whenever a contract-affecting scaffold change merges; compared by strict equality only |
-| `ref` | 7–40 lowercase hex | Scaffold commit the version was stamped on. Informational; lets the align Skill locate the scaffold source |
-
-The platform reads the field when an App package is imported. If it is missing
-or its `version` differs from the platform's current scaffold version, the
-import reports a `scaffold_missing` / `scaffold_mismatch` warning and the
-Builder prompts the user to align the App the first time it opens after
-import; the user can dismiss the prompt, and choosing to align places an
-`align-platform-app` prompt pinned to the current version and `ref` in the
-conversation. After alignment the Skill updates the field; the App must be
-redeployed before an export carries the new version.
-
-Nothing at runtime depends on the marker: the App does not read it, the
-platform does not inject it, and `npm run build` only warns when it is missing
-or malformed (`scripts/scaffold-version.mjs`). Apps and agents must not edit
-it by hand.
-
----
-
-## Scenario Matrix
-
-| Scenario | `TIER0_API_HOST` / `TIER0_API_KEY` | `APP_ID` | Base path |
-|---|---|---|---|
-| Local development | optional (needed only to reach App data) | optional | optional |
-| Platform preview session | ✅ (sandbox-reachable host) | ✅ | depends on runtime |
-| Production behind gateway | ✅ (in-cluster gateway) | ✅ | depends on gateway |
-
-`optional` means the scaffold can fall back to defaults when the platform does
-not provide a value.
+Preview behaves exactly like a deployment: the App reads and writes its own
+data as the App, seeds are written by ensure as the App, and `useRecordChanges`
+shares one upstream per server process.

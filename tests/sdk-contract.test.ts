@@ -53,8 +53,11 @@ const retiredScript: CloudStreamDocument["script"] = { code: "module.exports = a
 void retiredScript;
 
 // Exercise the actual bundled SDK through the scaffold loader, not a reimplementation.
+// Preview and deployments have no TIER0_API_KEY: the SDK sends no credential and the
+// node proxy attaches the App's key. Without that platform value only local development
+// (a key of its own) is left, so an unknown TIER0_RUNTIME is a configuration error there.
 test("member pickers use draft scope before publication and preserve failures", async () => {
-  const previous = process.env.TIER0_RUNTIME;
+  const previous = { runtime: process.env.TIER0_RUNTIME, key: process.env.TIER0_API_KEY };
   const sdk = await loadTier0Sdk();
   const sent: Record<string, unknown>[] = [];
   let fail = false;
@@ -68,21 +71,36 @@ test("member pickers use draft scope before publication and preserve failures", 
         { status: fail ? 503 : 200 });
     }) as typeof fetch,
   });
+  const setEnv = (name: string, value: string | undefined) => {
+    if (value === undefined) delete process.env[name];
+    else process.env[name] = value;
+  };
   try {
-    for (const [runtime, scope] of [["preview", "draft"], ["deployed", "production"], ["unknown", undefined], [undefined, undefined]] as const) {
-      if (runtime === undefined) delete process.env.TIER0_RUNTIME;
-      else process.env.TIER0_RUNTIME = runtime;
+    for (const [runtime, key, scope] of [
+      ["preview", undefined, "draft"],
+      ["deployed", undefined, "production"],
+      ["unknown", "fixture-local-key", undefined],
+      [undefined, "fixture-local-key", undefined],
+    ] as const) {
+      setEnv("TIER0_RUNTIME", runtime);
+      setEnv("TIER0_API_KEY", key);
       const result = await client.members.listApp({ appId: "fixture-app" });
       assert.deepEqual(sent.at(-1), { appId: "fixture-app", ...(scope ? { scope } : {}) });
       assert.equal(result.published, 2);
       assert.equal(result.list.length, 1, "unpublished metadata must not suppress draft members");
     }
-    process.env.TIER0_RUNTIME = "preview";
+    setEnv("TIER0_API_KEY", undefined);
+    setEnv("TIER0_RUNTIME", "unknown");
+    const before = sent.length;
+    await assert.rejects(client.members.listApp({ appId: "fixture-app" }),
+      (error: unknown) => error instanceof TypeError && /TIER0_RUNTIME/.test(error.message));
+    assert.equal(sent.length, before, "a misconfigured runtime sends nothing");
+    setEnv("TIER0_RUNTIME", "preview");
     fail = true;
     await assert.rejects(client.members.listApp({ appId: "fixture-app" }),
       (error: unknown) => error instanceof sdk.ApiError && error.status === 503 && error.code === 3003017);
   } finally {
-    if (previous === undefined) delete process.env.TIER0_RUNTIME;
-    else process.env.TIER0_RUNTIME = previous;
+    setEnv("TIER0_RUNTIME", previous.runtime);
+    setEnv("TIER0_API_KEY", previous.key);
   }
 });

@@ -42,7 +42,7 @@ const steps = [
       "--import",
       "tsx",
       "--test",
-      "src/lib/gateway.test.ts",
+      "src/lib/visitor.test.ts",
       "src/lib/permissions.test.mjs",
       "src/lib/app-chrome.test.mjs",
       "src/lib/app-id-contracts.test.mjs",

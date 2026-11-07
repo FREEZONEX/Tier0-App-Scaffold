@@ -1,11 +1,8 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
-import {
-  getGatewayRole,
-  getGatewayRoles,
-  getTrustedGatewayRoles,
-} from "./gateway";
+import type { Visitor } from "./visitor";
+import { visitorRoles } from "./visitor";
 import {
   can,
   getEffectiveActions,
@@ -15,79 +12,19 @@ import {
 } from "./permissions";
 import { filterVisibleModules, type NavModule } from "../components/shell-modules";
 
-describe("Tier0 multi-role gateway context", () => {
-  it("keeps the active role first and includes every deployed business role", () => {
-    const headers = new Headers({
-      "X-Tier0-Runtime": "deployed",
-      "X-Tier0-Active-Role": "warehouse_manager",
-      "X-Tier0-Business-Roles":
-        "receiver,warehouse_manager,quality_inspector,receiver",
-    });
+const visitor = (appRoles: string[], activeRole?: string) => ({ appRoles, activeRole }) as unknown as Visitor;
 
-    assert.equal(getGatewayRole(headers), "warehouse_manager");
-    assert.deepEqual(getGatewayRoles(headers), [
-      "warehouse_manager",
-      "receiver",
-      "quality_inspector",
-    ]);
-    assert.deepEqual(getTrustedGatewayRoles(headers), [
-      "warehouse_manager",
-      "receiver",
-      "quality_inspector",
-    ]);
+describe("visitor roles", () => {
+  it("keeps the active role first and includes every role", () => {
+    assert.deepEqual(visitorRoles(visitor(["receiver", "warehouse_manager"], "warehouse_manager")), ["warehouse_manager", "receiver"]);
   });
 
-  it("grants nothing for a deployed active role outside the business roles", () => {
-    const headers = new Headers({
-      "X-Tier0-Runtime": "deployed",
-      "X-Tier0-Active-Role": "warehouse_manager",
-      "X-Tier0-Business-Roles": "receiver",
-    });
-
-    assert.deepEqual(getTrustedGatewayRoles(headers), ["receiver"]);
-    assert.deepEqual(getGatewayRoles(headers), ["receiver"]);
+  it("gives an active role outside the set no authority", () => {
+    assert.deepEqual(visitorRoles(visitor(["receiver"], "warehouse_manager")), ["receiver"]);
   });
 
-  it("reads the preview view-as role set only from X-Tier0-Preview-Role", () => {
-    const headers = new Headers({
-      "X-Tier0-Runtime": "preview",
-      "X-Tier0-Preview-Role": "receiver",
-      "X-Tier0-Active-Role": "warehouse_manager",
-      "X-Tier0-Business-Roles": "receiver,warehouse_manager",
-    });
-
-    assert.deepEqual(getGatewayRoles(headers), ["receiver"]);
-  });
-
-  it("accepts several preview view-as roles as a permission union", () => {
-    const headers = new Headers({
-      "X-Tier0-Runtime": "preview",
-      "X-Tier0-Preview-Role": "receiver, quality_inspector,receiver",
-      "X-Tier0-Active-Role": "receiver",
-      "X-Tier0-Business-Roles": "receiver,quality_inspector",
-    });
-
-    assert.deepEqual(getGatewayRoles(headers), ["receiver", "quality_inspector"]);
-    assert.deepEqual(getTrustedGatewayRoles(headers), ["receiver", "quality_inspector"]);
-    assert.equal(getGatewayRole(headers), "receiver");
-  });
-
-  it("treats a preview without selected roles as zero roles", () => {
-    const headers = new Headers({ "X-Tier0-Runtime": "preview" });
-
-    assert.equal(getTrustedGatewayRoles(headers), undefined);
-    assert.equal(getGatewayRole(headers), undefined);
-  });
-
-  it("treats an explicit deployed empty role list as authoritative zero access", () => {
-    const headers = new Headers({
-      "X-Tier0-Runtime": "deployed",
-      "X-App-User-Role": "admin",
-    });
-
-    assert.deepEqual(getTrustedGatewayRoles(headers), []);
-    assert.deepEqual(getGatewayRoles(headers), []);
-    assert.equal(getGatewayRole(headers), undefined);
+  it("treats an empty role set as zero roles", () => {
+    assert.deepEqual(visitorRoles(visitor([])), []);
   });
 });
 

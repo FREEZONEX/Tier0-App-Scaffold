@@ -3,7 +3,7 @@
  *
  * A server process holds ONE upstream subscription (`data.subscribe` over
  * every declared collection, as the App) and fans it out to every browser
- * EventSource, filtered by the collection aliases and record IDs each one
+ * event stream, filtered by the collection aliases and record IDs each one
  * asked for. Browsers never open their own upstream: UNS limits
  * subscriptions per App server process, not per user.
  *
@@ -24,6 +24,9 @@
  * per consecutive failure up to `MAX_RESTART_INTERVAL_MS`. Every browser
  * stream ends after `MAX_STREAM_MS` (±10 %), so the browser reconnects and
  * the route authenticates it again.
+ *
+ * Preview and deployments behave the same: the node proxy injects the App's
+ * key in both, so one shared upstream serves every browser stream.
  *
  * Events carry only collection, record ID, revision and kind of change. The
  * upstream runs as the App, so employee data rules do not filter them: for a

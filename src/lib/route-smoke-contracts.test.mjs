@@ -67,7 +67,7 @@ describe("route smoke contracts", () => {
     );
   });
 
-  it("keeps authoritative preview headers across redirects without an App session", async () => {
+  it("sends no identity of its own across redirects: the dev signer provides the visitor", async () => {
     const { smokePath } = await import("../../scripts/route-smoke.mjs");
     const calls = [];
 
@@ -102,10 +102,9 @@ describe("route smoke contracts", () => {
     assert.equal(result.ok, true);
     assert.equal(calls.length, 2);
     assert.equal(calls[0].redirect, "manual");
-    assert.equal(calls[1].headers["x-tier0-runtime"], "preview");
-    // No selected preview role: the platform sends no role header before
-    // roles are registered, and the app must still render (zero permissions).
-    assert.equal(calls[1].headers["x-tier0-preview-role"], undefined);
+    for (const name of ["x-tier0-runtime", "x-tier0-visitor", "x-app-user-id"]) {
+      assert.equal(calls[1].headers[name], undefined, name);
+    }
     assert.equal(calls[1].headers.cookie, undefined);
   });
 });

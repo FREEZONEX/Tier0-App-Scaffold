@@ -28,7 +28,7 @@ target application instead of being constrained by a fixed template library.
 
 ```bash
 npm install
-export TIER0_API_HOST=<gateway host> TIER0_API_KEY=<App key>   # only to reach App data locally
+export TIER0_API_HOST=<gateway host> TIER0_API_KEY=<personal or external App key>   # local development only
 npm run dev               # -> http://localhost:5173
 ```
 
@@ -59,12 +59,30 @@ SDK, the platform gateway, or the runtime environment.
 
 ### Variables Injected for the SDK
 
+In Preview and deployments the SDK needs no credential and none can be found:
+there is no `TIER0_API_KEY` and no credential file. The node proxy recognizes
+the App's VM and injects the App's long-lived key; Preview and deployments use
+the same key and behave the same. Besides the App id (`APP_ID` above,
+read through `resolveAppId()`), the platform sets these variables; they are
+identifiers, not secrets:
+
 | Variable | Purpose |
 |---|---|
-| `TIER0_API_HOST` | OpenAPI gateway host used by the SDK client and the App data layer |
-| `TIER0_API_KEY` | App key used by OpenAPI, MQTT and the App data layer |
-| `TIER0_MQTT_HOST` | MQTT WebSocket broker host |
-| `TIER0_MQTT_PORT` | MQTT WebSocket port, default `8084` |
+| `TIER0_API_HOST` | `http://api.sbx.internal:8080`, the node proxy in front of the platform API (a bare host name still means `https://`, for local development) |
+| `TIER0_MQTT_URL` | `mqtt://mqtt.sbx.internal:1883`, the node proxy in front of the broker |
+| `TIER0_WORKSPACE_ID` | Workspace of the App |
+| `TIER0_RUNTIME` | `deployed` or `preview`; both behave the same |
+| `TIER0_JWKS_DIR` | Front-door public keys for verifying `X-Tier0-Visitor` (sessions) |
+| `TIER0_JWKS_URL` | Front-door public JWKS, fetched when `TIER0_JWKS_DIR` does not exist (published Apps) |
+
+A direct `fetch` / `curl` to `TIER0_API_HOST` (not through the SDK) must send
+`X-Tier0-SDK: 1` and no `Authorization`. Platform permissions and message
+topics are managed by workspace admins in the App settings and apply
+immediately; external collections are confirmed when publishing.
+
+For local development set `TIER0_API_HOST` and `TIER0_API_KEY` yourself, using a
+personal key or an external App's key. In Preview and deployments the App needs
+no credential and cannot read any.
 
 If the platform explicitly requires browser-side Vite env access, the runtime
 is responsible for injecting `VITE_TIER0_*`. Generated apps should not turn
@@ -85,8 +103,10 @@ ssr: {
 
 SDK calls are loaded on the server through the lazy helpers in
 `src/lib/tier0.ts`: `loadTier0Sdk()` returns the root module, whose
-`createClient()` exposes `tier0.system`, `members`, `notifications`, `files`,
-`mqttAuth` and the other domains; `loadTier0OpenApi()`, `loadTier0Files()` and
+`createClient()` exposes `tier0.system`, `members`, `notifications`, `files`
+and the other domains (in Preview and deployments only `system.info()`,
+`members.listWorkspace()`, notifications, files and data work; see
+`docs/platform-integration.md`); `loadTier0OpenApi()`, `loadTier0Files()` and
 `loadTier0Mq()` load the subpath modules. Create a fresh client per request when
 passing employee data delegation. Generated apps should not top-level import SDK submodules,
 should not move the SDK into `ssr.noExternal`, and should not bypass the SDK
@@ -134,7 +154,7 @@ src/
     seed-utils.ts             <- seedDate() / seedTimestamp() / requireSeedRef() for seed documents
   lib/                        <- Cross-cutting utilities, not domain logic
     auth.ts                   <- getCurrentUser() / requireAuth() (do not modify)
-    gateway.ts                <- Gateway header parsing (do not modify)
+    visitor.ts                <- Visitor token verification (do not modify)
     preview-bridge.ts         <- Preview host bridge for surfacing auth/page/preview-role errors
     route-handlers.ts         <- withErrors() response/error wrapper (do not modify)
     users.ts                  <- AppUser type (do not modify)
@@ -365,7 +385,7 @@ Hard rules:
 
 - `@/lib/data` may only be imported from `src/services/**`
 - `Request`, `Response`, and `Headers` belong only in routes, `src/start.ts`,
-  `src/lib/{auth,gateway,route-handlers}.ts` and the change stream
+  `src/lib/{auth,visitor,route-handlers}.ts` and the change stream
   (`src/lib/data/changes.ts`)
 - Writes that must succeed together live in one document or one
   `data.transact([...])` (≤200 steps); `updateMany` / `deleteMany` are not
@@ -377,57 +397,14 @@ Hard rules:
 
 ## Authentication (SSO)
 
-The platform gateway injects the user identity headers. The app does not manage
-passwords or a user-account table.
+The platform front door signs the visitor into `X-Tier0-Visitor` on every
+request, and `src/start.ts` verifies it. The app does not manage passwords or a
+user-account table and reads no plain identity header. Roles are the token's
+`app_roles`; permissions are their union. Details:
+[docs/platform-integration.md](docs/platform-integration.md#authentication-model).
 
-Supported gateway header formats:
-
-```text
-# Format 1: JSON
-user: {"userID":"u123","userName":"mercy","email":"m@x.com","role":"operator"}
-
-# Format 2: separate headers
-X-App-User-ID: u123
-X-App-User-Name: mercy
-X-App-User-Email: m@x.com
-X-App-User-Role: operator
-
-# Format 3: minimum set
-X-App-User-ID: u123
-```
-
-If `name` is missing, the app falls back to the user id. If `email` is
-missing, it stores an empty string.
-
-Active role header precedence:
-
-1. `X-Tier0-Runtime: preview` + the first `X-Tier0-Preview-Role` value
-2. `X-Tier0-Active-Role`
-3. `X-Tier0-Preview-Role`
-4. `X-App-User-Role`
-5. `user.role`
-
-Role header values may be plain ASCII, percent-encoded UTF-8, or raw UTF-8
-bytes read as latin-1; the parser normalizes them before matching
-`PERMISSION_MATRIX`.
-
-Flow:
-
-1. Gateway injects headers into the request
-2. `src/start.ts` blocks cross-origin mutating requests and bypasses auth only for `/login`, `/api/health`, `/api/manifest`, and TanStack runtime/build assets
-3. Explicit Tier0 runtime roles are authoritative; deployed permissions use the complete role union and unknown trusted roles contribute zero permissions
-4. A valid legacy role may continue; an unknown legacy role returns `403`
-5. Preview uses the complete comma-separated `X-Tier0-Preview-Role` set with the same permission union; a preview identity without a selected view-as role enters with zero roles and zero permissions; no App session is created
-6. Gateway identity without an applicable role context returns `403`
-7. Missing Gateway identity returns `401`
-8. `/login` only reports platform-auth failure; it does not mint a Cookie or render a role picker
-
-Roles are app-owned. Define the role-to-action mapping in
-`src/lib/permissions.ts` as `PERMISSION_MATRIX`. The platform reads
-`GET /api/manifest` to build role-assignment UI.
-
-See [docs/platform-integration.md](docs/platform-integration.md) for the full
-platform model.
+For local development set `PREVIEW_USER_ID` (and optionally `PREVIEW_USER_ROLE`)
+before `npm run dev`: a development signer provides the visitor.
 
 ## Scripts
 
