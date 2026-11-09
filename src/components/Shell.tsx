@@ -556,11 +556,10 @@ export function Shell({
             <Menu className="size-4" />
           </button>
         </div>
-        {/* Workspace content container: caps line lengths on wide monitors so
-            tables/cards don't stretch edge-to-edge with hollow gaps. Wide
-            boards scroll internally (TableViewport/wide-operational-scroll);
-            monitor/station chromes are separate layouts and stay full-bleed. */}
-        <div className="mx-auto w-full max-w-[1440px]">{children}</div>
+        {/* Operational pages fill the available workspace width. Forms and
+            long text may constrain their own content blocks for readability;
+            wide tables/boards keep horizontal scrolling inside the page. */}
+        <div className="w-full min-w-0">{children}</div>
       </main>
     </div>
   );
