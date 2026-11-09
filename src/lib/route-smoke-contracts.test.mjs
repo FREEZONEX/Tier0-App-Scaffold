@@ -67,7 +67,7 @@ describe("route smoke contracts", () => {
     );
   });
 
-  it("sends no identity of its own across redirects: the dev signer provides the visitor", async () => {
+  it("sends no identity of its own across redirects: the development front door provides the visitor", async () => {
     const { smokePath } = await import("../../scripts/route-smoke.mjs");
     const calls = [];
 

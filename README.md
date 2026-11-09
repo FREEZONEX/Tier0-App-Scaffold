@@ -19,7 +19,7 @@ target application instead of being constrained by a fixed template library.
 | Charts | Recharts 3 (must be wrapped in `<ResponsiveContainer>`) |
 | Tables | TanStack React Table 8 |
 | Drag and drop | dnd-kit |
-| Tier0 Platform SDK | `@tier0/sdk-v2` (OpenAPI REST via `createClient()` + MQTT over WebSocket) |
+| Tier0 Platform SDK | `@tier0/sdk-v2` (OpenAPI REST via `createClient()` + server-side MQTT via `Tier0MQClient`) |
 | Icons | Lucide React |
 | Toasts | Sonner (`Toaster` is mounted in `__root.tsx`) |
 | Motion | `motion` imported from `@/lib/motion`, never directly from `motion/react` |
@@ -59,30 +59,28 @@ SDK, the platform gateway, or the runtime environment.
 
 ### Variables Injected for the SDK
 
-In Preview and deployments the SDK needs no credential and none can be found:
-there is no `TIER0_API_KEY` and no credential file. The node proxy recognizes
-the App's VM and injects the App's long-lived key; Preview and deployments use
-the same key and behave the same. Besides the App id (`APP_ID` above,
-read through `resolveAppId()`), the platform sets these variables; they are
-identifiers, not secrets:
+In Preview and deployments the platform puts the App's key into the App's
+process environment as `TIER0_API_KEY`, and the SDK uses it by itself (Preview
+runs with the App's preview key, deployments with the deployed one). It is a
+secret: App code never reads, logs or returns it. Besides the App id (`APP_ID`
+above, read through `resolveAppId()`), the platform sets these variables:
 
 | Variable | Purpose |
 |---|---|
-| `TIER0_API_HOST` | `http://api.sbx.internal:8080`, the node proxy in front of the platform API (a bare host name still means `https://`, for local development) |
-| `TIER0_MQTT_URL` | `mqtt://mqtt.sbx.internal:1883`, the node proxy in front of the broker |
+| `TIER0_API_HOST` | Platform API gateway root (a bare host name means `https://`) |
+| `TIER0_API_KEY` | The App's key (secret, runtime process only, never at build) |
+| `TIER0_MQTT_HOST`, `TIER0_MQTT_PORT` | MQTT broker entry for `Tier0MQClient` on the App's server |
 | `TIER0_WORKSPACE_ID` | Workspace of the App |
-| `TIER0_RUNTIME` | `deployed` or `preview`; both behave the same |
-| `TIER0_JWKS_DIR` | Front-door public keys for verifying `X-Tier0-Visitor` (sessions) |
-| `TIER0_JWKS_URL` | Front-door public JWKS, fetched when `TIER0_JWKS_DIR` does not exist (published Apps) |
+| `TIER0_RUNTIME` | `deployed` or `preview` |
 
-A direct `fetch` / `curl` to `TIER0_API_HOST` (not through the SDK) must send
-`X-Tier0-SDK: 1` and no `Authorization`. Platform permissions and message
+Call the platform through the SDK, not with a hand-written `fetch` / `curl` to
+`TIER0_API_HOST`. Platform permissions and message
 topics are managed by workspace admins in the App settings and apply
 immediately; external collections are confirmed when publishing.
 
 For local development set `TIER0_API_HOST` and `TIER0_API_KEY` yourself, using a
-personal key or an external App's key. In Preview and deployments the App needs
-no credential and cannot read any.
+personal key or an external App's key. In Preview and deployments the platform
+sets them.
 
 If the platform explicitly requires browser-side Vite env access, the runtime
 is responsible for injecting `VITE_TIER0_*`. Generated apps should not turn
@@ -107,8 +105,8 @@ SDK calls are loaded on the server through the lazy helpers in
 and the other domains (in Preview and deployments only `system.info()`,
 `members.listWorkspace()`, notifications, files and data work; see
 `docs/platform-integration.md`); `loadTier0OpenApi()`, `loadTier0Files()` and
-`loadTier0Mq()` load the subpath modules. Create a fresh client per request when
-passing employee data delegation. Generated apps should not top-level import SDK submodules,
+`loadTier0Mq()` load the subpath modules. Every platform call is the App's own
+and carries no visitor; MQTT runs on the server only. Generated apps should not top-level import SDK submodules,
 should not move the SDK into `ssr.noExternal`, and should not bypass the SDK
 with fallback MQTT clients or hand-written fetch wrappers.
 
@@ -154,7 +152,8 @@ src/
     seed-utils.ts             <- seedDate() / seedTimestamp() / requireSeedRef() for seed documents
   lib/                        <- Cross-cutting utilities, not domain logic
     auth.ts                   <- getCurrentUser() / requireAuth() (do not modify)
-    visitor.ts                <- Visitor token verification (do not modify)
+    visitor.ts                <- Reads the X-Tier0-Visitor header (do not modify)
+    change-visibility.ts      <- Which record changes a user's browser hears about (adapt to the App's roles)
     preview-bridge.ts         <- Preview host bridge for surfacing auth/page/preview-role errors
     route-handlers.ts         <- withErrors() response/error wrapper (do not modify)
     users.ts                  <- AppUser type (do not modify)
@@ -397,14 +396,17 @@ Hard rules:
 
 ## Authentication (SSO)
 
-The platform front door signs the visitor into `X-Tier0-Visitor` on every
-request, and `src/start.ts` verifies it. The app does not manage passwords or a
-user-account table and reads no plain identity header. Roles are the token's
-`app_roles`; permissions are their union. Details:
+The platform front door sets the visitor in `X-Tier0-Visitor` on every
+request (after stripping any `X-Tier0-*` the client sent), and `src/start.ts`
+reads it. The app does not manage passwords or a user-account table and reads
+no other identity header. Roles are the header's `app_roles`; permissions are
+their union. The App uses them to apply its own data rules: platform calls are
+the App's own and the platform does not narrow its data by user. Details:
 [docs/platform-integration.md](docs/platform-integration.md#authentication-model).
 
 For local development set `PREVIEW_USER_ID` (and optionally `PREVIEW_USER_ROLE`)
-before `npm run dev`: a development signer provides the visitor.
+before `npm run dev`: the development front door in `vite.config.ts` sets the
+visitor header.
 
 ## Scripts
 

@@ -6,8 +6,10 @@
 //   createRequire so SSR consistently loads the CJS condition while client
 //   bundles can resolve the ESM condition when explicitly imported.
 // - The root module's createClient() is the main entry (tier0.system, uns,
-//   files, notifications, ...). Create a fresh client per request when passing
-//   employee data delegation.
+//   files, notifications, ...). Every platform call is the App's own: it
+//   carries no visitor, so the App applies its role rules itself.
+// - MQTT (loadTier0Mq) runs on the server only. Browsers never connect to the
+//   broker: forward what a visitor may see through an App route instead.
 // - Business pages should not expose SDK auth or connection configuration UI.
 import { createRequire } from "node:module";
 

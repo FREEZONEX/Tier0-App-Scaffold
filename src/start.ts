@@ -1,9 +1,9 @@
 /**
- * TanStack Start global middleware: visitor token verification and CSRF guard.
+ * TanStack Start global middleware: visitor and CSRF guard.
  *
- * The front door signs the visitor into `X-Tier0-Visitor` on every request, and
- * strips any `X-Tier0-*` the client sent. Failure to verify is always a 401; no
- * plain identity header is read anywhere, and the App has no session cookie.
+ * The front door sets `X-Tier0-Visitor` on every request, after stripping any
+ * `X-Tier0-*` the client sent. A missing or invalid header is always a 401; no
+ * other identity header is read anywhere, and the App has no session cookie.
  *
  * - Pages and API routes need a verified visitor. A `machine` visitor (App call
  *   token) only reaches the paths of `src/lib/webhooks.ts`.
@@ -11,20 +11,17 @@
  *   `requireEmployeeFn` demands an employee unless the function opted out
  *   (`src/lib/server-fn-policy.ts`).
  *
- * Every request, public paths included, runs inside the data-layer request
- * context, so platform calls made while serving it forward the front door's
- * `X-Tier0-Delegation`. Backend verifies it and binds it to this App's
- * credential, so the App can neither forge nor widen it. The context gets the
- * request itself, so its abort signal reaches the data layer: when the caller
- * goes away, data calls still queued are dropped and those in flight are
- * cancelled.
+ * Every request, public paths included, hands its abort signal to the data
+ * layer (`runWithAbortSignal`): when the caller goes away, its data calls still
+ * queued are dropped and those in flight are cancelled. Data calls are always
+ * the App's own; what the visitor may see is decided by the App's services.
  */
 
 import { createMiddleware, createStart } from "@tanstack/react-start";
-import { runWithRequestContext } from "@tier0/sdk-v2/data";
+import { runWithAbortSignal } from "@tier0/sdk-v2/data";
 import { requireAuth } from "@/lib/auth";
 import { isPublicServerFn } from "@/lib/server-fn-policy";
-import { readVisitor, visitorReady } from "@/lib/visitor";
+import { readVisitor } from "@/lib/visitor";
 import { isWebhookPath } from "@/lib/webhooks";
 
 // Exact path or proper child segment. This avoids `/login-attempts` matching
@@ -67,7 +64,7 @@ function jsonError(status: number, error: string): Response {
 }
 
 export const authBridge = createMiddleware().server(({ request, pathname, next }) =>
-  runWithRequestContext(request, async () => {
+  runWithAbortSignal(request.signal, async () => {
     if (MUTATING.has(request.method) && !isSameOrigin(request)) {
       return jsonError(403, "Cross-origin request blocked");
     }
@@ -76,14 +73,11 @@ export const authBridge = createMiddleware().server(({ request, pathname, next }
       return next();
     }
 
-    // Published Apps fetch the front door keys in the background; the first
-    // request waits for that fetch instead of being refused for want of keys.
-    await visitorReady();
     let visitor;
     try {
       visitor = readVisitor(request.headers);
     } catch {
-      return jsonError(503, "Visitor verification is not configured");
+      return jsonError(503, "Visitor identity is not configured");
     }
     if (!visitor) {
       return jsonError(401, "Platform authentication required");

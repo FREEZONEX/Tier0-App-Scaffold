@@ -8,10 +8,9 @@
  *
  * Events only say that a record changed (`recordId`, `revision`, `change`);
  * they never carry record data. Reload through the App's own API, which
- * applies permissions and employee data rules, instead of patching state
- * from the event. A collection with employee data rules only reports that
- * something in it changed (`batch.collections`), never which record. A
- * `reset` means changes may have been missed (the App restarted, the stream
+ * applies the App's permissions, instead of patching state from the event.
+ * The server only forwards the changes the user may hear about
+ * (`src/lib/change-visibility.ts`). A `reset` means changes may have been missed (the App restarted, the stream
  * fell behind, access changed, or a collection was recreated): reload
  * everything the view shows. Changes of one record may arrive out of order,
  * a `delete` may arrive after a newer change, and revisions restart at 1
@@ -20,10 +19,16 @@
  *
  * The App server holds one upstream subscription per process and fans it out
  * to every browser, so a page may subscribe freely; the stream reconnects on
- * its own and resumes from the last event it saw. It stops while the App
- * sleeps and comes back on the runtime's `resumed` with a `reset`, because
- * changes in between were missed. It runs over `fetch`: `EventSource` gives up
- * for good on a 503. Pass collection aliases
+ * its own and resumes from the last event it saw. While the page is hidden
+ * (background tab, minimized window) the connection is closed, so the page
+ * does not hold a long connection to the App; when it is visible again the
+ * stream resumes from the last event it saw: the server replays what was
+ * missed, or sends `reset` when it cannot. It stops while the App sleeps and
+ * comes back on the runtime's `resumed` with a `reset`, because changes in
+ * between were missed. When the App server cannot reach UNS (for example
+ * over the subscription limit) the stream says `unavailable` (logged here)
+ * and the server keeps retrying. It runs over `fetch` (`openEventStream` from
+ * `@tier0/sdk-v2/event-stream`): `EventSource` gives up for good on a 503. Pass collection aliases
  * (strings): importing declarations into a page puts their schemas and seeds
  * into the browser bundle.
  */
@@ -32,7 +37,7 @@ import { useEffect, useRef } from "react";
 import { openEventStream } from "@tier0/sdk-v2/event-stream";
 import { apiUrl } from "@/lib/utils";
 
-/** A `change` event of `/api/uns/subscribe` naming the record. */
+/** A `change` event of `/api/uns/subscribe`. */
 export interface RecordChange {
   /** Position in this App server's stream (the SSE `id`); not a UNS cursor. */
   eventId: string;
@@ -47,22 +52,9 @@ export interface RecordChange {
   occurredAt: number;
 }
 
-/** A `change` event of a collection with employee data rules: some record in it changed. */
-export interface CollectionChange {
-  eventId: string;
-  collection: string;
-  change: "collection";
-  /** Unix milliseconds. */
-  occurredAt: number;
-}
-
-export type ChangeEvent = RecordChange | CollectionChange;
-
 /** What arrived since the previous callback. */
 export interface RecordChangeBatch {
   changes: RecordChange[];
-  /** Aliases of collections with employee data rules that changed: reload what they show. */
-  collections: string[];
   /** Changes may have been missed; reload instead of relying on `changes`. */
   reset: boolean;
 }
@@ -125,17 +117,16 @@ export function useRecordChanges(
     }
 
     function queue(update: (batch: RecordChangeBatch) => void) {
-      pending ??= { changes: [], collections: [], reset: false };
+      pending ??= { changes: [], reset: false };
       update(pending);
       timer ??= window.setTimeout(flush, batchMs);
     }
 
     function onChange(body: string) {
       try {
-        const change = JSON.parse(body) as ChangeEvent;
+        const change = JSON.parse(body) as RecordChange;
         queue((batch) => {
-          if (change.change !== "collection") batch.changes.push(change);
-          else if (!batch.collections.includes(change.collection)) batch.collections.push(change.collection);
+          batch.changes.push(change);
         });
       } catch {
         onReset();
@@ -154,6 +145,8 @@ export function useRecordChanges(
       onEvent(event) {
         if (event.event === "change") onChange(event.data);
         else if (event.event === "reset") onReset();
+        // The App server cannot reach UNS for now and keeps retrying; a reset follows if changes were missed.
+        else if (event.event === "unavailable") console.warn("[record-changes] live updates are paused:", event.data);
       },
       onResume: onReset,
       // Refused for good (400, 404, or no page runtime): let the page reload once.

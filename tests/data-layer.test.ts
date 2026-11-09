@@ -6,10 +6,9 @@ import { withErrors } from "../src/lib/route-handlers";
 import { authBridge } from "../src/start";
 
 // The data client itself is tested in @tier0/sdk-v2. These cases cover the
-// Scaffold's wiring around it: src/start.ts opens the SDK's request context,
-// and withErrors answers DataErrors with their mapped status.
+// Scaffold's wiring around it: src/start.ts hands the request's abort signal
+// to the SDK, and withErrors answers DataErrors with their mapped status.
 
-const DELEGATION_HEADER = "X-Tier0-Delegation";
 const ENSURE = "/uns/app/collections/ensure";
 const COUNT = "/uns/collections/c-orders/records:count";
 
@@ -109,27 +108,7 @@ describe("route handlers", () => {
   });
 });
 
-describe("request context", () => {
-  it("opens the SDK request context in src/start.ts, so data calls carry the delegation on every path", async () => {
-    const mock = mockUns({ [ENSURE]: ensured, [COUNT]: ok({ count: 1 }) });
-    const data = client(mock);
-    await data.ensure();
-    const serve = (path: string, headers: Record<string, string>) =>
-      (authBridge.options.server as unknown as (context: { request: Request; pathname: string; next: () => Promise<unknown> }) => Promise<unknown>)({
-        request: new Request(`http://app.local${path}`, { headers }),
-        pathname: path,
-        next: () => data.collection(orders).countDocuments(),
-      });
-
-    await serve("/_serverFn/abc", { [DELEGATION_HEADER]: "h.jwt-fn.s" });
-    await serve("/login", { [DELEGATION_HEADER]: "h.jwt-login.s" });
-    await serve("/_serverFn/abc", {});
-
-    const delegations = mock.calls(COUNT).map((entry) => entry.headers[DELEGATION_HEADER.toLowerCase()]);
-    assert.deepEqual(delegations, ["h.jwt-fn.s", "h.jwt-login.s", undefined]);
-    assert.equal(mock.calls(ENSURE)[0].headers[DELEGATION_HEADER.toLowerCase()], undefined);
-  });
-
+describe("request abort signal", () => {
   it("hands the request's abort signal to the data layer, so a caller that left sends nothing", async () => {
     const mock = mockUns({ [ENSURE]: ensured, [COUNT]: ok({ count: 1 }) });
     const data = client(mock);

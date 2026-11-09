@@ -55,7 +55,6 @@ const LOCKED_FILES = [
   "src/start.ts",
   "src/lib/auth.ts",
   "src/lib/visitor.ts",
-  "src/lib/dev-signer.ts",
   "src/lib/server-fn-policy.ts",
   "src/routes/api/auth/me.ts",
 ];
