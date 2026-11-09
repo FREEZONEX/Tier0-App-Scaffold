@@ -172,15 +172,18 @@ describe("app chrome policy", () => {
     assert.match(policy, /prefix: "\/monitor"/);
   });
 
-  guidanceIt("keeps the workspace content container (layout incident guard)", () => {
+  guidanceIt("keeps operational workspace content fluid by default", () => {
     const shell = readFileSync(
       join(process.cwd(), "src/components/Shell.tsx"),
       "utf8",
     );
 
-    // Wide-monitor guard: without the centered container, tables and cards
-    // stretch edge-to-edge with hollow gaps between sparse columns.
-    assert.match(shell, /max-w-\[1440px\]/);
+    // Readability limits belong to local form/prose blocks, not the Shell.
+    const contentClass = shell.match(/<div className="([^"]+)">\{children\}<\/div>/)?.[1];
+    assert.ok(contentClass, "workspace content wrapper must be present");
+    assert.match(contentClass, /\bw-full\b/);
+    assert.match(contentClass, /\bmin-w-0\b/);
+    assert.doesNotMatch(contentClass, /max-w-|mx-auto|\bcontainer\b/);
   });
 
   guidanceIt("keeps responsive page-shell padding available to generated workspace pages", () => {
@@ -201,7 +204,7 @@ describe("app chrome policy", () => {
     );
     assert.match(
       styles,
-      /@media\s*\(min-width:\s*1024px\)\s*\{\s*\.page-shell\s*\{[^}]*padding:\s*var\(--tier0-space-xxl\);/s,
+      /@media\s*\(min-width:\s*1024px\)\s*\{\s*\.page-shell\s*\{[^}]*padding:\s*var\(--tier0-space-xxl\)\s+var\(--tier0-space-xl\);/s,
     );
     assert.match(agents, /className="page-shell/);
   });

@@ -214,8 +214,8 @@ components:
     rounded: "{rounded.sm}"
 
 layout:
-  workspace-container: "1440px centered"  # Shell caps content width; wide boards scroll internally
-  workspace-page-inset: "page-shell: 16px x / 20px y narrow, 24px sm, 32px lg"
+  workspace-container: "full available width"  # Forms/prose may opt into local width limits
+  workspace-page-inset: "page-shell: 16px x / 20px y narrow, 24px sm, 24px x / 32px y lg"
   table-actions-column: "table-col-fit"   # trailing action/badge columns shrink to content
 
 motion:
@@ -289,10 +289,21 @@ an explanation of the page or embedded cards, filters, charts, forms, or data
 boards. Wide content owns its scroll region, long values wrap or truncate
 intentionally, and interactive pages remain usable at 375px.
 
-Use `page-shell` on the root of every ordinary workspace page. `Shell` owns the
-centered 1440px maximum width; `page-shell` owns the responsive page inset, so
-do not repeat outer page padding. Station, review, and monitor layouts keep
-their own purpose-built spacing instead.
+Use `page-shell` on the root of every ordinary workspace page. `Shell` fills
+all available width beside the sidebar, with no global maximum or centered
+container. Production lists, ledgers, quality review, planning and operational
+boards use that width by default. `page-shell` owns the responsive page inset:
+16px horizontally on narrow screens and 24px on desktop; do not repeat outer
+page padding. Station, review, and monitor layouts keep their purpose-built spacing.
+
+Limit width locally when the content needs it: a simple form can use
+`w-full min-w-0 max-w-3xl`, and a long-text block `w-full min-w-0 max-w-prose`.
+These are opt-in examples, not limits on every form: multi-column forms and
+editable line-item tables may need the full width. Keep the page header and
+operational tables outside these local wrappers; use `mx-auto` only when that
+specific content benefits from centering. Keep search controls and status/action
+columns bounded; let business content columns use the remaining space. Wide
+tables and boards retain their own horizontal scroll region.
 
 List pages place tabs, filters, toolbars, tables, and pagination directly on
 the page canvas. Do not add an outer decorative card around `MetaListPage`;

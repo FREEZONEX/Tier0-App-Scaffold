@@ -55,6 +55,26 @@ shrinkable; keep page-specific vertical rhythm such as `space-y-6` on the same
 element. Do not add a second outer `px-*` / `py-*` layer. Station, review, and
 monitor layouts own their spacing separately and do not use `page-shell`.
 
+The workspace fills the available width beside the sidebar. Lists, ledgers,
+quality review and planning pages must not inherit a global centered maximum.
+Page insets are 16px horizontally on narrow screens and 24px on desktop.
+Constrain only content that benefits from a shorter reading or editing width:
+
+```tsx
+<div className="page-shell space-y-5">
+  <PageHeader title="Settings" />
+  <form className="w-full min-w-0 max-w-3xl">{/* form fields */}</form>
+  <article className="w-full min-w-0 max-w-prose">{/* long text */}</article>
+</div>
+```
+
+These local limits are optional; multi-column forms and editable line items
+may need full width. Keep page headers and operational tables outside narrow
+wrappers. Add `mx-auto` only for a deliberately centered local block. Keep
+search controls and status/action columns bounded rather than stretching every
+control equally. Verify 375px, 1920px and 2560px viewports, including desktop
+sidebar expansion/collapse; wide tables should scroll internally.
+
 Required fields use `FieldGroup required` or `FieldLabel required` with plain
 title text. Show exactly one red asterisk to the right of the title, never
 below the control. Do not hand-write stars, reverse label direction, or put

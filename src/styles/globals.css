@@ -779,7 +779,7 @@ body {
 
   @media (min-width: 1024px) {
     .page-shell {
-      padding: var(--tier0-space-xxl);
+      padding: var(--tier0-space-xxl) var(--tier0-space-xl);
     }
   }
 }
