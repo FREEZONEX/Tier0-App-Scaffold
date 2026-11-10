@@ -2,10 +2,11 @@
 
 ## Tier0 SDK (`@tier0/sdk-v2`)
 
-The unified `@tier0/sdk-v2@0.10.1` is pinned to the verified published archive
-`file:vendor/tier0-sdk-v2-0.10.1.tgz`. It supplies data, platform, Stream request
-and message APIs using `/openapi/v2`. The archive integrity is checked by the
-lockfile and tests; installation alone does not prove a live deployment.
+The unified `@tier0/sdk-v2@0.10.1-aenv.13` is pinned to the local archive
+`file:vendor/tier0-sdk-v2-0.10.1-aenv.13.tgz`. It retains the latest 0.10.1
+data, platform and Stream contracts and accepts only employee visitors.
+The lockfile and tests check the consumed archive's integrity; this package
+is not published to npm, and installation alone does not prove a live deployment.
 The SDK must preserve `directoryPath` in collection ensure payloads (Backend
 `app-collections/2`); follow [the directory rollout plan](collection-directory-release.md)
 before distributing the template or deploying its backend dependency.
@@ -727,7 +728,7 @@ shares one upstream per server process.
 
 ## Employee-only visitor cutover
 
-The local `0.10.0-aenv.12` SDK rejects all non-employee visitors. The scaffold
+The local `0.10.1-aenv.13` SDK rejects all non-employee visitors. The scaffold
 removes the machine branch and `src/lib/webhooks.ts`; it has no `[[webhooks]]`
 artifact field. The platform App Key remains the App's outbound identity and
 is not an inbound visitor or a replacement call token.
