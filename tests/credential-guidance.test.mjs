@@ -7,7 +7,7 @@ import { test } from "node:test";
 // 给沙箱 agent 和开发者看的指引不许再说 VM 里没有 Key、由节点代理代填，或要求手写请求带 X-Tier0-SDK: 1；
 // 也不许推荐 App 的 Key 用不了的接口。
 // App 的平台能力固定（含 Stream 请求和消息），没有按 App 配置的平台策略、消息主题或发布确认；
-// 外部集合只由工作区 Owner/Admin 授权；MQTT 主题只能在 App 自己的命名空间里，示例一律用 appTopic 拼。
+// 关联外部集合或扩大访问前与用户确认；MQTT 主题只能在 App 自己的命名空间里，示例一律用 appTopic 拼。
 const GUIDANCE = [
   "AGENTS.md",
   "README.md",
@@ -67,7 +67,7 @@ test("guidance builds App features only on endpoints the App's key may call", ()
   }
 });
 
-test("guidance describes fixed App capabilities and Owner/Admin collection grants", () => {
+test("guidance describes fixed App capabilities and confirmed external collection access", () => {
   const retired = [
     /appStreamPolicy/,
     /platform permissions and message\s+topics are managed/i,
@@ -86,8 +86,8 @@ test("guidance describes fixed App capabilities and Owner/Admin collection grant
   }
   const agents = read("AGENTS.md");
   assert.match(agents, /fixed platform capabilities/);
-  assert.match(agents, /workspace Owner\/Admin granted it in the App settings/);
-  assert.match(agents, /do not\s+claim it is granted and do not create a same-named collection/);
+  assert.match(agents, /Before linking an external collection or expanding its access, confirm\s+the target collection, purpose and required access \(read, write, delete\) with\s+the user/);
+  assert.match(agents, /verify the resulting grant before reporting success/);
   const integration = read("docs/platform-integration.md");
   for (const capability of [
     "openapi.base",
@@ -100,7 +100,7 @@ test("guidance describes fixed App capabilities and Owner/Admin collection grant
     assert.ok(integration.includes(`\`${capability}\``), `platform-integration.md lists the fixed capability ${capability}`);
   }
   assert.match(integration, /no per-App topic list/);
-  assert.match(read("README.md"), /workspace Owner\/Admin granted it in\s+the App settings/);
+  assert.match(read("README.md"), /confirms the collection and required access with the user before linking it\s+or expanding access/);
 });
 
 test("MQTT examples stay in the App's namespace through appTopic", () => {

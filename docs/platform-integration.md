@@ -498,7 +498,7 @@ door holds a request for up to 15 seconds while the App starts.
 Workspace
   ├─ App (APP_ID = agent-platform App UUID)
   │    ├─ App API key                      <- issued by the platform, in the App's process as TIER0_API_KEY
-  │    └─ App data policy (UNS)            <- grants: own collections + external ones a workspace Owner/Admin added
+  │    └─ App data policy (UNS)            <- grants: own collections + authorized external collections
   └─ UNS
        └─ North Plant                     <- verified business scope, shared directory
             ├─ Assembly Line 1
@@ -511,11 +511,10 @@ Each App owns the collections it ensures (`ownerAppId = APP_ID`). Every new
 collection declares a `directoryPath` from the workspace root; the backend
 reuses or creates those business directories and grants the collection to the
 App in the same transaction (`record:read`, `record:write`, plus `record:delete`
-when the key holds `uns.delete`). Beyond its own collections the App reaches
-an external collection (another App's, an existing WMS one) only after a
-workspace Owner/Admin grants it in the App settings, through
-`data.collection({ collectionId })`; the Builder agent cannot add that grant,
-and a grant or its removal applies from the next request. The diagram assumes
+when the key holds `uns.delete`). The App accesses granted external collections
+through `data.collection({ collectionId })`. Before linking an external
+collection or expanding access, follow the user-confirmation workflow in
+`AGENTS.md`. A grant or its removal applies from the next request. The diagram assumes
 its business scopes are verified; its names are examples, not defaults. An
 App/module directory such as MES is valid within the known factory/line scope, and shared data
 belongs at a suitable common ancestor. Use only known, meaningful levels;
