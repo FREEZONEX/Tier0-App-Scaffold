@@ -10,6 +10,7 @@
 //   carries no visitor, so the App applies its role rules itself.
 // - MQTT (loadTier0Mq) runs on the server only. Browsers never connect to the
 //   broker: forward what a visitor may see through an App route instead.
+//   The App's key may only use its own topics: build them with appTopic().
 // - Business pages should not expose SDK auth or connection configuration UI.
 import { createRequire } from "node:module";
 

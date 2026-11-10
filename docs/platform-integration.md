@@ -2,8 +2,8 @@
 
 ## Tier0 SDK (`@tier0/sdk-v2`)
 
-The unified `@tier0/sdk-v2@0.10.0-aenv.10` is pinned to the verified published archive
-`file:vendor/tier0-sdk-v2-0.10.0-aenv.10.tgz`. It supplies data, platform, Stream request
+The unified `@tier0/sdk-v2@0.10.0-aenv.11` is pinned to the verified published archive
+`file:vendor/tier0-sdk-v2-0.10.0-aenv.11.tgz`. It supplies data, platform, Stream request
 and message APIs using `/openapi/v2`. The archive integrity is checked by the
 lockfile and tests; installation alone does not prove a live deployment.
 The SDK must preserve `directoryPath` in collection ensure payloads (Backend
@@ -23,7 +23,7 @@ Load the SDK only on the server through the lazy helpers in `@/lib/tier0`:
 | `loadTier0Sdk()` | `@tier0/sdk-v2` | `createClient()`: `tier0.system.info()`, `members.listWorkspace()`, `notifications`, `files`, `uns` (see the availability note below) |
 | `loadTier0OpenApi()` | `@tier0/sdk-v2/openapi` | `createOpenAPI()` / `configureClient()` for the raw generated operations |
 | `loadTier0Files()` | `@tier0/sdk-v2/files` | `createFilesClient()` |
-| `loadTier0Mq()` | `@tier0/sdk-v2/mq` | `Tier0MQClient`, `toWebSocketUrl()`, `parseMqttBroker()`; server only |
+| `loadTier0Mq()` | `@tier0/sdk-v2/mq` | `Tier0MQClient`, `appTopic()`, `toWebSocketUrl()`, `parseMqttBroker()`; server only |
 
 ```ts
 import { loadTier0Sdk } from "@/lib/tier0";
@@ -39,11 +39,15 @@ preview key, deployments with the deployed one, so notifications sent from
 Preview count as test), next to `TIER0_API_HOST`. The SDK uses them by itself
 and sends the key as its single `X-API-Key` header. App code never reads,
 copies, logs or returns the key, and calls the platform through the SDK
-rather than a hand-written `fetch`. Which operations the App's key may call
-is decided by Backend from the App's platform permissions. The App's platform
-permissions and message topics are managed by workspace admins in the App
-settings and apply immediately; external collections are confirmed when
-publishing.
+rather than a hand-written `fetch`. Which routes the App's key may call is a
+fixed allowlist (see the availability note below). Every App has the same
+fixed platform capabilities: `openapi.base`, `platform.users.read`,
+`notifications.send`, `asset.file.upload` / `download` / `delete`,
+`stream.requests.read` / `invoke` / `write` and `stream.messages.publish` /
+`subscribe`. What takes effect is their intersection with the key's own
+permissions, its mode and the workspace plan (`uns.dataAppContext({})` returns
+it as `platformPermissions`); a plan without Stream still refuses Stream
+requests and messages. Nothing is configured or approved per App.
 
 `createClient()` instances share no configuration. Reuse one for work done as
 the App.
@@ -63,17 +67,19 @@ The SDK sends `scope` from the platform-injected `TIER0_RUNTIME`: Preview
 publish, and a deployed App (`deployed`) lists its published roles. Do not pass
 `scope`, set `TIER0_RUNTIME` in `artifact.toml` or `.env`, or block on the
 response's `published` flag; render the returned roles with a normal empty
-state for a role nobody holds. The App's key is authorized by the App's
-`platform.users.read` like
-`listWorkspace` (403 when the App lacks it) and gets no email:
-`email` is empty, so label members by `userName`.
+state for a role nobody holds. The App's key may call it like
+`listWorkspace` and gets no email: `email` is empty, so label members by
+`userName`.
 
 **Availability in Preview and deployments.** The App's key may call only
-`uns` data operations, `assets` (files), `notifications.send`,
+`uns` data operations, files (`client.files`, routes `assets/files/**` only;
+`assets/upload` is refused), `notifications.send`,
 `members.listWorkspace()` (`platform/getMembers`), `members.listApp()`
-(`apps/access-members/list`) and `system.info()`; Backend enforces this on
-every entry. `system.whoami()`, `notifications.get`, `mqttAuth`, `capabilities`,
-`agent` and `client.streams` are not supported for Apps (403
+(`apps/access-members/list`), `client.streams.requests`
+(`stream-requests/discover`, `stream-requests/<code>/describe|invoke`),
+`client.streams.messages` (`stream-messages/connect`), `capabilities.discover()`
+and `system.info()`; Backend enforces this on every entry. `system.whoami()`,
+`notifications.get`, `mqttAuth` and `agent` are not supported for Apps (403
 `hosted_app_key_route_forbidden`); `source` and `stream` management is refused
 for the App's key (403). Do not build App features on them.
 App records still go through `@/lib/data` (see [App Data](#app-data)).
@@ -105,9 +111,6 @@ does not modify an existing App.
 
 ### App Stream requests and messages
 
-**Currently unavailable in Preview and deployments; do not generate these
-calls.** The description below is kept for when the platform enables them.
-
 `client.streams` runs on the server only, with a client that holds a key
 (`createClient()` reads `TIER0_API_HOST` / `TIER0_API_KEY`). Browser code never
 calls it directly: pages call the App's own server routes, which apply the
@@ -131,8 +134,13 @@ await tier0.dispose();
 ```
 
 Do not configure broker URLs, service tokens, seeds or arbitrary workspace
-identities. App policy and published Stream manifest must both authorize each
-topic/direction. Requests make one attempt; resolve uncertain outcomes before
+identities. Stream requests and messages are fixed capabilities of every App,
+bounded by the workspace plan (a plan without Stream refuses them). A request
+code must be granted to this App in the Stream request grants. Message topics
+come from published Stream manifests: the App may subscribe to a topic a
+published Stream declares it publishes, and publish to a topic an active
+Stream subscribes to; there is no per-App topic list. These are logical Stream
+topics, separate from the App's MQTT namespace. Requests make one attempt; resolve uncertain outcomes before
 deliberately replaying with the same idempotency key. Business messages use
 ephemeral NATS Core WSS credentials (Node.js 22+), with no offline queue,
 replay or receiver ACK. Keep the `tier0-stream/v3` machine script contract and
@@ -146,12 +154,10 @@ not proof that execution did not start. Reconcile uncertain results before repla
 Installation alone does not prove Gateway, SYS or broker readiness.
 
 Node Apps use the same SDK with automatically injected `TIER0_API_HOST`,
-`TIER0_API_KEY` and `TIER0_APP_ID`. Fresh App/internal Keys use unified persisted
-request/message mode ceilings; current Workspace/App policy and entry/topic
-grants still constrain every operation. Existing Keys lacking those stored
-scopes require explicit migration/reissue, never silent expansion. Pure system
-DataKeys remain data-only. Server HTTP mapping and real authority/legacy migration
-acceptance are separate checks.
+`TIER0_API_KEY` and `TIER0_APP_ID`. The App's key carries persisted
+request/message mode ceilings; the workspace plan, the Stream request grants
+and the published manifests' topics constrain every operation. Pure system
+DataKeys remain data-only.
 
 ### Notification channels
 
@@ -207,9 +213,35 @@ connect to the broker.
 losing messages. Messages beyond the broker's offline queue (`max_mqueue_len`,
 EMQX default 1000) during a disconnect are still lost. A disconnected client
 queues `publish`; it never opens a second client. The server reconnects forever
-with a backoff of up to 5 minutes. MQTT covers the
-message topics that workspace admins set in the App settings only;
-real-time collection data goes through `useRecordChanges`.
+with a backoff of up to 5 minutes. Real-time collection data goes through
+`useRecordChanges`, not MQTT.
+
+### MQTT topics
+
+The App's key may publish and subscribe only in the App's own namespace
+`apps/<TIER0_APP_ID>/<preview|deployed>/…`: the Preview key under `preview`,
+the deployed key under `deployed` (Backend takes the segment from the key).
+Wildcards `+` / `#` work inside it; the broker refuses another App's topics,
+the other runtime's segment and every other topic. Nothing about topics is
+configured in the App settings.
+
+Build every topic with `appTopic(suffix)` from `@tier0/sdk-v2/mq` (through
+`loadTier0Mq()`): it returns `apps/<TIER0_APP_ID>/<TIER0_RUNTIME>/<suffix>`
+from the platform-injected variables, and throws when either is missing or
+`TIER0_RUNTIME` is not `preview` / `deployed`, so it throws in local
+development. Never hard-code the App id or the runtime segment.
+
+```ts
+const { Tier0MQClient, appTopic } = await loadTier0Mq();
+const mq = new Tier0MQClient();
+mq.subscribe(appTopic("alarms/#"), onAlarm);
+await mq.publish(appTopic("alarms/line-1"), { level: "high" }, { qos: 1 });
+```
+
+Preview and the deployed App never see each other's messages. A device or
+outside system that feeds the live App publishes under
+`apps/<TIER0_APP_ID>/deployed/` with its own credential (for example an
+external App key issued in the App settings).
 
 ### Forwarding MQTT messages to the browser
 
@@ -234,10 +266,10 @@ const listeners = new Set<Listener>();
 let started: Promise<void> | undefined;
 
 async function start() {
-  const { Tier0MQClient } = await loadTier0Mq();
+  const { Tier0MQClient, appTopic } = await loadTier0Mq();
   const mq = new Tier0MQClient();
   mq.on("error", (error) => console.warn("[line-alarms]", error.message));
-  mq.subscribe("factory/line-1/alarms/#", (topic, payload) => {
+  mq.subscribe(appTopic("alarms/#"), (topic, payload) => {
     for (const listener of listeners) listener(topic, payload);
   });
 }
@@ -441,7 +473,7 @@ door holds a request for up to 15 seconds while the App starts.
 Workspace
   ├─ App (APP_ID = agent-platform App UUID)
   │    ├─ App API key                      <- issued by the platform, in the App's process as TIER0_API_KEY
-  │    └─ App data policy (UNS)            <- grants of this App's collections (record:read/write[/delete])
+  │    └─ App data policy (UNS)            <- grants: own collections + external ones a workspace Owner/Admin added
   └─ UNS
        └─ North Plant                     <- verified business scope, shared directory
             ├─ Assembly Line 1
@@ -454,9 +486,13 @@ Each App owns the collections it ensures (`ownerAppId = APP_ID`). Every new
 collection declares a `directoryPath` from the workspace root; the backend
 reuses or creates those business directories and grants the collection to the
 App in the same transaction (`record:read`, `record:write`, plus `record:delete`
-when the key holds `uns.delete`). The diagram assumes those business scopes
-are verified; its names are examples, not defaults. An App/module directory
-such as MES is valid within the known factory/line scope, and shared data
+when the key holds `uns.delete`). Beyond its own collections the App reaches
+an external collection (another App's, an existing WMS one) only after a
+workspace Owner/Admin grants it in the App settings, through
+`data.collection({ collectionId })`; the Builder agent cannot add that grant,
+and a grant or its removal applies from the next request. The diagram assumes
+its business scopes are verified; its names are examples, not defaults. An
+App/module directory such as MES is valid within the known factory/line scope, and shared data
 belongs at a suitable common ancestor. Use only known, meaningful levels;
 do not force five levels or default to a root-level App container.
 
@@ -658,6 +694,28 @@ take a request's signal; work that must outlive the request runs inside
 Preview behaves exactly like a deployment: the App reads and writes its own
 data as the App, seeds are written by ensure as the App, and `useRecordChanges`
 shares one upstream per server process.
+
+## Migrating an existing App to scaffold v28
+
+Scaffold v28 (`@tier0/sdk-v2@0.10.0-aenv.11`) follows the platform's App key
+model: fixed platform capabilities, no per-App platform policy, MQTT limited to
+the App's namespace. An App made from a scaffold older than v27 first applies
+the v27 steps below, taking the SDK archive from v28. From v27:
+
+- **SDK archive**: replace `vendor/tier0-sdk-v2-*.tgz` with v28's, and take
+  `package.json`'s `@tier0/sdk-v2` entry and its `package-lock.json` entry
+  (version, `resolved`, `integrity`) from v28. The SDK no longer has any App
+  platform policy operation: capabilities are fixed.
+- **MQTT topics**: the broker refuses every topic outside
+  `apps/<TIER0_APP_ID>/<preview|deployed>/`. Build each topic with
+  `appTopic(suffix)` (see [MQTT topics](#mqtt-topics)), and have devices or
+  outside systems that feed the live App publish under
+  `apps/<TIER0_APP_ID>/deployed/`.
+- **Stream requests and messages** now work from the App's server (see
+  [App Stream requests and messages](#app-stream-requests-and-messages)).
+
+Then `npm install` and `npm run build`, and check that every `subscribe` /
+`publish` on a `Tier0MQClient` takes its topic from `appTopic`.
 
 ## Migrating an existing App to scaffold v27
 

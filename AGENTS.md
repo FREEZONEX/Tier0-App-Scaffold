@@ -354,7 +354,7 @@ Use `DESIGN.md`, existing tokens and the shipped primitives
 
 ## Tier0 SDK and Platform
 
-Use the installed `@tier0/sdk-v2` (`0.10.0-aenv.10`, pinned exactly in `package.json`;
+Use the installed `@tier0/sdk-v2` (`0.10.0-aenv.11`, pinned exactly in `package.json`;
 never change that dependency) for platform info (`tier0.system.info()`),
 workspace members (`tier0.members.listWorkspace`), App-scoped member pickers
 (`tier0.members.listApp({ appId: resolveAppId() })`), notifications, files and
@@ -367,14 +367,20 @@ preview, `deployed` online) and the SDK sends the matching `scope`, so preview
 lists the draft roles' members and the live App its published roles'. Never
 pass `scope` by hand, set `TIER0_RUNTIME` in `artifact.toml` or `.env`, or block
 on the response's `published` flag; the hosted key's response has no email
-(`email` is empty, show `userName`) and needs the App's `platform.users.read`.
+(`email` is empty, show `userName`).
 Notification channels, MQTT and credential handling:
 `docs/platform-integration.md`.
 MQTT runs on the App's server only; pages never connect to the broker. When a
 page needs live messages, one server-side subscription per process forwards
 what the current user may see through an App route as server-sent events
 (example in `docs/platform-integration.md`, "Forwarding MQTT messages to the
-browser").
+browser"). The App's key may publish and subscribe only in the App's own
+namespace `apps/<TIER0_APP_ID>/<preview|deployed>/…`: build every topic with
+`appTopic(suffix)` from the same module (`const { Tier0MQClient, appTopic } =
+await loadTier0Mq()`, e.g. `appTopic("alarms/#")`), never a hand-written app
+id, runtime segment or topic outside it (the broker refuses those). Preview
+and the deployed App use separate segments and never see each other's
+messages. Outside Preview and deployments `appTopic` throws.
 Preview member queries use draft roles automatically through the SDK and the
 platform-injected `TIER0_RUNTIME`; publishing is not a prerequisite. Do not
 block assignment on `published`, hard-code members, set runtime variables in
@@ -382,9 +388,8 @@ App code, or replace App membership with the whole Workspace. Diagnose an
 unexpected empty list using the installed SDK, preview runtime and role bindings.
 - **Not supported for the App in Preview and deployments**, so do not use or
   recommend them: `tier0.system.whoami`, `tier0.notifications.get`,
-  `tier0.mqttAuth`, `tier0.capabilities`, `tier0.agent` and
-  `client.streams` (Stream requests and messages). `tier0.source` and
-  `tier0.stream` management is refused for the App's key (403).
+  `tier0.mqttAuth` and `tier0.agent`. `tier0.source` and `tier0.stream`
+  management is refused for the App's key (403).
 
 - The platform provides the SDK's hosts and the App's identity
   (`TIER0_API_HOST`, `TIER0_MQTT_HOST`, `TIER0_MQTT_PORT`, `TIER0_WORKSPACE_ID`, `TIER0_APP_ID`,
@@ -399,9 +404,17 @@ unexpected empty list using the installed SDK, preview runtime and role bindings
   hard-code a key.
 - Scripts and App code call the platform through the SDK, never with a
   hand-written `fetch` / `curl` to `TIER0_API_HOST`.
-- The App's platform permissions and message topics are managed by workspace
-  admins in the App settings and apply immediately; external collections are
-  confirmed when publishing. There is no permission request to file from code.
+- Every App has the same fixed platform capabilities: members, notifications
+  (send), files, Stream requests and Stream messages, bounded by the workspace
+  plan. Nothing is configured or approved per App and there is no permission
+  request to file from code.
+- Data: the App reads and writes the collections it creates and, beyond them,
+  only external collections (another App's, an existing WMS, ...) that a
+  workspace Owner/Admin granted it in the App settings. You cannot grant one.
+  When a feature needs an existing collection the App was not granted, tell the
+  user that a workspace Owner/Admin must grant it in the App settings; do not
+  claim it is granted and do not create a same-named collection in its place.
+  A grant or its removal applies from the next request, without republishing.
 - Real-time data in the browser: use `useRecordChanges`; any other stream of
   the App's own routes uses `openEventStream` from `@tier0/sdk-v2/event-stream`,
   never a hand-written `EventSource`. It closes the connection while the page
@@ -449,13 +462,20 @@ scaffold/default branding from the finished app.
 
 ## App Stream requests and messages
 
-**Not yet supported in Preview and deployments.** `client.streams.requests`
-and `client.streams.messages` are not enabled for the App there.
-Do not generate features on them, do not recommend them to the user, and do
-not work around it: no retired Control APIs, interpreter selectors, second
-control credential, browser-side platform call or synthesized identity. Use
-`@/lib/data` (with `useRecordChanges` for live updates) and a server-side
-`Tier0MQClient` for the App's own messages instead.
+`client.streams.requests` (invoke a Stream's request code) and
+`client.streams.messages` (live Stream business messages) are fixed
+capabilities of every App, used from the App's server only through
+`createClient()` with the App's key; pages call the App's own routes. The
+workspace plan must include Stream; a request code must be granted to this
+App in the Stream request grants; a message topic must be declared by a
+published Stream manifest (subscribe to what a Stream publishes, publish to
+what an active Stream subscribes to). There is no per-App topic list. When a
+call is refused for one of these, tell the user what is missing; do not work
+around it: no retired Control APIs, interpreter selectors, second control
+credential, browser-side platform call or synthesized identity. Persisted
+business data stays in `@/lib/data` (with `useRecordChanges` for live
+updates). Usage: `docs/platform-integration.md`, "App Stream requests and
+messages".
 
 ## Build, Gates, and Deployment
 

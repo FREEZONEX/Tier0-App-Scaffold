@@ -74,13 +74,19 @@ above, read through `resolveAppId()`), the platform sets these variables:
 | `TIER0_RUNTIME` | `deployed` or `preview` |
 
 Call the platform through the SDK, not with a hand-written `fetch` / `curl` to
-`TIER0_API_HOST`. Platform permissions and message
-topics are managed by workspace admins in the App settings and apply
-immediately; external collections are confirmed when publishing.
+`TIER0_API_HOST`. Every App has the same fixed platform capabilities
+(members, notifications, files, Stream requests and messages), bounded by the
+workspace plan and configured nowhere. Beyond the collections it creates, the
+App reads only external collections that a workspace Owner/Admin granted it in
+the App settings. MQTT topics are limited to the App's own namespace
+`apps/<App id>/<preview|deployed>/…`; build them with `appTopic()` from
+`@tier0/sdk-v2/mq`.
 
 For local development set `TIER0_API_HOST` and `TIER0_API_KEY` yourself, using a
 personal key or an external App's key. In Preview and deployments the platform
-sets them.
+sets them. Do not set `TIER0_RUNTIME` locally (only the platform sets it; it
+also selects the member scope and the front door behavior), so `appTopic()`
+throws outside Preview and deployments.
 
 If the platform explicitly requires browser-side Vite env access, the runtime
 is responsible for injecting `VITE_TIER0_*`. Generated apps should not turn
