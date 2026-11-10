@@ -5,8 +5,7 @@
  * `X-Tier0-*` the client sent. A missing or invalid header is always a 401; no
  * other identity header is read anywhere, and the App has no session cookie.
  *
- * - Pages and API routes need a verified visitor. A `machine` visitor (App call
- *   token) only reaches the paths of `src/lib/webhooks.ts`.
+ * - Pages and API routes need a verified employee visitor.
  * - Server functions all arrive on one path, so they are checked per function:
  *   `requireEmployeeFn` demands an employee unless the function opted out
  *   (`src/lib/server-fn-policy.ts`).
@@ -22,7 +21,6 @@ import { runWithAbortSignal } from "@tier0/sdk-v2/data";
 import { requireAuth } from "@/lib/auth";
 import { isPublicServerFn } from "@/lib/server-fn-policy";
 import { readVisitor } from "@/lib/visitor";
-import { isWebhookPath } from "@/lib/webhooks";
 
 // Exact path or proper child segment. This avoids `/login-attempts` matching
 // the public `/login` prefix. `/_server` and `/_serverFn` pass here because
@@ -81,9 +79,6 @@ export const authBridge = createMiddleware().server(({ request, pathname, next }
     }
     if (!visitor) {
       return jsonError(401, "Platform authentication required");
-    }
-    if (visitor.subType === "machine" && !isWebhookPath(pathname)) {
-      return jsonError(403, "This path does not accept machine callers");
     }
     return next();
   }),

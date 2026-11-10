@@ -2,10 +2,11 @@
 
 ## Tier0 SDK (`@tier0/sdk-v2`)
 
-The unified `@tier0/sdk-v2@0.10.1` is pinned to the verified published archive
-`file:vendor/tier0-sdk-v2-0.10.1.tgz`. It supplies data, platform, Stream request
-and message APIs using `/openapi/v2`. The archive integrity is checked by the
-lockfile and tests; installation alone does not prove a live deployment.
+The unified `@tier0/sdk-v2@0.10.1-aenv.13` is pinned to the local archive
+`file:vendor/tier0-sdk-v2-0.10.1-aenv.13.tgz`. It retains the latest 0.10.1
+data, platform and Stream contracts and accepts only employee visitors.
+The lockfile and tests check the consumed archive's integrity; this package
+is not published to npm, and installation alone does not prove a live deployment.
 The SDK must preserve `directoryPath` in collection ensure payloads (Backend
 `app-collections/2`); follow [the directory rollout plan](collection-directory-release.md)
 before distributing the template or deploying its backend dependency.
@@ -428,7 +429,7 @@ the header is not signed: it is the unpadded base64url of a JSON object of at
 most 8192 bytes.
 
 ```text
-{ws, app, runtime: deployed|preview, sub_type: employee|machine, sub, grant,
+{ws, app, runtime: deployed|preview, sub_type: employee, sub, grant,
  app_roles, active_role?}
 ```
 
@@ -439,15 +440,16 @@ Browser -> front door authorizes the visitor and sets X-Tier0-Visitor -> App
             mutating request with cross-origin Origin  -> 403
             public path (/login, /api/health, /api/manifest, assets) -> allow
             server function -> an employee, unless named publicServerFn<Name>
-            no header, or it does not parse -> 401
-            machine visitor outside src/lib/webhooks.ts -> 403
+            no header, malformed header or non-employee identity -> 401
             otherwise -> continue
 ```
 
 `src/lib/visitor.ts` parses it with the SDK's `parseVisitorHeader`: an unknown
-or missing field, a wrong type or length, or an `app` other than
-`TIER0_APP_ID` makes the request a 401. Without `TIER0_APP_ID` the App answers
-503.
+or missing field, a wrong type or length, a non-employee identity, an empty
+grant, or an `app` other than `TIER0_APP_ID` makes the request a 401.
+Without `TIER0_APP_ID` the App answers 503. There is no machine identity,
+call-token route or webhook whitelist exception; public health/build paths
+remain unauthenticated, not a separate identity mechanism.
 
 `app_roles` is the complete role set and permissions are its union. An empty set
 means zero permissions. `active_role` appears only in Preview's "view as" and is
@@ -723,6 +725,24 @@ take a request's signal; work that must outlive the request runs inside
 Preview behaves exactly like a deployment: the App reads and writes its own
 data as the App, seeds are written by ensure as the App, and `useRecordChanges`
 shares one upstream per server process.
+
+## Employee-only visitor cutover
+
+The local `0.10.1-aenv.13` SDK rejects all non-employee visitors. The scaffold
+removes the machine branch and `src/lib/webhooks.ts`; it has no `[[webhooks]]`
+artifact field. The platform App Key remains the App's outbound identity and
+is not an inbound visitor or a replacement call token.
+
+Already deployed Apps keep their bundled SDK and old parsing code. This
+cutover does not rebuild or republish them: the platform front door must
+close the machine/token entry points and strip client-supplied identity
+headers before forwarding employee requests. Old call tokens then have no
+entry path. An alternate ingress that bypasses that boundary remains unsafe;
+updating the template alone does not update deployed code.
+
+When an App is explicitly upgraded later, update its SDK archive and matching
+package/lock entries together, remove machine/webhook branches and keep its
+employee role checks. Do not automatically republish other people's Apps.
 
 ## Migrating an existing App to scaffold v28
 

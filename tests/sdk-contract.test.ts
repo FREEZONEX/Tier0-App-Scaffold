@@ -4,6 +4,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { test } from "node:test";
 import { dirname, resolve } from "node:path";
 import type { SourceDefinition, CloudStreamDocument } from "@tier0/sdk-v2";
+import type { Visitor } from "@tier0/sdk-v2/server";
+import * as serverSdk from "@tier0/sdk-v2/server";
 import { loadTier0Sdk, loadTier0Mq } from "../src/lib/tier0";
 
 const require = createRequire(import.meta.url);
@@ -24,6 +26,59 @@ test("the lazy SDK loader resolves the exact installed Cloud contract", async ()
   assert.equal("ControlResultUnknownError" in sdk, false);
   assert.equal(typeof (await loadTier0Mq()).Tier0MQClient, "function");
 });
+
+test("both installed server entry points accept only strict employee visitors", () => {
+  const cjs = require("@tier0/sdk-v2/server") as typeof serverSdk;
+  const appID = "fixture-app";
+  const claims = { ws: "1001", app: appID, runtime: "deployed", sub_type: "employee", sub: "42", grant: "g1", app_roles: ["reader"] };
+  const encode = (value: unknown) => Buffer.from(JSON.stringify(value)).toString("base64url");
+  for (const sdk of [serverSdk, cjs]) {
+    const parsed = sdk.parseVisitorHeader(encode(claims), { appID });
+    assert.equal(parsed.subType, "employee");
+    assert.deepEqual(parsed.appRoles, ["reader"]);
+    assert.ok(Object.isFrozen(parsed));
+    for (const patch of [
+      { sub_type: "machine", grant: "" },
+      { sub_type: "machine", grant: "g1" },
+      { sub_type: "service" },
+      { grant: "" },
+      { app: "other-app" },
+      { exp: 1 },
+    ]) {
+      assert.throws(() => sdk.parseVisitorHeader(encode({ ...claims, ...patch }), { appID }),
+        (error: unknown) => error instanceof sdk.VisitorError && error.code === "VISITOR_HEADER_INVALID");
+    }
+  }
+});
+
+test("the installed SDK keeps outbound App Key authentication separate from visitor identity", async () => {
+  const previous = process.env.TIER0_API_KEY;
+  process.env.TIER0_API_KEY = "fixture-app-key";
+  try {
+    const sdk = await loadTier0Sdk();
+    const sent: Headers[] = [];
+    const client = sdk.createClient({
+      apiHost: "https://fixture.invalid",
+      fetch: (async (_input, init) => {
+        sent.push(new Headers(init?.headers));
+        return new Response(JSON.stringify({ code: 200, data: { name: "fixture", version: "1", capabilities: [] } }));
+      }) as typeof fetch,
+    });
+    await client.system.info();
+    assert.equal(sent.length, 1);
+    assert.equal(sent[0].get("X-API-Key"), "fixture-app-key");
+    for (const name of ["Authorization", "X-Tier0-Visitor", "X-Tier0-Delegation", "X-Tier0-App-Data-Subject"]) {
+      assert.equal(sent[0].get(name), null, name);
+    }
+  } finally {
+    if (previous === undefined) delete process.env.TIER0_API_KEY;
+    else process.env.TIER0_API_KEY = previous;
+  }
+});
+
+// @ts-expect-error Machine visitors are not part of the installed public type.
+const retiredVisitorType: Visitor["subType"] = "machine";
+void retiredVisitorType;
 
 test("native Stream validation preserves the current script object without a retired selector", async () => {
   const document: CloudStreamDocument = {

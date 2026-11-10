@@ -22,11 +22,11 @@ function toAppUser(visitor: Visitor): AppUser {
  * The current employee, from the visitor header. `app_roles` is the
  * complete role set and effective permissions are its union; in Preview it is
  * the developer's selected "view as" set. An empty set means zero permissions:
- * the scaffold reserves no fallback role. Machine callers are not users.
+ * the scaffold reserves no fallback role.
  */
 export async function getCurrentUser(): Promise<AppUser | null> {
   const visitor = readVisitor(new Headers(getRequestHeaders()));
-  return visitor?.subType === "employee" ? toAppUser(visitor) : null;
+  return visitor ? toAppUser(visitor) : null;
 }
 
 /**
