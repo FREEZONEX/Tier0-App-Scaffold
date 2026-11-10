@@ -1,3 +1,4 @@
+import type { LucideIcon } from "lucide-react";
 import type { ElementType } from "react";
 import { can, type Action, type RoleInput } from "@/lib/permissions";
 
@@ -99,7 +100,12 @@ export function validateNavigationModules(
   return leaves;
 }
 
-export function defineNavigationModules(modules: NavModule[]): NavModule[] {
+type GeneratedNavModule = Omit<NavModule, "icon" | "children"> & {
+  icon: LucideIcon;
+  children?: GeneratedNavModule[];
+};
+
+export function defineNavigationModules(modules: GeneratedNavModule[]): NavModule[] {
   validateNavigationModules(modules);
   return modules;
 }

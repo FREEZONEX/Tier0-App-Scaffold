@@ -46,6 +46,13 @@ reason in implementation notes; do not invent a new list shell for cosmetic
 variation. A narrow repair to an existing working page does not by itself
 require migrating the whole page.
 
+## Sidebar navigation
+
+Give every generated sidebar group and link an `icon` imported by name from
+`lucide-react` (for example, `ClipboardList` for a work queue). Check the
+collapsed rail: it keeps the navigation icons, account avatar, and the divider
+above the avatar. Link names remain available to assistive technology.
+
 ## Page shell, required fields and forms
 
 Wrap every ordinary `_app` workspace page in

@@ -6,6 +6,8 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  FileText,
+  Folder,
   Lock,
   Menu,
   X,
@@ -283,8 +285,8 @@ export function Shell({
         {/* Modules */}
         <div className="flex-1 overflow-y-auto px-2 pb-2.5 pt-4">
           {sidebarModules.map((mod) => {
-            const Icon = mod.icon;
             const hasChildren = Boolean(mod.children?.length);
+            const Icon = mod.icon ?? (hasChildren ? Folder : FileText);
             const isDirectActive = mod.key === activeModuleKey;
             const hasActiveDescendant =
               mod.children?.some((child) =>
@@ -323,12 +325,10 @@ export function Shell({
                       "min-h-10 w-full",
                       isDirectActive ? sidebarItemActive : sidebarItemInactive,
                       mod.locked ? "opacity-70" : "",
-                      "gap-2.5 overflow-hidden pl-4 pr-3",
+                      isCollapsed ? "justify-center px-0" : "gap-2.5 overflow-hidden pl-4 pr-3",
                     )}
                   >
-                    {Icon && (
-                      <Icon className="size-4 shrink-0 transition-transform duration-200 group-hover:scale-105" />
-                    )}
+                    <Icon aria-hidden="true" className="size-4 shrink-0 transition-transform duration-200 group-hover:scale-105" />
                     <span
                       className={cn(
                         "min-w-0 flex-1 truncate whitespace-nowrap text-left transition-[max-width,opacity,transform] duration-200 ease-[cubic-bezier(0.2,0,0,1)]",
@@ -361,7 +361,7 @@ export function Shell({
                   {!isCollapsed && isExpanded && (
                     <div className="mt-1 space-y-1 pl-6">
                       {mod.children?.map((child) => {
-                        const ChildIcon = child.icon;
+                        const ChildIcon = child.icon ?? FileText;
                         const childTitle = child.disabledReason ?? child.label;
                         const isChildActive = child.key === activeModuleKey;
 
@@ -391,9 +391,7 @@ export function Shell({
                               child.locked ? "opacity-70" : "",
                             )}
                           >
-                            {ChildIcon && (
-                              <ChildIcon className="size-3.5 shrink-0 transition-transform duration-200 group-hover:scale-105" />
-                            )}
+                            <ChildIcon aria-hidden="true" className="size-3.5 shrink-0 transition-transform duration-200 group-hover:scale-105" />
                             <span className="min-w-0 truncate whitespace-nowrap">
                               {child.label}
                             </span>
@@ -450,12 +448,10 @@ export function Shell({
                   "mb-1 min-h-10",
                   isDirectActive ? sidebarItemActive : sidebarItemInactive,
                   mod.locked ? "opacity-70" : "",
-                  "gap-2.5 overflow-hidden pl-4 pr-3",
+                  isCollapsed ? "justify-center px-0" : "gap-2.5 overflow-hidden pl-4 pr-3",
                 )}
               >
-                {Icon && (
-                  <Icon className="size-4 shrink-0 transition-transform duration-200 group-hover:scale-105" />
-                )}
+                <Icon aria-hidden="true" className="size-4 shrink-0 transition-transform duration-200 group-hover:scale-105" />
                 <span
                   className={cn(
                     "min-w-0 truncate whitespace-nowrap transition-[max-width,opacity,transform] duration-200 ease-[cubic-bezier(0.2,0,0,1)]",
@@ -486,29 +482,28 @@ export function Shell({
         </div>
 
         {/* User block */}
-        {!isCollapsed && (
-          <div className="border-t border-sidebar-border bg-sidebar px-3 py-3">
-            <div className="flex min-w-0 items-center gap-2.5 overflow-hidden">
-              <span
-                aria-hidden="true"
-                className="inline-flex size-8 shrink-0 items-center justify-center rounded-[4px] bg-muted text-xs font-semibold text-foreground"
+        <div className="shrink-0 border-t border-sidebar-border bg-sidebar px-3 py-3">
+          <div className={cn("flex min-w-0 items-center overflow-hidden", isCollapsed ? "justify-center" : "gap-2.5")}>
+            <span
+              aria-hidden="true"
+              title={isCollapsed ? user?.displayName : undefined}
+              className="inline-flex size-8 shrink-0 items-center justify-center rounded-[4px] bg-muted text-xs font-semibold text-foreground"
+            >
+              {(user?.displayName ?? "?").slice(0, 1).toUpperCase()}
+            </span>
+            <div className={isCollapsed ? "sr-only" : "min-w-0 overflow-hidden"}>
+              <p className="truncate text-sm font-medium leading-5">
+                {user?.displayName ?? "Loading"}
+              </p>
+              <p
+                className="mt-0.5 truncate font-mono text-xs uppercase leading-4 text-muted-foreground"
+                title={roleLabel}
               >
-                {(user?.displayName ?? "?").slice(0, 1).toUpperCase()}
-              </span>
-              <div className="min-w-0 overflow-hidden">
-                <p className="truncate text-sm font-medium leading-5">
-                  {user?.displayName ?? "Loading"}
-                </p>
-                <p
-                  className="mt-0.5 truncate font-mono text-xs uppercase leading-4 text-muted-foreground"
-                  title={roleLabel}
-                >
-                  {roleLabel}
-                </p>
-              </div>
+                {roleLabel}
+              </p>
             </div>
           </div>
-        )}
+        </div>
       </nav>
     );
   }

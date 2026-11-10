@@ -341,7 +341,8 @@ Use `DESIGN.md`, existing tokens and the shipped primitives
   and nothing else.
 - Do not add a page-introduction subtitle that explains navigation or repeats
   the title. Shell `defaultModules` starts empty; declare real routes through
-  `defineNavigationModules`, one unique href per clickable leaf.
+  `defineNavigationModules`, one unique href per clickable leaf. Assign every
+  group and leaf a business-appropriate icon imported from `lucide-react`.
 - Interactive pages remain usable at 375px without page-level overflow; wide
   tables own their horizontal scroll region and search/filter controls have a
   bounded width. Check affected pages at a real 375px viewport when browser
