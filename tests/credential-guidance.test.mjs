@@ -67,7 +67,7 @@ test("guidance builds App features only on endpoints the App's key may call", ()
   }
 });
 
-test("guidance describes fixed App capabilities and confirmed external collection access", () => {
+test("guidance describes fixed App capabilities and incremental Builder collection grants", () => {
   const retired = [
     /appStreamPolicy/,
     /platform permissions and message\s+topics are managed/i,
@@ -86,8 +86,9 @@ test("guidance describes fixed App capabilities and confirmed external collectio
   }
   const agents = read("AGENTS.md");
   assert.match(agents, /fixed platform capabilities/);
-  assert.match(agents, /Before linking an external collection or expanding its access, confirm\s+the target collection, purpose and required access \(read, write, delete\) with\s+the user/);
-  assert.match(agents, /verify the resulting grant before reporting success/);
+  assert.match(agents, /incremental `changes` with `expectedRevision`/);
+  assert.match(agents, /preserve other grants and disabled status/);
+  assert.match(agents, /Never use an App runtime key to manage\s+grants/);
   const integration = read("docs/platform-integration.md");
   for (const capability of [
     "openapi.base",
@@ -100,7 +101,7 @@ test("guidance describes fixed App capabilities and confirmed external collectio
     assert.ok(integration.includes(`\`${capability}\``), `platform-integration.md lists the fixed capability ${capability}`);
   }
   assert.match(integration, /no per-App topic list/);
-  assert.match(read("README.md"), /confirms the collection and required access with the user before linking it\s+or expanding access/);
+  assert.match(read("README.md"), /verifying effective App access/);
 });
 
 test("MQTT examples stay in the App's namespace through appTopic", () => {

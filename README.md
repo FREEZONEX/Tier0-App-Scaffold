@@ -78,8 +78,8 @@ Call the platform through the SDK, not with a hand-written `fetch` / `curl` to
 (members, notifications, files, Stream requests and messages), bounded by the
 workspace plan and configured nowhere. Beyond the collections it creates, the
 App accesses external collections according to their grants. The Builder
-confirms the collection and required access with the user before linking it
-or expanding access (see `AGENTS.md`). MQTT topics are limited to the App's own namespace
+uses its management identity for task-required grants, preserving other grants
+and disabled policies and verifying effective App access (see `AGENTS.md`). MQTT topics are limited to the App's own namespace
 `apps/<App id>/<preview|deployed>/…`; build them with `appTopic()` from
 `@tier0/sdk-v2/mq`.
 

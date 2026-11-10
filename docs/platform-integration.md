@@ -2,13 +2,18 @@
 
 ## Tier0 SDK (`@tier0/sdk-v2`)
 
-The unified `@tier0/sdk-v2@0.10.0-aenv.11` is pinned to the verified published archive
-`file:vendor/tier0-sdk-v2-0.10.0-aenv.11.tgz`. It supplies data, platform, Stream request
+The unified `@tier0/sdk-v2@0.10.1` is pinned to the verified published archive
+`file:vendor/tier0-sdk-v2-0.10.1.tgz`. It supplies data, platform, Stream request
 and message APIs using `/openapi/v2`. The archive integrity is checked by the
 lockfile and tests; installation alone does not prove a live deployment.
 The SDK must preserve `directoryPath` in collection ensure payloads (Backend
 `app-collections/2`); follow [the directory rollout plan](collection-directory-release.md)
 before distributing the template or deploying its backend dependency.
+
+Read `node_modules/@tier0/sdk-v2/skills/tier0-sdk-v2/SKILL.md` before SDK
+work, then follow its nested domain Skill for the operation. The installed
+package's types and Skills describe this version; an SDK repository update
+alone neither upgrades the App nor refreshes platform-managed Skills.
 
 HTTP Sources use `http-api` with `config.role: client | server`. New Source
 configurations omit `configVersion`; native Stream documents use
@@ -513,7 +518,7 @@ reuses or creates those business directories and grants the collection to the
 App in the same transaction (`record:read`, `record:write`, plus `record:delete`
 when the key holds `uns.delete`). The App accesses granted external collections
 through `data.collection({ collectionId })`. Before linking an external
-collection or expanding access, follow the user-confirmation workflow in
+collection or expanding access, follow the incremental Builder grant workflow in
 `AGENTS.md`. A grant or its removal applies from the next request. The diagram assumes
 its business scopes are verified; its names are examples, not defaults. An
 App/module directory such as MES is valid within the known factory/line scope, and shared data
