@@ -1,7 +1,7 @@
 {
   "locked": {
     "scripts/guidance-test.mjs": "62c2720f0e464af4ec251cfa6a9318d12737eda592c75c84bfccfe6cdb915124",
-    "src/lib/visitor.test.ts": "746e6051bfc82ed3f0820fa3e8e429be622fda140938526b9542d159e8fbfb80",
+    "src/lib/visitor.test.ts": "788d650e223d3edc1c7b63e1abf476ec3a3420a8fc5a41c6d25cf991b3349b93",
     "src/lib/permissions.test.mjs": "a72a3daa4769b03de50cb4f24cc3d2a1436b5780ef94364e7b602219cbd3194c",
     "src/lib/app-chrome.test.mjs": "ebf6cde9f10c7015c3efdfa3180f6f79e68e198d7610e3196ce813f8403f454c",
     "src/lib/app-id-contracts.test.mjs": "7aa39ae47b6d99d2af8eb0fa3f1cbdb18097188417af300631908b5c21b30d04",
@@ -36,8 +36,8 @@
     "src/lib/data/query.ts": "08cb4d6e95b77c5de03a02c120934bd231afb0d88ff2ee0d7dbdf3a9c9e2f72a",
     "src/lib/data/changes.ts": "87e57dd1bbdc37fd02946b3bd26a58e3c30120cabb0d5f2a592c07e1e8abaea5",
     "src/routes/api/uns/subscribe.ts": "74b0e0f72be8a5166b56639a0f4e8c9868cc93b709ea695a5b9335a0073c7448",
-    "src/start.ts": "81d6fe6e9e337ea0c5955cf1fdebb8acbb9a257d0da42c437d71869bc75ba4bc",
-    "src/lib/auth.ts": "da0ced013faf4daa415e7e5118c63fdf98be3cc631ffbd1ea2abed4ce03af64e",
+    "src/start.ts": "0032eedabd67de58acb9135fe56b3e6538f32dfe01f52c892345296a76ef6c78",
+    "src/lib/auth.ts": "c1db810652b41e057c82ce9e65b60af486e5bf601e738687fdcc3e16bb74ecc6",
     "src/lib/visitor.ts": "ff7e0ff30a0e7c154f885d6c83853a52fcde850ec8e1dd37195ba4e9b15091e8",
     "src/lib/server-fn-policy.ts": "5799ad31eb8641dcbb3324ff425e1c7a3ec5c2a8f8d0651ff6ed75eccea107ee",
     "src/routes/api/auth/me.ts": "8ba37c255f277a6dd53c6667d3ee2ccab0d21cc1bc0bfce37bbddbb362c8a0d7"
