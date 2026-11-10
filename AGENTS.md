@@ -354,7 +354,12 @@ Use `DESIGN.md`, existing tokens and the shipped primitives
 
 ## Tier0 SDK and Platform
 
-Use the installed `@tier0/sdk-v2` (`0.10.0-aenv.11`, pinned exactly in `package.json`;
+Read `node_modules/@tier0/sdk-v2/skills/tier0-sdk-v2/SKILL.md` before SDK
+work, then follow its nested domain Skill for the operation. The installed
+package's types and Skills describe this version; an SDK repository update
+alone neither upgrades the App nor refreshes platform-managed Skills.
+
+Use the installed `@tier0/sdk-v2` (`0.10.1`, pinned exactly in `package.json`;
 never change that dependency) for platform info (`tier0.system.info()`),
 workspace members (`tier0.members.listWorkspace`), App-scoped member pickers
 (`tier0.members.listApp({ appId: resolveAppId() })`), notifications, files and
@@ -409,10 +414,17 @@ unexpected empty list using the installed SDK, preview runtime and role bindings
   plan. Nothing is configured or approved per App and there is no permission
   request to file from code.
 - Data: the App accesses its own collections and external collections granted
-  to it. Before linking an external collection or expanding its access, confirm
-  the target collection, purpose and required access (read, write, delete) with
-  the user. Then use the available platform tools within the current session's
-  permissions and verify the resulting grant before reporting success.
+  to it. For task-required access to existing collections, built-in Builder uses its
+  injected management identity and the installed SDK grant workflow. Verify the
+  real target App and collection in the same workspace; use only required access.
+  Read the current policy, apply incremental `changes` with `expectedRevision`,
+  preserve other grants and disabled status, then verify the committed receipt,
+  policy readback and effective access with the App identity. A revision conflict
+  requires rereading; an unknown write outcome requires reconciliation before retry.
+  Do not request an Owner/Admin role or repeat confirmation solely because this is
+  Builder; clarify ambiguous targets or access outside the requested task.
+  Backend authorization still applies. Never use an App runtime key to manage
+  grants or bypass a 403 by changing credentials or copying collections.
   A grant or its removal applies from the next request, without republishing.
 - Real-time data in the browser: use `useRecordChanges`; any other stream of
   the App's own routes uses `openEventStream` from `@tier0/sdk-v2/event-stream`,

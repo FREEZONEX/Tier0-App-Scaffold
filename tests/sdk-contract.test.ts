@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { test } from "node:test";
+import { dirname, resolve } from "node:path";
 import type { SourceDefinition, CloudStreamDocument } from "@tier0/sdk-v2";
 import { loadTier0Sdk, loadTier0Mq } from "../src/lib/tier0";
 
@@ -101,5 +102,20 @@ test("member pickers use draft scope before publication and preserve failures", 
   } finally {
     setEnv("TIER0_RUNTIME", previous.runtime);
     setEnv("TIER0_API_KEY", previous.key);
+  }
+});
+
+
+test("the installed SDK exposes its nested agent guidance and domain entries", () => {
+  const root = dirname(require.resolve("@tier0/sdk-v2/package.json"));
+  const pkg = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
+  const entry = resolve(root, "skills/tier0-sdk-v2/SKILL.md");
+  assert.ok(existsSync(entry), "Builder must be able to open the installed SDK entry");
+  for (const skill of pkg.agents.skills) {
+    assert.ok(existsSync(resolve(root, skill.path, "SKILL.md")), skill.name);
+  }
+  const markdown = readFileSync(entry, "utf8");
+  for (const match of markdown.matchAll(/\]\(([^)]+\.md)(?:#[^)]*)?\)/g)) {
+    assert.ok(existsSync(resolve(dirname(entry), match[1]!)), `SDK entry link: ${match[1]}`);
   }
 });
