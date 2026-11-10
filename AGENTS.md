@@ -408,12 +408,11 @@ unexpected empty list using the installed SDK, preview runtime and role bindings
   (send), files, Stream requests and Stream messages, bounded by the workspace
   plan. Nothing is configured or approved per App and there is no permission
   request to file from code.
-- Data: the App reads and writes the collections it creates and, beyond them,
-  only external collections (another App's, an existing WMS, ...) that a
-  workspace Owner/Admin granted it in the App settings. You cannot grant one.
-  When a feature needs an existing collection the App was not granted, tell the
-  user that a workspace Owner/Admin must grant it in the App settings; do not
-  claim it is granted and do not create a same-named collection in its place.
+- Data: the App accesses its own collections and external collections granted
+  to it. Before linking an external collection or expanding its access, confirm
+  the target collection, purpose and required access (read, write, delete) with
+  the user. Then use the available platform tools within the current session's
+  permissions and verify the resulting grant before reporting success.
   A grant or its removal applies from the next request, without republishing.
 - Real-time data in the browser: use `useRecordChanges`; any other stream of
   the App's own routes uses `openEventStream` from `@tier0/sdk-v2/event-stream`,
