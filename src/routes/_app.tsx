@@ -23,12 +23,13 @@ import { TemplatePreviewPlaceholder } from "@/components/TemplatePreviewPlacehol
 import { RouteErrorBoundary } from "@/components/ui";
 import { Shell } from "@/components/Shell";
 import { getCurrentUser } from "@/lib/auth";
+import { withUserDisplay } from "@/services/user-display";
 import { sendPreviewReady } from "@/lib/preview-bridge";
 import type { AppUser } from "@/lib/users";
 
 // Public: it answers null without a visitor, and the route redirects to /login.
 const publicServerFnCurrentUser = createServerFn().handler(
-  async (): Promise<AppUser | null> => getCurrentUser(),
+  async (): Promise<AppUser | null> => withUserDisplay(await getCurrentUser()),
 );
 
 function requireWorkspaceUser(user: AppUser | null, pathname: string) {
