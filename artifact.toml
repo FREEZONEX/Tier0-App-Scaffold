@@ -17,8 +17,9 @@
 #   TIER0_APP_ID            - agent-platform App id
 #   TIER0_RUNTIME           - deployed or preview
 #   PORT                    - injected by the runtime from localPort
-# The front door sets the visitor (plain JSON, base64url) in X-Tier0-Visitor on
-# every request, after stripping any X-Tier0-* the client sent.
+# The front door sets the employee visitor (plain JSON, base64url) in
+# X-Tier0-Visitor after stripping any X-Tier0-* the client sent. There is no
+# machine identity or webhook whitelist; the App Key remains outbound-only.
 #
 # Health contract: GET /api/health answers 200 once the process serves requests.
 # It must not touch Tier0 or any other dependency: it is called on every wake, and

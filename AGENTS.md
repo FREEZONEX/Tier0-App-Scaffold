@@ -286,8 +286,8 @@ APIs, or logout, and reads no other identity header.
   permissions. Unknown roles contribute zero permissions.
 - Server functions require an employee by default. One that truly needs no
   visitor is named `publicServerFn<Name>`; do not add one without a reason the
-  user agreed to. `machine` callers reach only the paths in
-  `src/lib/webhooks.ts`, which mirror `[[webhooks]]` in `artifact.toml`.
+  user agreed to. Only employee visitors are supported; there is no
+  machine identity or webhook authentication exception.
 - Server code uses `requireAuth()` / `requireRole(...)`; client code uses
   `useVisitor()` from `@/lib/use-visitor`. The header has no name or email.
 - `npm run dev` sets a local visitor for `PREVIEW_USER_ID` (roles from
