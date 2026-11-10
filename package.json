@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "tier0Scaffold": {
-    "version": 31,
-    "ref": "99b759f"
+    "version": 32,
+    "ref": "847a7c7"
   },
   "engines": {
     "node": ">=22.12.0"
