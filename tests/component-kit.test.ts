@@ -132,7 +132,7 @@ test('MetaForm renders managed state as display even with a custom editable rend
  for(const mode of ['create','edit'] as const) {
   const html=renderToString(createElement(MetaForm,{
    sections:[{...sections[0],items:[status]}],value:{status:'draft'},mode,onChange:()=>{},
-   renderField:()=>createElement('input',{'data-unsafe':'true'}),
+   renderField:{status:()=>createElement('input',{'data-unsafe':'true'})},
   }));
   assert.match(html,/草稿/); assert.doesNotMatch(html,/data-unsafe|<select|role="combobox"/);
  }
