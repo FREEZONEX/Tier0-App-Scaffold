@@ -3,13 +3,13 @@ import type { AppUser } from "./users";
 import { ROLE_REQUIRED_MESSAGE_PREFIX } from "./preview-bridge";
 import { HttpError } from "./route-handlers";
 import { hasAnyRole, toRoleList } from "./permissions";
-import { readVisitor, visitorReady, visitorRoles, type Visitor } from "./visitor";
+import { readVisitor, visitorRoles, type Visitor } from "./visitor";
 
 function toAppUser(visitor: Visitor): AppUser {
   const roles = toRoleList(visitorRoles(visitor));
   return {
     id: visitor.subject,
-    // The token carries no name or email (access design 4.4). Use
+    // The visitor header carries no name or email. Use
     // `tier0.members` under `platform.users.read` where a name is needed.
     username: visitor.subject,
     displayName: visitor.subject,
@@ -19,13 +19,12 @@ function toAppUser(visitor: Visitor): AppUser {
 }
 
 /**
- * The current employee, from the verified visitor token. `app_roles` is the
+ * The current employee, from the visitor header. `app_roles` is the
  * complete role set and effective permissions are its union; in Preview it is
  * the developer's selected "view as" set. An empty set means zero permissions:
  * the scaffold reserves no fallback role. Machine callers are not users.
  */
 export async function getCurrentUser(): Promise<AppUser | null> {
-  await visitorReady();
   const visitor = readVisitor(new Headers(getRequestHeaders()));
   return visitor?.subType === "employee" ? toAppUser(visitor) : null;
 }

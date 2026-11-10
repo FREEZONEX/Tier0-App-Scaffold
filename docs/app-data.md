@@ -195,9 +195,10 @@ rejects the whole call with its `DataError`; pass `{ settle: true }` to get
 timeout or more than 2000 rows / 8 MiB in total fails the batch. Several
 separate reads per screen are the main cause of `OVERLOADED`.
 
-Read records by ID with `get(ids)`: IDs that do not exist, are deleted or are
-hidden from the current employee by data rules are all listed in `missing`;
-treat them all as not found (404), never as "forbidden". More than 100 IDs
+Read records by ID with `get(ids)`: IDs that do not exist or are deleted are
+listed in `missing`; treat them as not found (404). Records the current user
+may not see by the App's own role rules are the service's to filter out, the
+same way. More than 100 IDs
 are read in chunks.
 
 Batch sizes and atomicity:
@@ -327,7 +328,7 @@ into a page ships its schemas and seeds to the browser.
 
 - An event says only which record changed (`collection`, `recordId`,
   `revision`, `change: "record" | "delete"`), never its data. Reload through
-  the App's own API: that is where roles and employee data rules apply. The
+  the App's own API: that is where the App's role rules apply. The
   callback receives the events of the last 300 ms as one batch
   (`batch.changes`); `batch.reset: true` means changes may have been missed,
   so reload everything the view shows (sent when UNS dropped the resume
@@ -340,34 +341,44 @@ into a page ships its schemas and seeds to the browser.
   a newer change, and a record deleted and written again under the same ID
   starts over at revision 1. Never compare `revision`s, remove a row on
   `delete` without reloading, or rebuild state from the order of events.
-- A collection with employee data rules never reveals which record changed:
-  its changes arrive as aliases in `batch.collections` (also when you passed
-  `recordIds`). Reload whatever the view shows from that collection.
 - The App server holds one upstream subscription per process for every
-  declared collection (`/api/uns/subscribe`, `src/lib/data/changes.ts`) and
-  fans it out to all browsers; subscribing per page is cheap. Browsers
-  reconnect and resume on their own; the server ends each stream after about
-  10 minutes so the reconnect is authenticated again.
-- Every signed-in user may subscribe to every declared collection; a
-  user learns record IDs only of collections without employee data rules.
+  declared collection (`/api/uns/subscribe`, `src/lib/data/changes.ts` over
+  the SDK's `createChangeRelay`) and fans it out to all browsers; subscribing
+  per page is cheap. Browsers reconnect and resume on their own; the server
+  ends each stream after about 10 minutes so the reconnect is authenticated
+  again. A hidden page (background tab, minimized window) closes its stream
+  and resumes from the last event when it is visible again: missed changes
+  are replayed, or `batch.reset` asks for a reload when they cannot be (UNS
+  no longer has the position). When the App server cannot reach UNS (e.g.
+  over the subscription limit) the stream sends `unavailable` and the server
+  keeps retrying; the hook logs it, and a `reset` follows if changes were
+  missed.
+- The upstream runs as the App and sees every change of its collections.
+  Which changes a signed-in user hears about is the App's rule:
+  `canSeeChange(user, change)` in `src/lib/change-visibility.ts` (every change
+  until you change it). When a role may not read a collection, or may not
+  learn that certain records exist, return false for those changes there,
+  from the user's roles and the change alone.
 - App records are always covered by a subscription: do not poll them with
   `refetchInterval` / `usePolling`, and never subscribe from services.
 
 ## Who the call acts as
 
-Every call acts as the App: in Preview and deployments the node proxy injects
-the App's long-lived key (the App holds none; Preview and deployments share it), in local development the SDK sends
-`TIER0_API_KEY`. While serving a business request the data layer also forwards
-the front door's `X-Tier0-Delegation` (with a local API key, the Gateway's
-`X-Tier0-App-Data-Subject`), so UNS data rules and record leases apply to that
-employee. Collection ensure and seed writes run as the App. Work detached from
-the request (timers, queues, fire-and-forget follow-ups) must run inside
-`runAsApp(() => ...)`; a lease taken under an employee cannot be released by
-such App-level work. `src/start.ts` opens the SDK's request context
-(`runWithRequestContext(request, ...)` from `@tier0/sdk-v2/data`, which also
-cancels data calls when the caller goes away); never add a context of
-your own — data calls would silently run as the App. A malformed subject
-header is a `TypeError` (500), not a `DataError`.
+Every call acts as the App: the SDK sends the App's key `TIER0_API_KEY`, which
+the platform puts into the App's process in Preview (the preview key) and
+deployments (the deployed key); in local development you set it yourself. The platform does not
+narrow the App's data by user, and record leases, idempotency keys and jobs are
+the App's. Who may read or change which records by role is decided in the
+App's services, from the current user (`requireAuth()` / `getCurrentUser()`,
+which read the front door's `X-Tier0-Visitor`) and `can(user.roles, action)`:
+filter queries, refuse writes and trim fields there.
+
+`src/start.ts` hands each request's abort signal to the data layer
+(`runWithAbortSignal(request.signal, ...)` from `@tier0/sdk-v2/data`): when the
+caller goes away, its data calls still queued are dropped and those in flight
+are cancelled. Work that must outlive the request (timers, queues,
+fire-and-forget follow-ups) runs inside `runDetached(() => ...)` from
+`@/lib/data`. Collection ensure and seed writes never take a request's signal.
 
 ## First load
 
@@ -457,7 +468,7 @@ to list new operations in `tier0_search`.
 | `INVALID_REQUEST` at `collections/<index>/directoryPath` | A new alias needs a valid business path. Inspect existing directories and resolve the actual scope; do not fall back to a root-level App folder. An App/module directory is valid within the known scope. |
 | `SCHEMA_CONFLICT` with `data.reason=DIRECTORY_PATH_CONFLICT` | A directory segment conflicts with existing metadata. Inspect it; do not overwrite, move or rename unrelated data, or append random suffixes. |
 | `DIRECTORY_PATH_NOT_APPLIED` (`ignored` note) | The alias already exists at another location. Ensure preserves it; a move requires a separate authorized metadata operation. |
-| `SCHEMA_CONFLICT` (409) | The declaration cannot be joined with storage; nothing changed. `data.conflicts` lists `{ alias, path, reason, current?, declared? }`: `TYPE_CONFLICT` → use a new field name; `LIMIT_EXCEEDED` → split the structure; `JOIN_UNSUPPORTED` → storage holds a node the declaration cannot widen (e.g. enum values outside its `min`/`max`), repair it with `schema:replace`; `DATA_RULE_FIELD` → an employee data rule (owner/state field) uses the path, keep it required with the same type or ask an admin to change the rule; `OPEN_OBJECT` → use the generated body; `ALIAS_IN_USE` / `NAME_IN_USE` → pick another alias; `INVALID_INDEX` → fix the index. |
+| `SCHEMA_CONFLICT` (409) | The declaration cannot be joined with storage; nothing changed. `data.conflicts` lists `{ alias, path, reason, current?, declared? }`: `TYPE_CONFLICT` → use a new field name; `LIMIT_EXCEEDED` → split the structure; `JOIN_UNSUPPORTED` → storage holds a node the declaration cannot widen (e.g. enum values outside its `min`/`max`), repair it with `schema:replace`; `OPEN_OBJECT` → use the generated body; `ALIAS_IN_USE` / `NAME_IN_USE` → pick another alias; `INVALID_INDEX` → fix the index. |
 | `ANNOTATION_NOT_APPLIED` (`ignored` note) | Not an error: ensure keeps stored titles/descriptions. Apply the change with `schema:replace`. |
 | `REQUIRED_NOT_ENFORCED` (warning) | The declaration requires a field storage keeps optional. Make it optional again, or narrow with `schema:replace` after the backfill. |
 | `INDEX_BUILD_FAILED` (warning) | Existing records violate a new unique index. Fix the duplicates; the next ensure retries. |
@@ -465,7 +476,7 @@ to list new operations in `tier0_search`.
 | `SCHEMA_DATA_VIOLATION` (409, replace) | Records do not fit the narrower schema; `data.violations` lists up to 20 `{ recordId, path }`. Fix them first. |
 | `SCHEMA_MIGRATION_TOO_LARGE` (409, replace) | More than 10,000 records or 16 MB. Keep the field optional in storage; enforce the rule in code. |
 | `VERSION_CONFLICT` (409, replace) | The collection changed; read the context again and retry with its revision. |
-| `REFERENCED` (409, replace) | A topic field or data rule still uses the path; remove that use first. |
+| `REFERENCED` (409, replace) | A topic field still uses the path; remove that use first. |
 | `TEMPORARILY_UNAVAILABLE` | Retry the same request later. |
 | `APP_GRANT_REVOKED` (403) | A workspace admin removed this App's access (ensure, replace, archive); ensure does not re-grant. Ask the admin. |
 | `APP_QUOTA_EXCEEDED` (409) | `data.resource` says which per-App limit of 64 was hit: `collections` (active) → archive unused ones; `indexes` → drop indexes from the declaration and `schema:replace`; `archivedCollections` (archive) → restore one or ask an admin to clean up. |

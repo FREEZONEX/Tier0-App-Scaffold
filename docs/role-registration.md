@@ -95,9 +95,9 @@ not block builds; registration, metadata and permission checks still apply.
 
 ## Runtime: how assigned roles reach the app
 
-All traffic arrives through the platform front door, which signs the visitor's
-complete role set into the `app_roles` claim of `X-Tier0-Visitor`. In Preview it
-holds the roles selected for "view as". `src/lib/visitor.ts` verifies the token;
+All traffic arrives through the platform front door, which puts the visitor's
+complete role set into the `app_roles` field of `X-Tier0-Visitor`. In Preview it
+holds the roles selected for "view as". `src/lib/visitor.ts` reads the header;
 `can()` and `requireAuth()` work on the union in `AppUser.roles`.
 
 ### Multiple roles use permission union

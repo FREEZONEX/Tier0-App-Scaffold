@@ -16,7 +16,7 @@ import { collections } from "../../data/collections";
 
 export const data = createDataClient({ collections });
 
-export { DataError, runAsApp, toSortPairs } from "@tier0/sdk-v2/data";
+export { DataError, runDetached, toSortPairs } from "@tier0/sdk-v2/data";
 export type {
   BulkOperation,
   CappedCount,

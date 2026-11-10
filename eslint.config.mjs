@@ -268,7 +268,7 @@ const eslintConfig = defineConfig([
   // declarations import the pure declaration module
   // (`@tier0/sdk-v2/data/define`) and `@/data/collections` only; types from
   // `@tier0/sdk-v2/data` are fine, values would pull Node-only code into the
-  // browser bundle. src/start.ts opens the request context.
+  // browser bundle. src/start.ts hands the request's abort signal to the data layer.
   {
     files: [
       "src/routes/**/*.{ts,tsx}",
@@ -331,7 +331,7 @@ const eslintConfig = defineConfig([
           patterns: [
             {
               regex: "^@/lib/data(?:/.*)?$",
-              message: "src/start.ts only opens the data request context (runWithRequestContext from @tier0/sdk-v2/data).",
+              message: "src/start.ts only hands the request's abort signal to the data layer (runWithAbortSignal from @tier0/sdk-v2/data).",
             },
           ],
         },

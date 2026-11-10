@@ -1,30 +1,23 @@
 import assert from "node:assert/strict";
-import { generateKeyPairSync, sign } from "node:crypto";
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
-import { createServer, type Server } from "node:http";
-import type { AddressInfo } from "node:net";
-import { tmpdir } from "node:os";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { after, before, describe, it } from "node:test";
 import { authBridge } from "../start";
-import { createDevSigner } from "./dev-signer";
 import { isPublicServerFn } from "./server-fn-policy";
-import { readVisitor, visitorReady, visitorRoles } from "./visitor";
+import { readVisitor, visitorRoles } from "./visitor";
 import { WEBHOOK_PATHS } from "./webhooks";
 
-const { publicKey, privateKey } = generateKeyPairSync("ed25519");
-const encode = (value: unknown) => Buffer.from(JSON.stringify(value)).toString("base64url");
+const APP = "0b9f4b1e-6d0a-4c6b-9f53-2f6d7a1c8e01";
+/** The visitor header contract's test vector. */
+const VECTOR = "eyJ3cyI6IjEwMDEiLCJhcHAiOiIwYjlmNGIxZS02ZDBhLTRjNmItOWY1My0yZjZkN2ExYzhlMDEiLCJydW50aW1lIjoiZGVwbG95ZWQiLCJzdWJfdHlwZSI6ImVtcGxveWVlIiwic3ViIjoiNDIiLCJncmFudCI6ImctMSIsImFwcF9yb2xlcyI6WyJtYW5hZ2VyIl19";
 
-function token(claims: Record<string, unknown> = {}) {
-  const now = Math.floor(Date.now() / 1000);
-  const body = `${encode({ alg: "EdDSA", kid: "k1" })}.${encode({
-    iss: "tier0-frontdoor", aud: "app:app_1", typ: "visitor", sub_type: "employee", sub: "u1", grant: "g1", ws: "42",
-    runtime: "deployed", app_roles: ["receiver"], active_role: "receiver", iat: now, exp: now + 60, jti: "j1", ...claims,
-  })}`;
-  return `${body}.${sign(null, Buffer.from(body), privateKey).toString("base64url")}`;
+function visitor(claims: Record<string, unknown> = {}) {
+  const value = {
+    ws: "1001", app: APP, runtime: "deployed", sub_type: "employee", sub: "u1", grant: "g1",
+    app_roles: ["receiver"], active_role: "receiver", ...claims,
+  };
+  return Buffer.from(JSON.stringify(value)).toString("base64url");
 }
-
-const jwks = (key = publicKey, kid = "k1") => JSON.stringify({ keys: [{ ...key.export({ format: "jwk" }), kid }] });
 
 const headers = (value?: string) => new Headers(value ? { "X-Tier0-Visitor": value } : {});
 
@@ -38,31 +31,29 @@ async function serve(path: string, requestHeaders: Headers, method = "GET") {
   return { passed, status: (result as Response | undefined)?.status };
 }
 
-describe("visitor token middleware", () => {
-  let dir: string;
+describe("visitor header middleware", () => {
   before(() => {
-    dir = mkdtempSync(join(tmpdir(), "scaffold-jwks-"));
-    writeFileSync(join(dir, "tier0-frontdoor.json"), jwks());
-    process.env.TIER0_JWKS_DIR = dir;
-    process.env.TIER0_APP_ID = "app_1";
+    process.env.TIER0_APP_ID = APP;
   });
   after(() => {
-    delete process.env.TIER0_JWKS_DIR;
     delete process.env.TIER0_APP_ID;
-    rmSync(dir, { recursive: true, force: true });
   });
 
-  it("verifies the token and reads roles from it", () => {
-    const visitor = readVisitor(headers(token({ app_roles: ["a", "b"], active_role: "b" })));
-    assert.equal(visitor?.subject, "u1");
-    assert.deepEqual(visitor && visitorRoles(visitor), ["b", "a"]);
+  it("reads the contract test vector", () => {
+    assert.deepEqual(readVisitor(headers(VECTOR)), {
+      subType: "employee", subject: "42", grant: "g-1", workspaceID: "1001", appID: APP, runtime: "deployed", appRoles: ["manager"],
+    });
   });
 
-  it("answers 401 without a token, with a forged one and with one for another App", async () => {
-    const forged = generateKeyPairSync("ed25519");
-    const body = token().split(".").slice(0, 2).join(".");
-    const bad = `${body}.${sign(null, Buffer.from(body), forged.privateKey).toString("base64url")}`;
-    for (const value of [undefined, "garbage", bad, token({ aud: "app:other" })]) {
+  it("reads the visitor and its roles from the header", () => {
+    const current = readVisitor(headers(visitor({ app_roles: ["a", "b"], active_role: "b" })));
+    assert.equal(current?.subject, "u1");
+    assert.deepEqual(current && visitorRoles(current), ["b", "a"]);
+  });
+
+  it("answers 401 without a header, with a malformed one and with one for another App", async () => {
+    const signedLooking = `${visitor()}.${visitor()}.signature`;
+    for (const value of [undefined, "garbage", signedLooking, visitor({ app: "11111111-2222-4333-8444-555555555555" }), visitor({ exp: 1 })]) {
       const result = await serve("/orders", headers(value));
       assert.deepEqual(result, { passed: false, status: 401 });
     }
@@ -76,11 +67,11 @@ describe("visitor token middleware", () => {
   });
 
   it("lets an employee through", async () => {
-    assert.equal((await serve("/orders", headers(token()))).passed, true);
+    assert.equal((await serve("/orders", headers(visitor()))).passed, true);
   });
 
   it("keeps a machine visitor out of everything but declared webhooks", async () => {
-    const machine = token({ sub_type: "machine", grant: undefined, app_roles: [], active_role: undefined });
+    const machine = visitor({ sub_type: "machine", sub: "t0w_abc", grant: "", app_roles: [], active_role: undefined });
     assert.deepEqual(await serve("/api/orders", headers(machine)), { passed: false, status: 403 });
     assert.equal(WEBHOOK_PATHS.length, 0);
   });
@@ -92,126 +83,32 @@ describe("visitor token middleware", () => {
   });
 
   it("still blocks cross-origin writes", async () => {
-    const result = await serve("/api/orders", new Headers({ origin: "https://evil.example", "X-Tier0-Visitor": token() }), "POST");
+    const result = await serve("/api/orders", new Headers({ origin: "https://evil.example", "X-Tier0-Visitor": visitor() }), "POST");
     assert.deepEqual(result, { passed: false, status: 403 });
   });
 
-  it("answers 503, not 401, when no keys are configured", async () => {
-    const saved = process.env.TIER0_JWKS_DIR;
-    delete process.env.TIER0_JWKS_DIR;
-    try {
-      assert.deepEqual(await serve("/orders", headers(token())), { passed: false, status: 503 });
-    } finally {
-      process.env.TIER0_JWKS_DIR = saved;
-    }
-  });
-});
-
-describe("visitor token middleware with the front door's public JWKS (TIER0_JWKS_URL)", () => {
-  let server: Server;
-  let base: string;
-  let dir: string;
-  const requests: string[] = [];
-  let release = () => {};
-  const held = new Promise<void>((resolve) => { release = resolve; });
-  const other = generateKeyPairSync("ed25519");
-
-  before(async () => {
-    dir = mkdtempSync(join(tmpdir(), "scaffold-jwks-"));
-    writeFileSync(join(dir, "tier0-frontdoor.json"), jwks());
-    server = createServer((request, response) => {
-      requests.push(request.url ?? "");
-      const send = (status: number, body: string) => response.writeHead(status, { "Content-Type": "application/json" }).end(body);
-      if (request.url === "/held/jwks.json") void held.then(() => send(200, jwks()));
-      else if (request.url === "/failing/jwks.json") send(500, "{}");
-      else if (request.url === "/other/jwks.json") send(200, jwks(other.publicKey));
-      else send(200, jwks());
-    });
-    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
-    base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
-    process.env.TIER0_APP_ID = "app_1";
-  });
-  after(() => {
-    delete process.env.TIER0_JWKS_DIR;
-    delete process.env.TIER0_JWKS_URL;
+  it("answers 503, not 401, without TIER0_APP_ID", async () => {
     delete process.env.TIER0_APP_ID;
-    server.closeAllConnections();
-    server.close();
-    rmSync(dir, { recursive: true, force: true });
-  });
-  const use = (config: { dir?: string; url?: string }) => {
-    if (config.dir) process.env.TIER0_JWKS_DIR = config.dir;
-    else delete process.env.TIER0_JWKS_DIR;
-    if (config.url) process.env.TIER0_JWKS_URL = `${base}${config.url}`;
-    else delete process.env.TIER0_JWKS_URL;
-  };
-
-  it("holds the first request until the keys have been fetched, then verifies against them", async () => {
-    use({ url: "/held/jwks.json" });
-    let settled = false;
-    const pending = serve("/orders", headers(token())).finally(() => { settled = true; });
-    await new Promise((resolve) => setTimeout(resolve, 50));
-    assert.equal(settled, false);
-    // Before the fetch lands a token is neither verified nor taken for an anonymous caller.
-    assert.throws(() => readVisitor(headers(token())), /CONFIGURATION/);
-    release();
-    assert.deepEqual(await pending, { passed: true, status: undefined });
-    assert.equal(readVisitor(headers(token()))?.subject, "u1");
-    assert.equal(readVisitor(headers(token({ aud: "app:other" }))), null);
-  });
-
-  it("does not wait forever when the fetch fails: the request is refused", async () => {
-    use({ url: "/failing/jwks.json" });
-    assert.deepEqual(await serve("/orders", headers(token())), { passed: false, status: 401 });
-  });
-
-  it("prefers an existing TIER0_JWKS_DIR and fetches nothing", async () => {
-    requests.length = 0;
-    use({ dir, url: "/other/jwks.json" });
-    await visitorReady();
-    assert.equal(readVisitor(headers(token()))?.subject, "u1");
-    assert.deepEqual(requests, []);
-  });
-
-  it("falls back to the URL when TIER0_JWKS_DIR does not exist", async () => {
-    use({ dir: join(dir, "missing"), url: "/other/jwks.json" });
-    await visitorReady();
-    assert.equal(readVisitor(headers(token())), null);
-    const key = other.privateKey;
-    const body = token().split(".").slice(0, 2).join(".");
-    assert.equal(readVisitor(headers(`${body}.${sign(null, Buffer.from(body), key).toString("base64url")}`))?.subject, "u1");
-  });
-
-  it("answers 503 with neither TIER0_JWKS_DIR nor TIER0_JWKS_URL", async () => {
-    use({});
-    assert.deepEqual(await serve("/orders", headers(token())), { passed: false, status: 503 });
+    try {
+      assert.deepEqual(await serve("/orders", headers(visitor())), { passed: false, status: 503 });
+    } finally {
+      process.env.TIER0_APP_ID = APP;
+    }
   });
 });
 
-describe("development signer", () => {
-  it("generates a new key at every start", () => {
-    assert.notDeepEqual(createDevSigner().jwks, createDevSigner().jwks);
-  });
-
-  it("is not accepted without the development build", () => {
-    const token = createDevSigner().sign({ id: "dev", roles: [], appId: "app_1" });
-    (globalThis as Record<symbol, unknown>)[Symbol.for("tier0.scaffold.dev-signer-jwks")] = createDevSigner().jwks;
-    try {
-      assert.throws(() => readVisitor(headers(token)), /CONFIGURATION/);
-    } finally {
-      delete (globalThis as Record<symbol, unknown>)[Symbol.for("tier0.scaffold.dev-signer-jwks")];
-    }
-  });
-
-  it("is reachable from vite.config.ts only", () => {
+describe("development front door", () => {
+  it("sets the visitor header from vite.config.ts under vite dev only", () => {
+    const config = readFileSync("vite.config.ts", "utf8");
+    assert.match(config, /apply: "serve"/u);
+    assert.match(config, /x-tier0-visitor/u);
     const walk = (path: string): string[] => statSync(path).isDirectory()
       ? readdirSync(path).flatMap((name) => walk(join(path, name)))
       : [path];
     for (const path of walk("src")) {
-      if (path.endsWith("dev-signer.ts") || path.endsWith(".test.ts")) continue;
-      assert.doesNotMatch(readFileSync(path, "utf8"), /from ["'][^"']*dev-signer/u, path);
+      if (path.endsWith(".test.ts")) continue;
+      assert.doesNotMatch(readFileSync(path, "utf8"), /headers\[["']x-tier0-visitor["']\]\s*=/iu, path);
     }
-    assert.match(readFileSync("vite.config.ts", "utf8"), /apply: "serve"/u);
   });
 });
 
