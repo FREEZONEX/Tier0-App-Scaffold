@@ -85,6 +85,31 @@ for the App's key (403). Do not build App features on them.
 App records still go through `@/lib/data` (see [App Data](#app-data)).
 Updating injected guidance alone does not upgrade an application's installed SDK.
 
+### Current user's display name
+
+The layout server functions enrich the visitor through
+`src/services/user-display.ts`. This is display metadata only: authentication,
+`requireAuth()` and `/api/auth/me` continue to use the visitor header without
+depending on a member lookup. `useVisitor()` still returns that identity-only
+profile; layout descendants can read the enriched user from route context.
+
+The service queries `members.listWorkspace({ keyword: user.id, page, size })`
+and accepts only an exact `userId` match, following pages for keyword
+collisions. The Workspace query deliberately finds the current caller even
+when a Builder is not assigned to the preview's business roles; it is not a
+member picker and returns no other members to the browser. Member pickers
+must continue to use `listApp` as described above.
+
+Display uses nonblank `nickName`, then `userName`, matching platform account
+chrome. Missing names, unavailable membership and SDK failures retain the
+visitor ID. A two-second deadline bounds the whole lookup; failures log a
+sanitized message, not member data or SDK response bodies. No name cache is
+shared between requests: a refresh resolves the name again after an account
+switch or rename. Member roles never replace the visitor's effective roles.
+
+Existing generated Apps need these layout/service changes before their user
+block changes. This does not add platform avatars (Backend #1426).
+
 ### Members before publication
 
 The SDK maps platform-injected `TIER0_RUNTIME=preview` to `scope=draft` and
