@@ -8,15 +8,11 @@ This change requires a coordinated release of:
 - This Scaffold's declaration examples, directory gate and `data:schema` output.
 - The Builder Skill instructions and uns-swe MCP/worker guidance.
 
-The Scaffold pins the bundled SDK archive named in `package.json` (see
-`vendor/README.md`) and its actual package integrity, following the existing
-vendor distribution model. The artifact is included with the source, so
-installation never depends on a developer's parent directory or an unpublished
-registry version. The archive must carry committed contract provenance for both
-`app-collections/2` and `source-lifecycle/2`.
-The bundled package has not been published to the registry. Its availability
-in this repository does not mean the coordinated backend/worker release has
-been deployed.
+The Scaffold pins the exact npm release of `@tier0/sdk-v2` named in
+`package.json`, and the lockfile records its registry integrity. The release
+must carry committed contract provenance for both `app-collections/2` and
+`source-lifecycle/2`. Its availability on npm does not mean the coordinated
+backend/worker release has been deployed.
 
 Old backends reject the new field. New backends reject new aliases without a
 path. Prepare the complete artifacts and coordinate the worker/template/backend
