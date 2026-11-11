@@ -62,7 +62,10 @@ not block builds; registration, metadata and permission checks still apply.
   rejected). Must match the `PERMISSION_MATRIX` key **exactly**
   (`operator` ≠ `Operator`). The legacy alias `key` is also accepted but
   prefer `role_key`.
-- `name` — **required**. Display name; any language is fine (`游客`, `Guest`).
+- `name` — **required**, non-empty. Display name; any language is fine
+  (`游客`, `Guest`). The field is `name`, not `display_name` or `label`: a role
+  without `name` makes the platform reject the whole file
+  (`roles[i].name is required`).
 - `description` — optional.
 - The template ships with `roles.json` as `{ "roles": [] }`. Keep it empty until
   the app actually defines business roles; never add demo/test fixtures.

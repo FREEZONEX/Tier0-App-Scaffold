@@ -55,6 +55,20 @@ function roleMetadataKeys(source) {
   return keys;
 }
 
+// roles.json as the platform reads it on import/fork: agent-platform
+// parseRolesJSON (uns-swe apps/agent-platform/internal/service/
+// business_role_package.go) takes `role_key`, or the legacy `key` when
+// `role_key` is blank, and `name`, all trimmed. It reads no other field.
+function platformRoles() {
+  const { roles } = JSON.parse(readFileSync(join(process.cwd(), "roles.json"), "utf8"));
+  const text = (value) => (typeof value === "string" ? value.trim() : "");
+  return roles.map((role, index) => ({
+    index,
+    roleKey: text(role.role_key) || text(role.key),
+    name: text(role.name),
+  }));
+}
+
 describe("role definition sync", () => {
   it("parses matrix and metadata keys (self-check)", () => {
     assert.deepEqual(
@@ -83,10 +97,7 @@ describe("role definition sync", () => {
     const metadataKeys = roleMetadataKeys(
       readFileSync(join(process.cwd(), "src/lib/role-metadata.ts"), "utf8"),
     );
-    const rolesJson = JSON.parse(
-      readFileSync(join(process.cwd(), "roles.json"), "utf8"),
-    );
-    const platformKeys = rolesJson.roles.map((role) => role.role_key);
+    const platformKeys = platformRoles().map((role) => role.roleKey);
 
     assert.ok(matrixKeys !== null, "PERMISSION_MATRIX block not found in permissions.ts");
     assert.ok(metadataKeys !== null, "ROLE_METADATA block not found in role-metadata.ts");
@@ -138,16 +149,27 @@ describe("role definition sync", () => {
     // A non-conforming key deploys fine locally but the platform refuses to
     // register it — and refuses the whole roles.json on import. Catch it here.
     const PLATFORM_ROLE_KEY = /^[a-z]+(?:_[a-z]+)*$/u;
-    const rolesJson = JSON.parse(
-      readFileSync(join(process.cwd(), "roles.json"), "utf8"),
-    );
-    const badKeys = rolesJson.roles
-      .map((role) => role.role_key ?? role.key ?? "")
-      .filter((key) => !PLATFORM_ROLE_KEY.test(key));
+    const badKeys = platformRoles()
+      .filter((role) => !PLATFORM_ROLE_KEY.test(role.roleKey))
+      .map((role) => `roles[${role.index}].role_key ${JSON.stringify(role.roleKey)}`);
     assert.deepEqual(
       badKeys,
       [],
       `role_key must match ^[a-z]+(_[a-z]+)*$ (platform rejects them otherwise): ${badKeys.join(", ")}`,
+    );
+  });
+
+  it("every role has a non-empty name", () => {
+    // The platform refuses the whole roles.json on import when a role has no
+    // name ("roles[i].name is required"). `display_name` or `label` is not
+    // read in its place.
+    const missing = platformRoles()
+      .filter((role) => role.name === "")
+      .map((role) => `roles[${role.index}].name`);
+    assert.deepEqual(
+      missing,
+      [],
+      `roles.json is missing ${missing.join(", ")}: every role needs a non-empty \`name\` (not \`display_name\`); the platform rejects the whole file otherwise`,
     );
   });
 });

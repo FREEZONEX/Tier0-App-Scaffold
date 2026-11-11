@@ -302,7 +302,9 @@ the business needs distinct permission scopes. Register roles in one pass:
 
 1. Define actions and `PERMISSION_MATRIX` in `src/lib/permissions.ts`.
 2. Mirror every matrix role in `src/lib/role-metadata.ts` and `roles.json` —
-   every role, no exceptions. `role_key` values use ASCII snake_case.
+   every role, no exceptions. Each `roles.json` entry has `role_key` (ASCII
+   snake_case) and a non-empty `name` — `name`, not `display_name`; the
+   platform rejects the whole file otherwise.
 3. Guard APIs with `requireAuth(...)` and UI actions with
    `can(user.roles, action)`; both use permission-union semantics.
 4. Verify each role's reachable navigation and actions.
