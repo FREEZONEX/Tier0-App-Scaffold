@@ -2,7 +2,7 @@
   "locked": {
     "scripts/guidance-test.mjs": "62c2720f0e464af4ec251cfa6a9318d12737eda592c75c84bfccfe6cdb915124",
     "src/lib/visitor.test.ts": "788d650e223d3edc1c7b63e1abf476ec3a3420a8fc5a41c6d25cf991b3349b93",
-    "src/lib/permissions.test.mjs": "a72a3daa4769b03de50cb4f24cc3d2a1436b5780ef94364e7b602219cbd3194c",
+    "src/lib/permissions.test.mjs": "807a542648b4d3322d6181538c7d3d82203c33b68c4983a551004a1bc84ed0ad",
     "src/lib/app-chrome.test.mjs": "ebf6cde9f10c7015c3efdfa3180f6f79e68e198d7610e3196ce813f8403f454c",
     "src/lib/app-id-contracts.test.mjs": "7aa39ae47b6d99d2af8eb0fa3f1cbdb18097188417af300631908b5c21b30d04",
     "src/lib/navigation-contracts.test.mjs": "288dfeed525eadcfc88a46e99e3feb13b387c836d4dca91d67b34269a2a37a90",
