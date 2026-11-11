@@ -136,8 +136,8 @@ SDK/runtime/API drift. Preserve API errors instead of converting them to `[]`.
 The no-role `allActiveMembers=1` state is distinct from no assigned members;
 do not silently substitute the entire Workspace or fabricate users.
 
-Existing Apps require the new vendor archive, matching package.json/lockfile,
-and a managed preview restart. Upgrading a Skill or the default template alone
+Existing Apps require the scaffold's exact `@tier0/sdk-v2` version, the
+matching lockfile and a managed preview restart. Upgrading a Skill or the default template alone
 does not modify an existing App.
 
 ### App Stream requests and messages
@@ -145,8 +145,8 @@ does not modify an existing App.
 `client.streams` runs on the server only, with a client that holds a key
 (`createClient()` reads `TIER0_API_HOST` / `TIER0_API_KEY`). Browser code never
 calls it directly: pages call the App's own server routes, which apply the
-App's role rules. There is no browser host bridge. Retain the exact SDK
-archive in source ZIPs.
+App's role rules. There is no browser host bridge. Keep the exact SDK
+version and its lockfile entry in source ZIPs.
 
 ```ts
 import { loadTier0Sdk } from "@/lib/tier0";
@@ -741,21 +741,22 @@ entry path. An alternate ingress that bypasses that boundary remains unsafe;
 updating the template alone does not update deployed code.
 
 When an App is explicitly upgraded later, set its `@tier0/sdk-v2` dependency
-to `0.11.0`, run `npm install` so the lockfile points at the npm release,
-delete its old `vendor/tier0-sdk-v2-*.tgz`, remove machine/webhook branches
-and keep its employee role checks. Do not automatically republish other people's Apps.
+to the exact npm version in the current scaffold's `package.json`, run
+`npm install` so the lockfile points at that npm release, delete any old
+local SDK archive and its directory, remove machine/webhook branches and keep
+its employee role checks. Do not automatically republish other people's Apps.
 
 ## Migrating an existing App to scaffold v28
 
-Scaffold v28 (`@tier0/sdk-v2@0.10.0-aenv.11`) follows the platform's App key
-model: fixed platform capabilities, no per-App platform policy, MQTT limited to
-the App's namespace. An App made from a scaffold older than v27 first applies
-the v27 steps below, taking the SDK archive from v28. From v27:
+Scaffold v28 follows the platform's App key model: fixed platform
+capabilities, no per-App platform policy, MQTT limited to the App's
+namespace. An App made from a scaffold older than v27 first applies the v27
+steps below. From v27:
 
-- **SDK archive**: replace `vendor/tier0-sdk-v2-*.tgz` with v28's, and take
-  `package.json`'s `@tier0/sdk-v2` entry and its `package-lock.json` entry
-  (version, `resolved`, `integrity`) from v28. The SDK no longer has any App
-  platform policy operation: capabilities are fixed.
+- **SDK**: set `@tier0/sdk-v2` to the exact npm version in the current
+  scaffold's `package.json`, run `npm install`, and delete any old local SDK
+  archive. The SDK has no App platform policy operation: capabilities are
+  fixed.
 - **MQTT topics**: the broker refuses every topic outside
   `apps/<TIER0_APP_ID>/<preview|deployed>/`. Build each topic with
   `appTopic(suffix)` (see [MQTT topics](#mqtt-topics)), and have devices or
@@ -769,15 +770,13 @@ Then `npm install` and `npm run build`, and check that every `subscribe` /
 
 ## Migrating an existing App to scaffold v27
 
-Scaffold v27 (`@tier0/sdk-v2@0.10.0-aenv.10`) changes how the App reads its
-visitor and calls the platform. Upgrading the vendored SDK alone breaks the
-build of an App made from an older scaffold: its code still imports removed
-APIs. Bring these over from v27 in one change, then `npm install` and
-`npm run build`:
+Scaffold v27 changes how the App reads its visitor and calls the platform.
+Upgrading the SDK alone breaks the build of an App made from an older
+scaffold: its code still imports removed APIs. Bring these over from v27 in
+one change, then `npm install` and `npm run build`:
 
-- **SDK archive**: replace `vendor/tier0-sdk-v2-*.tgz` with v27's, and take
-  `package.json`'s `@tier0/sdk-v2` entry and its `package-lock.json` entry
-  (version, `resolved`, `integrity`) from v27.
+- **SDK**: set `@tier0/sdk-v2` to the exact npm version in the current
+  scaffold's `package.json` and delete any old local SDK archive.
 - **Visitor**: the front door now sets a plain `X-Tier0-Visitor` (base64url
   JSON) instead of a signed token. Replace `src/lib/visitor.ts` and
   `src/lib/visitor.test.ts` (it uses `parseVisitorHeader` from
