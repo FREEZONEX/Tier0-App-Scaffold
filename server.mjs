@@ -15,6 +15,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, extname, join, normalize } from "node:path";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
+import { requestBaseUrl } from "./server-url.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CLIENT_DIR = join(__dirname, "dist", "client");
@@ -113,7 +114,12 @@ const server = createServer(async (req, res) => {
   res.on("close", () => abortController.abort());
   try {
     if (await tryServeStatic(req, res)) return;
-    const baseUrl = `https://${req.headers.host || `${HOST}:${PORT}`}`;
+    const baseUrl = requestBaseUrl(
+      req.headers,
+      process.env.TIER0_APP_ID,
+      HOST,
+      PORT,
+    );
     const webReq = nodeRequestToWebRequest(req, baseUrl, abortController.signal);
     const webRes = await handler.fetch(webReq);
     res.statusCode = webRes.status;

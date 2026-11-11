@@ -53,7 +53,7 @@ args = ["sh", "-c", "npm ci && npm run build && npm prune --omit=dev"]
 outputDir = "."
 # The app layer. artifact.toml, package.json and roles.json always go with it;
 # dependencies come from the separate deps layer.
-include = ["dist", "server.mjs"]
+include = ["dist", "server.mjs", "server-url.mjs"]
 
 # No `image`: the platform supplies each environment's default runtime image.
 [services.production.run]

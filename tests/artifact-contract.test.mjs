@@ -7,10 +7,11 @@ const artifact = readFileSync("artifact.toml", "utf8");
 // Design 21.19. The platform parses this file in sbx-build; the checks here keep
 // the Scaffold's values in step with its build output.
 test("the app layer holds what `node server.mjs` needs", () => {
-  assert.match(artifact, /^include = \["dist", "server\.mjs"\]$/mu);
+  assert.match(artifact, /^include = \["dist", "server\.mjs", "server-url\.mjs"\]$/mu);
   assert.match(artifact, /^outputDir = "\."$/mu);
   assert.match(artifact, /^args = \["node", "server\.mjs"\]$/mu);
   assert.ok(existsSync("server.mjs"));
+  assert.ok(existsSync("server-url.mjs"));
 });
 
 test("the static bundle names the client build and its hashed assets", () => {
