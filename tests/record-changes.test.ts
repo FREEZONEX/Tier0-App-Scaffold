@@ -5,11 +5,11 @@ import { describe, it } from "node:test";
 import { createChangeRelay, createDataClient, defineCollection, type RecordChange } from "@tier0/sdk-v2/data";
 import { z } from "zod";
 import { changeFilter, matchesFilter } from "../src/lib/data/changes";
-import { canSeeChange } from "../src/lib/change-visibility";
 import { HttpError } from "../src/lib/route-handlers";
 
 // What /api/uns/subscribe adds to the SDK's change relay: the filter a browser
-// asks for and the App's visibility rule. The relay itself (one upstream per
+// asks for and a visibility rule (a stand-in here: canSeeChange is the App's
+// own rule, so its tests are the App's). The relay itself (one upstream per
 // process, positions, Last-Event-ID resume, upstream lifecycle) is tested in
 // @tier0/sdk-v2.
 
@@ -48,13 +48,6 @@ describe("matchesFilter", () => {
     assert.equal(matchesFilter({ collections: ["orders"], recordIds: [] }, change("r-1", "lines")), false);
     assert.equal(matchesFilter({ collections: [], recordIds: ["r-2"] }, change("r-1")), false);
     assert.equal(matchesFilter({ collections: ["orders"], recordIds: ["r-1"] }, change("r-1")), true);
-  });
-});
-
-describe("canSeeChange", () => {
-  it("lets every change through until the App defines its rules", () => {
-    const user = { id: "u1", username: "u1", displayName: "u1", primaryRole: "", roles: [] };
-    assert.equal(canSeeChange(user, change("r-1")), true);
   });
 });
 
