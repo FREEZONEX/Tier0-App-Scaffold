@@ -1,7 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { readPlatformError, reportAuthError, type PlatformError } from "@tier0/sdk-v2/page-runtime";
-import { sendPreviewError } from "@/lib/preview-bridge";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -140,11 +139,11 @@ function extractApiErrorDetail(body: string): string {
  * Fetch a local API route and parse its JSON body.
  *
  * A non-2xx response is **reported and then thrown** as `ApiRequestError`:
- *   - every failure is written to `console.error` (the preview console relays
- *     it), and
- *   - a 5xx is also sent over the preview bridge as a `network` error, so the
- *     Builder shows its blocking error card with the server cause and an
- *     "Ask Agent to Fix" action instead of a page that just says "Load failed".
+ *   - App failures are written to `console.error` (the preview console relays
+ *     them), and
+ *   - the caller handles the error locally, e.g. with `AsyncView` or a form.
+ * A failed API request does not mean the page failed to render. Only the route
+ * error boundary reports a rendering failure through the preview bridge.
  *
  * Never swallow it silently: a quiet failure looks like an empty page while
  * the real cause (e.g. a failed query) stays hidden in the server log. Pass
@@ -173,13 +172,6 @@ export async function requestJson<T>(
     );
     reportAuthError(failure?.code);
     if (!isAppWaiting(error)) console.error("[api]", error.message);
-    // Server-side failure: surface it to the Builder preview card. 4xx are
-    // client-facing outcomes (validation, missing record) the page handles
-    // itself, and platform states have the runtime's banner; only the browser
-    // can post to the parent window.
-    if (res.status >= 500 && !failure && typeof window !== "undefined") {
-      sendPreviewError(error.message, "network");
-    }
     throw error;
   }
   return (await res.json()) as T;

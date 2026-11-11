@@ -44,12 +44,10 @@ describe("API failure visibility contracts", () => {
     assert.match(utils, /throw error;/);
   });
 
-  it("requestJson sends 5xx failures over the preview bridge as network errors", () => {
+  it("requestJson leaves API failures with the caller instead of blocking the preview", () => {
     const utils = read("src/lib/utils.ts");
 
-    assert.match(utils, /import \{ sendPreviewError \} from "@\/lib\/preview-bridge"/);
-    assert.match(utils, /res\.status >= 500 && !failure && typeof window !== "undefined"/);
-    assert.match(utils, /sendPreviewError\(error\.message, "network"\)/);
+    assert.doesNotMatch(utils, /sendPreviewError/);
   });
 
   it("hooks load through requestJson and report every other loader failure", () => {
@@ -72,7 +70,7 @@ describe("API failure visibility contracts", () => {
     const originalFetch = globalThis.fetch;
     const originalError = console.error;
     const logged = [];
-    // Node has no window: the bridge branch must be skipped, not crash.
+    // Requests also work outside a browser.
     assert.equal(typeof globalThis.window, "undefined");
     globalThis.fetch = async () =>
       new Response(
@@ -100,32 +98,47 @@ describe("API failure visibility contracts", () => {
     }
   });
 
-  it("requestJson runtime: a 5xx posts a network error to the parent preview window", async () => {
-    const { requestJson } = await import("./utils.ts");
-    const originalFetch = globalThis.fetch;
-    const originalError = console.error;
-    const posted = [];
-    const parent = { postMessage: (data) => posted.push(data) };
-    // Minimal browser stand-in: an embedded window whose parent is the Builder.
-    globalThis.window = {
-      parent,
-      location: { origin: "https://app.example", ancestorOrigins: { length: 1, 0: "https://builder.example" } },
-    };
-    globalThis.fetch = async () =>
-      new Response(JSON.stringify({ error: "Internal error", cause: "Failed query: select 1" }), { status: 503 });
-    console.error = () => {};
-    try {
-      await assert.rejects(requestJson("/api/items"));
-      assert.equal(posted.length, 1);
-      assert.equal(posted[0].type, "tier0.preview.error");
-      assert.equal(posted[0].kind, "network");
-      assert.match(posted[0].error, /^HTTP 503 \/api\/items: Failed query: select 1/);
-    } finally {
-      delete globalThis.window;
-      globalThis.fetch = originalFetch;
-      console.error = originalError;
-    }
-  });
+  for (const status of [500, 502, 503, 504]) {
+    it(`requestJson runtime: HTTP ${status} stays local, preserves diagnostics and is not replayed`, async () => {
+      const { requestJson, ApiRequestError } = await import("./utils.ts");
+      const originalFetch = globalThis.fetch;
+      const originalError = console.error;
+      const originalWindow = globalThis.window;
+      const posted = [];
+      const logged = [];
+      let calls = 0;
+      const parent = { postMessage: (data) => posted.push(data) };
+      // Minimal browser stand-in: an embedded window whose parent is the Builder.
+      globalThis.window = {
+        parent,
+        location: { origin: "https://app.example", ancestorOrigins: { length: 1, 0: "https://builder.example" } },
+      };
+      globalThis.fetch = async () => {
+        calls += 1;
+        return new Response(JSON.stringify({ error: "Internal error", cause: "Source read failed" }), { status });
+      };
+      console.error = (...args) => logged.push(args.join(" "));
+      try {
+        for (const method of ["GET", "POST"]) {
+          await assert.rejects(requestJson("/api/items", { method }), (error) =>
+            error instanceof ApiRequestError &&
+            error.status === status &&
+            error.path === "/api/items" &&
+            error.detail === "Source read failed" &&
+            error.reported === true,
+          );
+        }
+        assert.equal(calls, 2, "failed requests must not be automatically replayed");
+        assert.deepEqual(logged, Array(2).fill(`[api] HTTP ${status} /api/items: Source read failed`));
+        assert.deepEqual(posted, [], "a handled API failure must not cover the preview");
+      } finally {
+        if (originalWindow === undefined) delete globalThis.window;
+        else globalThis.window = originalWindow;
+        globalThis.fetch = originalFetch;
+        console.error = originalError;
+      }
+    });
+  }
 
   it("requestJson runtime: a 4xx stays local (no bridge message)", async () => {
     const { requestJson } = await import("./utils.ts");
