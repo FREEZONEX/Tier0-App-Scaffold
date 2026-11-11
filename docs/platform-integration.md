@@ -2,9 +2,10 @@
 
 ## Tier0 SDK (`@tier0/sdk-v2`)
 
-The unified `@tier0/sdk-v2` is the npm release `0.11.0`, pinned exactly in
-`package.json`. It keeps the 0.10.1 data, platform and Stream contracts and
-accepts only employee visitors. The lockfile records its registry URL and
+The unified `@tier0/sdk-v2` is the npm release `0.12.2`, pinned exactly in
+`package.json`. It keeps the 0.10.1 data and platform contracts, accepts Stream
+request contracts that omit both `sideEffect` and `idempotency`, and accepts
+only employee visitors. The lockfile records its registry URL and
 integrity, and tests check both; installation alone does not prove a live
 deployment.
 The SDK must preserve `directoryPath` in collection ensure payloads (Backend
@@ -728,7 +729,7 @@ shares one upstream per server process.
 
 ## Employee-only visitor cutover
 
-SDK `0.11.0` rejects all non-employee visitors. The scaffold
+SDK `0.11.0` and later reject all non-employee visitors. The scaffold
 removes the machine branch and `src/lib/webhooks.ts`; it has no `[[webhooks]]`
 artifact field. The platform App Key remains the App's outbound identity and
 is not an inbound visitor or a replacement call token.
