@@ -2,11 +2,11 @@
 
 ## Tier0 SDK (`@tier0/sdk-v2`)
 
-The unified `@tier0/sdk-v2@0.10.1-aenv.13` is pinned to the local archive
-`file:vendor/tier0-sdk-v2-0.10.1-aenv.13.tgz`. It retains the latest 0.10.1
-data, platform and Stream contracts and accepts only employee visitors.
-The lockfile and tests check the consumed archive's integrity; this package
-is not published to npm, and installation alone does not prove a live deployment.
+The unified `@tier0/sdk-v2` is the npm release `0.11.0`, pinned exactly in
+`package.json`. It keeps the 0.10.1 data, platform and Stream contracts and
+accepts only employee visitors. The lockfile records its registry URL and
+integrity, and tests check both; installation alone does not prove a live
+deployment.
 The SDK must preserve `directoryPath` in collection ensure payloads (Backend
 `app-collections/2`); follow [the directory rollout plan](collection-directory-release.md)
 before distributing the template or deploying its backend dependency.
@@ -728,7 +728,7 @@ shares one upstream per server process.
 
 ## Employee-only visitor cutover
 
-The local `0.10.1-aenv.13` SDK rejects all non-employee visitors. The scaffold
+SDK `0.11.0` rejects all non-employee visitors. The scaffold
 removes the machine branch and `src/lib/webhooks.ts`; it has no `[[webhooks]]`
 artifact field. The platform App Key remains the App's outbound identity and
 is not an inbound visitor or a replacement call token.
@@ -740,9 +740,10 @@ headers before forwarding employee requests. Old call tokens then have no
 entry path. An alternate ingress that bypasses that boundary remains unsafe;
 updating the template alone does not update deployed code.
 
-When an App is explicitly upgraded later, update its SDK archive and matching
-package/lock entries together, remove machine/webhook branches and keep its
-employee role checks. Do not automatically republish other people's Apps.
+When an App is explicitly upgraded later, set its `@tier0/sdk-v2` dependency
+to `0.11.0`, run `npm install` so the lockfile points at the npm release,
+delete its old `vendor/tier0-sdk-v2-*.tgz`, remove machine/webhook branches
+and keep its employee role checks. Do not automatically republish other people's Apps.
 
 ## Migrating an existing App to scaffold v28
 

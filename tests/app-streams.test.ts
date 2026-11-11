@@ -1,21 +1,18 @@
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { StreamRequestError, StreamRequestResultUnknownError } from "@tier0/sdk-v2";
 
-test("the unified SDK pins one bundled artifact and its integrity", () => {
+test("the unified SDK pins one exact npm release and its integrity", () => {
   const pkg = JSON.parse(readFileSync("package.json", "utf8"));
   const lock = JSON.parse(readFileSync("package-lock.json", "utf8"));
   const dependency = pkg.dependencies["@tier0/sdk-v2"];
   const locked = lock.packages["node_modules/@tier0/sdk-v2"];
-  const artifact = `vendor/tier0-sdk-v2-${locked.version}.tgz`;
-  const archive = readFileSync(artifact);
   assert.equal(pkg.dependencies["@tier0/sdk"], undefined);
-  assert.equal(dependency, `file:${artifact}`);
+  assert.equal(dependency, locked.version);
   assert.equal(lock.packages[""].dependencies["@tier0/sdk-v2"], dependency);
-  assert.equal(locked.resolved, `file:${artifact}`);
-  assert.equal(locked.integrity, `sha512-${createHash("sha512").update(archive).digest("base64")}`);
+  assert.equal(locked.resolved, `https://registry.npmjs.org/@tier0/sdk-v2/-/sdk-v2-${locked.version}.tgz`);
+  assert.match(locked.integrity, /^sha512-[A-Za-z0-9+/]{86}==$/);
   const known = new StreamRequestError("conflict", { errorCode: "IDEMPOTENCY_CONFLICT" });
   const unknown = new StreamRequestResultUnknownError({ errorCode: "STREAM_REQUEST_RESULT_UNKNOWN" });
   assert.equal(known.outcomeUnknown, false);

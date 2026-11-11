@@ -361,7 +361,7 @@ work, then follow its nested domain Skill for the operation. The installed
 package's types and Skills describe this version; an SDK repository update
 alone neither upgrades the App nor refreshes platform-managed Skills.
 
-Use the installed `@tier0/sdk-v2` (`0.10.1-aenv.13`, pinned exactly in `package.json`;
+Use the installed `@tier0/sdk-v2` (`0.11.0` from npm, pinned exactly in `package.json`;
 never change that dependency) for platform info (`tier0.system.info()`),
 workspace members (`tier0.members.listWorkspace`), App-scoped member pickers
 (`tier0.members.listApp({ appId: resolveAppId() })`), notifications, files and

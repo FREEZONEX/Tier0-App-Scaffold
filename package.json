@@ -43,7 +43,7 @@
     "@fontsource/inter": "^5.2.8",
     "@tanstack/react-router": "^1.168.0",
     "@tanstack/react-start": "^1.167.0",
-    "@tier0/sdk-v2": "file:vendor/tier0-sdk-v2-0.10.1-aenv.13.tgz",
+    "@tier0/sdk-v2": "0.11.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.577.0",
