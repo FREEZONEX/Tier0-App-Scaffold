@@ -155,9 +155,9 @@ export function Shell({
   );
   const activeModuleKey = getActiveModuleKey(sidebarModules, pathname);
   const assignedRoles = user?.roles ?? [];
-  const roleLabel = assignedRoles.length
-    ? assignedRoles.map((role) => getRoleMetadata(role).label).join(" · ")
-    : "Loading";
+  const roleLabel = assignedRoles
+    .map((role) => getRoleMetadata(role).label)
+    .join(" · ");
   const collapsed = useSyncExternalStore(
     subscribeCollapsed,
     getCollapsedSnapshot,
@@ -499,12 +499,14 @@ export function Shell({
                 <p className="truncate text-sm font-medium leading-5">
                   {user?.displayName ?? "Loading"}
                 </p>
-                <p
-                  className="mt-0.5 truncate font-mono text-xs uppercase leading-4 text-muted-foreground"
-                  title={roleLabel}
-                >
-                  {roleLabel}
-                </p>
+                {roleLabel && (
+                  <p
+                    className="mt-0.5 truncate font-mono text-xs uppercase leading-4 text-muted-foreground"
+                    title={roleLabel}
+                  >
+                    {roleLabel}
+                  </p>
+                )}
               </div>
             </div>
           </div>
