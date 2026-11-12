@@ -13,9 +13,11 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  icons,
   Lock,
   Menu,
   X,
+  type LucideIcon,
 } from "lucide-react";
 import { Tooltip } from "@/components/kit/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -142,13 +144,40 @@ function setStoredCollapsed(value: boolean) {
 }
 
 /**
- * Generated modules sometimes pass an icon name string or a rendered element
- * instead of a component; rendering either leaves an empty rail slot.
+ * Sidebar icons come from lucide-react. Prefer a component import; a PascalCase
+ * / kebab-case name string is looked up in lucide's `icons` map. Anything else
+ * falls through to the letter mark so the collapsed rail stays identifiable.
  */
+function normalizeLucideIconName(name: string): string {
+  const trimmed = name.trim();
+  if (!trimmed) return "";
+  if (Object.prototype.hasOwnProperty.call(icons, trimmed)) return trimmed;
+  if (/^[A-Z][A-Za-z0-9]*$/.test(trimmed)) return trimmed;
+  return trimmed
+    .split(/[-_\s./]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join("");
+}
+
+function isLucideIconComponent(value: unknown): value is LucideIcon {
+  return (
+    typeof value === "function" ||
+    (Boolean(value) &&
+      typeof value === "object" &&
+      "$$typeof" in (value as object) &&
+      !isValidElement(value))
+  );
+}
+
 function resolveNavIcon(icon: unknown): ElementType | null {
-  if (typeof icon === "function") return icon as ElementType;
-  if (icon && typeof icon === "object" && "$$typeof" in icon && !isValidElement(icon)) {
-    return icon as ElementType;
+  if (isLucideIconComponent(icon)) return icon;
+  if (typeof icon === "string") {
+    const name = normalizeLucideIconName(icon);
+    const matched = name
+      ? icons[name as keyof typeof icons]
+      : undefined;
+    if (isLucideIconComponent(matched)) return matched;
   }
   return null;
 }

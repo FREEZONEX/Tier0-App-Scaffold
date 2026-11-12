@@ -1,12 +1,14 @@
 import type { LucideIcon } from "lucide-react";
-import type { ElementType } from "react";
 import { can, type Action, type RoleInput } from "@/lib/permissions";
+
+/** Lucide component import, or a lucide icon name resolved by Shell at render. */
+export type NavIconSource = LucideIcon | string;
 
 export interface NavModule {
   key: string;
   label: string;
   href?: string;
-  icon?: ElementType;
+  icon?: NavIconSource;
   actions?: Action[];
   children?: NavModule[];
   badge?: string;
@@ -101,7 +103,8 @@ export function validateNavigationModules(
 }
 
 type GeneratedNavModule = Omit<NavModule, "icon" | "children"> & {
-  icon: LucideIcon;
+  /** Prefer `import { ClipboardList } from "lucide-react"`; a name string also works. */
+  icon: NavIconSource;
   children?: GeneratedNavModule[];
 };
 

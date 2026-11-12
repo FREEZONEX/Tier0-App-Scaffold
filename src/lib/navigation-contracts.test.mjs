@@ -149,6 +149,10 @@ describe("navigation contracts", () => {
     );
 
     assert.match(shell, /function resolveNavIcon\(/);
+    assert.match(shell, /function normalizeLucideIconName\(/);
+    assert.match(shell, /\bicons\b/);
+    assert.match(shell, /icons\[name as keyof typeof icons\]/);
+    assert.match(shell, /from "lucide-react"/);
     assert.match(shell, /<NavIcon icon=\{mod\.icon\} label=\{mod\.label\}/);
     assert.match(shell, /<NavIcon icon=\{child\.icon\} label=\{child\.label\}/);
     assert.match(shell, /<Tooltip[^>]*disabled=\{!isCollapsed\}/);
