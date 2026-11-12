@@ -30,7 +30,7 @@ export function StationLayout({
         </div>
         <div className="flex min-w-0 items-stretch gap-2 sm:items-center">
           <div className="flex min-w-0 flex-1 items-center gap-2 rounded-[4px] border border-border bg-surface-inset px-3 py-2 sm:flex-none">
-            <Activity className="size-4 shrink-0 text-highlight-text" />
+            <Activity className="size-4 shrink-0 text-brand" />
             <div className="min-w-0 text-right">
               <p className="truncate text-sm font-medium leading-5">
                 {user?.displayName ?? "Loading"}

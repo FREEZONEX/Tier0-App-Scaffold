@@ -209,6 +209,7 @@ const eslintConfig = defineConfig([
     "node_modules/**",
     // Platform-private workspace (managed skills, preview state); not App code.
     ".tier0/**",
+    ".tier0-output/**",
   ]),
   {
     files: ["**/*.{ts,tsx,js,jsx,mjs}"],

@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { cn } from "@/lib/utils";
-import type { ControlSize } from "@/components/kit/ui/control-styles";
+import { CONTROL_HEIGHT, type ControlSize } from "@/components/kit/ui/control-styles";
 import { useControllableState, useIsoLayoutEffect } from "@/components/kit/ui/floating";
 import type { OptionItem } from "@/components/kit/ui/types";
 
@@ -20,7 +20,7 @@ export interface SegmentedProps<V extends string | number = string | number> {
   "aria-label"?: string;
 }
 
-const ITEM_HEIGHT: Record<ControlSize, string> = { sm: "h-5 px-2 text-sm", md: "h-7 px-3 text-sm", lg: "h-9 px-3 text-base" };
+const ITEM_STYLE: Record<ControlSize, string> = { sm: "px-2 text-sm", md: "px-3 text-sm", lg: "px-3 text-base" };
 
 function normalize<V extends string | number>(option: OptionItem<V> | V): OptionItem<V> {
   return typeof option === "object" ? option : { value: option, label: String(option) };
@@ -74,6 +74,7 @@ export function Segmented<V extends string | number = string | number>({
       aria-disabled={disabled || undefined}
       className={cn(
         "relative inline-flex max-w-full items-stretch gap-0.5 rounded-[4px] border border-border bg-muted/60 p-0.5",
+        CONTROL_HEIGHT[size],
         block && "flex w-full",
         disabled && "pointer-events-none opacity-50",
         className,
@@ -113,7 +114,7 @@ export function Segmented<V extends string | number = string | number>({
             }}
             className={cn(
               "relative z-10 inline-flex min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-[4px] transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
-              ITEM_HEIGHT[size],
+              ITEM_STYLE[size],
               block && "flex-1",
               isSelected ? "font-medium text-foreground" : "text-muted-foreground hover:text-foreground",
               isDisabled && "pointer-events-none opacity-50",

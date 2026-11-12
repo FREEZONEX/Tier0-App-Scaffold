@@ -15,7 +15,8 @@
   --tier0-primary-hover: #1c1f1e;
   --tier0-on-primary: #ffffff;
 
-  /* Signal / CTA green — reserved for highlight buttons & selected emphasis. */
+  /* Signal / CTA green — reserved for highlight buttons and progress fills.
+     Navigation selection uses muted gray fills, not CTA lime. */
   --tier0-cta: #cbf368;
   --tier0-cta-hover: #b8e055;
   --tier0-cta-active: #a8d04a;
@@ -23,16 +24,20 @@
 
   --tier0-highlight: #b2ed1d;
   --tier0-highlight-foreground: #050b14;
+  /* Fill / chart accents only. Body/link text accents must use --tier0-brand
+     (≥4.5:1 on the theme canvas). highlight-text / highlight-deep fail on white. */
   --tier0-highlight-text: #a2db1a;
   --tier0-highlight-deep: #73b200;
   --tier0-highlight-bg-primary: #cbf368;
   --tier0-highlight-bg-accent: #e7f9b9;
   --tier0-highlight-20: color-mix(in srgb, var(--tier0-highlight) 20%, transparent);
+  /* Readable brand for text / icons on the theme canvas (not CTA lime). */
+  --tier0-brand: #467000;
 
   --tier0-text-color: #050b14;
   --tier0-text-secondary: #242424;
-  --tier0-text-tertiary: #878787;
-  --tier0-text-placeholder: #d9d9d9;
+  --tier0-text-tertiary: #6b6b6b;
+  --tier0-text-placeholder: #6b6b6b;
 
   --tier0-bg-color: #ffffff;
   /* Page canvas. User decision 2026-07-13: pure white — the gray canvas
@@ -596,10 +601,10 @@ body {
     cursor: not-allowed;
   }
 
-  input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]),
+  input:not([data-bare-control]):not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]),
   select,
   textarea,
-  [role="combobox"],
+  [role="combobox"]:not([data-bare-control]),
   [role="listbox"],
   [role="menu"] {
     background-color: var(--input-bg) !important;
@@ -613,9 +618,9 @@ body {
      content-width, so fields don't even fill their column. Same failure class
      as the bare-table incident: color was backstopped, box model wasn't.
      Base layer — any utility class on the element overrides. */
-  input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="file"]):not([type="range"]):not([type="color"]),
+  input:not([data-bare-control]):not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="file"]):not([type="range"]):not([type="color"]),
   select,
-  [role="combobox"] {
+  [role="combobox"]:not([data-bare-control]) {
     width: 100%;
     min-height: var(--tier0-control-height-md);
     padding: 0 12px;
@@ -666,11 +671,11 @@ body {
 
   /* Brighten to the surface color on focus so the active field lifts off the
      resting fill, alongside the highlight ring. */
-  input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):focus,
+  input:not([data-bare-control]):not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):focus,
   select:focus,
   textarea:focus,
-  [role="combobox"]:focus,
-  [role="textbox"]:focus {
+  [role="combobox"]:not([data-bare-control]):focus,
+  [role="textbox"]:not([data-bare-control]):focus {
     background-color: var(--card) !important;
   }
 
@@ -679,10 +684,10 @@ body {
     color: var(--tier0-text-tertiary);
   }
 
-  input:disabled,
+  input:not([data-bare-control]):disabled,
   select:disabled,
   textarea:disabled,
-  [role="combobox"][aria-disabled="true"],
+  [role="combobox"]:not([data-bare-control])[aria-disabled="true"],
   [role="listbox"][aria-disabled="true"],
   [role="menu"][aria-disabled="true"] {
     background-color: var(--tier0-disabled-bg) !important;
@@ -1212,10 +1217,10 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
 }
 
 @theme inline {
-  /* Brand for text / solid selected fills must stay readable on white — not CTA lime. */
-  --color-brand: var(--tier0-highlight-deep);
-  --color-brand-hover: color-mix(in srgb, var(--tier0-highlight-deep) 82%, #050b14);
-  --color-brand-active: color-mix(in srgb, var(--tier0-highlight-deep) 68%, #050b14);
+  /* Brand for text / icons must stay ≥4.5:1 on the theme canvas — not CTA lime. */
+  --color-brand: var(--tier0-brand);
+  --color-brand-hover: color-mix(in srgb, var(--tier0-brand) 82%, #050b14);
+  --color-brand-active: color-mix(in srgb, var(--tier0-brand) 68%, #050b14);
   --color-brand-soft: var(--tier0-primary-bg);
   --color-brand-soft-hover: var(--tier0-primary-bg-hover);
   --color-brand-border: var(--tier0-primary-border);
@@ -1399,7 +1404,10 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
   --tier0-text-color: #f4f4f5;
   --tier0-text-secondary: #d4d4d8;
   --tier0-text-tertiary: #a1a1aa;
-  --tier0-text-placeholder: #52525b;
+  /* Must stay ≥4.5:1 on --tier0-input-bg (#141518); #52525b was 2.36:1. */
+  --tier0-text-placeholder: #8b8b96;
+  /* Brand text/icons on dark canvas; light-mode #467000 fails (~3.1:1). */
+  --tier0-brand: #73b200;
   --tier0-bg-color: #0c0d0f;
   --tier0-canvas: #0c0d0f;
   --tier0-bg-secondary: #141518;

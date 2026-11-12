@@ -196,7 +196,7 @@ export function CapsuleGroup<K extends string | number = string>({
 }: CapsuleGroupProps<K>) {
   const [selected, setSelected] = useControllableState<K | undefined>(value, defaultValue ?? items[0]?.key);
   return (
-    <div role="group" aria-label={ariaLabel} className={cn("flex min-w-0 flex-wrap items-center gap-2", className)}>
+    <div role="group" aria-label={ariaLabel} className={cn("flex min-w-0 flex-wrap items-center gap-2 rounded-[4px] bg-muted/50 p-1", className)}>
       {items.map((item) => {
         const active = item.key === selected;
         return (
@@ -206,13 +206,13 @@ export function CapsuleGroup<K extends string | number = string>({
             aria-pressed={active}
             disabled={item.disabled}
             className={cn(
-              "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full outline-none",
+              "inline-flex min-w-0 max-w-full items-center gap-2 rounded-[4px] outline-none",
               "transition-[color,background-color,box-shadow,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)]",
               "focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-[0.98] motion-reduce:transition-none",
-              size === "sm" ? "h-7 px-3 text-xs" : "h-8 px-3.5 text-sm",
+              size === "sm" ? "min-h-8 px-3 py-1 text-xs" : "min-h-9 px-3.5 py-1.5 text-sm",
               active
-                ? "bg-[color:var(--tier0-highlight-bg-primary)] font-medium text-[color:var(--tier0-highlight-foreground)] shadow-sm"
-                : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground",
+                ? "bg-foreground font-medium text-background"
+                : "bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
               item.disabled && "pointer-events-none opacity-50",
             )}
             onClick={() => {
@@ -221,8 +221,8 @@ export function CapsuleGroup<K extends string | number = string>({
             }}
           >
             {item.icon ? <span className="flex shrink-0 [&>svg]:size-3.5">{item.icon}</span> : null}
-            <span>{item.label}</span>
-            {item.count !== undefined ? <span className="tabular-nums">{item.count}</span> : null}
+            <span className="min-w-0 break-words text-left">{item.label}</span>
+            {item.count !== undefined ? <span className={cn("inline-flex min-w-5 shrink-0 items-center justify-center rounded-[4px] px-1.5 text-xs tabular-nums", active ? "bg-background/15 text-background" : "bg-muted text-muted-foreground")}>{item.count}</span> : null}
           </button>
         );
       })}

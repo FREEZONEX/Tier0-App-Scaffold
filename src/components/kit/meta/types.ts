@@ -40,6 +40,8 @@ export interface BatchAction {
 export interface TopTab {
   key: string;
   label: string;
+  /** Count for this scope, supplied by the caller. */
+  count?: number;
   /** QueryRequest.scope (omit for "all"). */
   scope?: string;
   /** Extra filters of this tab. */

@@ -69,6 +69,10 @@ export interface MetaListPageProps {
   onCreate?: () => void;
   /** Extra toolbar buttons after 导出 (批量新增、默认单位…). */
   toolbarExtra?: ReactNode;
+  /** Quick filters, separate from creation and table settings. */
+  toolbarFilters?: ReactNode;
+  /** Short contextual note, presented below the controls. */
+  toolbarNote?: ReactNode;
   rowActions?: (row: ListRow) => RowAction[];
   /** Inline row actions before ⋯ (default 2); a function gives a per-row count (e.g. 已结束任务 3, others 2). */
   inlineActionCount?: number | ((row: ListRow) => number);
@@ -138,6 +142,8 @@ function MetaListBody({
   createLabel = "创建",
   onCreate,
   toolbarExtra,
+  toolbarFilters,
+  toolbarNote,
   rowActions,
   inlineActionCount = 2,
   actionColumnWidth,
@@ -383,7 +389,7 @@ function MetaListBody({
       {topTabs?.length ? (
         <CapsuleGroup<string>
           aria-label="数据范围"
-          items={topTabs.map((tab) => ({ key: tab.key, label: tab.label }))}
+          items={topTabs.map((tab) => ({ key: tab.key, label: tab.label, count: tab.count }))}
           value={topTab}
           onChange={(key) => {
             setTopTab(key);
@@ -467,32 +473,41 @@ function MetaListBody({
           </Button>
         </div>
       ) : (
-        <div className="flex min-h-8 min-w-0 flex-wrap items-center gap-x-2 gap-y-2" role="toolbar" aria-label="列表工具栏">
-          {canCreate ? (
-            <Button variant="primary" icon={<CirclePlus />} onClick={onCreate}>
-              {createLabel}
-            </Button>
+        <div className="flex min-h-8 min-w-0 flex-wrap items-center gap-x-4 gap-y-2" role="toolbar" aria-label="列表工具栏">
+          {canCreate || canImport || canExport || toolbarExtra ? (
+            <div className="flex min-w-0 flex-wrap items-center gap-2" role="group" aria-label="业务操作">
+              {canCreate ? (
+                <Button variant="primary" icon={<CirclePlus />} onClick={onCreate}>
+                  {createLabel}
+                </Button>
+              ) : null}
+              {canImport ? (
+                <SplitButton
+                  icon={<FileInput />}
+                  onClick={() => setImportOpen(true)}
+                  menuItems={[{ key: "importLog", label: "导入日志", onClick: () => setLogType("IMPORT") }]}
+                >
+                  导入
+                </SplitButton>
+              ) : null}
+              {canExport ? (
+                <SplitButton
+                  icon={<FileOutput />}
+                  onClick={() => setExportOpen(true)}
+                  menuItems={[{ key: "exportLog", label: "导出日志", onClick: () => setLogType("EXPORT") }]}
+                >
+                  导出
+                </SplitButton>
+              ) : null}
+              {toolbarExtra}
+            </div>
           ) : null}
-          {canImport ? (
-            <SplitButton
-              icon={<FileInput />}
-              onClick={() => setImportOpen(true)}
-              menuItems={[{ key: "importLog", label: "导入日志", onClick: () => setLogType("IMPORT") }]}
-            >
-              导入
-            </SplitButton>
+          {toolbarFilters ? (
+            <div className="flex min-w-0 flex-wrap items-center gap-2" role="group" aria-label="快捷筛选">
+              {toolbarFilters}
+            </div>
           ) : null}
-          {canExport ? (
-            <SplitButton
-              icon={<FileOutput />}
-              onClick={() => setExportOpen(true)}
-              menuItems={[{ key: "exportLog", label: "导出日志", onClick: () => setLogType("EXPORT") }]}
-            >
-              导出
-            </SplitButton>
-          ) : null}
-          {toolbarExtra}
-          <span className="flex flex-wrap items-center gap-x-4 gap-y-1 pl-1">
+          <div className="flex min-w-0 flex-wrap items-center gap-2 rounded-[4px] bg-muted px-2 py-1" role="group" aria-label="表格设置">
             <FieldConfigPopover
               states={controller.columnStates}
               primaryField={config.primaryField}
@@ -505,9 +520,11 @@ function MetaListBody({
               onChange={(sorts) => void controller.saveSorts(sorts).catch(reportPrefsError)}
             />
             <RowHeightMenu value={controller.rowHeight} onChange={(next) => void controller.saveRowHeight(next).catch(reportPrefsError)} />
-          </span>
+          </div>
         </div>
       )}
+
+      {toolbarNote ? <div className="text-sm text-muted-foreground">{toolbarNote}</div> : null}
 
       <AsyncView result={query} isEmpty={() => false}>
         {(data) => (

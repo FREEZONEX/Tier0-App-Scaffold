@@ -7,7 +7,7 @@
  *
  * `SortConditionList` is shared with the view editor's 默认排序 tab.
  */
-import { ArrowDownUp, GripVertical, Plus, X } from "lucide-react";
+import { ArrowDownUp, ArrowUp, ArrowDown, GripVertical, Plus, X } from "lucide-react";
 import { useRef, useState, type DragEvent } from "react";
 import { IconButton, TextButton } from "@/components/kit/ui/buttons";
 import { Popover } from "@/components/kit/ui/popover";
@@ -43,6 +43,12 @@ export interface SortConditionListProps {
 
 export function SortConditionList({ fields, value, onChange, className }: SortConditionListProps) {
   const [drafts, setDrafts] = useState<DraftSort[]>(() => toDrafts(value));
+  const valueKey = JSON.stringify(value.map(({ field, direction }) => ({ field, direction })));
+  const [previousValueKey, setPreviousValueKey] = useState(valueKey);
+  if (previousValueKey !== valueKey) {
+    setPreviousValueKey(valueKey);
+    if (JSON.stringify(toSorts(drafts)) !== valueKey) setDrafts(toDrafts(value));
+  }
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const seedRef = useRef(0);
 
@@ -74,14 +80,14 @@ export function SortConditionList({ fields, value, onChange, className }: SortCo
           }}
           onDragEnd={() => setDragIndex(null)}
           className={cn(
-            "flex min-w-0 items-center gap-2 rounded-[4px] bg-muted px-2 py-1.5",
+            "flex min-w-0 flex-wrap items-center gap-2 rounded-[4px] bg-muted px-2 py-1.5",
             dragIndex === index && "opacity-40",
           )}
         >
           <GripVertical className="size-3.5 shrink-0 cursor-grab text-text-placeholder" aria-hidden="true" />
           <Select<string>
             aria-label="排序字段"
-            className="min-w-0 flex-1"
+            className="min-w-[140px] flex-1"
             showSearch
             placeholder="请选择字段"
             value={draft.field}
@@ -102,6 +108,10 @@ export function SortConditionList({ fields, value, onChange, className }: SortCo
             ]}
             onChange={(next) => commit(drafts.map((item) => (item.key === draft.key ? { ...item, direction: next } : item)))}
           />
+          <IconButton size="sm" label="上移排序条件" icon={<ArrowUp />} disabled={index === 0}
+            onClick={() => commit(moveItem(drafts, index, index - 1))} />
+          <IconButton size="sm" label="下移排序条件" icon={<ArrowDown />} disabled={index === drafts.length - 1}
+            onClick={() => commit(moveItem(drafts, index, index + 1))} />
           <IconButton
             size="sm"
             label="删除排序条件"
@@ -151,7 +161,7 @@ export function SortPopover({ fields, value, onChange, disabled = false }: SortP
     >
       <TextButton icon={<ArrowDownUp />} disabled={disabled}>
         {value.length > 0 ? (
-          <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[11px] leading-4 text-white tabular-nums">
+          <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[11px] leading-4 text-primary-foreground tabular-nums">
             {value.length}
           </span>
         ) : null}

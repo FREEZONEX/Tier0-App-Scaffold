@@ -32,5 +32,5 @@
     "**/*.mts",
     "src/routeTree.gen.ts"
   ],
-  "exclude": ["node_modules", ".output", "dist"]
+  "exclude": ["node_modules", ".output", ".tier0-output", "dist"]
 }

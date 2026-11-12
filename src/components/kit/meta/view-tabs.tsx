@@ -74,11 +74,11 @@ export function ViewTabs({
                   aria-selected={selected}
                   title={view.name}
                   className={cn(
-                    "inline-flex h-8 max-w-[12rem] items-center gap-1.5 rounded-[4px] px-1 text-sm leading-none",
+                    "inline-flex h-8 max-w-[12rem] items-center gap-2 rounded-[4px] px-2 text-sm leading-none outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
                     "transition-colors duration-150 ease-out motion-reduce:transition-none",
                     selected
-                      ? "font-medium text-foreground"
-                      : "font-normal text-muted-foreground hover:text-foreground",
+                      ? "bg-muted font-medium text-foreground"
+                      : "font-normal text-muted-foreground hover:bg-muted/60 hover:text-foreground",
                   )}
                   onClick={() => onSwitch(view.code)}
                 >
@@ -131,7 +131,7 @@ export function ViewTabs({
               {selected ? (
                 <span
                   aria-hidden="true"
-                  className="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 bg-[color:var(--tier0-highlight-deep)]"
+                  className="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 bg-foreground"
                 />
               ) : null}
             </div>

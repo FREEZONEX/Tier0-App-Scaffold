@@ -601,10 +601,10 @@ export function DetailTable({
             </Button>
           ) : null}
           {columnSettings ? (
-            <span className="flex items-center gap-4 pl-1">
+            <div className="flex flex-wrap items-center gap-2 rounded-[4px] bg-muted px-2 py-1" role="group" aria-label="表格设置">
               <FieldConfigPopover states={states} onChange={(next) => setColumnStates(next)} />
               <RowHeightMenu value={rowHeight} onChange={setRowHeight} />
-            </span>
+            </div>
           ) : null}
           {!readOnly && selectedRows.length > 0 ? (
             <span className="ml-auto text-sm text-text-secondary">

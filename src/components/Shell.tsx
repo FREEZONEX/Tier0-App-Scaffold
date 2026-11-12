@@ -12,6 +12,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
+import { Tooltip } from "@/components/kit/ui/tooltip";
 import { cn } from "@/lib/utils";
 import type { AppUser } from "@/lib/users";
 import { APP_ICON, APP_NAME, filterSidebarModules } from "@/lib/app-chrome";
@@ -27,9 +28,9 @@ const COLLAPSED_STORAGE_KEY = "tier0-shell-collapsed";
 const COLLAPSED_STORAGE_EVENT = "tier0-shell-collapsed-change";
 
 const sidebarItemBase =
-  "group flex items-center rounded-[4px] border border-transparent text-sm font-medium transition-[background-color,color,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:ring-offset-1 focus-visible:ring-offset-sidebar";
+  "group flex items-center rounded-[4px] text-sm font-medium transition-[background-color,color,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:ring-offset-1 focus-visible:ring-offset-sidebar";
 const sidebarItemActive =
-  "border-border bg-highlight-bg-accent text-foreground shadow-xs";
+  "bg-muted text-foreground";
 const sidebarItemInactive =
   "text-secondary-foreground hover:bg-sidebar-accent hover:text-foreground active:translate-x-px";
 
@@ -302,6 +303,7 @@ export function Shell({
               const groupTitle = mod.disabledReason ?? mod.label;
               return (
                 <div key={mod.key} className="mb-1">
+                  <Tooltip title={groupTitle} disabled={!isCollapsed} placement="right" anchorClassName="flex w-full">
                   <button
                     type="button"
                     aria-expanded={isExpanded}
@@ -323,7 +325,7 @@ export function Shell({
                     className={cn(
                       sidebarItemBase,
                       "min-h-10 w-full",
-                      isDirectActive ? sidebarItemActive : sidebarItemInactive,
+                      isDirectActive || (hasActiveDescendant && !isExpanded) ? sidebarItemActive : sidebarItemInactive,
                       mod.locked ? "opacity-70" : "",
                       isCollapsed ? "justify-center px-0" : "gap-2.5 overflow-hidden pl-4 pr-3",
                     )}
@@ -358,6 +360,7 @@ export function Shell({
                       />
                     )}
                   </button>
+                  </Tooltip>
                   {!isCollapsed && isExpanded && (
                     <div className="mt-1 space-y-1 pl-6">
                       {mod.children?.map((child) => {
@@ -418,8 +421,8 @@ export function Shell({
             }
 
             return (
+              <Tooltip key={mod.key} title={mod.disabledReason ?? mod.label} disabled={!isCollapsed} placement="right" anchorClassName="flex w-full">
               <Link
-                key={mod.key}
                 // `as never`: defaultModules is mutated by the Agent at build time,
                 // so the router-typed `to` prop cannot statically know the routes
                 // an agent will introduce. Type-safety is preserved everywhere
@@ -445,7 +448,7 @@ export function Shell({
                 }}
                 className={cn(
                   sidebarItemBase,
-                  "mb-1 min-h-10",
+                  "mb-1 min-h-10 w-full",
                   isDirectActive ? sidebarItemActive : sidebarItemInactive,
                   mod.locked ? "opacity-70" : "",
                   isCollapsed ? "justify-center px-0" : "gap-2.5 overflow-hidden pl-4 pr-3",
@@ -477,6 +480,7 @@ export function Shell({
                   />
                 ) : null}
               </Link>
+              </Tooltip>
             );
           })}
         </div>

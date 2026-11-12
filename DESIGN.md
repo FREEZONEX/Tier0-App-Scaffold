@@ -1,7 +1,7 @@
 ---
 version: alpha
 name: Tier0-design-system
-description: "A readable enterprise product design system for Tier0: calm operational surfaces, neutral gray primary actions, softened signal green for active/selected/progress states, and layout density chosen by workflow context. Management workspaces should feel modern, clear, and product-focused; production execution, monitor, and safety-critical surfaces may feel more industrial when the environment calls for it."
+description: "A readable enterprise product design system for Tier0: calm operational surfaces, near-black primary actions, muted-gray fills for selected navigation, signal green only for progress fills and highlight CTAs, and density chosen by layout (workspace / station / review / monitor). Management workspaces are product-focused; station, review, and monitor keep purpose-built density and chrome."
 
 colors:
   primary: "var(--tier0-primary)"
@@ -121,7 +121,7 @@ spacing:
 # src/components/forms/FileUpload — compose
 # those instead of re-deriving styles from this file. Usage rules:
 # - identifiers (doc/lot/location codes) render in font-mono
-# - highlight lime is a fill color only; text accents use highlight-deep
+# - highlight lime is a fill / ring color only; text accents use brand (≥4.5:1)
 # - status = StatusBadge + optional card accent bar; never tint whole cards
 # - available where useful: .text-link (inline links), StatCard tone + trend props
 components:
@@ -238,11 +238,14 @@ Tier0 is precise, calm, technical enterprise software: readable through long
 shifts and on shared terminals without becoming a dark control-room theme.
 
 - Workspace: neutral canvas, raised white surfaces, compact information rhythm.
-- Primary decisions: near-black; active/selected/progress emphasis: Tier0 signal
-  green; urgency: semantic status colors. Use `Button` variant `primary` for
-  standard submit and primary actions. Reserve `highlight` for a deliberately
-  emphasized workflow action; being the most important action alone does not
-  require a green button.
+- Primary actions: near-black (`Button` `primary`). Navigation selection:
+  `bg-muted text-foreground` with no border or shadow. Progress fills and
+  deliberate CTAs: signal green (`Button` `highlight` / highlight soft fills).
+  Text and icon accents on the canvas: `--tier0-brand` / `text-brand` (≥4.5:1);
+  never use `--tier0-highlight`, `--tier0-highlight-text`, or
+  `--tier0-highlight-deep` for body or label text on white. Urgency: semantic
+  status colors. Being the most important action alone does not require a green
+  button.
 - Station: larger touch targets. Review: evidence-first. Monitor: fixed,
   distance-readable composition.
 - Hierarchy comes from typography, borders, restrained surface changes, and
@@ -358,3 +361,12 @@ static-check and viewport-review boundaries in [docs/ui-rules.md](docs/ui-rules.
 - 删除重复标题、解释设计实现、无行动价值的说明文字。
 - 保持现有组件职责和接口，以参考库的对应组件逐项匹配，避免新增平行组件体系。
 - 完整改造后按 ui-skills 走查排版、间距、布局、点击目标、反馈、字号、信息层级及弹层尺寸；发现问题后修复并复查。
+
+## UI acceptance criteria
+
+- Body text, labels and enabled placeholders must have at least 4.5:1 contrast against their actual background in both themes. Test the composited color, including opacity. Enabled placeholders use `--tier0-text-placeholder` (`#6b6b6b` light / `#8b8b96` dark).
+- Text and icon accents on the canvas use `--tier0-brand` (`#467000` light / `#73b200` dark). Do not use highlight lime tokens for readable text.
+- Sidebar selection uses `bg-muted text-foreground`, with no border or shadow. Keyboard focus uses the separate focus ring.
+- Same-row form controls and buttons use matching size tokens: sm 32px, md 36px, lg 40px.
+- Sorting supports selecting, changing direction, deleting and reordering using both pointer and keyboard. At 375px, field labels must retain a readable width.
+- Empty role sets show `未分配角色`, never a false `Loading` label.
