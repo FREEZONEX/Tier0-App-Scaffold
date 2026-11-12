@@ -222,3 +222,5 @@ click a row.
 
 `npm run build` fails on any other shape, naming the offending resource; the
 check lives in `src/lib/route-nesting-contracts.test.mjs` and is a locked gate.
+An API-only subtree (parent and dynamic children declare `server` handlers and
+no `component`) renders no page and is not required to have an index route.
