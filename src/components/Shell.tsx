@@ -473,21 +473,6 @@ export function Shell({
               isCollapsed ? "flex-col gap-2" : "gap-1",
             )}
           >
-            <Popover
-              placement="top-start"
-              aria-label="通知"
-              title="通知"
-              content={<p className="text-xs text-muted-foreground">暂无新通知</p>}
-            >
-              <button
-                type="button"
-                aria-label="通知"
-                title="通知"
-                className={cn(sidebarIconButton, "size-8")}
-              >
-                <Bell className="size-4" aria-hidden />
-              </button>
-            </Popover>
             <div
               className={cn(
                 "flex min-w-0 items-center overflow-hidden",
@@ -510,6 +495,21 @@ export function Shell({
                 </p>
               </div>
             </div>
+            <Popover
+              placement="top-end"
+              aria-label="通知"
+              title="通知"
+              content={<p className="text-xs text-muted-foreground">暂无新通知</p>}
+            >
+              <button
+                type="button"
+                aria-label="通知"
+                title="通知"
+                className={cn(sidebarIconButton, "size-8")}
+              >
+                <Bell className="size-4" aria-hidden />
+              </button>
+            </Popover>
           </div>
         </div>
       </nav>

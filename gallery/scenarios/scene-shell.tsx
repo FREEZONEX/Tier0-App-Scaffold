@@ -222,24 +222,6 @@ function SceneNav({
             collapsed && !onNavigate ? "flex-col gap-2" : "gap-1",
           )}
         >
-          <Popover
-            placement="top-start"
-            aria-label="通知"
-            title="通知"
-            content={<p className="text-xs text-muted-foreground">暂无新通知</p>}
-          >
-            <button
-              type="button"
-              aria-label="通知"
-              title="通知"
-              className={cn(
-                "inline-flex size-8 shrink-0 items-center justify-center rounded-[4px] text-muted-foreground transition-colors",
-                "hover:bg-sidebar-accent hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/35",
-              )}
-            >
-              <Bell className="size-4" aria-hidden />
-            </button>
-          </Popover>
           <div
             className={cn(
               "flex min-w-0 items-center overflow-hidden",
@@ -262,6 +244,24 @@ function SceneNav({
               </p>
             </div>
           </div>
+          <Popover
+            placement="top-end"
+            aria-label="通知"
+            title="通知"
+            content={<p className="text-xs text-muted-foreground">暂无新通知</p>}
+          >
+            <button
+              type="button"
+              aria-label="通知"
+              title="通知"
+              className={cn(
+                "inline-flex size-8 shrink-0 items-center justify-center rounded-[4px] text-muted-foreground transition-colors",
+                "hover:bg-sidebar-accent hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/35",
+              )}
+            >
+              <Bell className="size-4" aria-hidden />
+            </button>
+          </Popover>
         </div>
       </div>
     </aside>

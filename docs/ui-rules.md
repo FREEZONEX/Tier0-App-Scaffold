@@ -57,9 +57,9 @@ The sidebar follows the Tier0 platform sidebar: a gray rail (`--sidebar`,
 240px open / 64px collapsed (`w-60` / `w-16`)), app icon and name with a panel toggle on top,
 regular-weight dark items 36px high, hover one gray step darker
 (`--sidebar-accent`) and the selected item one more (`bg-muted`, mapped to
-`--sidebar-selected` inside the rail). The bottom of the rail always shows a
-notification bell (empty-state popover until the App wires real notices) and
-the account avatar with name and roles. Gallery business scenes (`SceneShell`)
+`--sidebar-selected` inside the rail). The bottom of the rail always shows the
+account avatar with name and roles, and the notification bell at the right
+end (empty-state popover until the App wires real notices). Gallery business scenes (`SceneShell`)
 must mirror this footer — never ship a scene rail without the account strip.
 A module with `children` is a titled section (small gray label, always
 open; a divider in the collapsed rail), not a collapsible folder: group links
