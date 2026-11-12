@@ -564,16 +564,18 @@ function MetaListBody({
         )}
       </div>
 
-      {searchFields.panel.length > 0 && controller.expanded ? (
-        <ListFilterPanel
-          id={filterPanelId}
-          fields={searchFields.panel}
-          values={controller.draft}
-          onValueChange={controller.setDraftValue}
-          onSearch={controller.applySearch}
-          onReset={controller.resetSearch}
-          loading={query.isLoading && query.data !== null}
-        />
+      {searchFields.panel.length > 0 ? (
+        <div hidden={!controller.expanded}>
+          <ListFilterPanel
+            id={filterPanelId}
+            fields={searchFields.panel}
+            values={controller.draft}
+            onValueChange={controller.setDraftValue}
+            onSearch={controller.applySearch}
+            onReset={controller.resetSearch}
+            loading={query.isLoading && query.data !== null}
+          />
+        </div>
       ) : null}
 
       {toolbarNote ? <div className="text-sm text-muted-foreground">{toolbarNote}</div> : null}
