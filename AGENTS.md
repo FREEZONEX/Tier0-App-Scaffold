@@ -255,7 +255,9 @@ separator nests routes, so a detail page under a parent that renders no
   the detail page renders standalone and the list route stays a plain page.
 
 `npm run build` fails on any other shape (locked
-`src/lib/route-nesting-contracts.test.mjs`). `Route.useParams()` and
+`src/lib/route-nesting-contracts.test.mjs`). Pure API routes (`server`
+handlers, no `component`) render no page, so `api/orders.ts` +
+`api/orders.$id.ts` needs no index route. `Route.useParams()` and
 `Route.useSearch()` are synchronous; define `validateSearch` when reading query
 strings.
 
@@ -507,8 +509,9 @@ and actual runtime failures remain hard checks. Scaffold CI separately runs
 `SCAFFOLD_GUIDANCE_STRICT=1` to test the template's own defaults.
 Do not bypass completion with `vite build` alone.
 
-- `src/lib/template-state.test.mjs` describes the blank template and is the only
-  contract test generated apps may adapt.
+- `src/lib/template-state.test.mjs` describes the blank template. Only scaffold
+  CI runs it (`npm run test:template`); it is not part of the App build, so
+  adding business navigation or pages never needs it changed.
 - Every other test under `src/lib/`, the data-layer wiring `src/lib/data/**`,
   gate/verify/audit scripts and `scripts/gate-integrity.json` are locked. Do
   not edit, weaken, or delete them. Use documented opt-outs such as

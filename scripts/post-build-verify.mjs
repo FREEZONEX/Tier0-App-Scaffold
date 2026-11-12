@@ -64,7 +64,6 @@ const steps = [
       "src/lib/responsive-contracts.test.mjs",
       "src/lib/scaffold-version-contracts.test.mjs",
       "src/lib/legacy-db-contracts.test.mjs",
-      "src/lib/template-state.test.mjs",
     ],
   },
   {

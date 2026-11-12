@@ -2,8 +2,9 @@
 //
 // The LOCKED_FILES below are invariant quality gates: contract tests and
 // verification scripts that encode platform rules. Generated apps must never
-// edit, weaken, or delete them; the one file agents ARE expected to adapt is
-// src/lib/template-state.test.mjs, which is deliberately not pinned here.
+// edit, weaken, or delete them. src/lib/template-state.test.mjs is not pinned:
+// it describes the blank template, runs only in scaffold CI, and is not part
+// of the App build.
 //
 // scripts/gate-integrity.json pins a sha256 per locked file. Any drift fails
 // the build. Template maintainers who intentionally change a locked gate
@@ -109,9 +110,6 @@ if (problems.length > 0) {
   );
   console.error(
     "[gate-integrity] If a gate blocks a legitimate case: use its documented opt-out marker (EXTERNAL_CALLER, READ_ONLY_SURFACE), restructure the code to satisfy the rule, or stop and surface the conflict to the user.",
-  );
-  console.error(
-    "[gate-integrity] The only contract file meant to be adapted is src/lib/template-state.test.mjs.",
   );
   process.exit(1);
 }

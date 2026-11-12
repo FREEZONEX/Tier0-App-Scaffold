@@ -216,7 +216,8 @@ still matches but nothing renders — TypeScript, ESLint and the build all pass,
 and the blank detail page only shows up when someone clicks a row.
 
 Pick one of the two shapes below. `npm run build` fails if a resource matches
-neither (see `src/lib/route-nesting-contracts.test.mjs`).
+neither (see `src/lib/route-nesting-contracts.test.mjs`). Pure API routes
+(`server` handlers, no `component`) render no page and need neither shape.
 
 **Nested** — the URL prefix is shared and the detail page lives under it:
 
@@ -427,6 +428,7 @@ npm run build:check  # build + typecheck + lint
 npm run start        # node server.mjs
 npm run lint         # eslint
 npm test             # component-kit and data-layer unit tests
+npm run test:template # blank-template assertions (scaffold CI only, not run by App builds)
 npm run data:schema  # print the normalized ensure payload of src/data/collections.ts
 ```
 

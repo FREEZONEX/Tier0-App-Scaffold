@@ -58,6 +58,14 @@ function WorkOrdersLayout() {
 }
 `;
 
+/** 纯接口路由：只有 server handlers，不渲染任何页面。 */
+const API_PARENT = `
+import { createFileRoute } from "@tanstack/react-router";
+export const Route = createFileRoute("/api/orders")({
+  server: { handlers: { GET: async () => Response.json([]) } },
+});
+`;
+
 const LEAF = `
 import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/x")({ component: () => <div /> });
@@ -171,18 +179,62 @@ describe("route nesting contracts", () => {
     assert.deepEqual(violations, []);
   });
 
-  it("distinguishes an explicit outlet from a component-less layout", () => {
+  it("does not require a page or index route under a pure API parent", () => {
+    // REST 形态：/api/orders 与 /api/orders/$id 都只有 server handlers。
+    const violations = analyze(
+      [
+        { ident: "ApiOrders", module: "./routes/api/orders", id: "/api/orders", parent: "rootRouteImport" },
+        { ident: "ApiOrdersId", module: "./routes/api/orders.$id", id: "/$id", parent: "ApiOrders" },
+      ],
+      { "./routes/api/orders": API_PARENT },
+    );
+
+    assert.deepEqual(violations, []);
+  });
+
+  it("still fails a page parent without an outlet even when it also declares server handlers", () => {
+    const pageWithServer = `
+      import { createFileRoute } from "@tanstack/react-router";
+      export const Route = createFileRoute("/_app/orders")({
+        server: { handlers: { POST: async () => new Response(null, { status: 201 }) } },
+        component: OrdersPage,
+      });
+      function OrdersPage() {
+        return <div>Orders</div>;
+      }
+    `;
+    const violations = analyze(
+      [
+        { ident: "Orders", module: "./routes/_app.orders", id: "/orders", parent: "rootRouteImport" },
+        { ident: "OrdersDetail", module: "./routes/_app.orders.$id", id: "/$id", parent: "Orders" },
+      ],
+      { "./routes/_app.orders": pageWithServer },
+    );
+
+    assert.equal(violations.length, 1);
+    assert.equal(violations[0].rule, "missing-outlet");
+  });
+
+  it("distinguishes an explicit outlet, a component-less layout and a pure API route", () => {
     assert.deepEqual(inspectRouteModule(PARENT_WITH_OUTLET), {
       hasOutlet: true,
       hasComponent: true,
+      hasServer: false,
     });
     assert.deepEqual(inspectRouteModule(PARENT_LAYOUT_ONLY), {
       hasOutlet: false,
       hasComponent: false,
+      hasServer: false,
     });
     assert.deepEqual(inspectRouteModule(PARENT_WITHOUT_OUTLET), {
       hasOutlet: false,
       hasComponent: true,
+      hasServer: false,
+    });
+    assert.deepEqual(inspectRouteModule(API_PARENT), {
+      hasOutlet: false,
+      hasComponent: false,
+      hasServer: true,
     });
   });
 });
