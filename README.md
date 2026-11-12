@@ -77,8 +77,9 @@ Call the platform through the SDK, not with a hand-written `fetch` / `curl` to
 `TIER0_API_HOST`. Every App has the same fixed platform capabilities
 (members, notifications, files, Stream requests and messages), bounded by the
 workspace plan and configured nowhere. Beyond the collections it creates, the
-App reads only external collections that a workspace Owner/Admin granted it in
-the App settings. MQTT topics are limited to the App's own namespace
+App accesses external collections according to their grants. The Builder
+uses its management identity for task-required grants, preserving other grants
+and disabled policies and verifying effective App access (see `AGENTS.md`). MQTT topics are limited to the App's own namespace
 `apps/<App id>/<preview|deployed>/…`; build them with `appTopic()` from
 `@tier0/sdk-v2/mq`.
 
@@ -215,7 +216,9 @@ still matches but nothing renders — TypeScript, ESLint and the build all pass,
 and the blank detail page only shows up when someone clicks a row.
 
 Pick one of the two shapes below. `npm run build` fails if a resource matches
-neither (see `src/lib/route-nesting-contracts.test.mjs`).
+neither (see `src/lib/route-nesting-contracts.test.mjs`). An API-only subtree
+(parent and dynamic children declare `server` handlers and no `component`)
+renders no page and needs neither shape.
 
 **Nested** — the URL prefix is shared and the detail page lives under it:
 
@@ -426,6 +429,7 @@ npm run build:check  # build + typecheck + lint
 npm run start        # node server.mjs
 npm run lint         # eslint
 npm test             # component-kit and data-layer unit tests
+npm run test:template # blank-template assertions (scaffold CI only, not run by App builds)
 npm run data:schema  # print the normalized ensure payload of src/data/collections.ts
 ```
 

@@ -17,11 +17,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { StationLayout } from "@/components/layouts/StationLayout";
 import { RouteErrorBoundary } from "@/components/ui";
 import { getCurrentUser } from "@/lib/auth";
+import { withUserDisplay } from "@/services/user-display";
 import type { AppUser } from "@/lib/users";
 
 // Public: it answers null without a visitor, and the route redirects to /login.
 const publicServerFnCurrentUser = createServerFn().handler(
-  async (): Promise<AppUser | null> => getCurrentUser(),
+  async (): Promise<AppUser | null> => withUserDisplay(await getCurrentUser()),
 );
 
 export const Route = createFileRoute("/station")({

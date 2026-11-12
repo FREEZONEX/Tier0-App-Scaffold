@@ -255,7 +255,9 @@ separator nests routes, so a detail page under a parent that renders no
   the detail page renders standalone and the list route stays a plain page.
 
 `npm run build` fails on any other shape (locked
-`src/lib/route-nesting-contracts.test.mjs`). `Route.useParams()` and
+`src/lib/route-nesting-contracts.test.mjs`). An API-only subtree (parent and
+dynamic children declare `server` handlers and no `component`) renders no page,
+so `api/orders.ts` + `api/orders.$id.ts` needs no index route. `Route.useParams()` and
 `Route.useSearch()` are synchronous; define `validateSearch` when reading query
 strings.
 
@@ -286,8 +288,8 @@ APIs, or logout, and reads no other identity header.
   permissions. Unknown roles contribute zero permissions.
 - Server functions require an employee by default. One that truly needs no
   visitor is named `publicServerFn<Name>`; do not add one without a reason the
-  user agreed to. `machine` callers reach only the paths in
-  `src/lib/webhooks.ts`, which mirror `[[webhooks]]` in `artifact.toml`.
+  user agreed to. Only employee visitors are supported; there is no
+  machine identity or webhook authentication exception.
 - Server code uses `requireAuth()` / `requireRole(...)`; client code uses
   `useVisitor()` from `@/lib/use-visitor`. The header has no name or email.
 - `npm run dev` sets a local visitor for `PREVIEW_USER_ID` (roles from
@@ -302,7 +304,9 @@ the business needs distinct permission scopes. Register roles in one pass:
 
 1. Define actions and `PERMISSION_MATRIX` in `src/lib/permissions.ts`.
 2. Mirror every matrix role in `src/lib/role-metadata.ts` and `roles.json` —
-   every role, no exceptions. `role_key` values use ASCII snake_case.
+   every role, no exceptions. Each `roles.json` entry has `role_key` (ASCII
+   snake_case) and a non-empty `name` — `name`, not `display_name`; the
+   platform rejects the whole file otherwise.
 3. Guard APIs with `requireAuth(...)` and UI actions with
    `can(user.roles, action)`; both use permission-union semantics.
 4. Verify each role's reachable navigation and actions.
@@ -338,7 +342,8 @@ Use `DESIGN.md`, existing tokens and the shipped primitives
   records with `useRecordChanges`, not routine Refresh buttons or polling.
 - A failed request must reach `console.error`; never catch and drop a
   `requestJson()` error. Route `errorComponent`s render `RouteErrorBoundary`
-  and nothing else.
+  and nothing else. `src/router.tsx` already sets it as
+  `defaultErrorComponent`, so new pages need no `errorComponent` of their own.
 - Do not add a page-introduction subtitle that explains navigation or repeats
   the title. Shell `defaultModules` starts empty; declare real routes through
   `defineNavigationModules`, one unique href per clickable leaf. Assign every
@@ -355,7 +360,12 @@ Use `DESIGN.md`, existing tokens and the shipped primitives
 
 ## Tier0 SDK and Platform
 
-Use the installed `@tier0/sdk-v2` (`0.10.0-aenv.11`, pinned exactly in `package.json`;
+Read `node_modules/@tier0/sdk-v2/skills/tier0-sdk-v2/SKILL.md` before SDK
+work, then follow its nested domain Skill for the operation. The installed
+package's types and Skills describe this version; an SDK repository update
+alone neither upgrades the App nor refreshes platform-managed Skills.
+
+Use the installed `@tier0/sdk-v2` (`0.12.2` from npm, pinned exactly in `package.json`;
 never change that dependency) for platform info (`tier0.system.info()`),
 workspace members (`tier0.members.listWorkspace`), App-scoped member pickers
 (`tier0.members.listApp({ appId: resolveAppId() })`), notifications, files and
@@ -409,12 +419,18 @@ unexpected empty list using the installed SDK, preview runtime and role bindings
   (send), files, Stream requests and Stream messages, bounded by the workspace
   plan. Nothing is configured or approved per App and there is no permission
   request to file from code.
-- Data: the App reads and writes the collections it creates and, beyond them,
-  only external collections (another App's, an existing WMS, ...) that a
-  workspace Owner/Admin granted it in the App settings. You cannot grant one.
-  When a feature needs an existing collection the App was not granted, tell the
-  user that a workspace Owner/Admin must grant it in the App settings; do not
-  claim it is granted and do not create a same-named collection in its place.
+- Data: the App accesses its own collections and external collections granted
+  to it. For task-required access to existing collections, built-in Builder uses its
+  injected management identity and the installed SDK grant workflow. Verify the
+  real target App and collection in the same workspace; use only required access.
+  Read the current policy, apply incremental `changes` with `expectedRevision`,
+  preserve other grants and disabled status, then verify the committed receipt,
+  policy readback and effective access with the App identity. A revision conflict
+  requires rereading; an unknown write outcome requires reconciliation before retry.
+  Do not request an Owner/Admin role or repeat confirmation solely because this is
+  Builder; clarify ambiguous targets or access outside the requested task.
+  Backend authorization still applies. Never use an App runtime key to manage
+  grants or bypass a 403 by changing credentials or copying collections.
   A grant or its removal applies from the next request, without republishing.
 - Real-time data in the browser: use `useRecordChanges`; any other stream of
   the App's own routes uses `openEventStream` from `@tier0/sdk-v2/event-stream`,
@@ -495,8 +511,9 @@ and actual runtime failures remain hard checks. Scaffold CI separately runs
 `SCAFFOLD_GUIDANCE_STRICT=1` to test the template's own defaults.
 Do not bypass completion with `vite build` alone.
 
-- `src/lib/template-state.test.mjs` describes the blank template and is the only
-  contract test generated apps may adapt.
+- `src/lib/template-state.test.mjs` describes the blank template. Only scaffold
+  CI runs it (`npm run test:template`); it is not part of the App build, so
+  adding business navigation or pages never needs it changed.
 - Every other test under `src/lib/`, the data-layer wiring `src/lib/data/**`,
   gate/verify/audit scripts and `scripts/gate-integrity.json` are locked. Do
   not edit, weaken, or delete them. Use documented opt-outs such as

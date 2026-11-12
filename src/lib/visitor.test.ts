@@ -5,7 +5,6 @@ import { after, before, describe, it } from "node:test";
 import { authBridge } from "../start";
 import { isPublicServerFn } from "./server-fn-policy";
 import { readVisitor, visitorRoles } from "./visitor";
-import { WEBHOOK_PATHS } from "./webhooks";
 
 const APP = "0b9f4b1e-6d0a-4c6b-9f53-2f6d7a1c8e01";
 /** The visitor header contract's test vector. */
@@ -70,10 +69,14 @@ describe("visitor header middleware", () => {
     assert.equal((await serve("/orders", headers(visitor()))).passed, true);
   });
 
-  it("keeps a machine visitor out of everything but declared webhooks", async () => {
-    const machine = visitor({ sub_type: "machine", sub: "t0w_abc", grant: "", app_roles: [], active_role: undefined });
-    assert.deepEqual(await serve("/api/orders", headers(machine)), { passed: false, status: 403 });
-    assert.equal(WEBHOOK_PATHS.length, 0);
+  it("rejects retired machine identities on pages, APIs and former webhook paths", async () => {
+    for (const grant of ["", "g1"]) {
+      const machine = visitor({ sub_type: "machine", sub: "t0w_abc", grant, app_roles: [], active_role: undefined });
+      assert.equal(readVisitor(headers(machine)), null);
+      for (const path of ["/orders", "/api/orders", "/api/webhooks/import"]) {
+        assert.deepEqual(await serve(path, headers(machine)), { passed: false, status: 401 });
+      }
+    }
   });
 
   it("leaves health and build assets public", async () => {
@@ -143,11 +146,6 @@ describe("identity contract", () => {
         if (isPublicServerFn(match[1])) assert.equal(match[1], "publicServerFnCurrentUser", path);
       }
     }
-  });
-
-  it("mirrors [[webhooks]] of artifact.toml in WEBHOOK_PATHS", () => {
-    const declared = [...readFileSync("artifact.toml", "utf8").matchAll(/^\[\[webhooks\]\]\s*\npath\s*=\s*"([^"]+)"/gmu)].map((match) => match[1]);
-    assert.deepEqual([...WEBHOOK_PATHS].sort(), declared.sort());
   });
 
   it("forbids reading the App credential token file from App code", () => {

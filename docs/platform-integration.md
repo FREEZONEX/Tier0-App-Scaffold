@@ -2,13 +2,20 @@
 
 ## Tier0 SDK (`@tier0/sdk-v2`)
 
-The unified `@tier0/sdk-v2@0.10.0-aenv.11` is pinned to the verified published archive
-`file:vendor/tier0-sdk-v2-0.10.0-aenv.11.tgz`. It supplies data, platform, Stream request
-and message APIs using `/openapi/v2`. The archive integrity is checked by the
-lockfile and tests; installation alone does not prove a live deployment.
+The unified `@tier0/sdk-v2` is the npm release `0.12.2`, pinned exactly in
+`package.json`. It keeps the 0.10.1 data and platform contracts, accepts Stream
+request contracts that omit both `sideEffect` and `idempotency`, and accepts
+only employee visitors. The lockfile records its registry URL and
+integrity, and tests check both; installation alone does not prove a live
+deployment.
 The SDK must preserve `directoryPath` in collection ensure payloads (Backend
 `app-collections/2`); follow [the directory rollout plan](collection-directory-release.md)
 before distributing the template or deploying its backend dependency.
+
+Read `node_modules/@tier0/sdk-v2/skills/tier0-sdk-v2/SKILL.md` before SDK
+work, then follow its nested domain Skill for the operation. The installed
+package's types and Skills describe this version; an SDK repository update
+alone neither upgrades the App nor refreshes platform-managed Skills.
 
 HTTP Sources use `http-api` with `config.role: client | server`. New Source
 configurations omit `configVersion`; native Stream documents use
@@ -85,6 +92,31 @@ for the App's key (403). Do not build App features on them.
 App records still go through `@/lib/data` (see [App Data](#app-data)).
 Updating injected guidance alone does not upgrade an application's installed SDK.
 
+### Current user's display name
+
+The layout server functions enrich the visitor through
+`src/services/user-display.ts`. This is display metadata only: authentication,
+`requireAuth()` and `/api/auth/me` continue to use the visitor header without
+depending on a member lookup. `useVisitor()` still returns that identity-only
+profile; layout descendants can read the enriched user from route context.
+
+The service queries `members.listWorkspace({ keyword: user.id, page, size })`
+and accepts only an exact `userId` match, following pages for keyword
+collisions. The Workspace query deliberately finds the current caller even
+when a Builder is not assigned to the preview's business roles; it is not a
+member picker and returns no other members to the browser. Member pickers
+must continue to use `listApp` as described above.
+
+Display uses nonblank `nickName`, then `userName`, matching platform account
+chrome. Missing names, unavailable membership and SDK failures retain the
+visitor ID. A two-second deadline bounds the whole lookup; failures log a
+sanitized message, not member data or SDK response bodies. No name cache is
+shared between requests: a refresh resolves the name again after an account
+switch or rename. Member roles never replace the visitor's effective roles.
+
+Existing generated Apps need these layout/service changes before their user
+block changes. This does not add platform avatars (Backend #1426).
+
 ### Members before publication
 
 The SDK maps platform-injected `TIER0_RUNTIME=preview` to `scope=draft` and
@@ -105,8 +137,8 @@ SDK/runtime/API drift. Preserve API errors instead of converting them to `[]`.
 The no-role `allActiveMembers=1` state is distinct from no assigned members;
 do not silently substitute the entire Workspace or fabricate users.
 
-Existing Apps require the new vendor archive, matching package.json/lockfile,
-and a managed preview restart. Upgrading a Skill or the default template alone
+Existing Apps require the scaffold's exact `@tier0/sdk-v2` version, the
+matching lockfile and a managed preview restart. Upgrading a Skill or the default template alone
 does not modify an existing App.
 
 ### App Stream requests and messages
@@ -114,8 +146,8 @@ does not modify an existing App.
 `client.streams` runs on the server only, with a client that holds a key
 (`createClient()` reads `TIER0_API_HOST` / `TIER0_API_KEY`). Browser code never
 calls it directly: pages call the App's own server routes, which apply the
-App's role rules. There is no browser host bridge. Retain the exact SDK
-archive in source ZIPs.
+App's role rules. There is no browser host bridge. Keep the exact SDK
+version and its lockfile entry in source ZIPs.
 
 ```ts
 import { loadTier0Sdk } from "@/lib/tier0";
@@ -398,7 +430,7 @@ the header is not signed: it is the unpadded base64url of a JSON object of at
 most 8192 bytes.
 
 ```text
-{ws, app, runtime: deployed|preview, sub_type: employee|machine, sub, grant,
+{ws, app, runtime: deployed|preview, sub_type: employee, sub, grant,
  app_roles, active_role?}
 ```
 
@@ -409,15 +441,16 @@ Browser -> front door authorizes the visitor and sets X-Tier0-Visitor -> App
             mutating request with cross-origin Origin  -> 403
             public path (/login, /api/health, /api/manifest, assets) -> allow
             server function -> an employee, unless named publicServerFn<Name>
-            no header, or it does not parse -> 401
-            machine visitor outside src/lib/webhooks.ts -> 403
+            no header, malformed header or non-employee identity -> 401
             otherwise -> continue
 ```
 
 `src/lib/visitor.ts` parses it with the SDK's `parseVisitorHeader`: an unknown
-or missing field, a wrong type or length, or an `app` other than
-`TIER0_APP_ID` makes the request a 401. Without `TIER0_APP_ID` the App answers
-503.
+or missing field, a wrong type or length, a non-employee identity, an empty
+grant, or an `app` other than `TIER0_APP_ID` makes the request a 401.
+Without `TIER0_APP_ID` the App answers 503. There is no machine identity,
+call-token route or webhook whitelist exception; public health/build paths
+remain unauthenticated, not a separate identity mechanism.
 
 `app_roles` is the complete role set and permissions are its union. An empty set
 means zero permissions. `active_role` appears only in Preview's "view as" and is
@@ -473,7 +506,7 @@ door holds a request for up to 15 seconds while the App starts.
 Workspace
   ├─ App (APP_ID = agent-platform App UUID)
   │    ├─ App API key                      <- issued by the platform, in the App's process as TIER0_API_KEY
-  │    └─ App data policy (UNS)            <- grants: own collections + external ones a workspace Owner/Admin added
+  │    └─ App data policy (UNS)            <- grants: own collections + authorized external collections
   └─ UNS
        └─ North Plant                     <- verified business scope, shared directory
             ├─ Assembly Line 1
@@ -486,11 +519,10 @@ Each App owns the collections it ensures (`ownerAppId = APP_ID`). Every new
 collection declares a `directoryPath` from the workspace root; the backend
 reuses or creates those business directories and grants the collection to the
 App in the same transaction (`record:read`, `record:write`, plus `record:delete`
-when the key holds `uns.delete`). Beyond its own collections the App reaches
-an external collection (another App's, an existing WMS one) only after a
-workspace Owner/Admin grants it in the App settings, through
-`data.collection({ collectionId })`; the Builder agent cannot add that grant,
-and a grant or its removal applies from the next request. The diagram assumes
+when the key holds `uns.delete`). The App accesses granted external collections
+through `data.collection({ collectionId })`. Before linking an external
+collection or expanding access, follow the incremental Builder grant workflow in
+`AGENTS.md`. A grant or its removal applies from the next request. The diagram assumes
 its business scopes are verified; its names are examples, not defaults. An
 App/module directory such as MES is valid within the known factory/line scope, and shared data
 belongs at a suitable common ancestor. Use only known, meaningful levels;
@@ -695,17 +727,37 @@ Preview behaves exactly like a deployment: the App reads and writes its own
 data as the App, seeds are written by ensure as the App, and `useRecordChanges`
 shares one upstream per server process.
 
+## Employee-only visitor cutover
+
+SDK `0.11.0` and later reject all non-employee visitors. The scaffold
+removes the machine branch and `src/lib/webhooks.ts`; it has no `[[webhooks]]`
+artifact field. The platform App Key remains the App's outbound identity and
+is not an inbound visitor or a replacement call token.
+
+Already deployed Apps keep their bundled SDK and old parsing code. This
+cutover does not rebuild or republish them: the platform front door must
+close the machine/token entry points and strip client-supplied identity
+headers before forwarding employee requests. Old call tokens then have no
+entry path. An alternate ingress that bypasses that boundary remains unsafe;
+updating the template alone does not update deployed code.
+
+When an App is explicitly upgraded later, set its `@tier0/sdk-v2` dependency
+to the exact npm version in the current scaffold's `package.json`, run
+`npm install` so the lockfile points at that npm release, delete any old
+local SDK archive and its directory, remove machine/webhook branches and keep
+its employee role checks. Do not automatically republish other people's Apps.
+
 ## Migrating an existing App to scaffold v28
 
-Scaffold v28 (`@tier0/sdk-v2@0.10.0-aenv.11`) follows the platform's App key
-model: fixed platform capabilities, no per-App platform policy, MQTT limited to
-the App's namespace. An App made from a scaffold older than v27 first applies
-the v27 steps below, taking the SDK archive from v28. From v27:
+Scaffold v28 follows the platform's App key model: fixed platform
+capabilities, no per-App platform policy, MQTT limited to the App's
+namespace. An App made from a scaffold older than v27 first applies the v27
+steps below. From v27:
 
-- **SDK archive**: replace `vendor/tier0-sdk-v2-*.tgz` with v28's, and take
-  `package.json`'s `@tier0/sdk-v2` entry and its `package-lock.json` entry
-  (version, `resolved`, `integrity`) from v28. The SDK no longer has any App
-  platform policy operation: capabilities are fixed.
+- **SDK**: set `@tier0/sdk-v2` to the exact npm version in the current
+  scaffold's `package.json`, run `npm install`, and delete any old local SDK
+  archive. The SDK has no App platform policy operation: capabilities are
+  fixed.
 - **MQTT topics**: the broker refuses every topic outside
   `apps/<TIER0_APP_ID>/<preview|deployed>/`. Build each topic with
   `appTopic(suffix)` (see [MQTT topics](#mqtt-topics)), and have devices or
@@ -719,15 +771,13 @@ Then `npm install` and `npm run build`, and check that every `subscribe` /
 
 ## Migrating an existing App to scaffold v27
 
-Scaffold v27 (`@tier0/sdk-v2@0.10.0-aenv.10`) changes how the App reads its
-visitor and calls the platform. Upgrading the vendored SDK alone breaks the
-build of an App made from an older scaffold: its code still imports removed
-APIs. Bring these over from v27 in one change, then `npm install` and
-`npm run build`:
+Scaffold v27 changes how the App reads its visitor and calls the platform.
+Upgrading the SDK alone breaks the build of an App made from an older
+scaffold: its code still imports removed APIs. Bring these over from v27 in
+one change, then `npm install` and `npm run build`:
 
-- **SDK archive**: replace `vendor/tier0-sdk-v2-*.tgz` with v27's, and take
-  `package.json`'s `@tier0/sdk-v2` entry and its `package-lock.json` entry
-  (version, `resolved`, `integrity`) from v27.
+- **SDK**: set `@tier0/sdk-v2` to the exact npm version in the current
+  scaffold's `package.json` and delete any old local SDK archive.
 - **Visitor**: the front door now sets a plain `X-Tier0-Visitor` (base64url
   JSON) instead of a signed token. Replace `src/lib/visitor.ts` and
   `src/lib/visitor.test.ts` (it uses `parseVisitorHeader` from

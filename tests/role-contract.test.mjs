@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { test } from "node:test";
 
-function runContract({ count = 4, missingMetadata = false, missingRegistration = false, invalidKey = false } = {}) {
+function runContract({ count = 4, missingMetadata = false, missingRegistration = false, invalidKey = false, missingName = false } = {}) {
   const root = mkdtempSync(join(tmpdir(), "scaffold-role-contract-"));
   try {
     mkdirSync(join(root, "src/lib"), { recursive: true });
@@ -16,7 +16,9 @@ function runContract({ count = 4, missingMetadata = false, missingRegistration =
     if (invalidKey) roles[0] = "role2";
     writeFileSync(join(root, "src/lib/permissions.ts"), `const PERMISSION_MATRIX = {\n${roles.map(key => `  ${key}: [],`).join("\n")}\n};`);
     writeFileSync(join(root, "src/lib/role-metadata.ts"), `const ROLE_METADATA = {\n${roles.slice(missingMetadata ? 1 : 0).map(key => `  ${key}: {\n  },`).join("\n")}\n} as const;`);
-    writeFileSync(join(root, "roles.json"), JSON.stringify({ roles: roles.slice(missingRegistration ? 1 : 0).map(role_key => ({ role_key })) }));
+    const entries = roles.slice(missingRegistration ? 1 : 0).map(role_key => ({ role_key, name: role_key }));
+    if (missingName) entries[1] = { role_key: entries[1].role_key, display_name: entries[1].name };
+    writeFileSync(join(root, "roles.json"), JSON.stringify({ roles: entries }));
     const env = { ...process.env };
     delete env.NODE_TEST_CONTEXT;
     return spawnSync(process.execPath, ["--test", "src/lib/permissions.test.mjs"], { cwd: root, encoding: "utf8", env });
@@ -36,6 +38,7 @@ for (const [option, message] of [
   ["missingMetadata", /Roles missing a ROLE_METADATA entry/],
   ["missingRegistration", /PERMISSION_MATRIX roles missing from roles.json/],
   ["invalidKey", /role_key must match/],
+  ["missingName", /roles\.json is missing roles\[1\]\.name/],
 ]) {
   test(`role contract still rejects ${option}`, () => {
     const result = runContract({ [option]: true });

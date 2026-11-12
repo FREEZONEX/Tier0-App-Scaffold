@@ -131,16 +131,22 @@ immutable reads can disable `refetchOnWindowFocus` / `refetchOnReconnect`.
 
 A failed request must reach `console.error`, never only an error state:
 `requestJson()` reports a non-2xx response with the server `cause` before it
-throws (a 5xx is also sent to the Builder preview as a `network` error, which
-shows its blocking error card), and the hooks report any other loader failure. The Builder preview
-console only sees `console.error`; a silently caught fetch looks like an empty
-page while the real cause stays in the server log. Do not wrap `requestJson()`
-in a `catch` that drops the error.
+throws, and the hooks report any other loader failure. Handle API failures,
+including 5xx responses, in the affected `AsyncView` or form; keep the page
+shell and other working areas usable. Do not send an API failure through
+`sendPreviewError`: it would replace the entire Builder preview with an error
+card. The Builder preview console relays `console.error`, preserving the cause
+without blocking the page. Do not wrap `requestJson()` in a `catch` that drops
+the error, and do not automatically replay failed business writes.
 
 Route `errorComponent`s render `RouteErrorBoundary` and nothing else. It shows
 no visible error UI: the Builder preview intercepts the failure through the
 preview bridge and shows its own error card with Retry and Agent fix. Do not
 add a page-level "failed to load" headline, message, or Retry button.
+`src/router.tsx` sets `RouteErrorBoundary` as the router's
+`defaultErrorComponent`, so a route without its own `errorComponent` (the home
+page, generated pages under `_app`) never server-renders TanStack's built-in
+error box; a route's own `errorComponent` still takes precedence.
 
 ## Page copy and navigation
 
@@ -227,3 +233,5 @@ click a row.
 
 `npm run build` fails on any other shape, naming the offending resource; the
 check lives in `src/lib/route-nesting-contracts.test.mjs` and is a locked gate.
+An API-only subtree (parent and dynamic children declare `server` handlers and
+no `component`) renders no page and is not required to have an index route.

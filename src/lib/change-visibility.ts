@@ -15,6 +15,9 @@
  * It runs synchronously for every change and every connected browser: decide
  * from the user and the change alone, never read records here. A function
  * that throws drops the change.
+ *
+ * No scaffold test pins this rule: tests of it are the App's, so add, change
+ * or delete them together with the rule.
  */
 import type { RecordChange } from "@tier0/sdk-v2/data";
 import type { AppUser } from "./users";
