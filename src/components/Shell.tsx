@@ -1,13 +1,18 @@
 "use client";
 
 import { Link, useRouterState } from "@tanstack/react-router";
-import { useState, useSyncExternalStore, type ReactNode } from "react";
+import {
+  createElement,
+  isValidElement,
+  useState,
+  useSyncExternalStore,
+  type ElementType,
+  type ReactNode,
+} from "react";
 import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  FileText,
-  Folder,
   Lock,
   Menu,
   X,
@@ -134,6 +139,47 @@ function setStoredCollapsed(value: boolean) {
   if (typeof window === "undefined") return;
   localStorage.setItem(COLLAPSED_STORAGE_KEY, String(value));
   window.dispatchEvent(new Event(COLLAPSED_STORAGE_EVENT));
+}
+
+/**
+ * Generated modules sometimes pass an icon name string or a rendered element
+ * instead of a component; rendering either leaves an empty rail slot.
+ */
+function resolveNavIcon(icon: unknown): ElementType | null {
+  if (typeof icon === "function") return icon as ElementType;
+  if (icon && typeof icon === "object" && "$$typeof" in icon && !isValidElement(icon)) {
+    return icon as ElementType;
+  }
+  return null;
+}
+
+function NavIcon({
+  icon,
+  label,
+  className,
+}: {
+  icon: unknown;
+  label: string;
+  className: string;
+}) {
+  const component = resolveNavIcon(icon);
+  if (component) {
+    return createElement(component, {
+      "aria-hidden": true,
+      className: cn(className, "shrink-0 transition-transform duration-200 group-hover:scale-105"),
+    });
+  }
+  return (
+    <span
+      aria-hidden="true"
+      className={cn(
+        className,
+        "inline-flex shrink-0 items-center justify-center rounded-[3px] border border-current text-[10px] font-semibold leading-none",
+      )}
+    >
+      {Array.from(label.trim())[0] ?? "·"}
+    </span>
+  );
 }
 
 export function Shell({
@@ -287,7 +333,6 @@ export function Shell({
         <div className="flex-1 overflow-y-auto px-2 pb-2.5 pt-4">
           {sidebarModules.map((mod) => {
             const hasChildren = Boolean(mod.children?.length);
-            const Icon = mod.icon ?? (hasChildren ? Folder : FileText);
             const isDirectActive = mod.key === activeModuleKey;
             const hasActiveDescendant =
               mod.children?.some((child) =>
@@ -309,7 +354,7 @@ export function Shell({
                     aria-expanded={isExpanded}
                     aria-disabled={mod.locked || undefined}
                     aria-current={isDirectActive ? "page" : undefined}
-                    title={isCollapsed ? groupTitle : mod.disabledReason}
+                    title={isCollapsed ? undefined : mod.disabledReason}
                     aria-label={isCollapsed ? mod.label : undefined}
                     onClick={() => {
                       if (mod.locked) {
@@ -330,7 +375,7 @@ export function Shell({
                       isCollapsed ? "justify-center px-0" : "gap-2.5 overflow-hidden pl-4 pr-3",
                     )}
                   >
-                    <Icon aria-hidden="true" className="size-4 shrink-0 transition-transform duration-200 group-hover:scale-105" />
+                    <NavIcon icon={mod.icon} label={mod.label} className="size-4" />
                     <span
                       className={cn(
                         "min-w-0 flex-1 truncate whitespace-nowrap text-left transition-[max-width,opacity,transform] duration-200 ease-[cubic-bezier(0.2,0,0,1)]",
@@ -364,7 +409,6 @@ export function Shell({
                   {!isCollapsed && isExpanded && (
                     <div className="mt-1 space-y-1 pl-6">
                       {mod.children?.map((child) => {
-                        const ChildIcon = child.icon ?? FileText;
                         const childTitle = child.disabledReason ?? child.label;
                         const isChildActive = child.key === activeModuleKey;
 
@@ -394,7 +438,7 @@ export function Shell({
                               child.locked ? "opacity-70" : "",
                             )}
                           >
-                            <ChildIcon aria-hidden="true" className="size-3.5 shrink-0 transition-transform duration-200 group-hover:scale-105" />
+                            <NavIcon icon={child.icon} label={child.label} className="size-3.5" />
                             <span className="min-w-0 truncate whitespace-nowrap">
                               {child.label}
                             </span>
@@ -431,11 +475,7 @@ export function Shell({
                 // router-core 1.171.14: https://github.com/TanStack/router/issues/7759
                 preload={false}
                 activeOptions={{ exact: true }}
-                title={
-                  isCollapsed
-                    ? (mod.disabledReason ?? mod.label)
-                    : mod.disabledReason
-                }
+                title={isCollapsed ? undefined : mod.disabledReason}
                 aria-label={isCollapsed ? mod.label : undefined}
                 aria-disabled={mod.locked || undefined}
                 aria-current={isDirectActive ? "page" : undefined}
@@ -454,7 +494,7 @@ export function Shell({
                   isCollapsed ? "justify-center px-0" : "gap-2.5 overflow-hidden pl-4 pr-3",
                 )}
               >
-                <Icon aria-hidden="true" className="size-4 shrink-0 transition-transform duration-200 group-hover:scale-105" />
+                <NavIcon icon={mod.icon} label={mod.label} className="size-4" />
                 <span
                   className={cn(
                     "min-w-0 truncate whitespace-nowrap transition-[max-width,opacity,transform] duration-200 ease-[cubic-bezier(0.2,0,0,1)]",

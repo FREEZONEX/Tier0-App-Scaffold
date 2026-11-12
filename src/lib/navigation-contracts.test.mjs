@@ -130,7 +130,7 @@ describe("navigation contracts", () => {
       "utf8",
     );
 
-    assert.match(shell, /const sidebarItemActive =[\s\S]*border-border bg-highlight-bg-accent/);
+    assert.match(shell, /const sidebarItemActive =\s*"bg-muted text-foreground"/);
     assert.match(shell, /function isMenuHrefActive/);
     assert.match(shell, /function getActiveModuleKey/);
     assert.match(shell, /function isModuleInActiveBranch/);
@@ -140,6 +140,19 @@ describe("navigation contracts", () => {
     assert.doesNotMatch(shell, /border-highlight-bg-primary.*sidebarItemActive/);
     assert.doesNotMatch(shell, /\bactiveProps\s*=/);
     assert.doesNotMatch(shell, /\binactiveProps\s*=/);
+  });
+
+  it("keeps every sidebar entry identifiable when collapsed", () => {
+    const shell = readFileSync(
+      join(process.cwd(), "src/components/Shell.tsx"),
+      "utf8",
+    );
+
+    assert.match(shell, /function resolveNavIcon\(/);
+    assert.match(shell, /<NavIcon icon=\{mod\.icon\} label=\{mod\.label\}/);
+    assert.match(shell, /<NavIcon icon=\{child\.icon\} label=\{child\.label\}/);
+    assert.match(shell, /<Tooltip[^>]*disabled=\{!isCollapsed\}/);
+    assert.match(shell, /aria-label=\{isCollapsed \? mod\.label : undefined\}/);
   });
 
   it("rejects ambiguous sidebar module declarations", () => {
