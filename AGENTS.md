@@ -342,7 +342,8 @@ Use `DESIGN.md`, existing tokens and the shipped primitives
   records with `useRecordChanges`, not routine Refresh buttons or polling.
 - A failed request must reach `console.error`; never catch and drop a
   `requestJson()` error. Route `errorComponent`s render `RouteErrorBoundary`
-  and nothing else.
+  and nothing else. `src/router.tsx` already sets it as
+  `defaultErrorComponent`, so new pages need no `errorComponent` of their own.
 - Do not add a page-introduction subtitle that explains navigation or repeats
   the title. Shell `defaultModules` starts empty; declare real routes through
   `defineNavigationModules`, one unique href per clickable leaf.

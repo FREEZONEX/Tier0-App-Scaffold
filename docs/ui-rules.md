@@ -136,6 +136,10 @@ Route `errorComponent`s render `RouteErrorBoundary` and nothing else. It shows
 no visible error UI: the Builder preview intercepts the failure through the
 preview bridge and shows its own error card with Retry and Agent fix. Do not
 add a page-level "failed to load" headline, message, or Retry button.
+`src/router.tsx` sets `RouteErrorBoundary` as the router's
+`defaultErrorComponent`, so a route without its own `errorComponent` (the home
+page, generated pages under `_app`) never server-renders TanStack's built-in
+error box; a route's own `errorComponent` still takes precedence.
 
 ## Page copy and navigation
 
