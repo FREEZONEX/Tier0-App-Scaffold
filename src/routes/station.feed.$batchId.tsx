@@ -132,8 +132,6 @@ function FeedBody({ batch, canExecute, onChanged }: { batch: BatchDetail; canExe
 
       {!feedable ? (
         <RiskBanner severity="info">批次当前为「{batchStatusLabel(batch.status)}」，不在投料范围内。</RiskBanner>
-      ) : !canExecute ? (
-        <RiskBanner severity="info">当前角色只能查看，投料与完工需要操作员角色。</RiskBanner>
       ) : null}
 
       {feedable && step ? (

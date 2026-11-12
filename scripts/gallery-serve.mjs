@@ -63,6 +63,11 @@ function resolveFile(urlPath) {
 }
 
 const server = createServer((req, res) => {
+  if (req.method !== "GET" && req.method !== "HEAD") {
+    res.writeHead(405, { Allow: "GET, HEAD", "Cache-Control": "no-store" });
+    res.end();
+    return;
+  }
   const file = resolveFile(req.url || "/");
   if (!file) {
     res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" });
@@ -77,7 +82,10 @@ const server = createServer((req, res) => {
     res.end();
     return;
   }
-  createReadStream(file).pipe(res);
+  // A rebuild can delete the file between resolveFile() and the read.
+  createReadStream(file)
+    .on("error", () => res.destroy())
+    .pipe(res);
 });
 
 server.on("error", (err) => {

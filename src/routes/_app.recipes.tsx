@@ -129,7 +129,7 @@ function RecipesPage() {
         description={
           toggleTarget?.active
             ? "停用后不能再用此配方新建批次；已创建的批次不受影响，可随时重新启用。"
-            : "启用后计划员可以用此配方新建批次。"
+            : "启用后可以用此配方新建批次。"
         }
         confirmLabel={toggleTarget?.active ? "停用" : "启用"}
         destructive={toggleTarget?.active ?? false}

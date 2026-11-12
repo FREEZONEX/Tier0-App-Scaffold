@@ -17,6 +17,7 @@
 /dist
 /build
 /.output
+/.tanstack
 /.tsr
 .vite/
 

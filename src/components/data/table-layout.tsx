@@ -111,12 +111,26 @@ export function TableNumericCell({ className, children, ...props }: TableNumeric
   );
 }
 
-export type TableStatusCellProps = TdHTMLAttributes<HTMLTableCellElement>;
+export interface TableStatusCellProps extends TdHTMLAttributes<HTMLTableCellElement> {
+  /**
+   * `middle` (default) lines the badge up with one- or two-line rows; use
+   * `top` when sibling cells wrap long paragraphs so the badge stays on the
+   * first line.
+   */
+  valign?: "middle" | "top";
+}
 
-/** Status / badge column: content-width, middle-aligned with multi-line rows. */
-export function TableStatusCell({ className, children, ...props }: TableStatusCellProps) {
+/** Status / badge column: content-width, never wraps. */
+export function TableStatusCell({ valign = "middle", className, children, ...props }: TableStatusCellProps) {
   return (
-    <td className={cn("table-col-fit whitespace-nowrap align-middle", className)} {...props}>
+    <td
+      className={cn(
+        "table-col-fit whitespace-nowrap",
+        valign === "top" ? "align-top" : "align-middle",
+        className,
+      )}
+      {...props}
+    >
       {children}
     </td>
   );

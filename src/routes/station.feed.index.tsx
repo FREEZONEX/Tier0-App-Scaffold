@@ -1,22 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
 import { AsyncView } from "@/components/data";
-import { EmptyState, RiskBanner, StatusBadge } from "@/components/ui";
+import { EmptyState, StatusBadge } from "@/components/ui";
 import { useRequest } from "@/lib/hooks";
-import { can } from "@/lib/permissions";
 import { useRecordChanges } from "@/lib/record-changes";
 import { requestJson } from "@/lib/utils";
 import { batchStatusLabel, batchStatusTone, formatDateTime, formatKg } from "@/lib/mes-domain";
 import type { StationQueueItem } from "@/lib/mes-types";
-import type { AppUser } from "@/lib/users";
 
 export const Route = createFileRoute("/station/feed/")({
   component: FeedQueuePage,
 });
 
 function FeedQueuePage() {
-  const { user } = Route.useRouteContext() as { user: AppUser };
-  const canExecute = can(user.roles, "execute_batches");
   const queue = useRequest("mes:station-queue", (signal) =>
     requestJson<StationQueueItem[]>("/api/station-queue", { signal }),
   );
@@ -25,7 +21,6 @@ function FeedQueuePage() {
   return (
     <div className="mx-auto w-full max-w-3xl space-y-4 p-4 sm:p-6">
       <h1 className="text-lg font-semibold">待投料批次</h1>
-      {canExecute ? null : <RiskBanner severity="info">当前角色只能查看队列，投料需要操作员角色。</RiskBanner>}
       <AsyncView
         result={queue}
         isEmpty={(items) => items.length === 0}
