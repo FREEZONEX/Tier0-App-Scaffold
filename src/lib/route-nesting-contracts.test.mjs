@@ -66,6 +66,13 @@ export const Route = createFileRoute("/api/orders")({
 });
 `;
 
+const API_CHILD = `
+import { createFileRoute } from "@tanstack/react-router";
+export const Route = createFileRoute("/api/orders/$id")({
+  server: { handlers: { GET: async ({ params }) => Response.json({ id: params.id }) } },
+});
+`;
+
 const LEAF = `
 import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/x")({ component: () => <div /> });
@@ -186,10 +193,31 @@ describe("route nesting contracts", () => {
         { ident: "ApiOrders", module: "./routes/api/orders", id: "/api/orders", parent: "rootRouteImport" },
         { ident: "ApiOrdersId", module: "./routes/api/orders.$id", id: "/$id", parent: "ApiOrders" },
       ],
-      { "./routes/api/orders": API_PARENT },
+      { "./routes/api/orders": API_PARENT, "./routes/api/orders.$id": API_CHILD },
     );
 
     assert.deepEqual(violations, []);
+  });
+
+  it("still requires an index route when a server-only parent has a page detail child", () => {
+    // /orders 只挂 POST、没有 component，子路由是页面：GET /orders 会渲染空出口。
+    const postOnlyParent = `
+      import { createFileRoute } from "@tanstack/react-router";
+      export const Route = createFileRoute("/_app/orders")({
+        server: { handlers: { POST: async () => new Response(null, { status: 201 }) } },
+      });
+    `;
+    const violations = analyze(
+      [
+        { ident: "Orders", module: "./routes/_app.orders", id: "/orders", parent: "rootRouteImport" },
+        { ident: "OrdersDetail", module: "./routes/_app.orders.$id", id: "/$id", parent: "Orders" },
+      ],
+      { "./routes/_app.orders": postOnlyParent },
+    );
+
+    assert.equal(violations.length, 1);
+    assert.equal(violations[0].rule, "missing-index");
+    assert.equal(violations[0].module, "./routes/_app.orders");
   });
 
   it("still fails a page parent without an outlet even when it also declares server handlers", () => {

@@ -216,8 +216,9 @@ still matches but nothing renders — TypeScript, ESLint and the build all pass,
 and the blank detail page only shows up when someone clicks a row.
 
 Pick one of the two shapes below. `npm run build` fails if a resource matches
-neither (see `src/lib/route-nesting-contracts.test.mjs`). Pure API routes
-(`server` handlers, no `component`) render no page and need neither shape.
+neither (see `src/lib/route-nesting-contracts.test.mjs`). An API-only subtree
+(parent and dynamic children declare `server` handlers and no `component`)
+renders no page and needs neither shape.
 
 **Nested** — the URL prefix is shared and the detail page lives under it:
 

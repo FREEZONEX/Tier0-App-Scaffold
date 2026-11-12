@@ -255,9 +255,9 @@ separator nests routes, so a detail page under a parent that renders no
   the detail page renders standalone and the list route stays a plain page.
 
 `npm run build` fails on any other shape (locked
-`src/lib/route-nesting-contracts.test.mjs`). Pure API routes (`server`
-handlers, no `component`) render no page, so `api/orders.ts` +
-`api/orders.$id.ts` needs no index route. `Route.useParams()` and
+`src/lib/route-nesting-contracts.test.mjs`). An API-only subtree (parent and
+dynamic children declare `server` handlers and no `component`) renders no page,
+so `api/orders.ts` + `api/orders.$id.ts` needs no index route. `Route.useParams()` and
 `Route.useSearch()` are synchronous; define `validateSearch` when reading query
 strings.
 
