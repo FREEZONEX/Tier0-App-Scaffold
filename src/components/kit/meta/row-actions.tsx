@@ -79,7 +79,7 @@ export function RowActions({ actions, inlineCount = 2, className }: RowActionsPr
       ))}
       {rest.length > 0 ? (
         <DropdownMenu
-          trigger="hover"
+          trigger="click"
           placement="bottom-end"
           minWidth={112}
           aria-label="更多操作"

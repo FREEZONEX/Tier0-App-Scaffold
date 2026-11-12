@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import {
+  Bell,
   ExternalLink,
   icons,
   Lock,
@@ -20,6 +21,7 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
+import { Popover } from "@/components/kit/ui/popover";
 import { Tooltip } from "@/components/kit/ui/tooltip";
 import { cn } from "@/lib/utils";
 import type { AppUser } from "@/lib/users";
@@ -463,28 +465,50 @@ export function Shell({
           })}
         </div>
 
-        {/* User block */}
+        {/* Notifications + account — always at the bottom of the rail. */}
         <div className={cn("shrink-0 py-3", isCollapsed ? "px-2" : "px-3")}>
           <div
             className={cn(
               "flex min-w-0 items-center overflow-hidden border-t border-sidebar-border pt-3",
-              isCollapsed ? "justify-center" : "gap-2.5 px-1",
+              isCollapsed ? "flex-col gap-2" : "gap-1",
             )}
           >
-            <span
-              aria-hidden="true"
-              title={isCollapsed ? user?.displayName : undefined}
-              className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-foreground text-background"
+            <Popover
+              placement="top-start"
+              aria-label="通知"
+              title="通知"
+              content={<p className="text-xs text-muted-foreground">暂无新通知</p>}
             >
-              <User className="size-4" />
-            </span>
-            <div className={isCollapsed ? "sr-only" : "min-w-0 flex-1 overflow-hidden"}>
-              <p className="truncate text-sm leading-5" title={user?.displayName}>
-                {user?.displayName ?? "…"}
-              </p>
-              <p className="truncate text-xs leading-4 text-muted-foreground" title={roleLabel || undefined}>
-                {roleLabel || "未分配角色"}
-              </p>
+              <button
+                type="button"
+                aria-label="通知"
+                title="通知"
+                className={cn(sidebarIconButton, "size-8")}
+              >
+                <Bell className="size-4" aria-hidden />
+              </button>
+            </Popover>
+            <div
+              className={cn(
+                "flex min-w-0 items-center overflow-hidden",
+                isCollapsed ? "justify-center" : "min-w-0 flex-1 gap-2.5 px-1",
+              )}
+            >
+              <span
+                aria-hidden="true"
+                title={isCollapsed ? user?.displayName : undefined}
+                className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-foreground text-background"
+              >
+                <User className="size-4" />
+              </span>
+              <div className={isCollapsed ? "sr-only" : "min-w-0 flex-1 overflow-hidden"}>
+                <p className="truncate text-sm leading-5" title={user?.displayName}>
+                  {user?.displayName ?? "…"}
+                </p>
+                <p className="truncate text-xs leading-4 text-muted-foreground" title={roleLabel || undefined}>
+                  {roleLabel || "未分配角色"}
+                </p>
+              </div>
             </div>
           </div>
         </div>

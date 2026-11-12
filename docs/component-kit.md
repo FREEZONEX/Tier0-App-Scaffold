@@ -36,7 +36,7 @@
 档案、台账、单据、任务及其他以记录查询和列表操作为主的页面，默认以 `@/components/kit/meta/meta-list-page` 的 `MetaListPage` 为基础。先配置对象字段、查询条件和列，再接入业务动作，复用组件已有的查询区、视图、列配置、排序和分页，不重新拼装一套页面壳。列表内容默认直接铺在页面上，页签、查询区、工具栏、表格和分页外不再套装饰性 `Card` / `PageCard`；仅保留 `PageContainer` 的页面留白及列表内部间距。生产业务页面默认铺满侧边栏之外的可用宽度，桌面左右各留 24px，不在列表外添加居中限宽容器。简单表单和长文本可在自身内容块按需限宽；多列表单、明细表及页面标题不随之统一收窄。
 
 - 页面以 `objectCode` 和 `title` 标识业务对象；创建、打开详情、行操作和批量操作分别通过 `onCreate`、`onOpenRecord`、`rowActions`、`batchActions` 接入。差异化展示使用 `cellRenderers`，额外入口使用 `headerExtra` / `toolbarExtra`。
-- 操作列优先给每个 `RowAction` 配 `icon`（标签仍作无障碍名称 / tooltip）；`RowActions` 用固定尺寸的图标按钮，并始终预留 ⋯ 槽位，保证各行对齐。没有图标时才退回文字按钮。
+- 操作列优先给每个 `RowAction` 配 `icon`（标签仍作无障碍名称 / tooltip）；`RowActions` 用固定尺寸的图标按钮，并始终预留 ⋯ 槽位，保证各行对齐。没有图标时才退回文字按钮。溢出「⋯」菜单默认 `trigger="click"`（触控与键盘可打开）；不要用纯 hover。
 - 在应用范围内配置 `ComponentKitProvider`，将 `meta/config` 与 `meta/query` 等逻辑请求映射到真实服务，并提供 `canObject`。业务接口仍执行服务端权限校验；图库适配器不能用于应用数据。
 - 只开启业务需要且已完成接入的视图保存、导入导出、打印等能力。组件存在不代表相应后端接口已经提供。
 - `DataGrid` / `DataTable` 用于局部表格展示，`DetailTable` 用于表单中的受控可编辑明细，不作为普通列表页面的默认替代。

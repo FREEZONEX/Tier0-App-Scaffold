@@ -487,7 +487,10 @@ function MetaListBody({
                   variant="outline"
                   icon={action.icon}
                   disabled={action.disabled}
-                  className={cn(action.danger && "border-danger text-danger hover:border-[#ff7875] hover:text-[#ff7875]")}
+                  className={cn(
+                    action.danger &&
+                      "border-destructive text-destructive hover:border-destructive/80 hover:text-destructive/90",
+                  )}
                   onClick={action.onClick}
                 >
                   {action.label}
