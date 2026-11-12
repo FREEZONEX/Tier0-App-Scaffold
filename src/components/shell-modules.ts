@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react";
+import { ClipboardList, FlaskConical, type LucideIcon } from "lucide-react";
 import { can, type Action, type RoleInput } from "@/lib/permissions";
 
 /** Lucide component import, or a lucide icon name resolved by Shell at render. */
@@ -114,7 +114,10 @@ export function defineNavigationModules(modules: GeneratedNavModule[]): NavModul
 }
 
 // ─── Agent: add workspace modules only; station/review task flows stay out ───
-export const defaultModules = defineNavigationModules([]);
+export const defaultModules = defineNavigationModules([
+  { key: "batches", label: "生产批次", href: "/batches", icon: ClipboardList, actions: ["view_batches"] },
+  { key: "recipes", label: "配方", href: "/recipes", icon: FlaskConical, actions: ["view_batches"] },
+]);
 
 const MODULE_ACTIONS_BY_KEY: Record<string, Action[]> = {
   settings: ["manage_system"],

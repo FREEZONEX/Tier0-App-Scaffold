@@ -9,11 +9,14 @@
 
 import {
   createFileRoute,
+  Link,
   Outlet,
   redirect,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
+import { ClipboardList } from "lucide-react";
+import { APP_NAME } from "@/lib/app-chrome";
 import { StationLayout } from "@/components/layouts/StationLayout";
 import { RouteErrorBoundary } from "@/components/ui";
 import { getCurrentUser } from "@/lib/auth";
@@ -48,7 +51,20 @@ function StationRouteLayout() {
   }
 
   return (
-    <StationLayout user={user}>
+    <StationLayout
+      user={user}
+      title="投料工位"
+      subtitle={APP_NAME}
+      actions={
+        <Link
+          to="/batches"
+          className="inline-flex items-center gap-1.5 rounded-[4px] border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-muted"
+        >
+          <ClipboardList className="size-4" aria-hidden="true" />
+          批次台账
+        </Link>
+      }
+    >
       <Outlet />
     </StationLayout>
   );
@@ -59,7 +75,7 @@ function StationPending() {
     <div className="flex h-full items-center justify-center p-10">
       <div className="text-center">
         <div className="mx-auto size-8 animate-spin rounded-full border-2 border-muted border-t-highlight" />
-        <p className="mt-3 text-xs text-muted-foreground">Loading&hellip;</p>
+        <p className="mt-3 text-xs text-muted-foreground">加载中&hellip;</p>
       </div>
     </div>
   );

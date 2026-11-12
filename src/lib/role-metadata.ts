@@ -17,6 +17,21 @@ export interface RoleMetadata {
  *   },
  */
 export const ROLE_METADATA = {
+  planner: {
+    label: "计划员",
+    description: "维护配方，创建、下达和作废生产批次。",
+    defaultRoute: "/batches",
+  },
+  operator: {
+    label: "操作员",
+    description: "在投料工位按步骤投料并报完工。",
+    defaultRoute: "/batches",
+  },
+  viewer: {
+    label: "查看者",
+    description: "查看配方与批次进度。",
+    defaultRoute: "/batches",
+  },
 } as const satisfies Record<string, RoleMetadata>;
 
 export type RoleKey = keyof typeof ROLE_METADATA;

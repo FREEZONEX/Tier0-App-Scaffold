@@ -7,9 +7,16 @@ import { APP_ICON, APP_NAME } from "@/lib/app-chrome";
 
 export function StationLayout({
   user,
+  title = "Station Work",
+  subtitle = "Current Task",
+  actions,
   children,
 }: {
   user?: AppUser | null;
+  title?: ReactNode;
+  subtitle?: ReactNode;
+  /** Header actions beside the operator block, e.g. a link back to the workspace. */
+  actions?: ReactNode;
   children: ReactNode;
 }) {
   return (
@@ -24,16 +31,17 @@ export function StationLayout({
             />
           </div>
           <div className="min-w-0">
-            <p className="truncate text-base font-semibold leading-6">Station Work</p>
-            <p className="caption truncate">Current Task</p>
+            <p className="truncate text-base font-semibold leading-6">{title}</p>
+            <p className="caption truncate">{subtitle}</p>
           </div>
         </div>
         <div className="flex min-w-0 items-stretch gap-2 sm:items-center">
+          {actions}
           <div className="flex min-w-0 flex-1 items-center gap-2 rounded-[4px] border border-border bg-surface-inset px-3 py-2 sm:flex-none">
             <Activity className="size-4 shrink-0 text-brand" />
             <div className="min-w-0 text-right">
               <p className="truncate text-sm font-medium leading-5">
-                {user?.displayName ?? "Loading"}
+                {user?.displayName ?? "…"}
               </p>
             </div>
           </div>
