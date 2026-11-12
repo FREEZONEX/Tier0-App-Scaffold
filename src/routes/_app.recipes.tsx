@@ -15,6 +15,7 @@ import { RECIPE_OBJECT } from "@/lib/mes-list-config";
 import type { RecipeRow } from "@/lib/mes-types";
 import type { QueryResult } from "@/lib/component-kit/types";
 import type { AppUser } from "@/lib/users";
+import { Ban, CircleCheck, PenLine } from "lucide-react";
 
 export const Route = createFileRoute("/_app/recipes")({
   component: RecipesPage,
@@ -69,11 +70,13 @@ function RecipesPage() {
   function rowActions(raw: Record<string, unknown>): RowAction[] {
     const row = raw as unknown as RecipeRow;
     return [
-      { key: "edit", label: "修改", hidden: !canManage, onClick: () => setFormState({ recipe: row }) },
+      { key: "edit", label: "修改", icon: <PenLine />, hidden: !canManage, onClick: () => setFormState({ recipe: row }) },
       {
         key: "toggle",
         label: row.active ? "停用" : "启用",
+        icon: row.active ? <Ban /> : <CircleCheck />,
         danger: row.active,
+        tone: row.active ? undefined : "success",
         hidden: !canManage,
         onClick: () => setToggleTarget(row),
       },
@@ -81,7 +84,7 @@ function RecipesPage() {
   }
 
   return (
-    <div className="page-shell flex min-h-full flex-col">
+    <>
       <MesKitProvider roles={user.roles}>
         <MetaListPage
           objectCode={RECIPE_OBJECT}
@@ -133,6 +136,6 @@ function RecipesPage() {
         pending={toggling}
         onConfirm={toggleActive}
       />
-    </div>
+    </>
   );
 }

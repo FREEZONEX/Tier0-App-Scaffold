@@ -142,10 +142,13 @@ export interface SortPopoverProps {
   value: readonly SortSpec[];
   onChange: (sorts: SortSpec[]) => void;
   disabled?: boolean;
+  /** Icon-only trigger for the list toolbar's 表格设置 group (highlighted while sorting). */
+  compact?: boolean;
 }
 
 /** Toolbar「排序」 text button with count badge + popover. */
-export function SortPopover({ fields, value, onChange, disabled = false }: SortPopoverProps) {
+export function SortPopover({ fields, value, onChange, disabled = false, compact = false }: SortPopoverProps) {
+  const compactLabel = value.length > 0 ? `排序（${value.length} 个条件）` : "排序";
   return (
     <Popover
       placement="bottom-start"
@@ -159,14 +162,27 @@ export function SortPopover({ fields, value, onChange, disabled = false }: SortP
         </div>
       }
     >
-      <TextButton icon={<ArrowDownUp />} disabled={disabled}>
-        {value.length > 0 ? (
-          <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[11px] leading-4 text-primary-foreground tabular-nums">
-            {value.length}
-          </span>
-        ) : null}
-        排序
-      </TextButton>
+      {compact ? (
+        <IconButton
+          variant="outline"
+          size="lg"
+          icon={<ArrowDownUp />}
+          label={compactLabel}
+          title={compactLabel}
+          tooltip={false}
+          active={value.length > 0}
+          disabled={disabled}
+        />
+      ) : (
+        <TextButton icon={<ArrowDownUp />} disabled={disabled}>
+          {value.length > 0 ? (
+            <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[11px] leading-4 text-primary-foreground tabular-nums">
+              {value.length}
+            </span>
+          ) : null}
+          排序
+        </TextButton>
+      )}
     </Popover>
   );
 }

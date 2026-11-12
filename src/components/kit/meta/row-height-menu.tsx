@@ -2,7 +2,7 @@
 
 /** 行高: 低 / 中 / 高 dropdown; selecting applies and saves at once. */
 import { Check, TextCursor } from "lucide-react";
-import { TextButton } from "@/components/kit/ui/buttons";
+import { IconButton, TextButton } from "@/components/kit/ui/buttons";
 import { DropdownMenu } from "@/components/kit/ui/dropdown-menu";
 import { ROW_HEIGHT_OPTIONS } from "@/lib/component-kit/list-columns";
 import type { RowHeight } from "@/lib/component-kit/types";
@@ -12,6 +12,8 @@ export interface RowHeightMenuProps {
   value: RowHeight;
   onChange: (rowHeight: RowHeight) => void;
   disabled?: boolean;
+  /** Icon-only trigger for the list toolbar's 表格设置 group. */
+  compact?: boolean;
 }
 
 function RowHeightGlyph({ value }: { value: RowHeight }) {
@@ -25,7 +27,7 @@ function RowHeightGlyph({ value }: { value: RowHeight }) {
   );
 }
 
-export function RowHeightMenu({ value, onChange, disabled = false }: RowHeightMenuProps) {
+export function RowHeightMenu({ value, onChange, disabled = false, compact = false }: RowHeightMenuProps) {
   return (
     <DropdownMenu
       placement="bottom-start"
@@ -42,9 +44,13 @@ export function RowHeightMenu({ value, onChange, disabled = false }: RowHeightMe
         },
       }))}
     >
-      <TextButton icon={<TextCursor />} disabled={disabled}>
-        行高
-      </TextButton>
+      {compact ? (
+        <IconButton variant="outline" size="lg" icon={<TextCursor />} label="行高" title="行高" tooltip={false} disabled={disabled} />
+      ) : (
+        <TextButton icon={<TextCursor />} disabled={disabled}>
+          行高
+        </TextButton>
+      )}
     </DropdownMenu>
   );
 }

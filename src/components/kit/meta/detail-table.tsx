@@ -17,8 +17,6 @@ import { Dialog } from "@/components/overlays/dialog";
 import { Button } from "@/components/ui/button";
 import { IconButton, TextButton } from "@/components/kit/ui/buttons";
 import { DataGrid, type DataGridColumn } from "@/components/kit/ui/data-grid";
-import { resolveFieldIconKind } from "@/components/kit/ui/field-icons";
-import { FieldTypeIcon } from "@/components/kit/ui/field-type-icon";
 import { Popover } from "@/components/kit/ui/popover";
 import { Select } from "@/components/kit/ui/select";
 import { Tooltip } from "@/components/kit/ui/tooltip";
@@ -470,7 +468,6 @@ export function DetailTable({
         key: field.code,
         title: field.name,
         headerTip: field.widget?.tooltip || undefined,
-        headerIcon: <FieldTypeIcon kind={resolveFieldIconKind(field)} />,
         required: Boolean(field.widget?.required) && !readOnly,
         headerExtra:
           !readOnly && rows.length > 0 && fillable.has(field.code) ? (

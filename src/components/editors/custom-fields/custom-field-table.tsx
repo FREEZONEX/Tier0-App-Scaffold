@@ -11,7 +11,6 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { TextButton } from "@/components/kit/ui/buttons";
 import { DataGrid, type DataGridColumn } from "@/components/kit/ui/data-grid";
-import { FieldTypeIcon } from "@/components/kit/ui/field-type-icon";
 import { Input } from "@/components/kit/ui/input";
 import { Tag } from "@/components/kit/ui/tag";
 import { Tooltip } from "@/components/kit/ui/tooltip";
@@ -81,14 +80,12 @@ export function CustomFieldTable({ objectLabel, fields, limit, canManage, onCrea
     {
       key: "name",
       title: "字段名称",
-      headerIcon: <FieldTypeIcon kind="TEXT" />,
       width: 160,
       render: (field) => field.name,
     },
     {
       key: "type",
       title: "字段类型",
-      headerIcon: <FieldTypeIcon kind="TEXT" />,
       width: 104,
       ellipsis: false,
       render: (field) => <Tag color={FIELD_TYPE_COLOR[field.type] ?? "#050b14"}>{FIELD_TYPE_LABEL[field.type] ?? field.type}</Tag>,
@@ -96,7 +93,6 @@ export function CustomFieldTable({ objectLabel, fields, limit, canManage, onCrea
     {
       key: "required",
       title: "是否必填",
-      headerIcon: <FieldTypeIcon kind="SINGLE_SELECT" />,
       width: 100,
       ellipsis: false,
       render: (field) => <Tag>{field.widget?.required ? "必填" : "非必填"}</Tag>,
@@ -104,35 +100,30 @@ export function CustomFieldTable({ objectLabel, fields, limit, canManage, onCrea
     {
       key: "tooltip",
       title: "提示说明",
-      headerIcon: <FieldTypeIcon kind="MULTILINE" />,
       width: 140,
       render: (field) => field.widget?.tooltip || "-",
     },
     {
       key: "createdAt",
       title: "创建时间",
-      headerIcon: <FieldTypeIcon kind="DATETIME" />,
       width: 150,
       render: (field) => formatDateTime(field.createdAt, "DATETIME_MINUTE") || "-",
     },
     {
       key: "createdByName",
       title: "创建人",
-      headerIcon: <FieldTypeIcon kind="PERSON" />,
       width: 96,
       render: (field) => field.createdByName || "-",
     },
     {
       key: "updatedAt",
       title: "更新时间",
-      headerIcon: <FieldTypeIcon kind="DATETIME" />,
       width: 150,
       render: (field) => formatDateTime(field.updatedAt, "DATETIME_MINUTE") || "-",
     },
     {
       key: "updatedByName",
       title: "更新人",
-      headerIcon: <FieldTypeIcon kind="PERSON" />,
       width: 96,
       render: (field) => field.updatedByName || "-",
     },

@@ -2,6 +2,7 @@ export { Button, type ButtonProps, type ButtonVariant, type ButtonSize } from ".
 export { StatusBadge, statusTone, type StatusBadgeProps, type StatusTone } from "./status-badge";
 export { Card, type CardProps } from "./card";
 export { PageHeader, type PageHeaderProps } from "./page-header";
+export { BackButton, type BackButtonProps, type BackTarget } from "./back-button";
 export {
   StatusFilterChips,
   type StatusFilterChipsProps,

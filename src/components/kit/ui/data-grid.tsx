@@ -699,7 +699,7 @@ export function DataGrid<Row>({
                     scope="col"
                     style={stickyStyle(cell)}
                     className={cn(
-                      "sticky top-0 z-[2] h-10 border-b border-border/80 bg-muted/40 px-3 py-2 text-left text-xs font-medium uppercase tracking-wide whitespace-nowrap text-muted-foreground",
+                      "sticky top-0 z-[2] h-10 border-b border-border/80 bg-muted/40 px-3 py-2 text-left text-xs font-medium whitespace-nowrap text-foreground",
                       BORDER,
                       HEADER_BG,
                       cell.sticky && "z-[3]",
@@ -726,7 +726,7 @@ export function DataGrid<Row>({
                     {column ? (
                       <span className={cn("flex min-w-0 items-center gap-1.5", alignClass(column.align))}>
                         {column.headerIcon ? (
-                          <span className="inline-flex shrink-0 text-muted-foreground [&>svg]:size-3.5" aria-hidden="true">
+                          <span className="inline-flex shrink-0 text-text-placeholder [&>svg]:size-3.5" aria-hidden="true">
                             {column.headerIcon}
                           </span>
                         ) : null}

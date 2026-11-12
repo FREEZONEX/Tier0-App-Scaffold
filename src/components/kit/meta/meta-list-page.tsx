@@ -4,26 +4,33 @@ import { useKitApi } from "@/components/kit/provider";
 
 
 /**
- * MetaListPage — the generic list page: page title + headerExtra,
- * 顶部胶囊页签 (topTabs), 视图页签, 二级分组胶囊, 查询区, 工具栏 (创建 / 导入⋮导入日志 /
- * 导出⋮导出日志 / toolbarExtra / 字段配置 / 排序 / 行高), 勾选批量栏, table
+ * MetaListPage — the generic list page, laid out by the list action rules in
+ * docs/component-kit.md (「列表页操作区规范」):
+ *
+ * 1. 页头: title | headerExtra (secondary, outline) · 创建 (the one primary, last).
+ * 2. 视图页签 / 二级分组胶囊 when configured.
+ * 3. 工具栏, one row: 范围页签 (topTabs) on the left; on the right 搜索框 ·
+ *    筛选(n) · toolbarFilters · 导入 / 导出 / toolbarExtra · 表格设置
+ *    (字段配置 / 排序 / 行高 icons). Selected rows swap the right side for the
+ *    批量栏 (已选 N 项 · actions · 取消选择).
+ * 4. 筛选面板 (other conditions), toolbarNote, table
  * (勾选、序号、类型图标、主字段链接、按类型渲染、操作列 + ⋯ 悬停菜单), 分页.
  *
  * Everything is driven by GET /api/meta/config/$objectCode and
  * POST /api/meta/query/$objectCode. Pages add business behaviour through
  * props: onCreate, rowActions, batchActions, onOpenRecord, cellRenderers…
  */
-import { CirclePlus, FileInput, FileOutput, Undo2 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { CirclePlus, FileInput, FileOutput, X } from "lucide-react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { AsyncView } from "@/components/data/async-view";
 import { ConfirmDialog } from "@/components/overlays/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { SplitButton, TextButton } from "@/components/kit/ui/buttons";
 import { PageContainer } from "@/components/kit/shell/page-layout";
+import type { BackTarget } from "@/components/ui/back-button";
 import { DataGrid, type DataGridColumn } from "@/components/kit/ui/data-grid";
-import { resolveFieldIconKind } from "@/components/kit/ui/field-icons";
-import { FieldTypeIcon } from "@/components/kit/ui/field-type-icon";
+import { HeaderSortButton } from "@/components/kit/meta/header-sort-button";
 import { Pagination } from "@/components/kit/ui/pagination";
 import { CapsuleGroup } from "@/components/kit/ui/tabs";
 import { Tooltip } from "@/components/kit/ui/tooltip";
@@ -37,6 +44,7 @@ import type {
   QueryFilter,
   QueryResult,
   RowHeight,
+  SortSpec,
   ViewDef,
 } from "@/lib/component-kit/types";
 import { useListController, type ListRow } from "@/lib/component-kit/use-list-controller";
@@ -51,7 +59,8 @@ import { ImportDialog } from "@/components/kit/meta/import-dialog";
 import { PRINT_LIMIT, PrintDialog, printLimitMessage } from "@/components/kit/meta/print-dialog";
 import { RowActions } from "@/components/kit/meta/row-actions";
 import { RowHeightMenu } from "@/components/kit/meta/row-height-menu";
-import { SearchPanel } from "@/components/kit/meta/search-panel";
+import { ListScopeSwitch } from "@/components/kit/meta/list-scope-switch";
+import { ListFilterButton, ListFilterPanel, ListSearchBox, splitSearchConditions } from "@/components/kit/meta/list-filter-bar";
 import { SortPopover } from "@/components/kit/meta/sort-popover";
 import type { BatchAction, MetaListApi, RowAction, TopTab } from "@/components/kit/meta/types";
 import { ViewEditorDrawer } from "@/components/kit/meta/view-editor-drawer";
@@ -62,14 +71,16 @@ export interface MetaListPageProps {
   objectCode: string;
   /** Page title above the list content. */
   title: ReactNode;
-  /** Links on the right of the title row (移动端卡片、自定义事件…). */
+  /** Secondary page actions in the title row, before 创建 (outline buttons, icon-only below `sm`). */
   headerExtra?: ReactNode;
-  /** Primary toolbar button text (default 创建). Hidden without `onCreate`. */
+  /** Parent level when this list sits below another page (e.g. 某设备的保养记录). */
+  back?: BackTarget;
+  /** Text of the page's primary button, last in the title row (default 创建). Hidden without `onCreate`. */
   createLabel?: string;
   onCreate?: () => void;
-  /** Extra toolbar buttons after 导出 (批量新增、默认单位…). */
+  /** Extra data actions after 导出 (批量新增、默认单位…), outline buttons. */
   toolbarExtra?: ReactNode;
-  /** Quick filters, separate from creation and table settings. */
+  /** Quick filters after 筛选 (same height as the toolbar controls). */
   toolbarFilters?: ReactNode;
   /** Short contextual note, presented below the controls. */
   toolbarNote?: ReactNode;
@@ -122,9 +133,14 @@ function actionsWidth(actions: readonly RowAction[], inlineCount: number): numbe
   const visible = actions.filter((action) => !action.hidden);
   if (visible.length === 0) return 72;
   const inline = visible.slice(0, inlineCount);
+  // Icon actions are fixed-size; always reserve the ⋯ slot so rows align.
+  if (inline.length > 0 && inline.every((action) => action.icon)) {
+    const slots = inline.length + 1;
+    return Math.max(72, slots * 28 + Math.max(0, slots - 1) * 4 + 16);
+  }
   const textWidth = inline.reduce((sum, action) => sum + action.label.length * 14, 0);
   const gaps = Math.max(0, inline.length - 1) * 12;
-  const more = visible.length > inlineCount ? 36 : 0;
+  const more = 36; // reserved ⋯ column
   return Math.max(72, textWidth + gaps + more + 28);
 }
 
@@ -134,13 +150,15 @@ interface BodyProps extends MetaListPageProps {
   onReloadConfig: () => void;
 }
 
+function reportPrefsError(error: unknown) {
+  toast.error(errorMessage(error, "个人偏好保存失败"));
+}
+
 function MetaListBody({
   objectCode,
   config,
   onSwitchView,
   onReloadConfig,
-  createLabel = "创建",
-  onCreate,
   toolbarExtra,
   toolbarFilters,
   toolbarNote,
@@ -209,7 +227,6 @@ function MetaListBody({
   const canImport = (importable ?? config.capabilities.importable === true) && permissions.canObject(objectCode, "import");
   const canExport = (exportable ?? config.capabilities.exportable === true) && permissions.canObject(objectCode, "export");
   const canPrint = (printable ?? config.capabilities.printable === true) && permissions.canObject(objectCode, "print");
-  const canCreate = Boolean(onCreate) && permissions.canObject(objectCode, "create");
   const hasViews = config.capabilities.views === true;
   const canManageViews = hasViews && permissions.canObject(objectCode, "view_manage");
 
@@ -255,7 +272,6 @@ function MetaListBody({
     });
   }, [clearSelection, onReloadConfig, openPrint, reload]);
 
-  const reportPrefsError = (error: unknown) => toast.error(errorMessage(error, "个人偏好保存失败"));
 
   /* ---------------- views ---------------- */
   const copyView = async (viewCode: string) => {
@@ -297,6 +313,15 @@ function MetaListBody({
     [inlineActionCount],
   );
 
+  const { sorts, saveSorts } = controller;
+  const quickSort = useCallback(
+    (field: string, direction: SortSpec["direction"] | null) => {
+      const rest = sorts.filter((sort) => sort.field !== field);
+      void saveSorts(direction ? [{ field, direction }, ...rest] : rest).catch(reportPrefsError);
+    },
+    [saveSorts, sorts],
+  );
+
   const gridColumns = useMemo<DataGridColumn<ListRow>[]>(() => {
     const columns: DataGridColumn<ListRow>[] = visibleColumns(controller.columns).map((state) => {
       const field = state.field;
@@ -306,8 +331,15 @@ function MetaListBody({
       return {
         key: state.code,
         title: state.name,
-        headerIcon: <FieldTypeIcon kind={resolveFieldIconKind(field, config.primaryField)} />,
-        width: defaultColumnWidth({ ...field, width: state.width ?? field.width }, config.primaryField),
+        headerExtra: field.sortable ? (
+          <HeaderSortButton
+            name={state.name}
+            direction={sorts.find((sort) => sort.field === state.code)?.direction ?? null}
+            onChange={(direction) => quickSort(state.code, direction)}
+          />
+        ) : undefined,
+        // Sortable columns reserve room for the quick-sort button beside the title.
+        width: defaultColumnWidth({ ...field, width: state.width ?? field.width }, config.primaryField) + (field.sortable ? 24 : 0),
         fixed: state.fixed,
         align: field.type === "NUMBER" ? "right" : "left",
         ellipsis: !rich,
@@ -359,8 +391,10 @@ function MetaListBody({
     controller.rowHeight,
     inlineCountOf,
     onOpenRecord,
+    quickSort,
     rowActions,
     rows,
+    sorts,
   ]);
 
   const sortFields = useMemo(() => {
@@ -381,25 +415,20 @@ function MetaListBody({
     return list.filter((action) => !action.hidden);
   }, [batchActions, batchMode, canPrint, controller.selectedRows, openPrint]);
 
+  /* ---------------- search & filters ---------------- */
+  const filterPanelId = useId();
+  const searchFields = useMemo(() => splitSearchConditions(config.searchConditions), [config.searchConditions]);
+  const keywordField = searchFields.keyword;
+  const activeFilterCount = useMemo(() => {
+    const panelCodes = new Set(searchFields.panel.map((field) => field.code));
+    return new Set(controller.appliedFilters.filter((filter) => panelCodes.has(filter.field)).map((filter) => filter.field)).size;
+  }, [controller.appliedFilters, searchFields.panel]);
+
   const groups = query.data?.groups;
   const groupField = config.groupingField;
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
-      {topTabs?.length ? (
-        <CapsuleGroup<string>
-          aria-label="数据范围"
-          items={topTabs.map((tab) => ({ key: tab.key, label: tab.label, count: tab.count }))}
-          value={topTab}
-          onChange={(key) => {
-            setTopTab(key);
-            controller.clearSelection();
-            controller.setPage(1);
-            onTopTabChange?.(key);
-          }}
-        />
-      ) : null}
-
       {hasViews ? (
         <ViewTabs
           views={config.views}
@@ -431,98 +460,121 @@ function MetaListBody({
         />
       ) : null}
 
-      <SearchPanel
-        conditions={config.searchConditions}
-        values={controller.draft}
-        onValueChange={controller.setDraftValue}
-        onSearch={controller.applySearch}
-        onReset={controller.resetSearch}
-        expanded={controller.expanded}
-        onExpandedChange={controller.setExpanded}
-        loading={query.isLoading && query.data !== null}
-      />
+      <div className="flex min-w-0 flex-col gap-2 lg:flex-row lg:items-center lg:gap-3" role="toolbar" aria-label="列表工具栏">
+        {topTabs?.length ? (
+          <ListScopeSwitch
+            className="lg:flex-1"
+            items={topTabs}
+            value={topTab}
+            onChange={(key) => {
+              setTopTab(key);
+              controller.clearSelection();
+              controller.setPage(1);
+              onTopTabChange?.(key);
+            }}
+          />
+        ) : null}
 
-      {batchMode ? (
-        <div className="flex min-h-8 min-w-0 flex-wrap items-center gap-2" role="toolbar" aria-label="批量操作">
-          <span className="mr-1 text-sm text-text-secondary">
-            已选 <span className="font-medium text-brand tabular-nums">{selectionCount}</span> 项
-          </span>
-          {batchList.map((action) => {
-            const button = (
-              <Button
-                key={action.key}
-                variant="outline"
-                icon={action.icon}
-                disabled={action.disabled}
-                className={cn(action.danger && "border-danger text-danger hover:border-[#ff7875] hover:text-[#ff7875]")}
-                onClick={action.onClick}
-              >
-                {action.label}
-              </Button>
-            );
-            return action.disabled && action.disabledReason ? (
-              <Tooltip key={action.key} title={action.disabledReason}>
-                <span className="inline-flex">{button}</span>
-              </Tooltip>
-            ) : (
-              button
-            );
-          })}
-          <Button variant="outline" icon={<Undo2 />} className="ml-auto" onClick={controller.clearSelection}>
-            撤销多选
-          </Button>
-        </div>
-      ) : (
-        <div className="flex min-h-8 min-w-0 flex-wrap items-center gap-x-4 gap-y-2" role="toolbar" aria-label="列表工具栏">
-          {canCreate || canImport || canExport || toolbarExtra ? (
-            <div className="flex min-w-0 flex-wrap items-center gap-2" role="group" aria-label="业务操作">
-              {canCreate ? (
-                <Button variant="primary" icon={<CirclePlus />} onClick={onCreate}>
-                  {createLabel}
+        {batchMode ? (
+          <div className="flex min-h-9 min-w-0 flex-wrap items-center gap-2 lg:ml-auto lg:shrink-0 lg:justify-end" role="group" aria-label="批量操作">
+            <span className="mr-1 text-sm text-text-secondary">
+              已选 <span className="font-medium text-brand tabular-nums">{selectionCount}</span> 项
+            </span>
+            {batchList.map((action) => {
+              const button = (
+                <Button
+                  key={action.key}
+                  variant="outline"
+                  icon={action.icon}
+                  disabled={action.disabled}
+                  className={cn(action.danger && "border-danger text-danger hover:border-[#ff7875] hover:text-[#ff7875]")}
+                  onClick={action.onClick}
+                >
+                  {action.label}
                 </Button>
-              ) : null}
-              {canImport ? (
-                <SplitButton
-                  icon={<FileInput />}
-                  onClick={() => setImportOpen(true)}
-                  menuItems={[{ key: "importLog", label: "导入日志", onClick: () => setLogType("IMPORT") }]}
-                >
-                  导入
-                </SplitButton>
-              ) : null}
-              {canExport ? (
-                <SplitButton
-                  icon={<FileOutput />}
-                  onClick={() => setExportOpen(true)}
-                  menuItems={[{ key: "exportLog", label: "导出日志", onClick: () => setLogType("EXPORT") }]}
-                >
-                  导出
-                </SplitButton>
-              ) : null}
-              {toolbarExtra}
-            </div>
-          ) : null}
-          {toolbarFilters ? (
-            <div className="flex min-w-0 flex-wrap items-center gap-2" role="group" aria-label="快捷筛选">
-              {toolbarFilters}
-            </div>
-          ) : null}
-          <div className="flex min-w-0 flex-wrap items-center gap-2 rounded-[4px] bg-muted px-2 py-1" role="group" aria-label="表格设置">
-            <FieldConfigPopover
-              states={controller.columnStates}
-              primaryField={config.primaryField}
-              onChange={(states) => void controller.saveColumns(states).catch(reportPrefsError)}
-            />
-            <SortPopover
-              key={`${config.activeView?.code ?? ""}`}
-              fields={sortFields}
-              value={controller.sorts}
-              onChange={(sorts) => void controller.saveSorts(sorts).catch(reportPrefsError)}
-            />
-            <RowHeightMenu value={controller.rowHeight} onChange={(next) => void controller.saveRowHeight(next).catch(reportPrefsError)} />
+              );
+              return action.disabled && action.disabledReason ? (
+                <Tooltip key={action.key} title={action.disabledReason}>
+                  <span className="inline-flex">{button}</span>
+                </Tooltip>
+              ) : (
+                button
+              );
+            })}
+            <Button variant="ghost" icon={<X />} onClick={controller.clearSelection}>
+              取消选择
+            </Button>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="flex min-w-0 flex-wrap items-center gap-2 lg:ml-auto lg:shrink-0 lg:flex-nowrap lg:justify-end">
+            {keywordField ? (
+              <ListSearchBox
+                className="w-full sm:w-60 lg:w-56 xl:w-64"
+                field={keywordField}
+                value={controller.draft[keywordField.code]}
+                onChange={(next) => controller.setDraftValue(keywordField.code, next)}
+                onSearch={controller.applySearch}
+              />
+            ) : null}
+            {searchFields.panel.length ? (
+              <ListFilterButton
+                open={controller.expanded}
+                activeCount={activeFilterCount}
+                controls={filterPanelId}
+                onToggle={() => controller.setExpanded(!controller.expanded)}
+              />
+            ) : null}
+            {toolbarFilters}
+            {canImport ? (
+              <SplitButton
+                icon={<FileInput />}
+                onClick={() => setImportOpen(true)}
+                menuItems={[{ key: "importLog", label: "导入日志", onClick: () => setLogType("IMPORT") }]}
+              >
+                导入
+              </SplitButton>
+            ) : null}
+            {canExport ? (
+              <SplitButton
+                icon={<FileOutput />}
+                onClick={() => setExportOpen(true)}
+                menuItems={[{ key: "exportLog", label: "导出日志", onClick: () => setLogType("EXPORT") }]}
+              >
+                导出
+              </SplitButton>
+            ) : null}
+            {toolbarExtra}
+            <div className="flex items-center gap-1 sm:ml-auto lg:ml-0 lg:border-l lg:border-border lg:pl-2" role="group" aria-label="表格设置">
+              <FieldConfigPopover
+                compact
+                states={controller.columnStates}
+                primaryField={config.primaryField}
+                onChange={(states) => void controller.saveColumns(states).catch(reportPrefsError)}
+              />
+              <SortPopover
+                compact
+                key={`${config.activeView?.code ?? ""}`}
+                fields={sortFields}
+                value={controller.sorts}
+                onChange={(sorts) => void controller.saveSorts(sorts).catch(reportPrefsError)}
+              />
+              <RowHeightMenu compact value={controller.rowHeight} onChange={(next) => void controller.saveRowHeight(next).catch(reportPrefsError)} />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {searchFields.panel.length > 0 && controller.expanded ? (
+        <ListFilterPanel
+          id={filterPanelId}
+          fields={searchFields.panel}
+          values={controller.draft}
+          onValueChange={controller.setDraftValue}
+          onSearch={controller.applySearch}
+          onReset={controller.resetSearch}
+          loading={query.isLoading && query.data !== null}
+        />
+      ) : null}
 
       {toolbarNote ? <div className="text-sm text-muted-foreground">{toolbarNote}</div> : null}
 
@@ -668,7 +720,9 @@ function MetaListBody({
 
 export function MetaListPage(props: MetaListPageProps) {
   const api = useKitApi();
-  const { objectCode, title, headerExtra, className } = props;
+  const permissions = usePermissions();
+  const { objectCode, title, headerExtra, back, createLabel = "创建", onCreate, className } = props;
+  const canCreate = Boolean(onCreate) && permissions.canObject(objectCode, "create");
   const [viewCode, setViewCode] = useState<string | undefined>(undefined);
   const [configToken, setConfigToken] = useState(0);
 
@@ -692,7 +746,24 @@ export function MetaListPage(props: MetaListPageProps) {
   const reloadConfig = useCallback(() => setConfigToken((token) => token + 1), []);
 
   return (
-    <PageContainer title={title} extra={headerExtra} fill className={className}>
+    <PageContainer
+      title={title}
+      back={back}
+      extra={
+        headerExtra || canCreate ? (
+          <>
+            {headerExtra}
+            {canCreate ? (
+              <Button variant="primary" icon={<CirclePlus />} onClick={onCreate}>
+                {createLabel}
+              </Button>
+            ) : null}
+          </>
+        ) : undefined
+      }
+      fill
+      className={className}
+    >
       <AsyncView result={config} isEmpty={() => false}>
         {(data) => (
           <MetaListBody

@@ -1,7 +1,7 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Factory, PenLine, Send, XCircle } from "lucide-react";
+import { Factory, PenLine, Send, XCircle } from "lucide-react";
 import { AsyncView } from "@/components/data";
 import { ConfirmDialog } from "@/components/overlays/confirm-dialog";
 import { Button, Card, PageHeader, RiskBanner, StatusBadge, Timeline } from "@/components/ui";
@@ -50,10 +50,6 @@ function BatchDetailPage() {
 
   return (
     <div className="page-shell space-y-5">
-      <Link to="/batches" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="size-4" aria-hidden="true" />
-        生产批次
-      </Link>
       <AsyncView result={detail}>
         {(batch) => <BatchDetailBody batch={batch} user={user} onChanged={detail.refresh} />}
       </AsyncView>
@@ -99,7 +95,7 @@ function BatchDetailBody({ batch, user, onChanged }: { batch: BatchDetail; user:
   return (
     <>
       <PageHeader
-        eyebrow={`${batch.recipe.code} · ${batch.recipe.name}（${batch.recipe.version}）`}
+        back={{ to: "/batches", label: "生产批次" }}
         title={
           <span className="flex flex-wrap items-center gap-3">
             {batch.code}
@@ -142,6 +138,9 @@ function BatchDetailBody({ batch, user, onChanged }: { batch: BatchDetail; user:
 
       <Card title="批次信息">
         <dl className="grid grid-cols-2 gap-x-6 gap-y-4 md:grid-cols-4">
+          <InfoItem label="配方">
+            {batch.recipe.code} · {batch.recipe.name}（{batch.recipe.version}）
+          </InfoItem>
           <InfoItem label="产品">{batch.productName}</InfoItem>
           <InfoItem label="反应釜">{batch.reactor}</InfoItem>
           <InfoItem label="目标产量">{formatKg(batch.targetOutputKg)}</InfoItem>
@@ -155,10 +154,9 @@ function BatchDetailBody({ batch, user, onChanged }: { batch: BatchDetail; user:
         </dl>
       </Card>
 
-      <section className="space-y-3">
-        <h2 className="text-base font-semibold">投料步骤</h2>
-        <BatchStepsTable steps={batch.steps} />
-      </section>
+      <Card title="投料步骤" flush>
+        <BatchStepsTable steps={batch.steps} bare />
+      </Card>
 
       <Card title="操作记录">
         <Timeline

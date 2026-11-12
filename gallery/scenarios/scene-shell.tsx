@@ -3,8 +3,8 @@
 import { useEffect, useId, useState, type ReactNode } from "react";
 import {
   Activity,
-  ChevronLeft,
-  ChevronRight,
+  PanelLeftClose,
+  PanelLeftOpen,
   ClipboardList,
   Coins,
   Factory,
@@ -76,10 +76,10 @@ function SceneNav({
     <aside
       id={navId}
       className={cn(
-        "flex shrink-0 flex-col overflow-hidden border-r border-border bg-sidebar",
+        "flex shrink-0 flex-col overflow-hidden border-r border-sidebar-border bg-sidebar text-sidebar-foreground [--muted:var(--sidebar-selected)]",
         "transition-[width] duration-200",
         railEase,
-        onNavigate ? "w-full" : collapsed ? "w-16" : "w-56",
+        onNavigate ? "w-full" : collapsed ? "w-16" : "w-60",
         className,
       )}
       aria-label="应用导航"
@@ -118,16 +118,16 @@ function SceneNav({
             aria-label={collapsed ? "展开侧边栏" : "收起侧边栏"}
             title={collapsed ? "展开侧边栏" : "收起侧边栏"}
             className={cn(
-              "inline-flex size-8 shrink-0 items-center justify-center rounded-[4px] border border-transparent",
-              "text-muted-foreground transition-[background-color,color,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)]",
-              "hover:bg-sidebar-accent hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--tier0-cta)]/40 active:scale-95",
+              "inline-flex size-8 shrink-0 items-center justify-center rounded-[4px]",
+              "text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground",
+              "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/35",
               collapsed && !onNavigate ? "" : "ml-auto",
             )}
           >
             {collapsed ? (
-              <ChevronRight className="size-4" aria-hidden />
+              <PanelLeftOpen className="size-4" aria-hidden />
             ) : (
-              <ChevronLeft className="size-4" aria-hidden />
+              <PanelLeftClose className="size-4" aria-hidden />
             )}
           </button>
         ) : null}
@@ -177,17 +177,17 @@ function SceneNav({
                       title={collapsed ? label : undefined}
                       aria-label={collapsed ? label : undefined}
                       className={cn(
-                        "group flex h-9 items-center gap-2.5 overflow-hidden rounded-[4px] pl-4 pr-2 text-sm font-medium",
+                        "group flex h-9 items-center gap-2 overflow-hidden rounded-[4px] px-2 text-sm font-normal",
                         "transition-colors duration-200",
                         railEase,
                         current
-                          ? "bg-fill-active text-foreground"
-                          : "text-secondary-foreground",
+                          ? "bg-muted text-foreground"
+                          : "text-sidebar-foreground hover:bg-sidebar-accent",
                       )}
                     >
                       <Icon
                         size={16}
-                        className="shrink-0 opacity-70 transition-transform duration-200 group-hover:scale-105"
+                        className="shrink-0"
                         aria-hidden
                       />
                       <span

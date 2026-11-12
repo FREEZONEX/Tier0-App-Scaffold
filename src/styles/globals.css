@@ -159,12 +159,14 @@
   --surface-raised: #ffffff;
   --surface-inset: #ffffff;
 
-  --sidebar: #ffffff;
+  /* Tier0 platform sidebar: gray rail, darker gray hover / selection. */
+  --sidebar: #fafafa;
   --sidebar-foreground: var(--tier0-text-color);
-  --sidebar-border: #e3e3e3;
+  --sidebar-border: #ebebeb;
   --sidebar-primary: var(--tier0-cta);
   --sidebar-primary-foreground: var(--tier0-cta-foreground);
-  --sidebar-accent: #f4f4f5;
+  --sidebar-accent: #f2f2f2;
+  --sidebar-selected: #ebebeb;
   --sidebar-accent-foreground: var(--tier0-text-color);
   --sidebar-ring: var(--tier0-highlight);
 
@@ -731,7 +733,7 @@ body {
     text-align: left;
     font-size: var(--tier0-text-caption-size);
     font-weight: 500;
-    color: var(--tier0-text-tertiary);
+    color: var(--foreground);
     white-space: nowrap;
     border-bottom: 1px solid var(--border);
   }
@@ -1447,6 +1449,7 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
   --sidebar-foreground: #f4f4f5;
   --sidebar-border: #2e2f33;
   --sidebar-accent: #1a1b1e;
+  --sidebar-selected: #222327;
   --sidebar-accent-foreground: #f4f4f5;
   --sidebar-primary: var(--tier0-cta);
   --sidebar-primary-foreground: var(--tier0-cta-foreground);

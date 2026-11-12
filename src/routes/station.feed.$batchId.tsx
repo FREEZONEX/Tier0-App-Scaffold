@@ -1,7 +1,7 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, CheckCircle2, PackagePlus } from "lucide-react";
+import { CheckCircle2, PackagePlus } from "lucide-react";
 import { AsyncView } from "@/components/data";
 import { FieldGroup } from "@/components/forms";
 import { NumberInput } from "@/components/kit/ui/number-input";
@@ -40,13 +40,6 @@ function FeedBatchPage() {
 
   return (
     <div className="mx-auto w-full max-w-3xl space-y-4 p-4 sm:p-6">
-      <Link
-        to="/station/feed"
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="size-4" aria-hidden="true" />
-        待投料批次
-      </Link>
       <AsyncView result={detail}>
         {(batch) => (
           <FeedBody
@@ -231,10 +224,9 @@ function FeedBody({ batch, canExecute, onChanged }: { batch: BatchDetail; canExe
         </Card>
       ) : null}
 
-      <section className="space-y-2">
-        <h2 className="text-base font-semibold">投料步骤</h2>
-        <BatchStepsTable steps={batch.steps} />
-      </section>
+      <Card title="投料步骤" flush>
+        <BatchStepsTable steps={batch.steps} bare />
+      </Card>
 
       <ConfirmDialog
         open={completeOpen}

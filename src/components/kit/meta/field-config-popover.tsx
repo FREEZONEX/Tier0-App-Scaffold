@@ -123,7 +123,7 @@ export function ColumnConfigList({
       >
         <GripVertical
           aria-hidden="true"
-          className={cn("size-3.5 shrink-0 text-text-placeholder", searching ? "opacity-30" : "cursor-grab")}
+          className={cn("size-3.5 shrink-0 text-[var(--tier0-text-disabled)] transition-colors group-hover:text-muted-foreground", searching ? "opacity-30" : "cursor-grab")}
         />
         <FieldTypeIcon kind={resolveFieldIconKind(state.field, primaryField)} />
         <span className={cn("min-w-0 flex-1 truncate", state.hidden && "text-text-tertiary")} title={state.name}>
@@ -204,10 +204,12 @@ export interface FieldConfigPopoverProps {
   primaryField?: string;
   label?: string;
   disabled?: boolean;
+  /** Icon-only trigger for the list toolbar's 表格设置 group. */
+  compact?: boolean;
 }
 
 /** Toolbar「字段配置」 text button + popover. */
-export function FieldConfigPopover({ states, onChange, primaryField, label = "字段配置", disabled = false }: FieldConfigPopoverProps) {
+export function FieldConfigPopover({ states, onChange, primaryField, label = "字段配置", disabled = false, compact = false }: FieldConfigPopoverProps) {
   const visible = states.filter((state) => !state.hidden).length;
   return (
     <Popover
@@ -227,9 +229,13 @@ export function FieldConfigPopover({ states, onChange, primaryField, label = "�
         </div>
       }
     >
-      <TextButton icon={<LayoutList />} disabled={disabled}>
-        {label}
-      </TextButton>
+      {compact ? (
+        <IconButton variant="outline" size="lg" icon={<LayoutList />} label={label} title={label} tooltip={false} disabled={disabled} />
+      ) : (
+        <TextButton icon={<LayoutList />} disabled={disabled}>
+          {label}
+        </TextButton>
+      )}
     </Popover>
   );
 }

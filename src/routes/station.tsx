@@ -9,13 +9,12 @@
 
 import {
   createFileRoute,
-  Link,
+  useMatch,
   Outlet,
   redirect,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { ClipboardList } from "lucide-react";
 import { APP_NAME } from "@/lib/app-chrome";
 import { StationLayout } from "@/components/layouts/StationLayout";
 import { RouteErrorBoundary } from "@/components/ui";
@@ -46,6 +45,7 @@ export const Route = createFileRoute("/station")({
 
 function StationRouteLayout() {
   const user = (Route.useRouteContext() as { user?: AppUser | null }).user;
+  const feedDetail = useMatch({ from: "/station/feed/$batchId", shouldThrow: false });
   if (!user) {
     return <StationPending />;
   }
@@ -55,15 +55,7 @@ function StationRouteLayout() {
       user={user}
       title="投料工位"
       subtitle={APP_NAME}
-      actions={
-        <Link
-          to="/batches"
-          className="inline-flex items-center gap-1.5 rounded-[4px] border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-muted"
-        >
-          <ClipboardList className="size-4" aria-hidden="true" />
-          批次台账
-        </Link>
-      }
+      back={feedDetail ? { to: "/station/feed", label: "待投料批次" } : { to: "/batches", label: "批次台账" }}
     >
       <Outlet />
     </StationLayout>

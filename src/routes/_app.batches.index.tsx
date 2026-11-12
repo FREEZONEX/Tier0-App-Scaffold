@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
-import { Factory } from "lucide-react";
+import { Eye, Factory, PackagePlus, Send, XCircle } from "lucide-react";
 import { MetaListPage } from "@/components/kit/meta/meta-list-page";
 import type { RowAction, TopTab } from "@/components/kit/meta/types";
 import { ConfirmDialog } from "@/components/overlays/confirm-dialog";
@@ -76,6 +76,7 @@ function BatchListPage() {
       {
         key: "release",
         label: "下达",
+        icon: <Send />,
         tone: "primary",
         hidden: !canPlan || row.status !== "DRAFT",
         onClick: () => setReleaseTarget(row),
@@ -83,6 +84,7 @@ function BatchListPage() {
       {
         key: "feed",
         label: "去投料",
+        icon: <PackagePlus />,
         tone: "success",
         hidden: !canExecute || (row.status !== "RELEASED" && row.status !== "FEEDING"),
         onClick: () => void navigate({ to: "/station/feed/$batchId", params: { batchId: row.id } }),
@@ -90,11 +92,13 @@ function BatchListPage() {
       {
         key: "detail",
         label: "详情",
+        icon: <Eye />,
         onClick: () => void navigate({ to: "/batches/$batchId", params: { batchId: row.id } }),
       },
       {
         key: "void",
         label: "作废",
+        icon: <XCircle />,
         danger: true,
         hidden: !canPlan || !VOIDABLE_STATUSES.includes(row.status),
         onClick: () => setVoidTarget(row),
@@ -103,15 +107,15 @@ function BatchListPage() {
   }
 
   return (
-    <div className="page-shell flex min-h-full flex-col">
+    <>
       <MesKitProvider roles={user.roles}>
         <MetaListPage
           objectCode={BATCH_OBJECT}
           title="生产批次"
           headerExtra={
             canExecute ? (
-              <Button variant="outline" size="sm" icon={<Factory />} onClick={() => void navigate({ to: "/station/feed" })}>
-                投料工位
+              <Button variant="outline" icon={<Factory />} aria-label="投料工位" onClick={() => void navigate({ to: "/station/feed" })}>
+                <span className="hidden sm:inline">投料工位</span>
               </Button>
             ) : null
           }
@@ -181,6 +185,6 @@ function BatchListPage() {
           reload();
         }}
       />
-    </div>
+    </>
   );
 }
