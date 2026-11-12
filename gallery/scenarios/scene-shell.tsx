@@ -180,7 +180,8 @@ function SceneNav({
                       title={collapsed ? label : undefined}
                       aria-label={collapsed ? label : undefined}
                       className={cn(
-                        "group flex h-9 items-center gap-2 overflow-hidden rounded-[4px] px-2 text-sm font-normal",
+                        "group flex h-9 items-center overflow-hidden rounded-[4px] text-sm font-normal",
+                        collapsed && !onNavigate ? "justify-center px-0" : "gap-2 px-2",
                         "transition-colors duration-200",
                         railEase,
                         current
