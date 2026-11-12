@@ -21,19 +21,12 @@ import { ROLE_METADATA, getRoleMetadata } from "./role-metadata";
 
 export const ACTIONS = [
   "manage_system",
-  "view_batches",
-  "manage_recipes",
-  "plan_batches",
-  "execute_batches",
 ] as const;
 
 export type Action = (typeof ACTIONS)[number];
 export type RoleInput = string | readonly string[] | null | undefined;
 
 export const PERMISSION_MATRIX: Record<string, Action[]> = {
-  planner: ["view_batches", "manage_recipes", "plan_batches"],
-  operator: ["view_batches", "execute_batches"],
-  viewer: ["view_batches"],
 };
 
 export const ROLE_LABELS: Record<string, string> = Object.fromEntries(

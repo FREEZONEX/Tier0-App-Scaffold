@@ -21,7 +21,7 @@ export const APP_HOME_ROUTE = "/";
  * lines in the sidebar, so aim for one or two words plus an optional
  * qualifier (e.g. "研发仓 WMS", "Supplier Portal").
  */
-export const APP_NAME = "批次 MES";
+export const APP_NAME = "Manufacturing App";
 
 /**
  * Brand icon shown in the sidebar / station brand mark — a public image asset
@@ -40,7 +40,7 @@ export const APP_ICON = "/app-icon.png";
  * default labels of shared dialogs. Generated apps set this to the app's
  * product language.
  */
-export const APP_LOCALE: "en" | "zh-CN" = "zh-CN";
+export const APP_LOCALE: "en" | "zh-CN" = "en";
 
 const UI_COPY = {
   en: {

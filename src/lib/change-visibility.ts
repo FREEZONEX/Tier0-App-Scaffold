@@ -20,10 +20,8 @@
  * or delete them together with the rule.
  */
 import type { RecordChange } from "@tier0/sdk-v2/data";
-import { can } from "./permissions";
 import type { AppUser } from "./users";
 
-export function canSeeChange(user: AppUser, change: RecordChange): boolean {
-  if (change.collection === "mes_counters") return false;
-  return can(user.roles, "view_batches");
+export function canSeeChange(_user: AppUser, _change: RecordChange): boolean {
+  return true;
 }

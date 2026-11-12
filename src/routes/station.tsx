@@ -9,13 +9,11 @@
 
 import {
   createFileRoute,
-  useMatch,
   Outlet,
   redirect,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { APP_NAME } from "@/lib/app-chrome";
 import { StationLayout } from "@/components/layouts/StationLayout";
 import { RouteErrorBoundary } from "@/components/ui";
 import { getCurrentUser } from "@/lib/auth";
@@ -45,18 +43,12 @@ export const Route = createFileRoute("/station")({
 
 function StationRouteLayout() {
   const user = (Route.useRouteContext() as { user?: AppUser | null }).user;
-  const feedDetail = useMatch({ from: "/station/feed/$batchId", shouldThrow: false });
   if (!user) {
     return <StationPending />;
   }
 
   return (
-    <StationLayout
-      user={user}
-      title="投料工位"
-      subtitle={APP_NAME}
-      back={feedDetail ? { to: "/station/feed", label: "待投料批次" } : { to: "/batches", label: "批次台账" }}
-    >
+    <StationLayout user={user}>
       <Outlet />
     </StationLayout>
   );
@@ -67,7 +59,7 @@ function StationPending() {
     <div className="flex h-full items-center justify-center p-10">
       <div className="text-center">
         <div className="mx-auto size-8 animate-spin rounded-full border-2 border-muted border-t-highlight" />
-        <p className="mt-3 text-xs text-muted-foreground">加载中&hellip;</p>
+        <p className="mt-3 text-xs text-muted-foreground">Loading&hellip;</p>
       </div>
     </div>
   );

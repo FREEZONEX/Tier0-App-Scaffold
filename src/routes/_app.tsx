@@ -19,6 +19,7 @@ import {
 } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useEffect } from "react";
+import { TemplatePreviewPlaceholder } from "@/components/TemplatePreviewPlaceholder";
 import { RouteErrorBoundary } from "@/components/ui";
 import { Shell } from "@/components/Shell";
 import { getCurrentUser } from "@/lib/auth";
@@ -64,9 +65,12 @@ function AppLayout() {
   }
 
   return (
-    <Shell user={user}>
-      <Outlet />
-    </Shell>
+    <div className="template-preview-root">
+      <Shell user={user}>
+        <Outlet />
+      </Shell>
+      <TemplatePreviewPlaceholder />
+    </div>
   );
 }
 
@@ -75,7 +79,7 @@ function AppPending() {
     <div className="flex h-full items-center justify-center p-12">
       <div className="text-center">
         <div className="mx-auto size-8 animate-spin rounded-full border-2 border-muted border-t-highlight" />
-        <p className="mt-3 text-xs text-muted-foreground">加载中&hellip;</p>
+        <p className="mt-3 text-xs text-muted-foreground">Loading&hellip;</p>
       </div>
     </div>
   );

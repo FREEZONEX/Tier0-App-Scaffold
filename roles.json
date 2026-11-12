@@ -1,7 +1,3 @@
 {
-  "roles": [
-    { "role_key": "planner", "name": "计划员", "description": "维护配方，创建、下达和作废生产批次" },
-    { "role_key": "operator", "name": "操作员", "description": "在投料工位按步骤投料并报完工" },
-    { "role_key": "viewer", "name": "查看者", "description": "查看配方与批次进度" }
-  ]
+  "roles": []
 }
