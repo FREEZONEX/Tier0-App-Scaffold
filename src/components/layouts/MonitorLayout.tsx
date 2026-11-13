@@ -17,6 +17,11 @@ function formatClock(value: Date | string | number): string | null {
  * defaults to the app name; `subtitle` names the area (「一号线 · 实时概览」).
  * Pass `updatedAt` (the time of the data on screen, not the wall clock) so
  * viewers can tell live data from stale data at a distance.
+ *
+ * Board content: `.monitor-board` > `.monitor-kpis` (`.monitor-kpi-tile` with
+ * `.monitor-label` + `.monitor-kpi`) then `.monitor-columns` (`.monitor-panel`
+ * lists of `.monitor-row`). Tiles size to content and wrap by width; do not
+ * place KPIs in fixed `.monitor-grid` rows, which stretch them into empty boxes.
  */
 export function MonitorLayout({
   title = APP_NAME,

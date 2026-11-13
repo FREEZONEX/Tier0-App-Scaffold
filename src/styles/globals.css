@@ -863,6 +863,62 @@ body {
     overflow: hidden;
   }
 
+  /* Adaptive board: a KPI band sized to its content, then panels that share the
+     remaining height. Tiles and panels wrap by available width (wall screen,
+     1366 laptop, portrait TV) instead of stretching into fixed grid rows. */
+  .monitor-board {
+    display: flex;
+    flex-direction: column;
+    gap: var(--monitor-gap);
+    height: 100%;
+    min-height: 0;
+  }
+
+  .monitor-kpis {
+    display: grid;
+    flex: none;
+    gap: var(--monitor-gap);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  }
+
+  .monitor-kpi-tile {
+    @apply min-w-0 rounded-[4px] border border-border bg-card;
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--monitor-gap) / 2);
+    padding: var(--monitor-panel-pad);
+  }
+
+  .monitor-columns {
+    display: grid;
+    flex: 1 1 0;
+    min-height: 0;
+    gap: var(--monitor-gap);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 28rem), 1fr));
+    grid-auto-rows: minmax(0, 100%);
+    /* Panels hug their rows (no tall empty frames) and stop at the stage height. */
+    align-items: start;
+  }
+
+  .monitor-columns > .monitor-panel {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--monitor-gap) / 1.5);
+    max-height: 100%;
+  }
+
+  /* One record per row, readable from a distance: name + context left, state right. */
+  .monitor-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--monitor-gap);
+    min-width: 0;
+    padding: calc(var(--monitor-panel-pad) * 0.6) var(--monitor-panel-pad);
+    border-radius: 4px;
+    background: var(--muted);
+  }
+
   .monitor-panel {
     @apply min-h-0 min-w-0 overflow-hidden rounded-[4px] border border-border bg-card;
     padding: var(--monitor-panel-pad);
