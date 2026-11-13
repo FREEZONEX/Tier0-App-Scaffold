@@ -143,7 +143,11 @@ export function useListController({
   const [expanded, setExpanded] = useState(false);
   const [page, setPageState] = useState(1);
   const [pageSize, setPageSizeState] = useState<number>(() => config.prefs?.pageSize || defaultPageSize);
-  const [sorts, setSorts] = useState<SortSpec[]>(() => config.prefs?.sorts ?? []);
+  // The user's saved order wins; without one the active view's 默认排序 applies, and it
+  // is sent with the query and shown on the 排序 button so both match the table.
+  const [sorts, setSorts] = useState<SortSpec[]>(() =>
+    config.prefs?.sorts?.length ? config.prefs.sorts : (config.activeView?.sorts ?? []),
+  );
   const [rowHeight, setRowHeight] = useState<RowHeight>(() => config.prefs?.rowHeight ?? config.activeView?.rowHeight ?? "MID");
   const [columnPrefs, setColumnPrefs] = useState<Record<string, ColumnPref> | null>(null);
   const [groupValue, setGroupValueState] = useState<string | number | null>(null);
