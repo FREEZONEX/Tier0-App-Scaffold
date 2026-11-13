@@ -54,8 +54,8 @@ export function StatusFilterChips({
               "transition-[color,background-color,border-color,box-shadow,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)]",
               "focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-[0.98] motion-reduce:transition-none",
               active
-                // Selection is neutral: a dark outline and tinted fill. Signal lime is reserved for the key CTA.
-                ? "border-foreground bg-muted font-medium text-foreground"
+                // Selection is neutral: a tinted fill and heavier text, no outline darker than the label. Lime is for the key CTA only.
+                ? "border-transparent bg-foreground/[0.08] font-semibold text-foreground"
                 : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >

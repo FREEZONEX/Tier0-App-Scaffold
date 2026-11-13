@@ -767,6 +767,12 @@ body {
 }
 
 @layer components {
+  /* Default label color lives here, below utilities, so `text-white` etc. on a
+     filled badge always wins (it used to turn red badges red-on-red). */
+  .monitor-label {
+    color: var(--tier0-text-tertiary);
+  }
+
   /* Ordinary workspace routes own their vertical rhythm but share one page
      inset. Keep this separate from Shell: Shell caps the workspace width,
      while station/review/monitor layouts keep their purpose-built spacing.
@@ -907,16 +913,26 @@ body {
     max-height: 100%;
   }
 
-  /* One record per row, readable from a distance: name + context left, state right. */
+  /* One record per row, readable from a distance. Children: optional tag, content, state. */
   .monitor-row {
-    display: flex;
+    /* [tag] [name + context, left aligned, truncates] [state / time, right] */
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    justify-content: space-between;
     gap: var(--monitor-gap);
     min-width: 0;
     padding: calc(var(--monitor-panel-pad) * 0.6) var(--monitor-panel-pad);
     border-radius: 4px;
     background: var(--muted);
+  }
+
+  /* Alarm rows inside a bordered panel: a tint, never a second border. */
+  .monitor-row[data-tone="alarm"] {
+    background: var(--state-error-bg);
+  }
+
+  .monitor-row[data-tone="warn"] {
+    background: var(--state-paused-bg);
   }
 
   .monitor-panel {
@@ -931,7 +947,6 @@ body {
   .monitor-label {
     font-size: var(--monitor-label-size);
     line-height: 1.2;
-    color: var(--tier0-text-tertiary);
   }
 
   .monitor-text {
