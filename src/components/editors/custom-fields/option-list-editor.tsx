@@ -132,7 +132,6 @@ export function OptionListEditor({ type, options, onChange, error }: OptionListE
               showCount
               status={error && !option.label.trim() ? "error" : undefined}
               value={option.label}
-              style={{ color: option.color }}
               onChange={(value) => update(option.key, { label: value })}
             />
             {type === "SINGLE_SELECT" ? (

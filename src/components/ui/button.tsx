@@ -47,13 +47,13 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        sm: "h-[var(--tier0-control-height-sm)] gap-1 px-2.5 text-[0.8rem] [&_svg:not([class*='size-'])]:size-3.5",
+        sm: "h-[var(--tier0-control-height-sm)] gap-1 px-2.5 text-[length:var(--tier0-control-text-sm)] [&_svg:not([class*='size-'])]:size-3.5",
         md: "h-[var(--tier0-control-height-md)] gap-1.5 px-2.5",
         lg: "h-[var(--tier0-control-height-lg)] gap-1.5 px-3",
-        "icon-xs": "size-6 [&_svg:not([class*='size-'])]:size-3",
-        "icon-sm": "size-7 [&_svg:not([class*='size-'])]:size-3.5",
-        icon: "size-8",
-        "icon-lg": "size-9",
+        "icon-xs": "size-6 pointer-coarse:min-h-11 pointer-coarse:min-w-11 [&_svg:not([class*='size-'])]:size-3",
+        "icon-sm": "size-7 pointer-coarse:min-h-11 pointer-coarse:min-w-11 [&_svg:not([class*='size-'])]:size-3.5",
+        icon: "size-8 pointer-coarse:min-h-11 pointer-coarse:min-w-11",
+        "icon-lg": "size-9 pointer-coarse:min-h-11 pointer-coarse:min-w-11",
       },
     },
     defaultVariants: {

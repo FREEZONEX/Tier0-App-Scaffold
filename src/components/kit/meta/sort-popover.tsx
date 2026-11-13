@@ -2,8 +2,11 @@
 
 /**
  * 排序: 「设置排序条件」, rows of drag handle +
- * 字段下拉 + A → Z / Z → A + ×, 「＋ 添加排序条件」; the toolbar button shows the
- * condition count. Complete conditions are reported on every change.
+ * 字段下拉 + 升序 / 降序 + ×, 「＋ 添加排序条件」. The toolbar button names the
+ * first rule (「排序：计划数量 降序」, 「+N」 for more; hover lists all), so the
+ * current order is readable without opening the panel. Complete conditions
+ * are reported on every change; a row without a field is kept only while the
+ * panel is open.
  *
  * `SortConditionList` is shared with the view editor's 默认排序 tab.
  */
@@ -13,6 +16,7 @@ import { IconButton, TextButton } from "@/components/kit/ui/buttons";
 import { Popover } from "@/components/kit/ui/popover";
 import { Segmented } from "@/components/kit/ui/segmented";
 import { Select } from "@/components/kit/ui/select";
+import { Tooltip } from "@/components/kit/ui/tooltip";
 import { moveItem } from "@/lib/component-kit/list-columns";
 import type { FieldDef, SortSpec } from "@/lib/component-kit/types";
 import { cn } from "@/lib/utils";
@@ -21,6 +25,17 @@ interface DraftSort {
   key: string;
   field: string | null;
   direction: "asc" | "desc";
+}
+
+/** Direction names used by the panel, the toolbar summary and its tooltip. */
+export const SORT_DIRECTION_LABEL = { asc: "升序", desc: "降序" } as const;
+
+type SortField = Pick<FieldDef, "code" | "name">;
+
+/** 「计划数量 降序」; an unknown field falls back to its code so a rule is never blank. */
+export function describeSort(sort: SortSpec, fields: readonly SortField[]): string {
+  const name = fields.find((field) => field.code === sort.field)?.name || sort.field;
+  return `${name} ${SORT_DIRECTION_LABEL[sort.direction]}`;
 }
 
 function toDrafts(sorts: readonly SortSpec[]): DraftSort[] {
@@ -91,11 +106,17 @@ export function SortConditionList({ fields, value, onChange, className }: SortCo
             showSearch
             placeholder="请选择字段"
             value={draft.field}
-            options={fields.map((field) => ({
-              value: field.code,
-              label: field.name,
-              disabled: used.has(field.code) && field.code !== draft.field,
-            }))}
+            options={[
+              ...fields.map((field) => ({
+                value: field.code,
+                label: field.name,
+                disabled: used.has(field.code) && field.code !== draft.field,
+              })),
+              // A saved rule on a field that is no longer offered stays readable and removable.
+              ...(draft.field && !fields.some((field) => field.code === draft.field)
+                ? [{ value: draft.field, label: draft.field }]
+                : []),
+            ]}
             onChange={(next) => commit(drafts.map((item) => (item.key === draft.key ? { ...item, field: next } : item)))}
           />
           <Segmented<"asc" | "desc">
@@ -103,8 +124,8 @@ export function SortConditionList({ fields, value, onChange, className }: SortCo
             className="shrink-0"
             value={draft.direction}
             options={[
-              { value: "asc", label: "A → Z" },
-              { value: "desc", label: "Z → A" },
+              { value: "asc", label: SORT_DIRECTION_LABEL.asc },
+              { value: "desc", label: SORT_DIRECTION_LABEL.desc },
             ]}
             onChange={(next) => commit(drafts.map((item) => (item.key === draft.key ? { ...item, direction: next } : item)))}
           />
@@ -142,19 +163,40 @@ export interface SortPopoverProps {
   value: readonly SortSpec[];
   onChange: (sorts: SortSpec[]) => void;
   disabled?: boolean;
-  /** Icon-only trigger for the list toolbar's 表格设置 group (highlighted while sorting). */
-  compact?: boolean;
+  /** The rules are the view's 默认排序; the button adds 「（默认）」. */
+  isDefault?: boolean;
 }
 
-/** Toolbar「排序」 text button with count badge + popover. */
-export function SortPopover({ fields, value, onChange, disabled = false, compact = false }: SortPopoverProps) {
-  const compactLabel = value.length > 0 ? `排序（${value.length} 个条件）` : "排序";
+/** Toolbar「排序」 text button naming the active rules + popover. */
+export function SortPopover({ fields, value, onChange, disabled = false, isDefault = false }: SortPopoverProps) {
+  const rules = value.map((sort) => describeSort(sort, fields));
+  const trigger = (
+    <TextButton
+      icon={<ArrowDownUp />}
+      disabled={disabled}
+      aria-label={rules.length ? `排序：${rules.join("，")}${isDefault ? "（默认）" : ""}` : "排序"}
+      className="max-w-[min(18rem,100%)]"
+    >
+      <span className="min-w-0 truncate">{rules.length > 0 ? `排序：${rules[0]}` : "排序"}</span>
+      {rules.length > 0 && isDefault ? <span className="shrink-0 text-muted-foreground">（默认）</span> : null}
+      {rules.length > 0 ? (
+        <>
+          {rules.length > 1 ? (
+            <span className="inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded-[4px] bg-muted px-1 text-[11px] leading-4 text-muted-foreground tabular-nums">
+              +{rules.length - 1}
+            </span>
+          ) : null}
+        </>
+      ) : null}
+    </TextButton>
+  );
   return (
     <Popover
       placement="bottom-start"
       aria-label="设置排序条件"
       disabled={disabled}
       className="w-[min(480px,calc(100vw-24px))] p-4"
+      anchorClassName="inline-flex min-w-0 max-w-full"
       content={
         <div className="flex flex-col gap-3">
           <span className="text-sm font-semibold text-foreground">设置排序条件</span>
@@ -162,27 +204,18 @@ export function SortPopover({ fields, value, onChange, disabled = false, compact
         </div>
       }
     >
-      {compact ? (
-        <IconButton
-          variant="outline"
-          size="lg"
-          icon={<ArrowDownUp />}
-          label={compactLabel}
-          title={compactLabel}
-          tooltip={false}
-          active={value.length > 0}
-          disabled={disabled}
-        />
-      ) : (
-        <TextButton icon={<ArrowDownUp />} disabled={disabled}>
-          {value.length > 0 ? (
-            <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[11px] leading-4 text-primary-foreground tabular-nums">
-              {value.length}
-            </span>
-          ) : null}
-          排序
-        </TextButton>
-      )}
+      <Tooltip
+        title={rules.length ? (
+          <ol className="m-0 list-none p-0">
+            {rules.map((rule, index) => (
+              <li key={value[index].field}>{rules.length > 1 ? `${index + 1}. ` : ""}{rule}</li>
+            ))}
+          </ol>
+        ) : null}
+        anchorClassName="inline-flex min-w-0 max-w-full"
+      >
+        {trigger}
+      </Tooltip>
     </Popover>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useRef, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useId, useRef, type KeyboardEvent, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { FLOATING_PANEL_CLASS } from "@/components/kit/ui/control-styles";
 import {
@@ -37,6 +37,16 @@ export interface PopoverProps {
   anchorClassName?: string;
   /** Accessible name of the panel. */
   "aria-label"?: string;
+}
+
+const FOCUSABLE =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+function focusableIn(panel: HTMLElement | null): HTMLElement[] {
+  if (!panel) return [];
+  return Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
+    (element) => !element.closest("[aria-hidden='true']") && element.getClientRects().length > 0,
+  );
 }
 
 export function Popover({
@@ -86,12 +96,45 @@ export function Popover({
 
   const close = () => setOpen(false);
 
+  const triggerElement = () =>
+    anchorRef.current?.querySelector<HTMLElement>("button, [tabindex], a, input") ?? null;
+
+  // Popup semantics on the focusable trigger (not the wrapper span).
+  useEffect(() => {
+    const element = triggerElement();
+    if (!element) return;
+    element.setAttribute("aria-haspopup", "dialog");
+    element.setAttribute("aria-expanded", String(visible));
+  });
+
+  // The panel is portaled to the end of <body>: move focus into it when it opens so
+  // keyboard users can reach its controls (hover popovers are previews and keep focus).
+  const positioned = position.style.visibility !== "hidden";
+  useEffect(() => {
+    if (!visible || !positioned || trigger === "hover") return;
+    const panel = floatingRef.current;
+    if (!panel || panel.contains(document.activeElement)) return;
+    focusableIn(panel)[0]?.focus({ preventScroll: true });
+  }, [visible, positioned, trigger]);
+
+  function handlePanelKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key !== "Tab" || trigger === "hover") return;
+    const items = focusableIn(floatingRef.current);
+    if (items.length === 0) return;
+    const leavingEnd = !event.shiftKey && document.activeElement === items[items.length - 1];
+    const leavingStart = event.shiftKey && document.activeElement === items[0];
+    if (leavingEnd || leavingStart) {
+      // Leaving the panel closes it and returns to the trigger, never to the end of the page.
+      event.preventDefault();
+      setOpen(false);
+      triggerElement()?.focus();
+    }
+  }
+
   return (
     <>
       <span
         ref={anchorRef}
-        aria-haspopup="dialog"
-        aria-expanded={visible}
         className={cn("inline-flex max-w-full", anchorClassName)}
         onClick={trigger === "click" && !disabled ? () => setOpen(!isOpen) : undefined}
         onMouseEnter={trigger === "hover" && !disabled ? hover.onEnter : undefined}
@@ -115,6 +158,7 @@ export function Popover({
         className={cn(FLOATING_PANEL_CLASS, "max-w-[calc(100vw-16px)] p-3", className)}
         onMouseEnter={trigger === "hover" ? hover.onEnter : undefined}
         onMouseLeave={trigger === "hover" ? hover.onLeave : undefined}
+        onKeyDown={handlePanelKeyDown}
       >
         {title ? (
           <div className="mb-2 text-sm font-semibold leading-[22px] text-foreground">{title}</div>

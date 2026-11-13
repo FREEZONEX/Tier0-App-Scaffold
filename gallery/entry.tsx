@@ -45,16 +45,16 @@ function FormDemo(){
 function Demo({name}:{name:string}){const [v,S]=useState<any>('a'),[value,V]=useState<any>(rows[0]),[list,L]=useState<any[]>(rows),[open,O]=useState(true),[checked,C]=useState(true),[many,M]=useState<any[]>(['a']),[states,CS]=useState<any[]>(columnStatesFrom(fields)),[filters,F]=useState<any[]>([{field:'name',operator:'LIKE',value:'支架'}]),[sorts,SS]=useState<any[]>([{field:'code',direction:'asc'}]),[msg,MSG]=useState(''),[wall,W]=useState({year:2026,month:9,day:18,hour:9,minute:30,second:0});const ref=useRef<HTMLDivElement>(null),floatRef=useRef<HTMLDivElement>(null);const hit=()=>MSG('已操作 · 仅演示');const done=async()=>{hit();};const Comp=registry[name];const form=<registry.MetaForm sections={sections} value={value} onChange={V}/>;const common:any={open,onOpenChange:O,onClose:()=>O(false),onCancel:()=>O(false),onSubmit:done,onSave:done,onSaved:hit,onCreated:hit,onConfirm:hit,onChange:S,onClick:hit,title:'示例：物料与生产',objectCode:'product',objectName:'物料',mode:'create',value:v,items:[],rows:list,fields,record:rows[0],row:rows[0],canManage:true,disabled:false};const field=(i=0)=><registry.FieldControl field={fields[i]} value={value[fields[i].code]} onChange={(x:any)=>V({...value,[fields[i].code]:x})}/>;let body:any;
 if(variants.has(name))return <Sample name={name}/>;
 switch(name){
-case'Input':body=<><Comp placeholder="请输入物料名称" allowClear prefix={<Search size={16}/>}/><Comp defaultValue="MAT-1001" status="error"/><Comp value="禁用状态" disabled/></>;break;
+case'Input':body=<><Comp aria-label="物料名称" placeholder="请输入物料名称" allowClear prefix={<Search size={16}/>}/><Comp aria-label="物料编码" defaultValue="MAT-1001" status="error"/><Comp aria-label="备注" value="禁用状态" disabled/></>;break;
 case'TextArea':body=<Comp placeholder="填写生产备注" maxLength={200} showCount autoSize/>;break;
 case'NumberInput':body=<><Comp defaultValue={1250.5} thousandSeparator precision={2} suffix="元"/><Comp defaultValue={10} min={0} max={100} step={5}/></>;break;
 case'NumberRangeInput':body=<Comp defaultValue={[10,100]}/>;break;
-case'Select':body=<><Comp options={options} defaultValue="a" allowClear showSearch/><Comp multiple options={options} defaultValue={['a','b']}/></>;break;
+case'Select':body=<><Comp aria-label="生产车间" options={options} defaultValue="a" allowClear showSearch/><Comp aria-label="协作车间" multiple options={options} defaultValue={['a','b']}/></>;break;
 case'Checkbox':body=<><Comp checked={checked} onChange={C}>启用质量检查</Comp><Comp indeterminate>部分选中</Comp><Comp disabled checked>禁用</Comp></>;break;
 case'CheckboxIndicator':body=<div className="demo-row"><Comp checked/><Comp indeterminate/><Comp checked={false}/></div>;break;
 case'Segmented':body=<SegmentedDemo/>;break;
 case'CheckboxGroup':case'RadioGroup':body=<Comp options={options} defaultValue={name==='CheckboxGroup'?['a']:'a'}/>;break;
-case'Switch':body=<div className="demo-row"><Comp checked={checked} onChange={C} checkedChildren="开" unCheckedChildren="关"/><Comp disabled/><Comp loading/></div>;break;
+case'Switch':body=<div className="demo-row"><Comp aria-label="自动报工" checked={checked} onChange={C} checkedChildren="开" unCheckedChildren="关"/><Comp aria-label="夜班提醒" disabled/><Comp aria-label="同步设备" loading/></div>;break;
 case'DatePicker':body=<><Comp defaultValue="2026-09-18"/><Comp precision="DATETIME_SECOND" defaultValue="2026-09-18 09:30:00"/></>;break;
 case'DateRangePicker':body=<Comp defaultValue={['2026-09-18','2026-09-25']}/>;break;
 case'CalendarPanel':body=<Comp viewYear={wall.year} viewMonth={wall.month} onViewChange={(year:number,month:number)=>W({...wall,year,month})} today={wall} selected={wall} onPick={W}/>;break;
@@ -108,8 +108,8 @@ case'ViewScopeSelect':body=<Comp value={typeof v==='object'?v:{all:true}} onChan
 case'ViewListDrawer':body=<Comp {...common} activeCode="all" onCreate={hit} onEdit={hit} onCopy={hit} onDelete={hit} onChanged={hit}/>;break;
 case'ViewEditorDrawer':body=<ViewEditorExample/>;break;
 case'FormDrawer':case'FullscreenModal':body=<><Button onClick={()=>O(true)}>打开表单</Button><Comp {...common} anchors={[{key:'base',label:'基本信息'}]} footer={<Button onClick={done}>保存演示</Button>}>{form}</Comp></>;break;
-case'MetaListPage':body=<Comp objectCode="product" title="物料档案" onCreate={hit} onOpenRecord={hit} importable exportable rowActions={()=>[{key:'edit',label:'编辑',icon:<PenLine/>,onClick:hit},{key:'delete',label:'删除',icon:<Trash2/>,danger:true,onClick:hit}]} />;break;
-case'ReferenceInput':case'PersonInput':case'ReferenceSelect':body=<Comp {...common} value={typeof v==='object'?v:{id:'demo-1',name:'精密铝合金支架',code:'MAT-1001'}}/>;break;
+case'MetaListPage':body=<Comp objectCode="product" title="物料档案" onCreate={hit} onOpenRecord={hit} importable exportable topTabs={[{key:'all',label:'全部',count:3},{key:'mine',label:'我负责的',count:2,scope:'MINE'},{key:'cancelled',label:'已取消',count:1,scope:'CANCELLED'}]} rowActions={()=>[{key:'edit',label:'编辑',icon:<PenLine/>,onClick:hit},{key:'delete',label:'删除',icon:<Trash2/>,danger:true,onClick:hit}]} />;break;
+case'ReferenceInput':case'PersonInput':case'ReferenceSelect':body=<Comp {...common} aria-label={name==='PersonInput'?'负责人':'关联物料'} value={typeof v==='object'?v:{id:'demo-1',name:'精密铝合金支架',code:'MAT-1001'}}/>;break;
 case'ReferencePicker':case'PersonPicker':body=<Comp {...common} value={null} multiple/>;break;
 case'ImportDialog':body=<Comp {...common}/>;break;
 case'ExportDialog':body=<Comp {...common} request={{page:{current:1,pageSize:10}}} fieldCodes={fields.map(f=>f.code)} total={126} selectedIds={['demo-1']}/>;break;

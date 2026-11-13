@@ -7,13 +7,9 @@ import { cn } from "@/lib/utils";
 export interface PageContainerProps {
   /** Page title shown above the content card. */
   title: ReactNode;
-  /**
-   * Right side of the title row, kept on one line at every width: secondary
-   * page actions (outline, icon-only below `sm`) first, the one primary
-   * action last.
-   */
+  /** Right side of the title row: page-level links such as 「移动端卡片」「自定义事件」. */
   extra?: ReactNode;
-  /** Parent level for pages below a navigation entry (back button left of the title). */
+  /** Parent level for pages below a navigation entry. */
   back?: BackTarget;
   children?: ReactNode;
   /** Stretch to the viewport height so the last PageCard can fill it (list pages). */
@@ -35,7 +31,7 @@ export function PageContainer({ title, extra, back, children, fill = false, clas
         title={title}
         actions={extra}
         back={back}
-        className="min-h-9 flex-row flex-nowrap items-center justify-between gap-3 px-1 sm:flex-nowrap sm:items-center [&>div:first-child]:flex-1 [&>div:last-child]:shrink-0 [&>div:last-child]:flex-nowrap [&_h1]:truncate"
+        className="min-h-9 flex-row flex-nowrap items-center justify-between gap-3 px-1 [&>div:first-child]:min-w-0 [&>div:first-child]:flex-1 [&>div:last-child]:shrink-0 [&>div:last-child]:flex-nowrap [&_h1]:truncate"
       />
       {children}
     </div>

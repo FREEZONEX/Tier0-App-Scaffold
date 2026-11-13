@@ -150,7 +150,9 @@
   --input: var(--tier0-input-border);
   --input-bg: var(--tier0-input-bg);
   /* Focus ring: pale CTA lime (DESIGN.md input.focusColor = highlight). */
-  --ring: var(--tier0-highlight);
+  /* Focus must stand out from a resting border (≥3:1): deep brand green on light
+     surfaces (7:1 on white); signal lime is ~1.3:1 on white and stays dark-mode only. */
+  --ring: var(--tier0-brand);
 
   --card: #ffffff;
   --card-foreground: var(--tier0-text-color);
@@ -180,7 +182,8 @@
   --secondary-foreground: var(--tier0-text-secondary);
   --destructive: var(--tier0-error-color);
 
-  --state-running-fg: var(--tier0-highlight-deep);
+  /* Deep brand ink on the lime tint (~6:1); #73b200 on it was 2.3:1. */
+  --state-running-fg: var(--tier0-brand);
   --state-running-bg: var(--tier0-highlight-bg-accent);
   --state-running-border: var(--tier0-highlight-bg-primary);
   --state-idle-fg: var(--tier0-text-secondary);
@@ -379,21 +382,23 @@
   --spacing-monitor-pad-compact: clamp(8px, 1vmin, 16px);
   --spacing-monitor-panel-pad: clamp(10px, 1.2vmin, 22px);
   --spacing-monitor-panel-pad-compact: clamp(8px, 0.9vmin, 14px);
-  --spacing-monitor-header-height: clamp(40px, 5.2vh, 56px);
+  --spacing-monitor-header-height: clamp(44px, 6.4vh, 96px);
   --spacing-monitor-header-pad-x: clamp(12px, 1.25vw, 24px);
-  --spacing-monitor-header-icon: clamp(28px, 3.2vmin, 36px);
+  --spacing-monitor-header-icon: clamp(28px, 3.6vmin, 60px);
 
-  --text-monitor-label: clamp(12px, 0.72vmin, 15px);
+  /* Wall screens are read from metres away: type scales with the screen (1080p
+     ≈ body 17px / title 22px / KPI 56px; 4K doubles), never below desktop sizes. */
+  --text-monitor-label: clamp(12px, 1.3vmin, 28px);
   --text-monitor-label-compact: clamp(11px, 0.82vmin, 13px);
-  --text-monitor-body: clamp(13px, 0.82vmin, 18px);
+  --text-monitor-body: clamp(13px, 1.6vmin, 34px);
   --text-monitor-body-compact: clamp(12px, 0.94vmin, 15px);
-  --text-monitor-title: clamp(16px, 1.25vmin, 28px);
+  --text-monitor-title: clamp(16px, 2vmin, 44px);
   --text-monitor-title-compact: clamp(15px, 1.35vmin, 22px);
-  --text-monitor-kpi: clamp(30px, 4.1vmin, 76px);
+  --text-monitor-kpi: clamp(30px, 5.2vmin, 120px);
   --text-monitor-kpi-compact: clamp(28px, 4.6vmin, 56px);
-  --text-monitor-header-title: clamp(13px, 0.9vmin, 16px);
-  --text-monitor-header-subtitle: clamp(11px, 0.72vmin, 13px);
-  --text-monitor-header-meta: clamp(10px, 0.66vmin, 12px);
+  --text-monitor-header-title: clamp(15px, 2vmin, 40px);
+  --text-monitor-header-subtitle: clamp(12px, 1.3vmin, 26px);
+  --text-monitor-header-meta: clamp(12px, 1.25vmin, 24px);
   --color-invert-foreground: var(--invert-foreground);
   --color-invert: var(--invert);
   --color-warning-foreground: var(--warning-foreground);
@@ -764,6 +769,12 @@ body {
 }
 
 @layer components {
+  /* Default label color lives here, below utilities, so `text-white` etc. on a
+     filled badge always wins (it used to turn red badges red-on-red). */
+  .monitor-label {
+    color: var(--tier0-text-tertiary);
+  }
+
   /* Ordinary workspace routes own their vertical rhythm but share one page
      inset. Keep this separate from Shell: Shell caps the workspace width,
      while station/review/monitor layouts keep their purpose-built spacing.
@@ -860,6 +871,72 @@ body {
     overflow: hidden;
   }
 
+  /* Adaptive board: a KPI band sized to its content, then panels that share the
+     remaining height. Tiles and panels wrap by available width (wall screen,
+     1366 laptop, portrait TV) instead of stretching into fixed grid rows. */
+  .monitor-board {
+    display: flex;
+    flex-direction: column;
+    gap: var(--monitor-gap);
+    height: 100%;
+    min-height: 0;
+  }
+
+  .monitor-kpis {
+    display: grid;
+    flex: none;
+    gap: var(--monitor-gap);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  }
+
+  .monitor-kpi-tile {
+    @apply min-w-0 rounded-[4px] border border-border bg-card;
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--monitor-gap) / 2);
+    padding: var(--monitor-panel-pad);
+  }
+
+  .monitor-columns {
+    display: grid;
+    flex: 1 1 0;
+    min-height: 0;
+    gap: var(--monitor-gap);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 28rem), 1fr));
+    grid-auto-rows: minmax(0, 100%);
+    /* Panels hug their rows (no tall empty frames) and stop at the stage height. */
+    align-items: start;
+  }
+
+  .monitor-columns > .monitor-panel {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--monitor-gap) / 1.5);
+    max-height: 100%;
+  }
+
+  /* One record per row, readable from a distance. Children: optional tag, content, state. */
+  .monitor-row {
+    /* [tag] [name + context, left aligned, truncates] [state / time, right] */
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--monitor-gap);
+    min-width: 0;
+    padding: calc(var(--monitor-panel-pad) * 0.6) var(--monitor-panel-pad);
+    border-radius: 4px;
+    background: var(--muted);
+  }
+
+  /* Alarm rows inside a bordered panel: a tint, never a second border. */
+  .monitor-row[data-tone="alarm"] {
+    background: var(--state-error-bg);
+  }
+
+  .monitor-row[data-tone="warn"] {
+    background: var(--state-paused-bg);
+  }
+
   .monitor-panel {
     @apply min-h-0 min-w-0 overflow-hidden rounded-[4px] border border-border bg-card;
     padding: var(--monitor-panel-pad);
@@ -872,7 +949,6 @@ body {
   .monitor-label {
     font-size: var(--monitor-label-size);
     line-height: 1.2;
-    color: var(--tier0-text-tertiary);
   }
 
   .monitor-text {
@@ -1215,7 +1291,51 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
   --tier0-shadow-primary-button: 0 1px 2px rgb(5 11 20 / 0.1);
   --tier0-shadow-highlight-button: 0 1px 2px rgb(115 178 0 / 0.18), 0 6px 14px -8px rgb(178 237 29 / 0.55);
   --tier0-shadow-overlay: var(--shadow-overlay);
-  --tier0-focus-ring: 0 0 0 3px color-mix(in srgb, var(--tier0-highlight) 35%, transparent);
+  --tier0-focus-ring: 0 0 0 3px color-mix(in srgb, var(--ring) 35%, transparent);
+}
+
+/* Keyboard focus is always visible: a solid 2px outline in the ring color on
+   buttons, links, tabs and other focusable controls, on top of any soft glow a
+   component adds. Unlayered so a component's `outline-none` cannot hide it.
+   Text fields, list options and menu items show focus through their own frame
+   or fill instead. */
+:where(button, a[href], summary, [role="tab"], [role="button"], [role="switch"], [role="radio"], [role="checkbox"], [tabindex]:not([tabindex="-1"])):not([data-bare-control]):not([role="option"]):not([role="menuitem"]):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* ── Phones and touch screens ────────────────────────────────────────────
+   Field operators work on phones, shared touch consoles and with gloves. On
+   narrow screens or coarse pointers text grows one step (inputs reach 16px,
+   which also stops iOS zooming on focus) and controls reach the 44px touch
+   target. Desktop mouse layouts keep the dense sizes. Monitor boards size
+   their own type for viewing distance. */
+:root {
+  --tier0-control-text-sm: 0.8rem;
+}
+@media (max-width: 639px), (pointer: coarse) {
+  :root {
+    --text-xs: 0.8125rem; /* 13px */
+    --text-xs--line-height: 1.25rem;
+    --text-sm: 1rem; /* 16px */
+    --text-sm--line-height: 1.5rem;
+    --text-base: 1.0625rem; /* 17px */
+    --text-base--line-height: 1.625rem;
+    --tier0-text-body-size: 16px;
+    --tier0-text-body-line: 24px;
+    --tier0-text-body-lg-size: 17px;
+    --tier0-text-body-lg-line: 26px;
+    --tier0-text-label-size: 15px;
+    --tier0-text-label-line: 22px;
+    --tier0-text-caption-size: 13px;
+    --tier0-text-caption-line: 20px;
+    --tier0-text-mono-size: 13px;
+    --tier0-text-mono-line: 20px;
+    --tier0-control-text-sm: 0.9375rem; /* 15px */
+    --tier0-control-height-sm: 40px;
+    --tier0-control-height-md: 44px;
+    --tier0-control-height-lg: 48px;
+  }
 }
 
 @theme inline {
@@ -1393,6 +1513,13 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
 }
 
 .dark {
+  --ring: var(--tier0-highlight);
+  /* Sidebar selection one step deeper than --muted, so the current page reads on #101114. */
+  --tier0-sidebar-selected: #2a2b30;
+  /* "Deep" status inks are for light surfaces; on dark they flip to bright tints (≥4.5:1). */
+  --tier0-success-deep: #4ade80;
+  --tier0-warning-deep: #fb923c;
+  --tier0-error-deep: #f87171;
   /* Neutral dark canvas. CTA stays lime — never invert to stark white. */
   --tier0-primary: #f4f4f5;
   --tier0-primary-hover: #e4e4e7;
@@ -1557,4 +1684,9 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
   --color-cat-5-soft: var(--tier0-cat-5-soft);
   --color-cat-6: var(--tier0-cat-6);
   --color-cat-6-soft: var(--tier0-cat-6-soft);
+}
+
+/* Sidebar current page: light keeps bg-muted; dark uses the deeper selection fill. */
+.dark nav.bg-sidebar [aria-current="page"] {
+  background-color: var(--tier0-sidebar-selected);
 }

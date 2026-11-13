@@ -299,6 +299,7 @@ export function DualAxisChart({
                 height={height}
                 fill="transparent"
                 tabIndex={0}
+                role="img"
                 aria-label={`${point.label} ${bar.name} ${bar.format(point.bar)}，${line.name} ${point.line === null ? "-" : line.format(point.line)}`}
                 onPointerEnter={() => setHovered(index)}
                 onPointerMove={() => setHovered(index)}

@@ -77,10 +77,10 @@ export function Badge({ count = 0, max = 99, dot = false, showZero = false, chil
     <span
       title={title ?? (dot ? undefined : text)}
       className={cn(
-        "inline-flex items-center justify-center whitespace-nowrap rounded-full font-medium tabular-nums text-white shadow-[0_0_0_1px_#fff]",
+        "inline-flex items-center justify-center whitespace-nowrap rounded-full font-medium tabular-nums text-white shadow-[0_0_0_1px_var(--card)]",
         dot ? "size-1.5" : "h-4 min-w-4 px-1 text-[11px] leading-4",
         children !== undefined && "absolute right-0 top-0 z-10 translate-x-1/2 -translate-y-1/2",
-        !color && "bg-danger",
+        !color && "bg-red-600",
         className,
       )}
       style={color ? { backgroundColor: color } : undefined}

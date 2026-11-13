@@ -121,7 +121,7 @@ export function CalendarPanel({
               <button
                 type="button"
                 tabIndex={-1}
-                className="rounded-[4px] px-1 hover:text-[color:var(--tier0-highlight-deep)]"
+                className="rounded-[4px] px-1 hover:text-brand"
                 onClick={() => setMode("year")}
               >
                 {viewYear}年
@@ -130,7 +130,7 @@ export function CalendarPanel({
                 <button
                   type="button"
                   tabIndex={-1}
-                  className="rounded-[4px] px-1 hover:text-[color:var(--tier0-highlight-deep)]"
+                  className="rounded-[4px] px-1 hover:text-brand"
                   onClick={() => setMode("month")}
                 >
                   {viewMonth}月
@@ -198,8 +198,8 @@ export function CalendarPanel({
                       inMonth ? "text-foreground" : "text-text-placeholder",
                       !isSelected && !disabled && "hover:bg-fill-hover",
                       isToday && !isSelected && "shadow-[inset_0_0_0_1px_var(--tier0-primary)]",
-                      /* Deep green + white: CTA lime fails contrast for day numerals. */
-                      isSelected && "bg-[color:var(--tier0-highlight-deep)] font-medium text-white",
+                      /* Signal lime + near-black numerals (~15:1); white on deep green is only 2.6:1. */
+                      isSelected && "bg-[color:var(--tier0-highlight)] font-semibold text-[color:var(--tier0-highlight-foreground)]",
                       disabled && "cursor-not-allowed bg-input-disabled text-text-placeholder",
                     )}
                     onMouseEnter={() => onHoverDay?.(wall)}
@@ -222,12 +222,12 @@ export function CalendarPanel({
                 className={cn(
                   "h-7 w-14 rounded-[4px] text-sm transition-colors",
                   month === viewMonth
-                    ? "bg-[color:var(--tier0-highlight-deep)] font-medium text-white"
+                    ? "bg-[color:var(--tier0-highlight)] font-semibold text-[color:var(--tier0-highlight-foreground)]"
                     : "hover:bg-fill-hover",
                   month === today.month &&
                     viewYear === today.year &&
                     month !== viewMonth &&
-                    "text-[color:var(--tier0-highlight-deep)]",
+                    "text-brand",
                 )}
                 onClick={() => {
                   onViewChange(viewYear, month);
@@ -249,7 +249,7 @@ export function CalendarPanel({
                 className={cn(
                   "h-7 w-14 rounded-[4px] text-sm tabular-nums transition-colors",
                   year === viewYear
-                    ? "bg-[color:var(--tier0-highlight-deep)] font-medium text-white"
+                    ? "bg-[color:var(--tier0-highlight)] font-semibold text-[color:var(--tier0-highlight-foreground)]"
                     : "hover:bg-fill-hover",
                   (year < decadeStart || year > decadeStart + 9) &&
                     year !== viewYear &&

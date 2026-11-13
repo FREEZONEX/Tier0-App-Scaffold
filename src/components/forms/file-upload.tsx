@@ -166,6 +166,7 @@ export function FileUpload({
         multiple={multiple}
         disabled={disabled}
         required={required && selectedFiles.length === 0}
+        aria-label={inputProps["aria-label"] ?? (inputProps["aria-labelledby"] ? undefined : copy.browse)}
         aria-describedby={describedBy}
         aria-invalid={visibleError ? true : undefined}
         className="sr-only"

@@ -120,7 +120,7 @@ function FieldLayout({
   const options = useRequest(`print-template-options:${draft.objectCode}`, (signal) => api.getJson<TemplateOptions>(apiUrl(`/api/system/print-template-options/${draft.objectCode}`), { signal }), {
     enabled: Boolean(draft.objectCode),
   });
-  if (!draft.objectCode) return <p className="rounded-[4px] bg-[#f5f7fa] px-3 py-6 text-center text-sm text-text-tertiary">请先选择适用对象</p>;
+  if (!draft.objectCode) return <p className="rounded-[4px] bg-muted px-3 py-6 text-center text-sm text-text-tertiary">请先选择适用对象</p>;
   return (
     <AsyncView result={options} isEmpty={() => false}>
       {(data) => {

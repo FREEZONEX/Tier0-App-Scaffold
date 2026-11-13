@@ -15,7 +15,7 @@ read the named file **before** that kind of work:
 | Before you… | Read |
 |---|---|
 | declare/change collections, write services that touch records, add live updates, evolve a schema | `docs/app-data.md` |
-| build or rework routes, pages, forms, dialogs, data loading, responsive layouts | `docs/ui-rules.md`, `docs/component-kit.md` |
+| build or rework routes, pages, forms, dialogs, data loading, responsive layouts | `docs/ui-rules.md`, `docs/component-kit.md`, `docs/operator-ux.md` |
 | register or change roles | `docs/role-registration.md` |
 | use the Tier0 SDK, notifications, MQTT, files, env vars, scaffold version | `docs/platform-integration.md` |
 

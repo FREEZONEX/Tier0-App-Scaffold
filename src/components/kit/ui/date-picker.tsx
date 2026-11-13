@@ -212,6 +212,7 @@ export function DatePicker({
         ref={inputRef}
         id={id}
         data-bare-control=""
+        role="combobox"
         aria-label={ariaLabel}
         aria-haspopup="dialog"
         aria-expanded={visible}
@@ -290,7 +291,7 @@ export function DatePicker({
               <button
                 type="button"
                 tabIndex={-1}
-                className="text-sm font-medium text-[color:var(--tier0-highlight-deep)] hover:text-[color:color-mix(in_srgb,var(--tier0-highlight-deep)_82%,#050b14)]"
+                className="text-sm font-medium text-brand hover:text-brand/80"
                 onClick={() => {
                   const now = nowWall();
                   if (disabledDate?.(now)) return;

@@ -23,7 +23,7 @@ export const CONTROL_FIXED_HEIGHT: Record<ControlSize, string> = {
 };
 
 export const CONTROL_TEXT: Record<ControlSize, string> = {
-  sm: "text-[0.8rem]",
+  sm: "text-[length:var(--tier0-control-text-sm)]",
   md: "text-sm",
   lg: "text-sm",
 };

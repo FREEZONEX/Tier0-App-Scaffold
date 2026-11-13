@@ -50,11 +50,12 @@ export function StatusFilterChips({
             aria-pressed={active}
             onClick={() => onChange(item.key)}
             className={cn(
-              "inline-flex h-8 items-center gap-1.5 rounded-[4px] border px-3 text-sm leading-none outline-none",
+              "inline-flex h-8 pointer-coarse:h-11 items-center gap-1.5 rounded-[4px] border px-3 text-sm leading-none outline-none",
               "transition-[color,background-color,border-color,box-shadow,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)]",
               "focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-[0.98] motion-reduce:transition-none",
               active
-                ? "border-transparent bg-[color:var(--tier0-highlight-bg-primary)] font-medium text-[color:var(--tier0-highlight-foreground)] shadow-sm"
+                // Selection is neutral: a tinted fill and heavier text, no outline darker than the label. Lime is for the key CTA only.
+                ? "border-transparent bg-foreground/[0.08] font-semibold text-foreground"
                 : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >

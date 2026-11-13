@@ -3,7 +3,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   createElement,
-  isValidElement,
   useState,
   useSyncExternalStore,
   type ElementType,
@@ -11,21 +10,20 @@ import {
 } from "react";
 import {
   Bell,
-  ExternalLink,
-  icons,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Lock,
   Menu,
-  PanelLeftClose,
-  PanelLeftOpen,
-  User,
   X,
-  type LucideIcon,
 } from "lucide-react";
 import { Popover } from "@/components/kit/ui/popover";
 import { Tooltip } from "@/components/kit/ui/tooltip";
+import { OfflineBanner } from "@/components/ui/offline-banner";
 import { cn } from "@/lib/utils";
 import type { AppUser } from "@/lib/users";
-import { APP_ICON, APP_NAME, filterSidebarModules } from "@/lib/app-chrome";
+import { APP_ICON, APP_NAME, filterSidebarModules, uiText } from "@/lib/app-chrome";
+import { resolveNavIconComponent } from "./nav-icons";
 import { getRoleMetadata } from "@/lib/role-metadata";
 import {
   defaultModules,
@@ -38,13 +36,14 @@ const COLLAPSED_STORAGE_KEY = "tier0-shell-collapsed";
 const COLLAPSED_STORAGE_EVENT = "tier0-shell-collapsed-change";
 
 const sidebarItemBase =
-  "group flex items-center rounded-[4px] text-sm font-normal transition-[background-color,color,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:ring-offset-1 focus-visible:ring-offset-sidebar";
+  "group flex items-center rounded-[4px] text-sm font-medium pointer-coarse:min-h-11 transition-[background-color,color,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:ring-offset-1 focus-visible:ring-offset-sidebar";
 const sidebarItemActive =
   "bg-muted text-foreground";
+// Hover is a lighter fill than the selection, so hovering never looks like the current page.
 const sidebarItemInactive =
-  "text-sidebar-foreground hover:bg-sidebar-accent";
+  "text-secondary-foreground hover:bg-muted/50 hover:text-foreground active:translate-x-px";
 const sidebarIconButton =
-  "inline-flex size-7 shrink-0 items-center justify-center rounded-[4px] text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/35";
+  "inline-flex size-8 shrink-0 items-center justify-center rounded-[4px] text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/35";
 
 function normalizeMenuPath(value: string): string {
   if (!value) {
@@ -149,42 +148,18 @@ function setStoredCollapsed(value: boolean) {
 }
 
 /**
- * Sidebar icons come from lucide-react. Prefer a component import; a PascalCase
- * / kebab-case name string is looked up in lucide's `icons` map. Anything else
- * falls through to the letter mark so the collapsed rail stays identifiable.
+ * Sidebar icons: a lucide component import, a name from the curated
+ * `NAV_ICON_LIBRARY`, or — when neither is given or usable — an icon matched
+ * from the label (「报修单」→ Wrench). See `./nav-icons`. Anything else falls
+ * through to the letter mark, so the collapsed rail never shows an empty entry.
  */
-function normalizeLucideIconName(name: string): string {
-  const trimmed = name.trim();
-  if (!trimmed) return "";
-  if (Object.prototype.hasOwnProperty.call(icons, trimmed)) return trimmed;
-  if (/^[A-Z][A-Za-z0-9]*$/.test(trimmed)) return trimmed;
-  return trimmed
-    .split(/[-_\s./]+/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join("");
+function resolveNavIcon(icon: unknown, label: string): ElementType | null {
+  return resolveNavIconComponent(icon, label);
 }
 
-function isLucideIconComponent(value: unknown): value is LucideIcon {
-  return (
-    typeof value === "function" ||
-    (Boolean(value) &&
-      typeof value === "object" &&
-      "$$typeof" in (value as object) &&
-      !isValidElement(value))
-  );
-}
-
-function resolveNavIcon(icon: unknown): ElementType | null {
-  if (isLucideIconComponent(icon)) return icon;
-  if (typeof icon === "string") {
-    const name = normalizeLucideIconName(icon);
-    const matched = name
-      ? icons[name as keyof typeof icons]
-      : undefined;
-    if (isLucideIconComponent(matched)) return matched;
-  }
-  return null;
+/** Collapsed-rail tooltip: the name, plus why the entry is locked. */
+function navTitle(module: NavModule): string {
+  return module.disabledReason ? `${module.label}：${module.disabledReason}` : module.label;
 }
 
 function NavIcon({
@@ -196,11 +171,11 @@ function NavIcon({
   label: string;
   className: string;
 }) {
-  const component = resolveNavIcon(icon);
+  const component = resolveNavIcon(icon, label);
   if (component) {
     return createElement(component, {
       "aria-hidden": true,
-      className: cn(className, "shrink-0"),
+      className: cn(className, "shrink-0 transition-transform duration-200 group-hover:scale-105"),
     });
   }
   return (
@@ -247,29 +222,72 @@ export function Shell({
     getCollapsedServerSnapshot,
   );
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(
+    {},
+  );
+  /** Collapsed rail: the group whose children are shown in a flyout beside it. */
+  const [flyoutGroup, setFlyoutGroup] = useState<string | null>(null);
 
   function toggleCollapsed() {
     setStoredCollapsed(!collapsed);
   }
 
-  function renderLeafBadges(item: NavModule) {
+  function toggleGroup(key: string) {
+    setExpandedGroups((current) => ({
+      ...current,
+      [key]: !current[key],
+    }));
+  }
+
+  /** One child entry; used by the expanded group list and by the collapsed-rail flyout. */
+  function renderChildLink(child: NavModule, onNavigate: () => void) {
+    const childTitle = navTitle(child);
+    const isChildActive = child.key === activeModuleKey;
+
     return (
-      <>
-        {item.badge ? (
-          <span className="ml-auto shrink-0 rounded-[4px] border border-sidebar-border bg-card px-1.5 py-0.5 font-mono text-[10px] leading-none text-muted-foreground">
-            {item.badge}
+      <Link
+        key={child.key}
+        to={child.href as never}
+        // router-core 1.171.14: https://github.com/TanStack/router/issues/7759
+        preload={false}
+        activeOptions={{ exact: true }}
+        title={childTitle}
+        aria-disabled={child.locked || undefined}
+        aria-current={isChildActive ? "page" : undefined}
+        onClick={(event) => {
+          if (child.locked) {
+            event.preventDefault();
+            return;
+          }
+          onNavigate();
+        }}
+        className={cn(
+          sidebarItemBase,
+          "min-h-9 gap-2 px-3",
+          isChildActive
+            ? sidebarItemActive
+            : sidebarItemInactive,
+          child.locked ? "opacity-70" : "",
+        )}
+      >
+        <NavIcon icon={child.icon} label={child.label} className={cn("size-3.5", isChildActive ? "text-foreground" : "text-muted-foreground group-hover:text-foreground")} />
+        <span className={cn("min-w-0 truncate whitespace-nowrap", isChildActive && "font-semibold")}>
+          {child.label}
+        </span>
+        {child.badge ? (
+          <span className="ml-auto shrink-0 rounded-[4px] border border-border bg-background px-1.5 py-0.5 font-mono text-xs leading-none text-muted-foreground">
+            {child.badge}
           </span>
         ) : null}
-        {item.locked ? (
-          <Lock className={cn("size-3.5 shrink-0 text-muted-foreground", item.badge ? "" : "ml-auto")} />
-        ) : null}
-        {item.newTab && !item.locked ? (
-          <ExternalLink
-            aria-hidden="true"
-            className={cn("size-3.5 shrink-0 text-muted-foreground", item.badge ? "" : "ml-auto")}
+        {child.locked ? (
+          <Lock
+            className={cn(
+              "size-3.5 shrink-0 text-muted-foreground",
+              child.badge ? "" : "ml-auto",
+            )}
           />
         ) : null}
-      </>
+      </Link>
     );
   }
 
@@ -283,13 +301,11 @@ export function Shell({
     showCloseControl?: boolean;
   }) {
     const showBrandIdentity = !isCollapsed || showCloseControl;
-    const itemLayout = isCollapsed ? "justify-center px-0" : "gap-2 overflow-hidden px-2";
 
     return (
       <nav
         className={cn(
-          // Selection inside the rail is one step darker than the gray rail itself.
-          "flex h-full shrink-0 flex-col bg-sidebar text-sidebar-foreground [--muted:var(--sidebar-selected)] transition-[width] duration-200 ease-[cubic-bezier(0.2,0,0,1)]",
+          "flex h-full shrink-0 flex-col bg-sidebar transition-[width] duration-200 ease-[cubic-bezier(0.2,0,0,1)]",
           showCloseControl
             ? "w-full overflow-hidden rounded-[4px] border border-sidebar-border shadow-lg"
             : "border-r border-sidebar-border",
@@ -297,202 +313,261 @@ export function Shell({
           !showCloseControl && !isCollapsed ? "w-60" : "",
         )}
       >
-        {/* Brand row */}
+        {/* Brand mark */}
         <div
           className={cn(
-            "flex min-h-14 items-center overflow-hidden px-3 py-3",
-            showBrandIdentity ? "gap-2" : "justify-center",
+            "flex min-h-14 items-center overflow-hidden px-3 py-2.5 transition-[gap,padding] duration-200 ease-[cubic-bezier(0.2,0,0,1)]",
+            showBrandIdentity ? "gap-3" : "justify-center gap-0",
           )}
         >
           {showBrandIdentity && (
-            <div className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-[4px]">
-              <img
-                src={APP_ICON}
-                alt={`${APP_NAME} icon`}
-                className="size-full rounded-[inherit] object-cover dark:opacity-90"
-              />
+            <div className="flex shrink-0 items-center">
+              <div className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-[4px]">
+                <img
+                  src={APP_ICON}
+                  alt={`${APP_NAME} icon`}
+                  className="size-full rounded-[inherit] object-cover dark:opacity-90"
+                />
+              </div>
             </div>
           )}
-          {showBrandIdentity && (
-            <p
+          {!isCollapsed && showBrandIdentity && (
+            <div
               className={cn(
-                "truncate text-sm font-semibold leading-5 animate-in fade-in-0 duration-200",
-                // The desktop rail animates its width: keep the expanded name width so it never reflows mid-transition.
-                showCloseControl ? "min-w-0 flex-1" : "w-[126px] shrink-0",
+                "overflow-hidden animate-in fade-in-0 duration-200",
+                // Desktop rail animates its width: lay the name out at the expanded width (w-60 minus icon, button, gaps, padding) so it never reflows mid-transition.
+                showCloseControl ? "min-w-0" : "w-[126px] shrink-0",
               )}
-              title={APP_NAME}
             >
-              {APP_NAME}
-            </p>
+              <p
+                className="line-clamp-2 break-words text-sm font-semibold leading-5"
+                title={APP_NAME}
+              >
+                {APP_NAME}
+              </p>
+            </div>
           )}
-          {showCollapseControl && (
-            <button
-              type="button"
-              onClick={toggleCollapsed}
-              aria-expanded={!isCollapsed}
-              aria-label={isCollapsed ? "展开侧边栏" : "收起侧边栏"}
-              title={isCollapsed ? "展开侧边栏" : "收起侧边栏"}
-              className={cn(sidebarIconButton, "size-8", isCollapsed ? "" : "ml-auto")}
+          {(showCollapseControl || showCloseControl) && (
+            <div
+              className={cn(
+                "flex shrink-0 items-center gap-2",
+                isCollapsed ? "" : "ml-auto",
+              )}
             >
-              {isCollapsed ? <PanelLeftOpen className="size-4" /> : <PanelLeftClose className="size-4" />}
-            </button>
-          )}
-          {showCloseControl && (
-            <button
-              type="button"
-              aria-label="Close navigation"
-              className={cn(sidebarIconButton, "size-8", "ml-auto")}
-              onClick={() => setMobileOpen(false)}
-            >
-              <X className="size-4" />
-            </button>
+              {showCollapseControl && (
+                <button
+                  type="button"
+                  onClick={toggleCollapsed}
+                  aria-expanded={!isCollapsed}
+                  aria-label={isCollapsed ? uiText("expandSidebar") : uiText("collapseSidebar")}
+                  title={isCollapsed ? uiText("expandSidebar") : uiText("collapseSidebar")}
+                  className="inline-flex size-8 items-center justify-center rounded-[4px] border border-transparent bg-transparent text-muted-foreground transition-[background-color,color,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] hover:bg-sidebar-accent hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight/35 active:scale-95 pointer-coarse:size-11"
+                >
+                  {isCollapsed ? (
+                    <ChevronRight className="size-4" />
+                  ) : (
+                    <ChevronLeft className="size-4" />
+                  )}
+                </button>
+              )}
+              {showCloseControl && (
+                <button
+                  type="button"
+                  aria-label={uiText("closeNavigation")}
+                  className="inline-flex size-8 items-center justify-center rounded-[4px] border border-transparent bg-transparent text-muted-foreground transition-[background-color,color,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] hover:bg-sidebar-accent hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight/35 active:scale-95 pointer-coarse:size-11"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  <X className="size-4" />
+                </button>
+              )}
+            </div>
           )}
         </div>
 
-        {/* Modules: top-level links, then titled sections */}
-        <div className={cn("flex-1 overflow-y-auto pb-3 pt-1", isCollapsed ? "px-2" : "px-3")}>
-          {sidebarModules.map((mod, index) => {
+        {/* Modules */}
+        <div className="flex-1 overflow-y-auto px-2 pb-2.5 pt-4">
+          {sidebarModules.map((mod) => {
+            const hasChildren = Boolean(mod.children?.length);
             const isDirectActive = mod.key === activeModuleKey;
+            const hasActiveDescendant =
+              mod.children?.some((child) =>
+                isModuleInActiveBranch(child, activeModuleKey),
+              ) ??
+              false;
+            const isExpanded =
+              !isCollapsed &&
+              (expandedGroups[mod.key] ??
+                (isDirectActive || hasActiveDescendant));
 
-            if (mod.children?.length) {
+            if (hasChildren) {
+              const groupTitle = navTitle(mod);
               return (
-                <div key={mod.key} role="group" aria-label={mod.label} className={index === 0 ? "" : "mt-4"}>
-                  {isCollapsed ? (
-                    <div aria-hidden="true" className="mx-1 mb-2 border-t border-sidebar-border" />
-                  ) : (
-                    <p
-                      className={cn(
-                        "flex items-center gap-1.5 px-2 pb-1.5 text-xs leading-4",
-                        isModuleInActiveBranch(mod, activeModuleKey) ? "text-secondary-foreground" : "text-muted-foreground",
-                      )}
-                    >
-                      <span className="truncate">{mod.label}</span>
-                      {mod.locked ? <Lock className="size-3 shrink-0" /> : null}
-                    </p>
-                  )}
-                  <div className="space-y-0.5">
-                    {mod.children.map((child) => {
-                      const childTitle = child.disabledReason ?? child.label;
-                      const isChildActive = child.key === activeModuleKey;
-                      const locked = child.locked || mod.locked;
+                <div key={mod.key} className="mb-1">
+                  <Popover
+                    trigger="click"
+                    placement="right-start"
+                    offset={10}
+                    disabled={!isCollapsed || Boolean(mod.locked)}
+                    open={isCollapsed && flyoutGroup === mod.key}
+                    onOpenChange={(open) => setFlyoutGroup(open ? mod.key : null)}
+                    aria-label={mod.label}
+                    anchorClassName="flex w-full"
+                    className="min-w-48 p-1.5"
+                    content={({ close }) => (
+                      <div className="flex flex-col gap-0.5">
+                        <p className="px-3 pb-1 pt-1 text-xs font-medium text-muted-foreground">{mod.label}</p>
+                        {mod.children?.map((child) => renderChildLink(child, close))}
+                      </div>
+                    )}
+                  >
+                  <Tooltip title={groupTitle} disabled={!isCollapsed || flyoutGroup === mod.key} placement="right" anchorClassName="flex w-full">
+                  <button
+                    type="button"
+                    aria-expanded={isCollapsed ? flyoutGroup === mod.key : isExpanded}
+                    aria-disabled={mod.locked || undefined}
+                    aria-current={isDirectActive ? "page" : undefined}
+                    title={isCollapsed ? undefined : mod.disabledReason}
+                    aria-label={isCollapsed ? mod.label : undefined}
+                    onClick={() => {
+                      // Collapsed: the surrounding Popover opens the child flyout.
+                      if (mod.locked || isCollapsed) {
+                        return;
+                      }
 
-                      return (
-                        <Tooltip key={child.key} title={childTitle} disabled={!isCollapsed} placement="right" anchorClassName="flex w-full">
-                          <Link
-                            to={child.href as never}
-                            // router-core 1.171.14: https://github.com/TanStack/router/issues/7759
-                            preload={false}
-                            activeOptions={{ exact: true }}
-                            target={child.newTab ? "_blank" : undefined}
-                            rel={child.newTab ? "noreferrer" : undefined}
-                            title={isCollapsed ? undefined : child.disabledReason}
-                            aria-label={isCollapsed ? child.label : undefined}
-                            aria-disabled={locked || undefined}
-                            aria-current={isChildActive ? "page" : undefined}
-                            onClick={(event) => {
-                              if (locked) {
-                                event.preventDefault();
-                                return;
-                              }
-                              setMobileOpen(false);
-                            }}
-                            className={cn(
-                              sidebarItemBase,
-                              "min-h-9 w-full",
-                              isChildActive ? sidebarItemActive : sidebarItemInactive,
-                              locked ? "opacity-60" : "",
-                              itemLayout,
-                            )}
-                          >
-                            <NavIcon icon={child.icon} label={child.label} className="size-4" />
-                            {!isCollapsed ? (
-                              <>
-                                <span className="min-w-0 truncate whitespace-nowrap">{child.label}</span>
-                                {renderLeafBadges(child)}
-                              </>
-                            ) : null}
-                          </Link>
-                        </Tooltip>
-                      );
-                    })}
-                  </div>
+                      toggleGroup(mod.key);
+                    }}
+                    className={cn(
+                      sidebarItemBase,
+                      "min-h-10 w-full",
+                      isDirectActive || (hasActiveDescendant && !isExpanded) ? sidebarItemActive : sidebarItemInactive,
+                      mod.locked ? "opacity-70" : "",
+                      isCollapsed ? "justify-center px-0" : "gap-2.5 overflow-hidden pl-4 pr-3",
+                    )}
+                  >
+                    <NavIcon icon={mod.icon} label={mod.label} className={cn("size-4", isDirectActive || (hasActiveDescendant && !isExpanded) ? "text-foreground" : "text-muted-foreground group-hover:text-foreground")} />
+                    <span
+                      className={cn(
+                        "min-w-0 flex-1 truncate whitespace-nowrap text-left transition-[max-width,opacity,transform] duration-200 ease-[cubic-bezier(0.2,0,0,1)]",
+                        isDirectActive || (hasActiveDescendant && !isExpanded) ? "font-semibold" : "",
+                        isCollapsed
+                          ? "max-w-0 -translate-x-1 opacity-0"
+                          : "max-w-36 translate-x-0 opacity-100",
+                      )}
+                      aria-hidden={isCollapsed}
+                    >
+                      {mod.label}
+                    </span>
+                    {!isCollapsed && mod.badge ? (
+                      <span className="shrink-0 rounded-[4px] border border-border bg-background px-1.5 py-0.5 font-mono text-xs leading-none text-muted-foreground">
+                        {mod.badge}
+                      </span>
+                    ) : null}
+                    {!isCollapsed && mod.locked ? (
+                      <Lock className="size-3.5 shrink-0 text-muted-foreground" />
+                    ) : null}
+                    {!isCollapsed && (
+                      <ChevronDown
+                        className={cn(
+                          "size-3.5 shrink-0 text-muted-foreground transition-transform duration-150",
+                          isExpanded ? "rotate-180" : "rotate-0",
+                        )}
+                        aria-hidden="true"
+                      />
+                    )}
+                  </button>
+                  </Tooltip>
+                  </Popover>
+                  {!isCollapsed && isExpanded && (
+                    <div className="mt-1 space-y-1 pl-6">
+                      {mod.children?.map((child) => renderChildLink(child, () => setMobileOpen(false)))}
+                    </div>
+                  )}
                 </div>
               );
             }
 
             return (
-              <Tooltip key={mod.key} title={mod.disabledReason ?? mod.label} disabled={!isCollapsed} placement="right" anchorClassName="flex w-full">
-                <Link
-                  // `as never`: defaultModules is mutated by the Agent at build time,
-                  // so the router-typed `to` prop cannot statically know the routes
-                  // an agent will introduce. Type-safety is preserved everywhere
-                  // else Link is used directly.
-                  to={mod.href as never}
-                  // router-core 1.171.14: https://github.com/TanStack/router/issues/7759
-                  preload={false}
-                  activeOptions={{ exact: true }}
-                  target={mod.newTab ? "_blank" : undefined}
-                  rel={mod.newTab ? "noreferrer" : undefined}
-                  title={isCollapsed ? undefined : mod.disabledReason}
-                  aria-label={isCollapsed ? mod.label : undefined}
-                  aria-disabled={mod.locked || undefined}
-                  aria-current={isDirectActive ? "page" : undefined}
-                  onClick={(event) => {
-                    if (mod.locked) {
-                      event.preventDefault();
-                      return;
-                    }
-                    setMobileOpen(false);
-                  }}
+              <Tooltip key={mod.key} title={navTitle(mod)} disabled={!isCollapsed} placement="right" anchorClassName="flex w-full">
+              <Link
+                // `as never`: defaultModules is mutated by the Agent at build time,
+                // so the router-typed `to` prop cannot statically know the routes
+                // an agent will introduce. Type-safety is preserved everywhere
+                // else Link is used directly.
+                to={mod.href as never}
+                // router-core 1.171.14: https://github.com/TanStack/router/issues/7759
+                preload={false}
+                activeOptions={{ exact: true }}
+                title={isCollapsed ? undefined : mod.disabledReason}
+                aria-label={isCollapsed ? mod.label : undefined}
+                aria-disabled={mod.locked || undefined}
+                aria-current={isDirectActive ? "page" : undefined}
+                onClick={(event) => {
+                  if (mod.locked) {
+                    event.preventDefault();
+                    return;
+                  }
+                  setMobileOpen(false);
+                }}
+                className={cn(
+                  sidebarItemBase,
+                  "mb-1 min-h-10 w-full",
+                  isDirectActive ? sidebarItemActive : sidebarItemInactive,
+                  mod.locked ? "opacity-70" : "",
+                  isCollapsed ? "justify-center px-0" : "gap-2.5 overflow-hidden pl-4 pr-3",
+                )}
+              >
+                <NavIcon icon={mod.icon} label={mod.label} className={cn("size-4", isDirectActive ? "text-foreground" : "text-muted-foreground group-hover:text-foreground")} />
+                <span
                   className={cn(
-                    sidebarItemBase,
-                    "mb-0.5 min-h-9 w-full",
-                    isDirectActive ? sidebarItemActive : sidebarItemInactive,
-                    mod.locked ? "opacity-60" : "",
-                    itemLayout,
+                    "min-w-0 truncate whitespace-nowrap transition-[max-width,opacity,transform] duration-200 ease-[cubic-bezier(0.2,0,0,1)]",
+                    isDirectActive && "font-semibold",
+                    isCollapsed
+                      ? "max-w-0 -translate-x-1 opacity-0"
+                      : "max-w-40 translate-x-0 opacity-100",
                   )}
+                  aria-hidden={isCollapsed}
                 >
-                  <NavIcon icon={mod.icon} label={mod.label} className="size-4" />
-                  {!isCollapsed ? (
-                    <>
-                      <span className="min-w-0 truncate whitespace-nowrap">{mod.label}</span>
-                      {renderLeafBadges(mod)}
-                    </>
-                  ) : null}
-                </Link>
+                  {mod.label}
+                </span>
+                {!isCollapsed && mod.badge ? (
+                  <span className="ml-auto shrink-0 rounded-[4px] border border-border bg-background px-1.5 py-0.5 font-mono text-xs leading-none text-muted-foreground">
+                    {mod.badge}
+                  </span>
+                ) : null}
+                {!isCollapsed && mod.locked ? (
+                  <Lock
+                    className={cn(
+                      "size-3.5 shrink-0 text-muted-foreground",
+                      mod.badge ? "" : "ml-auto",
+                    )}
+                  />
+                ) : null}
+              </Link>
               </Tooltip>
             );
           })}
         </div>
 
-        {/* Notifications + account — always at the bottom of the rail. */}
-        <div className={cn("shrink-0 py-3", isCollapsed ? "px-2" : "px-3")}>
-          <div
-            className={cn(
-              "flex min-w-0 items-center overflow-hidden border-t border-sidebar-border pt-3",
-              isCollapsed ? "flex-col gap-2" : "gap-1",
-            )}
-          >
-            <div
-              className={cn(
-                "flex min-w-0 items-center overflow-hidden",
-                isCollapsed ? "justify-center" : "min-w-0 flex-1 gap-2.5 px-1",
-              )}
-            >
+        {/* Notifications + account — always visible at the bottom of the rail. */}
+        <div className={cn("shrink-0 border-t border-sidebar-border bg-sidebar py-3", isCollapsed ? "px-2" : "px-3")}>
+          <div className={cn("flex min-w-0 items-center overflow-hidden", isCollapsed ? "flex-col gap-2" : "gap-1")}>
+            <div className={cn("flex min-w-0 items-center overflow-hidden", isCollapsed ? "justify-center" : "min-w-0 flex-1 gap-2.5")}>
               <span
                 aria-hidden="true"
                 title={isCollapsed ? user?.displayName : undefined}
-                className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-foreground text-background"
+                className="inline-flex size-8 shrink-0 items-center justify-center rounded-[4px] bg-muted text-xs font-semibold text-foreground"
               >
-                <User className="size-4" />
+                {(user?.displayName ?? "?").slice(0, 1).toUpperCase()}
               </span>
-              <div className={isCollapsed ? "sr-only" : "min-w-0 flex-1 overflow-hidden"}>
-                <p className="truncate text-sm leading-5" title={user?.displayName}>
-                  {user?.displayName ?? "…"}
+              <div className={isCollapsed ? "sr-only" : "min-w-0 overflow-hidden"}>
+                <p className="truncate text-sm font-medium leading-5">
+                  {user?.displayName ?? uiText("loading")}
                 </p>
-                <p className="truncate text-xs leading-4 text-muted-foreground" title={roleLabel || undefined}>
-                  {roleLabel || "未分配角色"}
-                </p>
+                {user ? (
+                  <p className="mt-0.5 truncate font-mono text-xs uppercase leading-4 text-muted-foreground" title={roleLabel || undefined}>
+                    {roleLabel || uiText("noRoles")}
+                  </p>
+                ) : null}
               </div>
             </div>
             <Popover
@@ -501,13 +576,8 @@ export function Shell({
               title="通知"
               content={<p className="text-xs text-muted-foreground">暂无新通知</p>}
             >
-              <button
-                type="button"
-                aria-label="通知"
-                title="通知"
-                className={cn(sidebarIconButton, "size-8")}
-              >
-                <Bell className="size-4" aria-hidden />
+              <button type="button" aria-label="通知" title="通知" className={sidebarIconButton}>
+                <Bell className="size-4" aria-hidden="true" />
               </button>
             </Popover>
           </div>
@@ -534,7 +604,7 @@ export function Shell({
         <div className="fixed inset-0 z-40 flex md:hidden">
           <button
             type="button"
-            aria-label="Close navigation"
+            aria-label={uiText("closeNavigation")}
             className="absolute inset-0 bg-black/40 supports-[backdrop-filter]:bg-black/30 supports-[backdrop-filter]:backdrop-blur-[2px] animate-[tier0-fade_160ms_ease-out]"
             onClick={() => setMobileOpen(false)}
           />
@@ -549,11 +619,12 @@ export function Shell({
       )}
 
       <main className="page-y-scroll min-h-0 min-w-0 flex-1">
+        <OfflineBanner />
         <div className="flex h-14 items-center bg-card px-4 md:hidden">
           <button
             type="button"
-            aria-label="Open navigation"
-            className="inline-flex size-10 items-center justify-center rounded-[4px] border border-border bg-card text-foreground shadow-sm transition-[background-color,border-color,box-shadow,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] hover:border-border-strong hover:bg-background hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight/35 active:scale-95"
+            aria-label={uiText("openNavigation")}
+            className="inline-flex size-10 items-center justify-center rounded-[4px] border border-border bg-card pointer-coarse:size-11 text-foreground shadow-sm transition-[background-color,border-color,box-shadow,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] hover:border-border-strong hover:bg-background hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight/35 active:scale-95"
             onClick={() => setMobileOpen(true)}
           >
             <Menu className="size-4" />

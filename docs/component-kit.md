@@ -83,6 +83,10 @@
 - `to` 指向明确的上一级路由，不用 `history.back()`，从链接直接打开或刷新后也能回到正确的上一级；`label` 是上一级名称，读作「返回{label}」。
 - 一个页面只有一个返回入口，不在内容区再手写返回链接；工位等多层页面按当前层级切换返回目标。
 
+- 数据范围页签（`topTabs`）与状态胶囊（`CapsuleGroup` / `StatusFilter`）是分段切换样式：带边框的浅灰托盘，选中项为白底卡片并加粗，计数是选项内的小标记。选中态不使用黑底，避免与「创建」等主按钮混淆；托盘高度与同排按钮一致（md 36px），长名称在选项内换行。
+- 表格设置（字段配置 / 排序 / 行高）在工具栏右侧以文字按钮呈现，不加托盘，不与页签外观相同。
+- 排序按钮直接显示第一条规则（「排序：计划数量 降序」，更多规则显示「+N」，悬停列出全部）。方向统一写作「升序 / 降序」，不使用只适合文本的「A → Z」。个人未保存排序时，按钮和查询使用当前视图的「默认排序」，按钮标注「（默认）」；清空全部条件即立即恢复视图默认排序，刷新前后一致。需要无排序时去掉视图的默认排序。
+
 ## 关键词搜索与高级筛选
 
 两者解决不同问题，不要合并成一个含义模糊的「组合搜索」：
@@ -136,6 +140,16 @@ const adapter: ComponentKitAdapter = {
 主要契约：`meta/config` 返回字段/视图配置，`meta/query` 返回分页数据；`meta/views` 与 `meta/prefs` 保存视图；`reference-options`、`org/tree`、`org/persons` 返回选择项；`meta/import-template`、`meta/import`、`meta/export` 处理 Excel；`print-templates`、`print/render` 返回打印配置/页面。完整字段以 TypeScript 类型和调用点为准，宿主只需实现实际使用的能力。
 
 移动卡片的 key、状态字段、详情布局和自定义内容均由应用传入；内置 `progress` 内容接收显式 `progress` 值，业务指标计算由应用负责。上传组件产生前端文件值，应用需对接文件持久化、大小/类型限制及权限。日期格式工具当前沿用 UTC+8 显示约定，多时区应用应先调整格式适配。
+
+## 图标
+
+导航与操作图标统一使用 `lucide-react`（ISC 许可，24px 网格、2px 描边，与脚手架现有图标同一风格），不引入第二套图标库，不使用 emoji 作图标。
+
+- **按名称导入**：`import { Wrench } from "lucide-react"`，只打包用到的图标。禁止 `import { icons } from "lucide-react"` 或按字符串动态取整个图标表：整表约 1700 个图标，会让应用主包增加约 480 kB（gzip 约 125 kB）。
+- **侧栏菜单**：每个分组和叶子都配置与业务含义匹配的图标，优先传组件；也可以写 `src/components/nav-icons.ts` 中 `NAV_ICON_LIBRARY` 的名称（`"Wrench"`）。库外的字符串名称会在类型检查时报错，改为直接导入对应组件；运行时读到的未知名称不会报错，开发环境控制台给出提示。未配置或名称不在库中时，Shell 依次按菜单名称关键词匹配（「报修单」→ Wrench、「库存台账」→ Warehouse，见 `NAV_ICON_KEYWORDS`），仍无匹配则显示名称首字的方框标记。侧栏折叠后每项都有可见标识，悬停或键盘聚焦显示菜单名称（锁定项附原因），当前页以浅灰底、加粗文字和深色图标标示。
+- **尺寸与颜色**：侧栏一级 16px、二级 14px；按钮与工具栏 14–16px（`[&>svg]:size-3.5` / `size-4`）。图标跟随文字颜色：未选中为 `text-muted-foreground`，选中、悬停为 `text-foreground`；只有状态和危险操作使用语义色。图标与文字同一行垂直居中，间距 8–10px（`gap-2` / `gap-2.5`）。
+- **常用操作对照**：新增 `Plus` / `CirclePlus`，编辑 `Pencil`，删除 `Trash2`，搜索 `Search`，筛选 `Funnel`，排序 `ArrowDownUp`，导入 `FileInput`，导出 `FileOutput`，打印 `Printer`，刷新 `RefreshCw`，更多 `EllipsisVertical`，设置 `Settings`。同一含义在整个应用只用同一个图标。
+- 新增业务概念需要库外图标时，直接按名称导入组件即可；常用于菜单的再补进 `NAV_ICON_LIBRARY` 和关键词表，并同步 `tests/nav-icons.test.tsx`。
 
 ## 样式与验证
 

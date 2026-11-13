@@ -149,10 +149,17 @@ describe("navigation contracts", () => {
     );
 
     assert.match(shell, /function resolveNavIcon\(/);
-    assert.match(shell, /function normalizeLucideIconName\(/);
-    assert.match(shell, /\bicons\b/);
-    assert.match(shell, /icons\[name as keyof typeof icons\]/);
-    assert.match(shell, /from "lucide-react"/);
+    assert.match(shell, /resolveNavIconComponent\(icon, label\)/);
+    // The full lucide `icons` map adds ~480 kB to the app chunk; resolve names
+    // through the curated library instead.
+    assert.doesNotMatch(shell, /import\s*\{[^}]*\bicons\b[^}]*\}\s*from\s*"lucide-react"/);
+    const navIcons = readFileSync(
+      join(process.cwd(), "src/components/nav-icons.ts"),
+      "utf8",
+    );
+    assert.match(navIcons, /export const NAV_ICON_LIBRARY/);
+    assert.match(navIcons, /export function suggestNavIcon\(/);
+    assert.doesNotMatch(navIcons, /import\s*\{[^}]*\bicons\b[^}]*\}\s*from\s*"lucide-react"/);
     assert.match(shell, /<NavIcon icon=\{mod\.icon\} label=\{mod\.label\}/);
     assert.match(shell, /<NavIcon icon=\{child\.icon\} label=\{child\.label\}/);
     assert.match(shell, /<Tooltip[^>]*disabled=\{!isCollapsed\}/);
