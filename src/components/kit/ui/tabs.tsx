@@ -186,9 +186,9 @@ export interface CapsuleGroupProps<K extends string | number = string> {
 
 /**
  * CapsuleGroup — single-choice scope / status switch with counts
- * (「全部 45」「进行中 22」), drawn as a segmented control: a bordered tray the
- * height of the neighbouring buttons, the selected item raised on a card
- * surface. It never uses the filled primary-button look, so a selected scope
+ * (「全部 45」「进行中 22」), drawn as a segmented control: a soft tray the
+ * height of the neighbouring buttons, with no outer or selected-item outline.
+ * The selected item is raised by its card fill and subtle shadow. It never uses the filled primary-button look, so a selected scope
  * cannot be mistaken for an action such as 「创建」. Long labels wrap inside
  * their item and the tray wraps onto more rows instead of overlapping.
  */
@@ -207,7 +207,7 @@ export function CapsuleGroup<K extends string | number = string>({
       role="group"
       aria-label={ariaLabel}
       className={cn(
-        "inline-flex w-fit min-w-0 max-w-full flex-wrap items-stretch gap-0.5 rounded-[4px] border border-border bg-muted/60 p-0.5",
+        "inline-flex w-fit min-w-0 max-w-full flex-wrap items-stretch gap-0.5 rounded-[4px] bg-muted/60 p-0.5",
         size === "sm" ? "min-h-[var(--tier0-control-height-sm)]" : "min-h-[var(--tier0-control-height-md)]",
         className,
       )}
@@ -227,7 +227,7 @@ export function CapsuleGroup<K extends string | number = string>({
               size === "sm" ? "px-2 py-0.5 text-xs" : "px-3 py-1 text-sm",
               "pointer-coarse:min-h-10",
               active
-                ? "bg-card font-medium text-foreground shadow-sm ring-1 ring-border/60"
+                ? "bg-card font-medium text-foreground shadow-sm"
                 : "bg-transparent text-muted-foreground hover:bg-card/60 hover:text-foreground",
               item.disabled && "pointer-events-none opacity-50",
             )}
@@ -240,12 +240,7 @@ export function CapsuleGroup<K extends string | number = string>({
             {item.icon ? <span className="flex shrink-0 [&>svg]:size-3.5">{item.icon}</span> : null}
             <span className="min-w-0 break-words text-left">{item.label}</span>
             {item.count !== undefined ? (
-              <span
-                className={cn(
-                  "inline-flex h-[18px] min-w-[18px] shrink-0 items-center justify-center rounded-[3px] px-1 text-xs font-normal leading-none tabular-nums",
-                  active ? "bg-muted text-foreground" : "bg-background/70 text-text-tertiary",
-                )}
-              >
+              <span className={cn("shrink-0 text-xs font-normal tabular-nums", active ? "text-text-secondary" : "text-text-tertiary")}>
                 {item.count}
               </span>
             ) : null}

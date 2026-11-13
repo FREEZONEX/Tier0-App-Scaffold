@@ -11,7 +11,7 @@ import { useKitApi, type KitApi } from "@/components/kit/provider";
  *
  * Row 打印 passes one id; 批量打印 passes up to 20 ids (one page per record).
  */
-import { ArrowLeft, Printer } from "lucide-react";
+import { ArrowLeft, Check, FileText, Printer, Tag as TagIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
@@ -279,19 +279,31 @@ function PrintBody({
         empty={<Empty description="请先配置打印模板" />}
       >
         {() => (
-          <div className="flex min-h-32 flex-wrap content-start gap-3" role="radiogroup" aria-label="打印模板">
+          <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="打印模板">
             {available.map((item) => (
-              <Button
+              <button
+                type="button"
                 key={item.code}
                 role="radio"
                 aria-checked={selected === item.code}
-                variant={selected === item.code ? "primary" : "outline"}
                 title={item.name}
-                className={cn("max-w-full", selected === item.code && "shadow-none")}
+                className={cn(
+                  "flex min-w-0 items-center gap-3 rounded-[4px] border px-3 py-3 text-left outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50",
+                  selected === item.code
+                    ? "border-foreground bg-muted text-foreground"
+                    : "border-border bg-card text-foreground hover:border-border-strong hover:bg-fill-hover",
+                )}
                 onClick={() => setSelected(item.code)}
               >
-                <span className="truncate">{item.name}</span>
-              </Button>
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-[4px] bg-muted text-muted-foreground">
+                  {item.layout === "LABEL" ? <TagIcon className="size-4" /> : <FileText className="size-4" />}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-medium">{item.name}</span>
+                  <span className="mt-0.5 block text-xs text-text-tertiary">{item.layout === "LABEL" ? "标签" : "单据"}</span>
+                </span>
+                {selected === item.code ? <Check className="size-4 shrink-0" aria-hidden="true" /> : null}
+              </button>
             ))}
           </div>
         )}
@@ -319,8 +331,9 @@ export function PrintDialog({ open, onOpenChange, objectCode, ids }: PrintDialog
         onOpenChange(next);
       }}
       title={preview ? "打印预览" : "选择打印模板"}
-      size={preview ? "full" : "md"}
-      contentClassName="flex flex-col"
+      size={preview ? "full" : "sm"}
+      className={preview ? undefined : "h-auto"}
+      contentClassName={preview ? "flex flex-col" : "!flex-none"}
     >
       {open ? (
         <PrintBody

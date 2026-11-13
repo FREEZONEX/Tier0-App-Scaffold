@@ -10,7 +10,7 @@
  *
  * Rows added here get a `__key`; strip it with `stripRowKeys()` before saving.
  */
-import { BriefcaseMedical, CirclePlus, CircleQuestionMark, GripVertical, PenLine, Trash2, X } from "lucide-react";
+import { BriefcaseMedical, CirclePlus, CircleQuestionMark, PenLine, Trash2, X } from "lucide-react";
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import { ConfirmDialog } from "@/components/overlays/confirm-dialog";
 import { Dialog } from "@/components/overlays/dialog";
@@ -35,6 +35,7 @@ import { columnStatesFrom, defaultColumnWidth, type ColumnState } from "@/lib/co
 import type { FieldDef, QueryFilter, RefValue, RowHeight, SelectOption } from "@/lib/component-kit/types";
 import type { ListRow } from "@/lib/component-kit/use-list-controller";
 import { cn } from "@/lib/utils";
+import { DragHandle, dragInsertionClass } from "@/components/kit/ui/drag-handle";
 import { FieldConfigPopover } from "@/components/kit/meta/field-config-popover";
 import { FieldControl } from "@/components/kit/meta/field-control";
 import { FieldValue } from "@/components/kit/meta/field-value";
@@ -634,7 +635,7 @@ export function DetailTable({
         indexWidth={indexWidth}
         renderIndex={(row, index) => (
           <span className="inline-flex max-w-full items-center gap-1">
-            {canDrag ? <GripVertical className="size-3.5 shrink-0 cursor-grab text-text-placeholder" aria-hidden="true" /> : null}
+            {canDrag ? <DragHandle /> : null}
             {renderIndex ? (
               <span className="min-w-0 truncate tabular-nums">{renderIndex(row, index)}</span>
             ) : (
@@ -677,7 +678,7 @@ export function DetailTable({
                 },
                 className: cn(
                   dragIndex === index && "opacity-40",
-                  dropIndex === index && dragIndex !== null && dragIndex !== index && "[&>td]:border-t-2 [&>td]:border-t-brand",
+                  dropIndex === index && dragIndex !== null && dragIndex !== index && dragInsertionClass("before", true),
                 ),
               })
             : undefined

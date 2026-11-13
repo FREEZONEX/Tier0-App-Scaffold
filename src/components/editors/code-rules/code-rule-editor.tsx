@@ -10,7 +10,7 @@ import { useKitApi } from "@/components/kit/provider";
  * table (拖拽柄, * 字段类型ⓘ, * 字段值, * 补位方式ⓘ, * 补位符号ⓘ, * 长度, * 是否显示ⓘ, 操作 删除).
  * 取消 / 保存; 查看 shows 返回 only.
  */
-import { CircleHelp, CirclePlus, GripVertical } from "lucide-react";
+import { CircleHelp, CirclePlus } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { AsyncView } from "@/components/data/async-view";
 import { FieldLabel } from "@/components/forms/field-label";
@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { FullscreenModal } from "@/components/kit/meta/index";
 import { TextButton } from "@/components/kit/ui/buttons";
 import { DataGrid, type DataGridColumn } from "@/components/kit/ui/data-grid";
+import { DragHandle, dragInsertionClass } from "@/components/kit/ui/drag-handle";
 import { Input } from "@/components/kit/ui/input";
 import { NumberInput } from "@/components/kit/ui/number-input";
 import { Select } from "@/components/kit/ui/select";
@@ -471,7 +472,7 @@ function EditorBody({
           showIndex={!readOnly}
           indexTitle=""
           indexWidth={56}
-          renderIndex={() => <GripVertical className="mx-auto size-4 cursor-grab text-text-placeholder" aria-hidden="true" />}
+          renderIndex={() => <DragHandle className="mx-auto" />}
           rowProps={
             readOnly
               ? undefined
@@ -502,7 +503,7 @@ function EditorBody({
                     setDragKey(null);
                     setDropKey(null);
                   },
-                  className: cn(dragKey === row.key && "opacity-40", dropKey === row.key && dragKey && dragKey !== row.key && "[&>td]:border-t-2 [&>td]:border-t-brand"),
+                  className: cn(dragKey === row.key && "opacity-40", dropKey === row.key && dragKey && dragKey !== row.key && dragInsertionClass("before", true)),
                 })
           }
         />

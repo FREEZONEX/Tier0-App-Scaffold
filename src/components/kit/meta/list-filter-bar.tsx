@@ -12,7 +12,7 @@
  * - `ListFilterPanel` — the other conditions under the toolbar: label above
  *   control, 2–4 per row, 重置 / 查询 at the end.
  */
-import { ListFilter, Search } from "lucide-react";
+import { ChevronUp, ListFilter, Search } from "lucide-react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/kit/ui/input";
@@ -20,6 +20,7 @@ import { isHiddenSearchCondition, searchControlKind, type SearchValues } from "@
 import type { FieldDef } from "@/lib/component-kit/types";
 import { cn } from "@/lib/utils";
 import { SearchFieldControl } from "@/components/kit/meta/search-panel";
+import { IconButton } from "@/components/kit/ui/buttons";
 
 /** Splits search conditions into the toolbar keyword box and the 筛选 panel. */
 export function splitSearchConditions(conditions: readonly FieldDef[]) {
@@ -108,6 +109,7 @@ export function ListFilterPanel({
   onValueChange,
   onSearch,
   onReset,
+  onCollapse,
   loading = false,
 }: {
   id: string;
@@ -116,6 +118,8 @@ export function ListFilterPanel({
   onValueChange: (code: string, value: unknown) => void;
   onSearch: () => void;
   onReset: () => void;
+  /** Close the panel without changing its values. */
+  onCollapse?: () => void;
   loading?: boolean;
 }) {
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -135,8 +139,14 @@ export function ListFilterPanel({
       ref={rootRef}
       role="search"
       aria-label="筛选条件"
-      className="@container/filters min-w-0 rounded-[4px] border border-border bg-card p-3"
+      className="@container/filters min-w-0 rounded-[4px] border border-border-secondary bg-muted/45 p-4 shadow-[inset_0_1px_0_rgb(5_11_20/0.05)]"
     >
+      {onCollapse ? (
+        <div className="mb-3 flex items-center justify-between gap-3 border-b border-border-secondary pb-2">
+          <span className="text-sm font-medium text-foreground">筛选条件</span>
+          <IconButton size="sm" label="收起筛选" icon={<ChevronUp />} onClick={onCollapse} />
+        </div>
+      ) : null}
       <div className="grid min-w-0 grid-cols-1 gap-3 @min-[34rem]/filters:grid-cols-2 @min-[56rem]/filters:grid-cols-3 @min-[76rem]/filters:grid-cols-4">
         {fields.map((field) => (
           <div key={`${field.code}:${resetToken}`} className="flex min-w-0 flex-col gap-1.5">

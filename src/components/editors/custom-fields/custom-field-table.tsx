@@ -6,7 +6,7 @@
  * saved at once), 字段名称, 字段类型 (colored tag), 是否必填, 提示说明, 创建时间, 创建人,
  * 更新时间, 更新人, 操作 (编辑 / 删除).
  */
-import { CirclePlus, GripVertical, Info, Search } from "lucide-react";
+import { CirclePlus, Info, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { TextButton } from "@/components/kit/ui/buttons";
@@ -17,6 +17,7 @@ import { Tooltip } from "@/components/kit/ui/tooltip";
 import { formatDateTime } from "@/lib/component-kit/format";
 import type { CustomFieldRecord } from "@/lib/component-kit/types";
 import { cn } from "@/lib/utils";
+import { DragHandle, dragInsertionClass } from "@/components/kit/ui/drag-handle";
 import { FIELD_TYPE_COLOR, FIELD_TYPE_LABEL } from "@/components/editors/custom-fields/field-type-meta";
 
 export interface CustomFieldTableProps {
@@ -197,7 +198,7 @@ export function CustomFieldTable({ objectLabel, fields, limit, canManage, onCrea
         renderIndex={(_field, index) => (
           <span className="inline-flex items-center gap-2">
             {canManage ? (
-              <GripVertical className={cn("size-4 text-text-placeholder", canDrag ? "cursor-grab" : "opacity-40")} aria-hidden="true" />
+              <DragHandle disabled={!canDrag} />
             ) : null}
             <span className="tabular-nums">{index + 1}</span>
           </span>
@@ -228,7 +229,7 @@ export function CustomFieldTable({ objectLabel, fields, limit, canManage, onCrea
                 },
                 className: cn(
                   dragCode === field.fieldCode && "opacity-40",
-                  dropCode === field.fieldCode && dragCode !== null && dragCode !== field.fieldCode && "[&>td]:border-t-2 [&>td]:border-t-brand",
+                  dropCode === field.fieldCode && dragCode !== null && dragCode !== field.fieldCode && dragInsertionClass("before", true),
                 ),
               })
             : undefined

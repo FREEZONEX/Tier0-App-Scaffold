@@ -47,7 +47,7 @@ export function RowHeightMenu({ value, onChange, disabled = false, compact = fal
       {compact ? (
         <IconButton variant="outline" size="lg" icon={<TextCursor />} label="行高" title="行高" tooltip={false} disabled={disabled} />
       ) : (
-        <TextButton icon={<TextCursor />} disabled={disabled}>
+        <TextButton tone="success" icon={<TextCursor />} disabled={disabled}>
           行高
         </TextButton>
       )}
