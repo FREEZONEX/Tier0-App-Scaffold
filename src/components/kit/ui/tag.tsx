@@ -10,21 +10,22 @@ const TONE_CLASS: Record<TagTone, string> = {
   default:
     "border-border bg-transparent text-foreground dark:bg-input/32",
   processing:
-    "border-info/15 bg-info/10 text-info-foreground dark:border-info/25 dark:bg-info/15 dark:text-info",
+    "border-info/15 bg-info/10 text-info-foreground dark:border-info/25 dark:bg-info/15 dark:text-info-foreground",
   success:
-    "border-success/15 bg-success/10 text-success-foreground dark:border-success/25 dark:bg-success/15 dark:text-success",
+    "border-success/15 bg-success/10 text-success-foreground dark:border-success/25 dark:bg-success/15 dark:text-success-foreground",
   warning:
-    "border-warning/15 bg-warning/10 text-warning-foreground dark:border-warning/25 dark:bg-warning/15 dark:text-warning",
+    "border-warning/15 bg-warning/10 text-warning-foreground dark:border-warning/25 dark:bg-warning/15 dark:text-warning-foreground",
   error:
-    "border-destructive/15 bg-destructive/10 text-destructive-foreground dark:border-destructive/25 dark:bg-destructive/15 dark:text-destructive",
+    "border-destructive/15 bg-destructive/10 text-destructive-foreground dark:border-destructive/25 dark:bg-destructive/15 dark:text-destructive-foreground",
 };
 
 const SOLID_TONE_CLASS: Record<TagTone, string> = {
   default: "border-transparent bg-invert text-invert-foreground",
-  processing: "border-transparent bg-info text-white",
-  success: "border-transparent bg-success text-white",
-  warning: "border-transparent bg-warning text-white",
-  error: "border-transparent bg-destructive text-white",
+  // Solid fills keep text ≥4.5:1: dark ink on bright green / yellow, white on deeper violet / red.
+  processing: "border-transparent bg-violet-600 text-white",
+  success: "border-transparent bg-success text-[#050b14]",
+  warning: "border-transparent bg-warning text-[#050b14]",
+  error: "border-transparent bg-red-600 text-white",
 };
 
 /** Identity colors (ReUI): tint + border use the hue; label stays on --foreground. */

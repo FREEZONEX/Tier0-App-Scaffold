@@ -240,9 +240,21 @@ function isIconComponent(value: unknown): value is LucideIcon {
  * Icon component for a sidebar entry: explicit component → library name →
  * label keyword → null (caller draws the letter mark).
  */
+const warnedNames = new Set<string>();
+
+function warnUnknownName(name: string, label: string) {
+  // Development hint only: the menu still renders a keyword icon or letter mark.
+  if (!import.meta.env?.DEV || warnedNames.has(name)) return;
+  warnedNames.add(name);
+  console.warn(
+    `[nav-icons] "${name}" (menu "${label}") is not in NAV_ICON_LIBRARY; import the icon from lucide-react instead.`,
+  );
+}
+
 export function resolveNavIconComponent(icon: unknown, label: string): LucideIcon | null {
   if (isIconComponent(icon)) return icon;
   const named = typeof icon === "string" ? findNavIconName(icon) : null;
+  if (typeof icon === "string" && icon.trim() && !named) warnUnknownName(icon, label);
   const name = named ?? suggestNavIcon(label);
   return name ? NAV_ICON_LIBRARY[name] : null;
 }

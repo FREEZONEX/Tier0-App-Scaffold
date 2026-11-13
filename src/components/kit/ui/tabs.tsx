@@ -149,7 +149,7 @@ export function Tabs<K extends string = string>({
             {type === "line" && ink ? (
               <span
                 aria-hidden="true"
-                className="absolute bottom-0 h-0.5 origin-left rounded-full bg-[color:var(--tier0-highlight-deep)] transition-transform duration-[var(--motion-base)] ease-[var(--motion-spring)] motion-reduce:transition-none"
+                className="absolute bottom-0 h-0.5 origin-left rounded-full bg-foreground transition-transform duration-[var(--motion-base)] ease-[var(--motion-spring)] motion-reduce:transition-none"
                 style={{
                   left: 0,
                   width: 1,
@@ -225,6 +225,7 @@ export function CapsuleGroup<K extends string | number = string>({
               "transition-[color,background-color,box-shadow] duration-[var(--motion-fast)] ease-[var(--motion-ease)]",
               "focus-visible:ring-2 focus-visible:ring-ring/50 motion-reduce:transition-none",
               size === "sm" ? "px-2 py-0.5 text-xs" : "px-3 py-1 text-sm",
+              "pointer-coarse:min-h-10",
               active
                 ? "bg-card font-medium text-foreground shadow-sm ring-1 ring-border/60"
                 : "bg-transparent text-muted-foreground hover:bg-card/60 hover:text-foreground",
@@ -364,11 +365,11 @@ export function AnchorTabs({
               aria-selected={selected}
               tabIndex={selected ? 0 : -1}
               className={cn(
-                "relative inline-flex shrink-0 items-center whitespace-nowrap outline-none transition-colors duration-150 focus-visible:text-[color:var(--tier0-highlight-deep)]",
+                "relative inline-flex shrink-0 items-center whitespace-nowrap rounded-[4px] outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring/50",
                 size === "sm" ? "py-2 text-sm" : "py-3 text-sm",
                 selected
-                  ? "font-medium text-[color:var(--tier0-highlight-deep)]"
-                  : "text-foreground hover:text-foreground",
+                  ? "font-medium text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
               onClick={() => jump(item.key)}
               onKeyDown={(event) => focusSibling(event, (next) => {
@@ -383,7 +384,7 @@ export function AnchorTabs({
         {ink ? (
           <span
             aria-hidden="true"
-            className="absolute bottom-0 h-0.5 origin-left rounded-full bg-[color:var(--tier0-highlight-deep)] transition-transform duration-[var(--motion-base)] ease-[var(--motion-spring)] motion-reduce:transition-none"
+            className="absolute bottom-0 h-0.5 origin-left rounded-full bg-foreground transition-transform duration-[var(--motion-base)] ease-[var(--motion-spring)] motion-reduce:transition-none"
             style={{
               left: 0,
               width: 1,

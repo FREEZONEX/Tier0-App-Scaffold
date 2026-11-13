@@ -242,7 +242,7 @@ function ImportBody({
             onChange={(next) => setMode(next as ImportMode)}
           />
           <Tooltip title={UPSERT_TIP}>
-            <span className="inline-flex text-text-tertiary" aria-label={UPSERT_TIP} tabIndex={0}>
+            <span className="inline-flex text-text-tertiary" role="img" aria-label={UPSERT_TIP} tabIndex={0}>
               <CircleQuestionMark className="size-4" />
             </span>
           </Tooltip>

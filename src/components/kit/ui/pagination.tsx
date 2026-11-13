@@ -75,6 +75,7 @@ export function Pagination({
     cn(
       "inline-flex shrink-0 items-center justify-center rounded-[4px] tabular-nums transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
       small ? "h-7 min-w-7 px-1 text-xs" : "h-8 min-w-8 px-1.5 text-sm",
+      "pointer-coarse:h-11 pointer-coarse:min-w-11",
       active
         ? "bg-primary font-medium text-primary-foreground"
         : "text-foreground hover:bg-muted",

@@ -107,7 +107,7 @@ const adapter: ComponentKitAdapter = {
 导航与操作图标统一使用 `lucide-react`（ISC 许可，24px 网格、2px 描边，与脚手架现有图标同一风格），不引入第二套图标库，不使用 emoji 作图标。
 
 - **按名称导入**：`import { Wrench } from "lucide-react"`，只打包用到的图标。禁止 `import { icons } from "lucide-react"` 或按字符串动态取整个图标表：整表约 1700 个图标，会让应用主包增加约 480 kB（gzip 约 125 kB）。
-- **侧栏菜单**：每个分组和叶子都配置与业务含义匹配的图标，优先传组件；也可以写 `src/components/nav-icons.ts` 中 `NAV_ICON_LIBRARY` 的名称（`"Wrench"`、`"clipboard-list"`）。未配置或名称不在库中时，Shell 依次按菜单名称关键词匹配（「报修单」→ Wrench、「库存台账」→ Warehouse，见 `NAV_ICON_KEYWORDS`），仍无匹配则显示名称首字的方框标记。侧栏折叠后每项都有可见标识，悬停或键盘聚焦显示菜单名称（锁定项附原因），当前页以浅灰底、加粗文字和深色图标标示。
+- **侧栏菜单**：每个分组和叶子都配置与业务含义匹配的图标，优先传组件；也可以写 `src/components/nav-icons.ts` 中 `NAV_ICON_LIBRARY` 的名称（`"Wrench"`）。库外的字符串名称会在类型检查时报错，改为直接导入对应组件；运行时读到的未知名称不会报错，开发环境控制台给出提示。未配置或名称不在库中时，Shell 依次按菜单名称关键词匹配（「报修单」→ Wrench、「库存台账」→ Warehouse，见 `NAV_ICON_KEYWORDS`），仍无匹配则显示名称首字的方框标记。侧栏折叠后每项都有可见标识，悬停或键盘聚焦显示菜单名称（锁定项附原因），当前页以浅灰底、加粗文字和深色图标标示。
 - **尺寸与颜色**：侧栏一级 16px、二级 14px；按钮与工具栏 14–16px（`[&>svg]:size-3.5` / `size-4`）。图标跟随文字颜色：未选中为 `text-muted-foreground`，选中、悬停为 `text-foreground`；只有状态和危险操作使用语义色。图标与文字同一行垂直居中，间距 8–10px（`gap-2` / `gap-2.5`）。
 - **常用操作对照**：新增 `Plus` / `CirclePlus`，编辑 `Pencil`，删除 `Trash2`，搜索 `Search`，筛选 `Funnel`，排序 `ArrowDownUp`，导入 `FileInput`，导出 `FileOutput`，打印 `Printer`，刷新 `RefreshCw`，更多 `EllipsisVertical`，设置 `Settings`。同一含义在整个应用只用同一个图标。
 - 新增业务概念需要库外图标时，直接按名称导入组件即可；常用于菜单的再补进 `NAV_ICON_LIBRARY` 和关键词表，并同步 `tests/nav-icons.test.tsx`。

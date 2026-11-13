@@ -56,6 +56,9 @@ const UI_COPY = {
     collapseSidebar: "Collapse sidebar",
     openNavigation: "Open navigation",
     closeNavigation: "Close navigation",
+    updatedAt: "Updated",
+    signedInAs: "Signed in",
+    offline: "Offline — changes can't be saved until the connection returns",
   },
   "zh-CN": {
     save: "保存",
@@ -70,6 +73,9 @@ const UI_COPY = {
     collapseSidebar: "收起侧边栏",
     openNavigation: "打开导航",
     closeNavigation: "关闭导航",
+    updatedAt: "更新于",
+    signedInAs: "当前用户",
+    offline: "网络已断开，恢复连接前操作无法保存",
   },
 } as const;
 

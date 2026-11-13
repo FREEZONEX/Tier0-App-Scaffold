@@ -16,7 +16,9 @@ import {
   Menu,
   X,
 } from "lucide-react";
+import { Popover } from "@/components/kit/ui/popover";
 import { Tooltip } from "@/components/kit/ui/tooltip";
+import { OfflineBanner } from "@/components/ui/offline-banner";
 import { cn } from "@/lib/utils";
 import type { AppUser } from "@/lib/users";
 import { APP_ICON, APP_NAME, filterSidebarModules, uiText } from "@/lib/app-chrome";
@@ -33,7 +35,7 @@ const COLLAPSED_STORAGE_KEY = "tier0-shell-collapsed";
 const COLLAPSED_STORAGE_EVENT = "tier0-shell-collapsed-change";
 
 const sidebarItemBase =
-  "group flex items-center rounded-[4px] text-sm font-medium transition-[background-color,color,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:ring-offset-1 focus-visible:ring-offset-sidebar";
+  "group flex items-center rounded-[4px] text-sm font-medium pointer-coarse:min-h-11 transition-[background-color,color,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:ring-offset-1 focus-visible:ring-offset-sidebar";
 const sidebarItemActive =
   "bg-muted text-foreground";
 // Hover is a lighter fill than the selection, so hovering never looks like the current page.
@@ -220,6 +222,8 @@ export function Shell({
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(
     {},
   );
+  /** Collapsed rail: the group whose children are shown in a flyout beside it. */
+  const [flyoutGroup, setFlyoutGroup] = useState<string | null>(null);
 
   function toggleCollapsed() {
     setStoredCollapsed(!collapsed);
@@ -232,12 +236,56 @@ export function Shell({
     }));
   }
 
-  function expandGroupFromCollapsed(key: string) {
-    setStoredCollapsed(false);
-    setExpandedGroups((current) => ({
-      ...current,
-      [key]: true,
-    }));
+  /** One child entry; used by the expanded group list and by the collapsed-rail flyout. */
+  function renderChildLink(child: NavModule, onNavigate: () => void) {
+    const childTitle = navTitle(child);
+    const isChildActive = child.key === activeModuleKey;
+
+    return (
+      <Link
+        key={child.key}
+        to={child.href as never}
+        // router-core 1.171.14: https://github.com/TanStack/router/issues/7759
+        preload={false}
+        activeOptions={{ exact: true }}
+        title={childTitle}
+        aria-disabled={child.locked || undefined}
+        aria-current={isChildActive ? "page" : undefined}
+        onClick={(event) => {
+          if (child.locked) {
+            event.preventDefault();
+            return;
+          }
+          onNavigate();
+        }}
+        className={cn(
+          sidebarItemBase,
+          "min-h-9 gap-2 px-3",
+          isChildActive
+            ? sidebarItemActive
+            : sidebarItemInactive,
+          child.locked ? "opacity-70" : "",
+        )}
+      >
+        <NavIcon icon={child.icon} label={child.label} className={cn("size-3.5", isChildActive ? "text-foreground" : "text-muted-foreground group-hover:text-foreground")} />
+        <span className={cn("min-w-0 truncate whitespace-nowrap", isChildActive && "font-semibold")}>
+          {child.label}
+        </span>
+        {child.badge ? (
+          <span className="ml-auto shrink-0 rounded-[4px] border border-border bg-background px-1.5 py-0.5 font-mono text-xs leading-none text-muted-foreground">
+            {child.badge}
+          </span>
+        ) : null}
+        {child.locked ? (
+          <Lock
+            className={cn(
+              "size-3.5 shrink-0 text-muted-foreground",
+              child.badge ? "" : "ml-auto",
+            )}
+          />
+        ) : null}
+      </Link>
+    );
   }
 
   function renderSidebar({
@@ -310,7 +358,7 @@ export function Shell({
                   aria-expanded={!isCollapsed}
                   aria-label={isCollapsed ? uiText("expandSidebar") : uiText("collapseSidebar")}
                   title={isCollapsed ? uiText("expandSidebar") : uiText("collapseSidebar")}
-                  className="inline-flex size-8 items-center justify-center rounded-[4px] border border-transparent bg-transparent text-muted-foreground transition-[background-color,color,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] hover:bg-sidebar-accent hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight/35 active:scale-95"
+                  className="inline-flex size-8 items-center justify-center rounded-[4px] border border-transparent bg-transparent text-muted-foreground transition-[background-color,color,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] hover:bg-sidebar-accent hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight/35 active:scale-95 pointer-coarse:size-11"
                 >
                   {isCollapsed ? (
                     <ChevronRight className="size-4" />
@@ -323,7 +371,7 @@ export function Shell({
                 <button
                   type="button"
                   aria-label={uiText("closeNavigation")}
-                  className="inline-flex size-8 items-center justify-center rounded-[4px] border border-transparent bg-transparent text-muted-foreground transition-[background-color,color,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] hover:bg-sidebar-accent hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight/35 active:scale-95"
+                  className="inline-flex size-8 items-center justify-center rounded-[4px] border border-transparent bg-transparent text-muted-foreground transition-[background-color,color,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] hover:bg-sidebar-accent hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight/35 active:scale-95 pointer-coarse:size-11"
                   onClick={() => setMobileOpen(false)}
                 >
                   <X className="size-4" />
@@ -352,20 +400,34 @@ export function Shell({
               const groupTitle = navTitle(mod);
               return (
                 <div key={mod.key} className="mb-1">
-                  <Tooltip title={groupTitle} disabled={!isCollapsed} placement="right" anchorClassName="flex w-full">
+                  <Popover
+                    trigger="click"
+                    placement="right-start"
+                    offset={10}
+                    disabled={!isCollapsed || Boolean(mod.locked)}
+                    open={isCollapsed && flyoutGroup === mod.key}
+                    onOpenChange={(open) => setFlyoutGroup(open ? mod.key : null)}
+                    aria-label={mod.label}
+                    anchorClassName="flex w-full"
+                    className="min-w-48 p-1.5"
+                    content={({ close }) => (
+                      <div className="flex flex-col gap-0.5">
+                        <p className="px-3 pb-1 pt-1 text-xs font-medium text-muted-foreground">{mod.label}</p>
+                        {mod.children?.map((child) => renderChildLink(child, close))}
+                      </div>
+                    )}
+                  >
+                  <Tooltip title={groupTitle} disabled={!isCollapsed || flyoutGroup === mod.key} placement="right" anchorClassName="flex w-full">
                   <button
                     type="button"
-                    aria-expanded={isExpanded}
+                    aria-expanded={isCollapsed ? flyoutGroup === mod.key : isExpanded}
                     aria-disabled={mod.locked || undefined}
                     aria-current={isDirectActive ? "page" : undefined}
                     title={isCollapsed ? undefined : mod.disabledReason}
                     aria-label={isCollapsed ? mod.label : undefined}
                     onClick={() => {
-                      if (mod.locked) {
-                        return;
-                      }
-                      if (isCollapsed) {
-                        expandGroupFromCollapsed(mod.key);
+                      // Collapsed: the surrounding Popover opens the child flyout.
+                      if (mod.locked || isCollapsed) {
                         return;
                       }
 
@@ -393,7 +455,7 @@ export function Shell({
                       {mod.label}
                     </span>
                     {!isCollapsed && mod.badge ? (
-                      <span className="shrink-0 rounded-[4px] border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] leading-none text-muted-foreground">
+                      <span className="shrink-0 rounded-[4px] border border-border bg-background px-1.5 py-0.5 font-mono text-xs leading-none text-muted-foreground">
                         {mod.badge}
                       </span>
                     ) : null}
@@ -411,58 +473,10 @@ export function Shell({
                     )}
                   </button>
                   </Tooltip>
+                  </Popover>
                   {!isCollapsed && isExpanded && (
                     <div className="mt-1 space-y-1 pl-6">
-                      {mod.children?.map((child) => {
-                        const childTitle = navTitle(child);
-                        const isChildActive = child.key === activeModuleKey;
-
-                        return (
-                          <Link
-                            key={child.key}
-                            to={child.href as never}
-                            // router-core 1.171.14: https://github.com/TanStack/router/issues/7759
-                            preload={false}
-                            activeOptions={{ exact: true }}
-                            title={childTitle}
-                            aria-disabled={child.locked || undefined}
-                            aria-current={isChildActive ? "page" : undefined}
-                            onClick={(event) => {
-                              if (child.locked) {
-                                event.preventDefault();
-                                return;
-                              }
-                              setMobileOpen(false);
-                            }}
-                            className={cn(
-                              sidebarItemBase,
-                              "min-h-9 gap-2 px-3",
-                              isChildActive
-                                ? sidebarItemActive
-                                : sidebarItemInactive,
-                              child.locked ? "opacity-70" : "",
-                            )}
-                          >
-                            <NavIcon icon={child.icon} label={child.label} className={cn("size-3.5", isChildActive ? "text-foreground" : "text-muted-foreground group-hover:text-foreground")} />
-                            <span className={cn("min-w-0 truncate whitespace-nowrap", isChildActive && "font-semibold")}>
-                              {child.label}
-                            </span>
-                            {child.badge ? (
-                              <span className="ml-auto shrink-0 rounded-[4px] border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] leading-none text-muted-foreground">
-                                {child.badge}
-                              </span>
-                            ) : null}
-                            {child.locked ? (
-                              <Lock
-                                className={cn(
-                                  "size-3.5 shrink-0 text-muted-foreground",
-                                  child.badge ? "" : "ml-auto",
-                                )}
-                              />
-                            ) : null}
-                          </Link>
-                        );
-                      })}
+                      {mod.children?.map((child) => renderChildLink(child, () => setMobileOpen(false)))}
                     </div>
                   )}
                 </div>
@@ -513,7 +527,7 @@ export function Shell({
                   {mod.label}
                 </span>
                 {!isCollapsed && mod.badge ? (
-                  <span className="ml-auto shrink-0 rounded-[4px] border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] leading-none text-muted-foreground">
+                  <span className="ml-auto shrink-0 rounded-[4px] border border-border bg-background px-1.5 py-0.5 font-mono text-xs leading-none text-muted-foreground">
                     {mod.badge}
                   </span>
                 ) : null}
@@ -590,11 +604,12 @@ export function Shell({
       )}
 
       <main className="page-y-scroll min-h-0 min-w-0 flex-1">
+        <OfflineBanner />
         <div className="flex h-14 items-center bg-card px-4 md:hidden">
           <button
             type="button"
             aria-label={uiText("openNavigation")}
-            className="inline-flex size-10 items-center justify-center rounded-[4px] border border-border bg-card text-foreground shadow-sm transition-[background-color,border-color,box-shadow,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] hover:border-border-strong hover:bg-background hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight/35 active:scale-95"
+            className="inline-flex size-10 items-center justify-center rounded-[4px] border border-border bg-card pointer-coarse:size-11 text-foreground shadow-sm transition-[background-color,border-color,box-shadow,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] hover:border-border-strong hover:bg-background hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight/35 active:scale-95"
             onClick={() => setMobileOpen(true)}
           >
             <Menu className="size-4" />

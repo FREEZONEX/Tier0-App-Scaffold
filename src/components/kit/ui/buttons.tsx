@@ -8,10 +8,11 @@ import { DropdownMenu } from "@/components/kit/ui/dropdown-menu";
 import { Tooltip } from "@/components/kit/ui/tooltip";
 import type { MenuItem } from "@/components/kit/ui/types";
 
+// On touch screens every icon button reaches the 44px target; the glyph keeps its size.
 const ICON_BUTTON_SIZE = {
-  sm: "size-6 rounded-[min(var(--tier0-radius-md),10px)] [&_svg]:size-3",
-  md: "size-8 rounded-[4px] [&_svg]:size-4",
-  lg: "size-9 rounded-[4px] [&_svg]:size-[18px]",
+  sm: "size-6 rounded-[min(var(--tier0-radius-md),10px)] [&_svg]:size-3 pointer-coarse:min-h-11 pointer-coarse:min-w-11",
+  md: "size-8 rounded-[4px] [&_svg]:size-4 pointer-coarse:min-h-11 pointer-coarse:min-w-11",
+  lg: "size-9 rounded-[4px] [&_svg]:size-[18px] pointer-coarse:min-h-11 pointer-coarse:min-w-11",
 } as const;
 
 export interface IconButtonProps
@@ -96,7 +97,7 @@ export const TextButton = forwardRef<HTMLButtonElement, TextButtonProps>(
         ref={ref}
         disabled={disabled}
         className={cn(
-          "inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-[4px] select-none outline-none",
+          "inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-[4px] select-none outline-none pointer-coarse:min-h-11",
           "transition-[color,text-decoration-color,opacity] duration-[var(--motion-fast)] ease-[var(--motion-ease)]",
           "underline decoration-transparent underline-offset-4 hover:decoration-current focus-visible:ring-3 focus-visible:ring-ring/50",
           "active:opacity-70",

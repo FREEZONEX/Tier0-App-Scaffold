@@ -132,6 +132,8 @@ interface BodyProps extends MetaListPageProps {
   config: EffectivePageConfig;
   onSwitchView: (viewCode: string) => void;
   onReloadConfig: () => void;
+  /** View the user just picked whose config is still loading (selected right away, table busy). */
+  switchingView: string | null;
 }
 
 function MetaListBody({
@@ -139,6 +141,7 @@ function MetaListBody({
   config,
   onSwitchView,
   onReloadConfig,
+  switchingView,
   createLabel = "创建",
   onCreate,
   toolbarExtra,
@@ -403,9 +406,10 @@ function MetaListBody({
       {hasViews ? (
         <ViewTabs
           views={config.views}
-          activeCode={config.activeView?.code}
+          activeCode={switchingView ?? config.activeView?.code}
+          pending={switchingView !== null}
           onSwitch={(code) => {
-            if (code !== config.activeView?.code) onSwitchView(code);
+            if (code !== (switchingView ?? config.activeView?.code)) onSwitchView(code);
           }}
           onEdit={(code) => setViewEditor({ viewCode: code })}
           onCopy={(code) => void copyView(code)}
@@ -542,7 +546,7 @@ function MetaListBody({
               rows={data.list}
               rowKey={(row) => String(row.id)}
               rowHeight={controller.rowHeight}
-              loading={query.isLoading}
+              loading={query.isLoading || switchingView !== null}
               indexOffset={(data.page.current - 1) * data.page.pageSize}
               fillViewport={{ bottomGap: 76, minHeight: 280 }}
               tree={
@@ -673,22 +677,50 @@ export function MetaListPage(props: MetaListPageProps) {
   const { objectCode, title, headerExtra, className } = props;
   const [viewCode, setViewCode] = useState<string | undefined>(undefined);
   const [configToken, setConfigToken] = useState(0);
+  /**
+   * A view switch in flight: the tab is selected at once and the table shows its busy
+   * state; the switch is saved (PUT active-view) only after that view's config loaded,
+   * and a failed load returns to the previous view with an error message.
+   */
+  const [switching, setSwitching] = useState<{ code: string; previous: string | undefined } | null>(null);
 
-  const config = useRequest(`meta-config:${objectCode}:${viewCode ?? ""}:${configToken}`, (signal) =>
-    api.getJson<EffectivePageConfig>(
-      apiUrl(`/api/meta/config/${objectCode}`) + (viewCode ? `?view=${encodeURIComponent(viewCode)}` : ""),
-      { signal },
-    ),
-  );
+  const config = useRequest(`meta-config:${objectCode}:${viewCode ?? ""}:${configToken}`, (signal) => {
+    const pendingSwitch = switching && switching.code === viewCode ? switching : null;
+    return api
+      .getJson<EffectivePageConfig>(
+        apiUrl(`/api/meta/config/${objectCode}`) + (viewCode ? `?view=${encodeURIComponent(viewCode)}` : ""),
+        { signal },
+      )
+      .then(
+        (data) => {
+          if (pendingSwitch) {
+            setSwitching((current) => (current === pendingSwitch ? null : current));
+            void api
+              .sendJson(apiUrl(`/api/meta/active-view/${objectCode}`), { method: "PUT", body: { viewCode: pendingSwitch.code } })
+              .catch((error: unknown) =>
+                toast.error("当前视图未能保存，下次打开仍显示原视图", { description: errorMessage(error, "") || undefined }),
+              );
+          }
+          return data;
+        },
+        (error: unknown) => {
+          if (pendingSwitch && !signal.aborted) {
+            setSwitching((current) => (current === pendingSwitch ? null : current));
+            setViewCode(pendingSwitch.previous);
+            toast.error("切换视图失败，已回到原视图", { description: errorMessage(error, "") || undefined });
+          }
+          throw error;
+        },
+      );
+  });
 
+  const loadedView = config.data?.activeView?.code;
   const switchView = useCallback(
     (code: string) => {
+      setSwitching({ code, previous: loadedView ?? viewCode });
       setViewCode(code);
-      void api.sendJson(apiUrl(`/api/meta/active-view/${objectCode}`), { method: "PUT", body: { viewCode: code } }).catch(
-        (error: unknown) => toast.error(errorMessage(error, "切换视图失败")),
-      );
     },
-    [api, objectCode],
+    [loadedView, viewCode],
   );
 
   const reloadConfig = useCallback(() => setConfigToken((token) => token + 1), []);
@@ -703,6 +735,7 @@ export function MetaListPage(props: MetaListPageProps) {
             config={data}
             onSwitchView={switchView}
             onReloadConfig={reloadConfig}
+            switchingView={switching?.code ?? null}
           />
         )}
       </AsyncView>

@@ -5,7 +5,7 @@ export const fields:any[]=[{code:'code',name:'记录编码',type:'TEXT',widget:{
 export const rows:any[]=[{id:'demo-1',__key:'1',code:'ITEM-1001',name:'示例项目 A',qty:120,status:'a',type:'0',jobNumber:3},{id:'demo-2',__key:'2',code:'ITEM-1002',name:'示例项目 B',qty:80,status:'b',type:'0',jobNumber:2},{id:'demo-3',__key:'3',code:'ITEM-1003',name:'示例项目 C',qty:200,status:'a',type:'0',jobNumber:1}];
 export const sections:any[]=[{key:'base',label:'基本信息',type:'form',zone:'FORM_HEADER',items:fields}];
 export const views:any[]=[{code:'all',objectCode:'product',name:'全部记录',icon:'blue',builtIn:true,groupingField:null,rowHeight:'MID',scope:{all:true},visibleFields:null,columns:{},filters:[],sorts:[],sortOrder:0},{code:'mine',objectCode:'product',name:'我的关注',icon:'green',builtIn:false,groupingField:null,rowHeight:'MID',scope:{mine:true},visibleFields:null,columns:{},filters:[],sorts:[],sortOrder:1}];
-export function config(code='product'){const o:any=undefined;return{objectCode:code,objectName:o?.name||'记录',module:o?.module||'baseline',primaryField:o?.primaryField||'code',statusField:o?.statusField,capabilities:o?.capabilities||{},searchConditions:o?.searchConditions||fields,listColumns:o?.listColumns||fields,formSections:o?.formSections||sections,views,activeView:views[0],prefs:{columns:{},sorts:[],rowHeight:'MID',pageSize:10},groupingField:null};}
+export function config(code='product',viewCode?:string|null){const o:any=undefined;return{objectCode:code,objectName:o?.name||'记录',module:o?.module||'baseline',primaryField:o?.primaryField||'code',statusField:o?.statusField,capabilities:o?.capabilities||(code==='product'?{views:true}:{}),searchConditions:o?.searchConditions||fields,listColumns:o?.listColumns||fields,formSections:o?.formSections||sections,views,activeView:views.find(view=>view.code===viewCode)??views[0],prefs:{columns:{},sorts:[],rowHeight:'MID',pageSize:10},groupingField:null};}
 export function records(code='product'){const c=config(code);return rows.map((r,i)=>{const v:any={...r};for(const f of [...c.listColumns,...c.formSections.flatMap((s:any)=>s.items)]){if(v[f.code]!=null)continue;v[f.code]=f.type==='NUMBER'?10+i*5:f.type==='DATETIME'?'2026-09-18T08:30:00Z':f.type==='SINGLE_SELECT'?f.options?.[0]?.value??'1':f.type==='MULTI_SELECT'?[]:f.type==='RELATION_OBJECT'?{id:'demo-1',name:f.reference?.objectCode==='person'?'张明':'标准件 A',code:'REF-001'}:['IMAGE','ATTACHMENT','RELATION_REFERENCE'].includes(f.type)?[]:f.name+'示例';}for(const s of c.formSections)if(s.type==='table')v[s.key]=[];return v;});}
 export const org:any={company:{id:'co1',name:'示例制造有限公司',personCount:12},companyName:'示例制造有限公司',departments:[{id:'d1',name:'制造中心',code:'DEP-01',parentId:null,personCount:12,children:[{id:'d2',name:'装配车间',code:'DEP-02',parentId:'d1',personCount:8,children:[]}]}],positions:[{id:'p1',name:'生产主管',code:'POS-01'}]};
 export const persons=[{id:'u1',name:'张明',code:'EMP-001',departmentId:'d2',departmentName:'装配车间',enabled:true},{id:'u2',name:'李晨',code:'EMP-002',departmentId:'d2',departmentName:'装配车间',enabled:true}];
@@ -25,7 +25,14 @@ export const adapter: ComponentKitAdapter = {
  if(p.includes('/meta/import-template/')) return {objectCode:'product',objectName:'记录',fileName:'记录模板.xlsx',columns:fields.map(f=>({code:f.code,name:f.name,type:f.type,required:!!f.widget?.required,tip:null,options:f.options?.map((o:any)=>o.label)}))};
  if(p.includes('/meta/export/')) return {logId:'demo-export',fileName:'记录.xlsx',columns:fields,rows:rows.map(r=>fields.map(f=>String(r[f.code]??'')))};
  if(p.includes('/meta/import/')) {const imported=(body as any)?.rows??[];return {logId:'demo-import',total:imported.length,succeeded:imported.length,failed:0,rows:imported.map((_:unknown,i:number)=>({row:i+1,ok:true}))}};
- if(p.includes('/meta/config/')) return config(p.split('/').pop());
+ if(p.includes('/meta/config/')) {
+   // Switching views takes a moment so the portal shows the busy tab; a gallery-only
+   // flag (window.__tier0GalleryFailView = '<code>') simulates a failed switch.
+   const view=new URL(path,'http://preview.invalid').searchParams.get('view');
+   if(view){await new Promise(resolve=>setTimeout(resolve,450));signal?.throwIfAborted();}
+   if(view&&(globalThis as {__tier0GalleryFailView?:string}).__tier0GalleryFailView===view) throw new Error('网络中断，视图配置未加载');
+   return config(p.split('/').pop(),view);
+ }
  if(p.includes('/meta/query/')) return {list:records(),total:3,page:{current:1,pageSize:10},groups:[],summary:{qty:400}};
  if(p.includes('/reference-options/')) return {list:rows.map(r=>({id:r.id,name:r.name,code:r.code,label:r.name,value:r.id}))};
  if(p.includes('/reference-tree/')) return fields.map(f=>({key:f.code,label:f.name,value:f.code,children:[]}));

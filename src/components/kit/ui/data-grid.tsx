@@ -274,7 +274,8 @@ function SelectionControl({
         checked={checked}
         disabled={disabled}
         onChange={(event) => onChange(mode === "radio" ? true : event.target.checked)}
-        className="peer absolute inset-0 z-10 m-0 size-full cursor-[inherit] opacity-0"
+        // Touch screens: the invisible input covers a 44px hit area around the 24px box.
+        className="peer absolute inset-0 z-10 m-0 size-full cursor-[inherit] opacity-0 pointer-coarse:inset-[-10px] pointer-coarse:size-auto"
       />
       {mode === "checkbox" ? (
         <CheckboxIndicator
