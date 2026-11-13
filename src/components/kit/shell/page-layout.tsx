@@ -27,7 +27,7 @@ export function PageContainer({ title, extra, children, fill = false, className 
       <PageHeader
         title={title}
         actions={extra}
-        className="min-h-9 items-center gap-y-1 px-1 [&_h1]:truncate"
+        className="min-h-9 gap-y-1 px-1 sm:items-center [&_h1]:truncate"
       />
       {children}
     </div>

@@ -507,7 +507,9 @@ function MetaListBody({
               {toolbarFilters}
             </div>
           ) : null}
-          <div className="flex min-w-0 flex-wrap items-center gap-2 rounded-[4px] bg-muted px-2 py-1" role="group" aria-label="表格设置">
+          {/* Table settings sit apart on the right as plain text buttons: no tray, so they never
+              read as another tab group next to the scope / view switches. */}
+          <div className="flex min-h-8 min-w-0 flex-wrap items-center gap-x-4 gap-y-2 sm:ml-auto" role="group" aria-label="表格设置">
             <FieldConfigPopover
               states={controller.columnStates}
               primaryField={config.primaryField}
