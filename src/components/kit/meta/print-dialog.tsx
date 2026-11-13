@@ -291,12 +291,10 @@ function PrintBody({
                 aria-checked={isSelected}
                 title={item.name}
                 className={cn(
-                  "flex min-w-0 items-center gap-3 rounded-[4px] border px-3 py-3 text-left outline-none transition-colors focus-visible:bg-muted focus-visible:text-foreground",
-                  isSelected
-                    ? "border-transparent bg-muted text-foreground"
-                    : "border-border bg-card text-foreground hover:border-border-strong hover:bg-fill-hover",
+                  "flex min-w-0 items-center gap-3 rounded-[4px] border border-border bg-card px-3 py-3 text-left text-foreground outline-none transition-colors",
+                  "hover:border-border-strong focus-visible:bg-muted focus-visible:text-foreground",
                 )}
-                onClick={() => setSelected(item.code)}
+                onClick={() => setSelected(isSelected ? null : item.code)}
               >
                 <span className="flex size-8 shrink-0 items-center justify-center rounded-[4px] bg-muted text-muted-foreground">
                   {item.layout === "LABEL" ? <TagIcon className="size-4" /> : <FileText className="size-4" />}
@@ -309,10 +307,12 @@ function PrintBody({
                   aria-hidden="true"
                   className={cn(
                     "flex size-4 shrink-0 items-center justify-center rounded-full border transition-colors",
-                    isSelected ? "border-foreground bg-foreground" : "border-border-strong bg-card",
+                    isSelected
+                      ? "border-[color:var(--tier0-highlight-deep)] bg-[color:var(--tier0-highlight-deep)]"
+                      : "border-border-strong bg-card",
                   )}
                 >
-                  {isSelected ? <span className="size-1.5 rounded-full bg-background" /> : null}
+                  {isSelected ? <span className="size-1.5 rounded-full bg-card" /> : null}
                 </span>
               </button>
               );

@@ -30,6 +30,6 @@ export function dragInsertionClass(edge: "before" | "after", cells = false): str
       : "[&>td]:border-b-2 [&>td]:border-b-foreground";
   }
   return edge === "before"
-    ? "before:absolute before:inset-x-1 before:-top-px before:h-0.5 before:rounded-full before:bg-foreground"
-    : "after:absolute after:inset-x-1 after:-bottom-px after:h-0.5 after:rounded-full after:bg-foreground";
+    ? "before:absolute before:inset-x-1 before:-top-px before:z-10 before:h-0.5 before:rounded-full before:bg-[color:var(--tier0-highlight-deep)]"
+    : "after:absolute after:inset-x-1 after:-bottom-px after:z-10 after:h-0.5 after:rounded-full after:bg-[color:var(--tier0-highlight-deep)]";
 }
