@@ -6,18 +6,18 @@
  * saved at once), 字段名称, 字段类型 (colored tag), 是否必填, 提示说明, 创建时间, 创建人,
  * 更新时间, 更新人, 操作 (编辑 / 删除).
  */
-import { CirclePlus, GripVertical, Info, Search } from "lucide-react";
+import { CirclePlus, Info, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { TextButton } from "@/components/kit/ui/buttons";
 import { DataGrid, type DataGridColumn } from "@/components/kit/ui/data-grid";
-import { FieldTypeIcon } from "@/components/kit/ui/field-type-icon";
 import { Input } from "@/components/kit/ui/input";
 import { Tag } from "@/components/kit/ui/tag";
 import { Tooltip } from "@/components/kit/ui/tooltip";
 import { formatDateTime } from "@/lib/component-kit/format";
 import type { CustomFieldRecord } from "@/lib/component-kit/types";
 import { cn } from "@/lib/utils";
+import { DragHandle, dragInsertionClass } from "@/components/kit/ui/drag-handle";
 import { FIELD_TYPE_COLOR, FIELD_TYPE_LABEL } from "@/components/editors/custom-fields/field-type-meta";
 
 export interface CustomFieldTableProps {
@@ -81,14 +81,12 @@ export function CustomFieldTable({ objectLabel, fields, limit, canManage, onCrea
     {
       key: "name",
       title: "字段名称",
-      headerIcon: <FieldTypeIcon kind="TEXT" />,
       width: 160,
       render: (field) => field.name,
     },
     {
       key: "type",
       title: "字段类型",
-      headerIcon: <FieldTypeIcon kind="TEXT" />,
       width: 104,
       ellipsis: false,
       render: (field) => <Tag color={FIELD_TYPE_COLOR[field.type] ?? "#050b14"}>{FIELD_TYPE_LABEL[field.type] ?? field.type}</Tag>,
@@ -96,7 +94,6 @@ export function CustomFieldTable({ objectLabel, fields, limit, canManage, onCrea
     {
       key: "required",
       title: "是否必填",
-      headerIcon: <FieldTypeIcon kind="SINGLE_SELECT" />,
       width: 100,
       ellipsis: false,
       render: (field) => <Tag>{field.widget?.required ? "必填" : "非必填"}</Tag>,
@@ -104,35 +101,30 @@ export function CustomFieldTable({ objectLabel, fields, limit, canManage, onCrea
     {
       key: "tooltip",
       title: "提示说明",
-      headerIcon: <FieldTypeIcon kind="MULTILINE" />,
       width: 140,
       render: (field) => field.widget?.tooltip || "-",
     },
     {
       key: "createdAt",
       title: "创建时间",
-      headerIcon: <FieldTypeIcon kind="DATETIME" />,
       width: 150,
       render: (field) => formatDateTime(field.createdAt, "DATETIME_MINUTE") || "-",
     },
     {
       key: "createdByName",
       title: "创建人",
-      headerIcon: <FieldTypeIcon kind="PERSON" />,
       width: 96,
       render: (field) => field.createdByName || "-",
     },
     {
       key: "updatedAt",
       title: "更新时间",
-      headerIcon: <FieldTypeIcon kind="DATETIME" />,
       width: 150,
       render: (field) => formatDateTime(field.updatedAt, "DATETIME_MINUTE") || "-",
     },
     {
       key: "updatedByName",
       title: "更新人",
-      headerIcon: <FieldTypeIcon kind="PERSON" />,
       width: 96,
       render: (field) => field.updatedByName || "-",
     },
@@ -206,7 +198,7 @@ export function CustomFieldTable({ objectLabel, fields, limit, canManage, onCrea
         renderIndex={(_field, index) => (
           <span className="inline-flex items-center gap-2">
             {canManage ? (
-              <GripVertical className={cn("size-4 text-text-placeholder", canDrag ? "cursor-grab" : "opacity-40")} aria-hidden="true" />
+              <DragHandle disabled={!canDrag} />
             ) : null}
             <span className="tabular-nums">{index + 1}</span>
           </span>
@@ -237,7 +229,7 @@ export function CustomFieldTable({ objectLabel, fields, limit, canManage, onCrea
                 },
                 className: cn(
                   dragCode === field.fieldCode && "opacity-40",
-                  dropCode === field.fieldCode && dragCode !== null && dragCode !== field.fieldCode && "[&>td]:border-t-2 [&>td]:border-t-brand",
+                  dropCode === field.fieldCode && dragCode !== null && dragCode !== field.fieldCode && dragInsertionClass("before", true),
                 ),
               })
             : undefined

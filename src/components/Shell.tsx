@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import {
+  Bell,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -41,6 +42,8 @@ const sidebarItemActive =
 // Hover is a lighter fill than the selection, so hovering never looks like the current page.
 const sidebarItemInactive =
   "text-secondary-foreground hover:bg-muted/50 hover:text-foreground active:translate-x-px";
+const sidebarIconButton =
+  "inline-flex size-8 shrink-0 items-center justify-center rounded-[4px] text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/35";
 
 function normalizeMenuPath(value: string): string {
   if (!value) {
@@ -545,26 +548,38 @@ export function Shell({
           })}
         </div>
 
-        {/* User block */}
-        <div className="shrink-0 border-t border-sidebar-border bg-sidebar px-3 py-3">
-          <div className={cn("flex min-w-0 items-center overflow-hidden", isCollapsed ? "justify-center" : "gap-2.5")}>
-            <span
-              aria-hidden="true"
-              title={isCollapsed ? user?.displayName : undefined}
-              className="inline-flex size-8 shrink-0 items-center justify-center rounded-[4px] bg-muted text-xs font-semibold text-foreground"
-            >
-              {(user?.displayName ?? "?").slice(0, 1).toUpperCase()}
-            </span>
-            <div className={isCollapsed ? "sr-only" : "min-w-0 overflow-hidden"}>
-              <p className="truncate text-sm font-medium leading-5">
-                {user?.displayName ?? uiText("loading")}
-              </p>
-              {user ? (
-                <p className="mt-0.5 truncate font-mono text-xs uppercase leading-4 text-muted-foreground" title={roleLabel || undefined}>
-                  {roleLabel || uiText("noRoles")}
+        {/* Notifications + account — always visible at the bottom of the rail. */}
+        <div className={cn("shrink-0 border-t border-sidebar-border bg-sidebar py-3", isCollapsed ? "px-2" : "px-3")}>
+          <div className={cn("flex min-w-0 items-center overflow-hidden", isCollapsed ? "flex-col gap-2" : "gap-1")}>
+            <div className={cn("flex min-w-0 items-center overflow-hidden", isCollapsed ? "justify-center" : "min-w-0 flex-1 gap-2.5")}>
+              <span
+                aria-hidden="true"
+                title={isCollapsed ? user?.displayName : undefined}
+                className="inline-flex size-8 shrink-0 items-center justify-center rounded-[4px] bg-muted text-xs font-semibold text-foreground"
+              >
+                {(user?.displayName ?? "?").slice(0, 1).toUpperCase()}
+              </span>
+              <div className={isCollapsed ? "sr-only" : "min-w-0 overflow-hidden"}>
+                <p className="truncate text-sm font-medium leading-5">
+                  {user?.displayName ?? uiText("loading")}
                 </p>
-              ) : null}
+                {user ? (
+                  <p className="mt-0.5 truncate font-mono text-xs uppercase leading-4 text-muted-foreground" title={roleLabel || undefined}>
+                    {roleLabel || uiText("noRoles")}
+                  </p>
+                ) : null}
+              </div>
             </div>
+            <Popover
+              placement="top-end"
+              aria-label="通知"
+              title="通知"
+              content={<p className="text-xs text-muted-foreground">暂无新通知</p>}
+            >
+              <button type="button" aria-label="通知" title="通知" className={sidebarIconButton}>
+                <Bell className="size-4" aria-hidden="true" />
+              </button>
+            </Popover>
           </div>
         </div>
       </nav>

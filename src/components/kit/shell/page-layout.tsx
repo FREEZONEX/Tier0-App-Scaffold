@@ -1,5 +1,6 @@
 import type { HTMLAttributes, ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
+import type { BackTarget } from "@/components/ui/back-button";
 import { PageHeader } from "@/components/ui/page-header";
 import { cn } from "@/lib/utils";
 
@@ -8,6 +9,8 @@ export interface PageContainerProps {
   title: ReactNode;
   /** Right side of the title row: page-level links such as 「移动端卡片」「自定义事件」. */
   extra?: ReactNode;
+  /** Parent level for pages below a navigation entry. */
+  back?: BackTarget;
   children?: ReactNode;
   /** Stretch to the viewport height so the last PageCard can fill it (list pages). */
   fill?: boolean;
@@ -15,7 +18,7 @@ export interface PageContainerProps {
 }
 
 /** PageContainer — standard workspace page frame: title row + content cards on the canvas. */
-export function PageContainer({ title, extra, children, fill = false, className }: PageContainerProps) {
+export function PageContainer({ title, extra, back, children, fill = false, className }: PageContainerProps) {
   return (
     <div
       className={cn(
@@ -27,7 +30,8 @@ export function PageContainer({ title, extra, children, fill = false, className 
       <PageHeader
         title={title}
         actions={extra}
-        className="min-h-9 gap-y-1 px-1 sm:items-center [&_h1]:truncate"
+        back={back}
+        className="min-h-9 flex-row flex-nowrap items-center justify-between gap-3 px-1 [&>div:first-child]:min-w-0 [&>div:first-child]:flex-1 [&>div:last-child]:shrink-0 [&>div:last-child]:flex-nowrap [&_h1]:truncate"
       />
       {children}
     </div>

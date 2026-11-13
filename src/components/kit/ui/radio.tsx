@@ -15,6 +15,8 @@ export interface RadioGroupProps<V extends string | number = string | number> {
   optionType?: "default" | "button";
   /** Button style: outline (blue border + text) or solid (blue fill). */
   buttonStyle?: "outline" | "solid";
+  /** Selected button tone. Use neutral for settings such as row density. */
+  selectedTone?: "brand" | "neutral";
   size?: ControlSize;
   disabled?: boolean;
   direction?: "horizontal" | "vertical";
@@ -32,6 +34,7 @@ export function RadioGroup<V extends string | number = string | number>({
   onChange,
   optionType = "default",
   buttonStyle = "outline",
+  selectedTone = "brand",
   size = "md",
   disabled = false,
   direction = "horizontal",
@@ -75,8 +78,12 @@ export function RadioGroup<V extends string | number = string | number>({
                   (size === "lg" ? "rounded-r-lg" : size === "sm" ? "rounded-r-sm" : "rounded-r-md"),
                 isSelected
                   ? buttonStyle === "solid"
-                    ? "z-10 border-brand bg-brand text-white hover:border-brand-hover hover:bg-brand-hover"
-                    : "z-10 border-brand bg-card text-brand hover:border-brand-hover hover:text-brand-hover"
+                    ? selectedTone === "neutral"
+                      ? "z-10 border-foreground bg-foreground text-background"
+                      : "z-10 border-brand bg-brand text-white hover:border-brand-hover hover:bg-brand-hover"
+                    : selectedTone === "neutral"
+                      ? "z-10 border-foreground bg-card text-foreground"
+                      : "z-10 border-brand bg-card text-brand hover:border-brand-hover hover:text-brand-hover"
                   : "border-border-strong bg-card text-foreground hover:text-brand",
                 isDisabled && "cursor-not-allowed border-border-strong bg-input-disabled text-text-placeholder hover:text-text-placeholder",
                 !isDisabled && "cursor-pointer",

@@ -12,6 +12,8 @@ export type { ListRow };
 export interface RowAction {
   key: string;
   label: string;
+  /** Prefer an icon; the label stays the accessible name / tooltip. */
+  icon?: ReactNode;
   /** Red text (删除、取消…). */
   danger?: boolean;
   /** Text tone for inline actions (确认 = success). Danger wins. */

@@ -9,8 +9,12 @@ import {
   List,
   ListTodo,
   Loader,
+  Pencil,
+  Play,
   Plus,
+  RotateCcw,
   SlidersHorizontal,
+  SquareCheck,
   X,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -28,7 +32,7 @@ import { StatusTag } from '@/components/kit/ui/tag';
 import { DataGrid } from '@/components/kit/ui/data-grid';
 import { ProgressBar } from '@/components/kit/ui/feedback';
 import { Avatar } from '@/components/kit/ui/avatar';
-import { IconButton, TextButton } from '@/components/kit/ui/buttons';
+import { IconButton } from '@/components/kit/ui/buttons';
 import { EllipsisText } from '@/components/kit/ui/tooltip';
 import { Drawer } from '@/components/overlays/drawer';
 import { ConfirmDialog } from '@/components/overlays/confirm-dialog';
@@ -254,19 +258,17 @@ export function TaskWorkspace() {
   const selectedTasks = tasks.filter((t) => selected.includes(t.id) && t.status !== 'closed');
 
   function actions(t: Task) {
+    const advanceLabel = t.status === 'todo' ? '开始' : t.status === 'running' ? '完成' : '重新打开';
+    const AdvanceIcon = t.status === 'todo' ? Play : t.status === 'running' ? SquareCheck : RotateCcw;
     return (
-      // One style for every row action: text buttons, same size and spacing; 关闭 is the only danger tone.
-      <div className="flex items-center gap-4 whitespace-nowrap">
-        <TextButton size="sm" onClick={() => advance(t)}>
-          {t.status === 'todo' ? '开始' : t.status === 'running' ? '完成' : '重新打开'}
-        </TextButton>
-        <TextButton size="sm" onClick={() => edit(t)}>
-          编辑
-        </TextButton>
-        {t.status !== 'closed' && (
-          <TextButton size="sm" tone="danger" onClick={() => setClosing([t])}>
-            关闭
-          </TextButton>
+      // Icon actions, fixed size; empty ⋯ slot keeps the column aligned with MetaListPage rows.
+      <div className="flex items-center gap-1 whitespace-nowrap">
+        <IconButton size="sm" label={advanceLabel} icon={<AdvanceIcon />} className="text-primary hover:text-primary/80" onClick={() => advance(t)} />
+        <IconButton size="sm" label="编辑" icon={<Pencil />} className="text-primary hover:text-primary/80" onClick={() => edit(t)} />
+        {t.status !== 'closed' ? (
+          <IconButton size="sm" label="关闭" icon={<X />} danger onClick={() => setClosing([t])} />
+        ) : (
+          <span className="inline-flex size-7 shrink-0" aria-hidden="true" />
         )}
       </div>
     );
@@ -397,7 +399,7 @@ export function TaskWorkspace() {
           ellipsis: false,
           render: (t) => <span className="whitespace-nowrap tabular-nums">{t.lines.length ? money(totalOf(t.lines, 'amount')) : '—'}</span>,
         },
-        { key: 'actions', title: '操作', width: 168, fixed: 'right', ellipsis: false, render: actions },
+        { key: 'actions', title: '操作', width: 112, fixed: 'right', ellipsis: false, render: actions },
       ]}
     />
   );

@@ -162,15 +162,15 @@ export function ViewTabs({
                         icon: <Copy />,
                         onClick: () => onCopy(view.code),
                       },
-                      {
-                        key: "delete",
-                        label: "删除",
-                        icon: <Trash2 />,
-                        danger: !view.builtIn,
-                        disabled: view.builtIn,
-                        title: view.builtIn ? "内置视图不可删除" : undefined,
-                        onClick: () => onDelete(view),
-                      },
+                      ...(!view.builtIn
+                        ? [{
+                            key: "delete",
+                            label: "删除",
+                            icon: <Trash2 />,
+                            danger: true,
+                            onClick: () => onDelete(view),
+                          }]
+                        : []),
                     ]}
                   >
                     {/* Pointer shortcut only: hidden from the tablist's accessibility tree. */}

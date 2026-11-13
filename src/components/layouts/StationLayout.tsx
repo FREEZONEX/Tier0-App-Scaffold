@@ -4,6 +4,7 @@ import { type ReactNode } from "react";
 import { Activity } from "lucide-react";
 import type { AppUser } from "@/lib/users";
 import { OfflineBanner } from "@/components/ui/offline-banner";
+import { BackButton, type BackTarget } from "@/components/ui/back-button";
 import { APP_ICON, APP_NAME, uiText } from "@/lib/app-chrome";
 import { getRoleMetadata } from "@/lib/role-metadata";
 
@@ -18,6 +19,7 @@ export function StationLayout({
   title = APP_NAME,
   context,
   actions,
+  back,
   children,
 }: {
   user?: AppUser | null;
@@ -27,12 +29,15 @@ export function StationLayout({
   context?: ReactNode;
   /** Header actions beside the operator (e.g. 交接班). */
   actions?: ReactNode;
+  /** Explicit parent route; remains correct after a direct open or refresh. */
+  back?: BackTarget;
   children: ReactNode;
 }) {
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
       <header className="flex shrink-0 flex-col gap-3 border-b border-border bg-card px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-5">
         <div className="flex min-w-0 items-center gap-3">
+          {back ? <BackButton {...back} className="size-10" /> : null}
           <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-[4px]">
             <img
               src={APP_ICON}

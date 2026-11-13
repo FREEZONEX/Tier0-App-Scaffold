@@ -7,7 +7,7 @@
  *
  * `ColumnConfigList` is shared with the view editor's 字段配置 tab.
  */
-import { ArrowLeftToLine, ArrowRightToLine, Eye, EyeOff, GripVertical, LayoutList, Search } from "lucide-react";
+import { ArrowLeftToLine, ArrowRightToLine, Eye, EyeOff, LayoutList, Search } from "lucide-react";
 import { useMemo, useState, type DragEvent } from "react";
 import { IconButton, TextButton } from "@/components/kit/ui/buttons";
 import { Empty } from "@/components/kit/ui/feedback";
@@ -17,6 +17,7 @@ import { Input } from "@/components/kit/ui/input";
 import { Popover } from "@/components/kit/ui/popover";
 import { normalizeColumnStates, type ColumnState, type FixedSide } from "@/lib/component-kit/list-columns";
 import { cn } from "@/lib/utils";
+import { DragHandle, dragInsertionClass } from "@/components/kit/ui/drag-handle";
 
 type GroupKey = "left" | "none" | "right";
 
@@ -117,14 +118,10 @@ export function ColumnConfigList({
         className={cn(
           "group relative flex h-8 min-w-0 items-center gap-1.5 rounded-[4px] pr-1 pl-1 text-sm transition-colors hover:bg-fill-hover",
           dragging === state.code && "opacity-40",
-          indicator === "before" && "before:absolute before:inset-x-1 before:-top-px before:h-0.5 before:rounded before:bg-brand",
-          indicator === "after" && "after:absolute after:inset-x-1 after:-bottom-px after:h-0.5 after:rounded after:bg-brand",
+          indicator && dragInsertionClass(indicator),
         )}
       >
-        <GripVertical
-          aria-hidden="true"
-          className={cn("size-3.5 shrink-0 text-text-placeholder", searching ? "opacity-30" : "cursor-grab")}
-        />
+        <DragHandle disabled={searching} />
         <FieldTypeIcon kind={resolveFieldIconKind(state.field, primaryField)} />
         <span className={cn("min-w-0 flex-1 truncate", state.hidden && "text-text-tertiary")} title={state.name}>
           {state.name}
@@ -204,10 +201,12 @@ export interface FieldConfigPopoverProps {
   primaryField?: string;
   label?: string;
   disabled?: boolean;
+  /** Icon-only trigger for the list toolbar's 表格设置 group. */
+  compact?: boolean;
 }
 
 /** Toolbar「字段配置」 text button + popover. */
-export function FieldConfigPopover({ states, onChange, primaryField, label = "字段配置", disabled = false }: FieldConfigPopoverProps) {
+export function FieldConfigPopover({ states, onChange, primaryField, label = "字段配置", disabled = false, compact = false }: FieldConfigPopoverProps) {
   const visible = states.filter((state) => !state.hidden).length;
   return (
     <Popover
@@ -227,9 +226,13 @@ export function FieldConfigPopover({ states, onChange, primaryField, label = "�
         </div>
       }
     >
-      <TextButton icon={<LayoutList />} disabled={disabled}>
-        {label}
-      </TextButton>
+      {compact ? (
+        <IconButton variant="outline" size="lg" icon={<LayoutList />} label={label} title={label} tooltip={false} disabled={disabled} />
+      ) : (
+        <TextButton tone="success" icon={<LayoutList />} disabled={disabled}>
+          {label}
+        </TextButton>
+      )}
     </Popover>
   );
 }

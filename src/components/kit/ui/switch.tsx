@@ -57,7 +57,7 @@ export function Switch({
         small ? "h-3.5 w-6" : "h-[18px] w-8",
         isOn
           ? "bg-[color:var(--tier0-highlight)] shadow-[inset_0_0_0_1px_rgb(115_178_0/0.15)]"
-          : "bg-input",
+          : "bg-[color:var(--tier0-text-placeholder)] shadow-[inset_0_0_0_1px_rgb(5_11_20/0.08)]",
         inert && "cursor-not-allowed opacity-50",
         className,
       )}

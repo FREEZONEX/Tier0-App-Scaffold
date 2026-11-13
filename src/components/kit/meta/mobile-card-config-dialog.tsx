@@ -4,7 +4,7 @@ import { useKitApi } from "@/components/kit/provider";
 
 
 /** Configure generic record cards using application-supplied fields and options. */
-import { GripVertical, Search, Trash2 } from "lucide-react";
+import { Search, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AsyncView } from "@/components/data/async-view";
@@ -21,6 +21,7 @@ import { useRequest } from "@/lib/hooks";
 import { moveItem } from "@/lib/component-kit/list-columns";
 import type { FieldDef, MobileCardEntry, MobileCardKey } from "@/lib/component-kit/types";
 import { cn } from "@/lib/utils";
+import { DragHandle, dragInsertionClass } from "@/components/kit/ui/drag-handle";
 import { resourcePath as apiUrl } from "@/lib/component-kit/api-client";
 import { MobileCard } from "@/components/kit/meta/mobile-card";
 
@@ -66,6 +67,7 @@ function ConfigForm({
   const [keyword, setKeyword] = useState("");
   const [tab, setTab] = useState<ListTab>("fields");
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dropIndex, setDropIndex] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<{ title?: string; indicator?: string; display?: string }>({});
 
@@ -274,29 +276,42 @@ function ConfigForm({
                           draggable={item.kind === "field" && !fixed}
                           onDragStart={(event) => {
                             setDragIndex(index);
+                            setDropIndex(null);
                             event.dataTransfer.effectAllowed = "move";
                             event.dataTransfer.setData("text/plain", item.key);
                           }}
                           onDragOver={(event) => {
-                            if (dragIndex !== null && item.kind === "field") event.preventDefault();
+                            if (dragIndex !== null && item.kind === "field") {
+                              event.preventDefault();
+                              setDropIndex(index);
+                            }
                           }}
                           onDrop={(event) => {
                             event.preventDefault();
-                            if (dragIndex === null || item.kind !== "field" || dragIndex >= displayFields.length) return;
+                            if (dragIndex === null || item.kind !== "field" || dragIndex >= displayFields.length) {
+                              setDragIndex(null);
+                              setDropIndex(null);
+                              return;
+                            }
                             // Locked fields (配置中标记为必需的字段) stay first.
                             const lockedCount = displayFields.filter((code) => locked.has(code)).length;
                             const target = Math.min(Math.max(index, lockedCount), displayFields.length - 1);
                             setDisplayFields((current) => moveItem(current, dragIndex, target));
                             setDragIndex(null);
+                            setDropIndex(null);
                           }}
-                          onDragEnd={() => setDragIndex(null)}
+                          onDragEnd={() => {
+                            setDragIndex(null);
+                            setDropIndex(null);
+                          }}
                           className={cn(
-                            "flex min-w-0 items-center gap-2 rounded-[4px] border border-dashed border-border-strong bg-card px-2 py-1.5 text-sm",
+                            "relative flex min-w-0 items-center gap-2 rounded-[4px] border border-dashed border-border-strong bg-card px-2 py-1.5 text-sm",
                             fixed && "bg-muted text-text-tertiary",
                             dragIndex === index && "opacity-40",
+                            dropIndex === index && dragIndex !== null && dragIndex !== index && dragInsertionClass("before"),
                           )}
                         >
-                          <GripVertical className={cn("size-3.5 shrink-0 text-text-placeholder", !fixed && item.kind === "field" && "cursor-grab")} aria-hidden="true" />
+                          <DragHandle disabled={fixed || item.kind !== "field"} />
                           <span className="min-w-0 flex-1 truncate">{item.label}</span>
                           {!fixed ? (
                             <IconButton

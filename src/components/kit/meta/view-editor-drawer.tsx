@@ -230,8 +230,8 @@ function EditorForm({
               className={cn(
                 "relative flex shrink-0 items-center gap-2 px-4 py-3 text-sm transition-colors [&_svg]:size-4",
                 tab === item.key
-                  ? "bg-muted font-medium text-foreground sm:after:absolute sm:after:inset-y-2 sm:after:right-0 sm:after:w-0.5 sm:after:bg-foreground"
-                  : "text-foreground hover:text-brand",
+                  ? "bg-card font-medium text-foreground after:absolute after:inset-x-4 after:bottom-0 after:h-0.5 after:bg-foreground"
+                  : "text-foreground hover:bg-fill-hover",
               )}
               onClick={() => setTab(item.key)}
             >
@@ -305,6 +305,7 @@ function EditorForm({
                     aria-label="行高"
                     optionType="button"
                     buttonStyle="solid"
+                    selectedTone="neutral"
                     value={draft.rowHeight}
                     options={ROW_HEIGHT_OPTIONS.map((option) => ({ value: option.value, label: option.label }))}
                     onChange={(next) => patch({ rowHeight: next as RowHeight })}
@@ -438,7 +439,7 @@ function EditorForm({
   );
 }
 
-function ViewEditorBody({ objectCode, viewCode, onCancel, onSaved }: { objectCode: string; viewCode: string | null; onCancel: () => void; onSaved: ViewEditorDrawerProps["onSaved"] }) {
+export function ViewEditorContent({ objectCode, viewCode, onCancel, onSaved }: { objectCode: string; viewCode: string | null; onCancel: () => void; onSaved: ViewEditorDrawerProps["onSaved"] }) {
   const api = useKitApi();
   const options = useRequest(`meta-view-options:${objectCode}`, (signal) =>
     api.getJson<ViewEditorOptions>(apiUrl(`/api/meta/view-options/${objectCode}`), { signal }),
@@ -482,7 +483,7 @@ export function ViewEditorDrawer({ open, onOpenChange, objectCode, viewCode, onS
       contentClassName="flex flex-col p-0 sm:p-0"
     >
       {open ? (
-        <ViewEditorBody
+        <ViewEditorContent
           key={viewCode ?? "__create"}
           objectCode={objectCode}
           viewCode={viewCode}

@@ -4,13 +4,14 @@
  * 打印模板字段选择：left「可选字段」(搜索 + 全选 + 勾选), right「已选字段」in print order —
  * drag to reorder, rename the printed label, remove.
  */
-import { GripVertical, Search, X } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { useState } from "react";
 import { IconButton } from "@/components/kit/ui/buttons";
 import { Checkbox } from "@/components/kit/ui/checkbox";
 import { Input } from "@/components/kit/ui/input";
 import type { PrintTemplateField } from "@/lib/component-kit/types";
 import { cn } from "@/lib/utils";
+import { DragHandle, dragInsertionClass } from "@/components/kit/ui/drag-handle";
 
 export interface FieldOrderPickerProps {
   /** Fields the template may print. */
@@ -102,10 +103,10 @@ export function FieldOrderPicker({ candidates, value, onChange, disabled = false
               className={cn(
                 "flex min-w-0 items-center gap-2 rounded-[4px] border border-dashed border-border-secondary bg-card px-2 py-1",
                 dragIndex === index && "opacity-40",
-                dropIndex === index && dragIndex !== null && dragIndex !== index && "border-t-2 border-t-brand",
+                dropIndex === index && dragIndex !== null && dragIndex !== index && dragInsertionClass("before"),
               )}
             >
-              <GripVertical className={cn("size-4 shrink-0 text-text-placeholder", !disabled && "cursor-grab")} aria-hidden="true" />
+              <DragHandle disabled={disabled} />
               <span className="w-5 shrink-0 text-xs text-text-tertiary tabular-nums">{index + 1}</span>
               <Input
                 size="sm"

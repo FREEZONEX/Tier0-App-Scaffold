@@ -16,7 +16,7 @@ import { SESSION_EXPIRED_EVENT } from '@/lib/component-kit/api-client';
 import { ComponentKitProvider } from '@/components/kit/provider';
 import { adapter } from './fixtures';
 import {createRootRoute,createRouter,createMemoryHistory,RouterProvider} from '@tanstack/react-router';import {emptyDraft} from '@/components/editors/custom-fields/field-type-meta';
-import React,{useState,useRef}from'react';import{createRoot}from'react-dom/client';import{Plus,Settings,Search,Download}from'lucide-react';import{registry}from'./registry';import{Sample}from'./samples';import{options,fields,rows,sections,views,org,images}from'./fixtures';import{columnStatesFrom}from'@/lib/component-kit/list-columns';import{Button}from'@/components/ui/button';import{Toaster}from'@/components/toaster';import'./preview.css';
+import React,{useState,useRef}from'react';import{createRoot}from'react-dom/client';import{Plus,Settings,Search,Download,PenLine,Trash2}from'lucide-react';import{registry}from'./registry';import{Sample}from'./samples';import{options,fields,rows,sections,views,org,images}from'./fixtures';import{columnStatesFrom}from'@/lib/component-kit/list-columns';import{Button}from'@/components/ui/button';import{Toaster}from'@/components/toaster';import'./preview.css';
 (() => {
   const theme = new URLSearchParams(location.search).get('theme');
   document.documentElement.classList.toggle('dark', theme === 'dark');
@@ -108,7 +108,7 @@ case'ViewScopeSelect':body=<Comp value={typeof v==='object'?v:{all:true}} onChan
 case'ViewListDrawer':body=<Comp {...common} activeCode="all" onCreate={hit} onEdit={hit} onCopy={hit} onDelete={hit} onChanged={hit}/>;break;
 case'ViewEditorDrawer':body=<ViewEditorExample/>;break;
 case'FormDrawer':case'FullscreenModal':body=<><Button onClick={()=>O(true)}>打开表单</Button><Comp {...common} anchors={[{key:'base',label:'基本信息'}]} footer={<Button onClick={done}>保存演示</Button>}>{form}</Comp></>;break;
-case'MetaListPage':body=<Comp objectCode="product" title="物料档案" onCreate={hit} onOpenRecord={hit} importable exportable topTabs={[{key:'all',label:'全部',count:3},{key:'mine',label:'我负责的',count:2,scope:'MINE'},{key:'cancelled',label:'已取消',count:1,scope:'CANCELLED'}]} rowActions={()=>[{key:'edit',label:'编辑',onClick:hit}]} />;break;
+case'MetaListPage':body=<Comp objectCode="product" title="物料档案" onCreate={hit} onOpenRecord={hit} importable exportable topTabs={[{key:'all',label:'全部',count:3},{key:'mine',label:'我负责的',count:2,scope:'MINE'},{key:'cancelled',label:'已取消',count:1,scope:'CANCELLED'}]} rowActions={()=>[{key:'edit',label:'编辑',icon:<PenLine/>,onClick:hit},{key:'delete',label:'删除',icon:<Trash2/>,danger:true,onClick:hit}]} />;break;
 case'ReferenceInput':case'PersonInput':case'ReferenceSelect':body=<Comp {...common} aria-label={name==='PersonInput'?'负责人':'关联物料'} value={typeof v==='object'?v:{id:'demo-1',name:'精密铝合金支架',code:'MAT-1001'}}/>;break;
 case'ReferencePicker':case'PersonPicker':body=<Comp {...common} value={null} multiple/>;break;
 case'ImportDialog':body=<Comp {...common}/>;break;

@@ -20,6 +20,8 @@ export interface NavModule {
   children?: NavModule[];
   badge?: string;
   locked?: boolean;
+  /** Opens in a new tab (e.g. a station or monitor screen); shows an external-link mark. */
+  newTab?: boolean;
   disabledReason?: string;
 }
 

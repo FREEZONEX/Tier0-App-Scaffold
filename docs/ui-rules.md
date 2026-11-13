@@ -53,6 +53,20 @@ Give every generated sidebar group and link an `icon` imported by name from
 collapsed rail: it keeps the navigation icons, account avatar, and the divider
 above the avatar. Link names remain available to assistive technology.
 
+The sidebar follows the Tier0 platform sidebar: a gray rail (`--sidebar`,
+240px open / 64px collapsed (`w-60` / `w-16`)), app icon and name with a panel toggle on top,
+regular-weight dark items 36px high, hover one gray step darker
+(`--sidebar-accent`) and the selected item one more (`bg-muted`, mapped to
+`--sidebar-selected` inside the rail). The bottom of the rail always shows the
+account avatar with name and roles, and the notification bell at the right
+end (empty-state popover until the App wires real notices). Gallery business scenes (`SceneShell`)
+must mirror this footer — never ship a scene rail without the account strip.
+A module with `children` is a titled section (small gray label, always
+open; a divider in the collapsed rail), not a collapsible folder: group links
+by business area (生产 / 质量 / 主数据…) instead of nesting deeper. A link that
+opens another surface in a new tab sets `newTab: true` and shows the
+external-link mark.
+
 ## Page shell, required fields and forms
 
 Wrap every ordinary `_app` workspace page in
@@ -151,10 +165,30 @@ error box; a route's own `errorComponent` still takes precedence.
 ## Page copy and navigation
 
 Do not add a page-introduction subtitle that explains navigation or repeats the title.
+`PageHeader.eyebrow` is only for a short workspace category (a few characters);
+never put recipe codes, SKUs, paths, or other record metadata there — those
+belong in the page's info `Card`. Detail sections use `Card title="…"` (tables
+may set `flush` + `DataTable bare`), not a bare `<h2>` above the block.
 Put actionable rules and risk beside the affected record/control. Role
 summaries stay out of page content. Shell `defaultModules` starts empty; declare
 real workspace routes through `defineNavigationModules`, using one unique href
 per clickable leaf. Do not create an Overview module unless the product needs one.
+
+## Business tables
+
+Hand-written `DataTable` / `<table>` cells keep header and body alignment the
+same:
+
+| Column kind | Alignment | Helper |
+|---|---|---|
+| Text / identity / material | left | `TableCellText` (`secondary` for codes) |
+| Quantity / amount / range | right | `TableNumericHeader` + `TableNumericCell` |
+| Status / actions / checkbox | left, content-width | `TableStatusCell` / `table-col-fit` |
+
+All body cells use vertical `middle` (including status). Do not mix
+`align-top` on badges with middle-aligned numbers in the same row. Give
+quantity columns a bounded width (`w-28` / `w-44`) so a wide table does not
+stretch a short number into the middle of empty space.
 
 ## Responsive layout
 

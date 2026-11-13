@@ -14,10 +14,11 @@ import { useKitApi } from "@/components/kit/provider";
  * props: onCreate, rowActions, batchActions, onOpenRecord, cellRenderers…
  */
 import { CirclePlus, FileInput, FileOutput, Undo2 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { AsyncView } from "@/components/data/async-view";
 import { ConfirmDialog } from "@/components/overlays/confirm-dialog";
+import { Drawer } from "@/components/overlays/drawer";
 import { Button } from "@/components/ui/button";
 import { SplitButton, TextButton } from "@/components/kit/ui/buttons";
 import { PageContainer } from "@/components/kit/shell/page-layout";
@@ -51,11 +52,16 @@ import { ImportDialog } from "@/components/kit/meta/import-dialog";
 import { PRINT_LIMIT, PrintDialog, printLimitMessage } from "@/components/kit/meta/print-dialog";
 import { RowActions } from "@/components/kit/meta/row-actions";
 import { RowHeightMenu } from "@/components/kit/meta/row-height-menu";
-import { SearchPanel } from "@/components/kit/meta/search-panel";
+import {
+  ListFilterButton,
+  ListFilterPanel,
+  ListSearchBox,
+  splitSearchConditions,
+} from "@/components/kit/meta/list-filter-bar";
 import { SortPopover } from "@/components/kit/meta/sort-popover";
 import type { BatchAction, MetaListApi, RowAction, TopTab } from "@/components/kit/meta/types";
-import { ViewEditorDrawer } from "@/components/kit/meta/view-editor-drawer";
-import { ViewListDrawer } from "@/components/kit/meta/view-list-drawer";
+import { ViewEditorContent } from "@/components/kit/meta/view-editor-drawer";
+import { ViewListContent } from "@/components/kit/meta/view-list-drawer";
 import { ViewTabs } from "@/components/kit/meta/view-tabs";
 
 export interface MetaListPageProps {
@@ -221,10 +227,21 @@ function MetaListBody({
   const [logType, setLogType] = useState<"IMPORT" | "EXPORT" | null>(null);
   const [exportOpen, setExportOpen] = useState(false);
   const [printRows, setPrintRows] = useState<ListRow[] | null>(null);
-  const [viewListOpen, setViewListOpen] = useState(false);
-  const [viewEditor, setViewEditor] = useState<{ viewCode: string | null } | null>(null);
+  const [viewManager, setViewManager] = useState<
+    | { mode: "list" }
+    | { mode: "editor"; viewCode: string | null; returnToList: boolean }
+    | null
+  >(null);
   const [deletingView, setDeletingView] = useState<Pick<ViewDef, "code" | "name"> | null>(null);
   const [deletePending, setDeletePending] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const filterPanelId = `${useId().replaceAll(":", "")}-filters`;
+
+  const searchLayout = useMemo(() => splitSearchConditions(config.searchConditions), [config.searchConditions]);
+  const activeFilterCount = useMemo(() => {
+    const panelCodes = new Set(searchLayout.panel.map((field) => field.code));
+    return new Set(controller.appliedFilters.filter((filter) => panelCodes.has(filter.field)).map((filter) => filter.field)).size;
+  }, [controller.appliedFilters, searchLayout.panel]);
 
   const openPrint = useCallback((rows: ListRow[]) => {
     if (rows.length === 0) {
@@ -411,10 +428,10 @@ function MetaListBody({
           onSwitch={(code) => {
             if (code !== (switchingView ?? config.activeView?.code)) onSwitchView(code);
           }}
-          onEdit={(code) => setViewEditor({ viewCode: code })}
+          onEdit={(code) => setViewManager({ mode: "editor", viewCode: code, returnToList: false })}
           onCopy={(code) => void copyView(code)}
           onDelete={(view) => setDeletingView(view)}
-          onOpenList={() => setViewListOpen(true)}
+          onOpenList={() => setViewManager({ mode: "list" })}
           manageable={canManageViews}
         />
       ) : null}
@@ -434,17 +451,6 @@ function MetaListBody({
           }}
         />
       ) : null}
-
-      <SearchPanel
-        conditions={config.searchConditions}
-        values={controller.draft}
-        onValueChange={controller.setDraftValue}
-        onSearch={controller.applySearch}
-        onReset={controller.resetSearch}
-        expanded={controller.expanded}
-        onExpandedChange={controller.setExpanded}
-        loading={query.isLoading && query.data !== null}
-      />
 
       {batchMode ? (
         <div className="flex min-h-8 min-w-0 flex-wrap items-center gap-2" role="toolbar" aria-label="批量操作">
@@ -478,6 +484,27 @@ function MetaListBody({
         </div>
       ) : (
         <div className="flex min-h-8 min-w-0 flex-wrap items-center gap-x-4 gap-y-2" role="toolbar" aria-label="列表工具栏">
+          {searchLayout.keyword || searchLayout.panel.length ? (
+            <div className="flex min-w-0 flex-wrap items-center gap-2" role="group" aria-label="搜索与筛选">
+              {searchLayout.keyword ? (
+                <ListSearchBox
+                  field={searchLayout.keyword}
+                  value={controller.draft[searchLayout.keyword.code]}
+                  onChange={(value) => controller.setDraftValue(searchLayout.keyword!.code, value)}
+                  onSearch={controller.applySearch}
+                  className="w-full sm:w-56"
+                />
+              ) : null}
+              {searchLayout.panel.length ? (
+                <ListFilterButton
+                  open={filterOpen}
+                  activeCount={activeFilterCount}
+                  controls={filterPanelId}
+                  onToggle={() => setFilterOpen((open) => !open)}
+                />
+              ) : null}
+            </div>
+          ) : null}
           {canCreate || canImport || canExport || toolbarExtra ? (
             <div className="flex min-w-0 flex-wrap items-center gap-2" role="group" aria-label="业务操作">
               {canCreate ? (
@@ -530,6 +557,19 @@ function MetaListBody({
           </div>
         </div>
       )}
+
+      {!batchMode && filterOpen && searchLayout.panel.length ? (
+        <ListFilterPanel
+          id={filterPanelId}
+          fields={searchLayout.panel}
+          values={controller.draft}
+          onValueChange={controller.setDraftValue}
+          onSearch={controller.applySearch}
+          onReset={controller.resetSearch}
+          onCollapse={() => setFilterOpen(false)}
+          loading={query.isLoading && query.data !== null}
+        />
+      ) : null}
 
       {toolbarNote ? <div className="text-sm text-muted-foreground">{toolbarNote}</div> : null}
 
@@ -630,31 +670,47 @@ function MetaListBody({
       ) : null}
       {hasViews ? (
         <>
-          <ViewListDrawer
-            open={viewListOpen}
-            onOpenChange={setViewListOpen}
-            objectCode={objectCode}
-            activeCode={config.activeView?.code}
-            onCreate={() => setViewEditor({ viewCode: null })}
-            onEdit={(code) => setViewEditor({ viewCode: code })}
-            onCopy={(code) => void copyView(code)}
-            onDelete={(view) => setDeletingView(view)}
-            onChanged={onReloadConfig}
-            refreshKey={config.views.map((view) => view.code).join(",")}
-          />
-          <ViewEditorDrawer
-            open={viewEditor !== null}
+          <Drawer
+            open={viewManager !== null}
             onOpenChange={(open) => {
-              if (!open) setViewEditor(null);
+              if (!open) setViewManager(null);
             }}
-            objectCode={objectCode}
-            viewCode={viewEditor?.viewCode ?? null}
-            onSaved={(view, created) => {
-              setViewEditor(null);
-              if (created) onSwitchView(view.code);
-              else onReloadConfig();
-            }}
-          />
+            title={
+              viewManager?.mode === "editor"
+                ? viewManager.viewCode === null
+                  ? "创建视图"
+                  : "编辑视图"
+                : "视图列表"
+            }
+            size="lg"
+            className={viewManager?.mode === "editor" ? "sm:max-w-[52rem]" : undefined}
+            contentClassName={viewManager?.mode === "editor" ? "flex flex-col p-0 sm:p-0" : undefined}
+          >
+            {viewManager?.mode === "list" ? (
+              <ViewListContent
+                objectCode={objectCode}
+                activeCode={config.activeView?.code}
+                onCreate={() => setViewManager({ mode: "editor", viewCode: null, returnToList: true })}
+                onEdit={(code) => setViewManager({ mode: "editor", viewCode: code, returnToList: true })}
+                onCopy={(code) => void copyView(code)}
+                onDelete={(view) => setDeletingView(view)}
+                onChanged={onReloadConfig}
+                refreshKey={config.views.map((view) => view.code).join(",")}
+              />
+            ) : viewManager?.mode === "editor" ? (
+              <ViewEditorContent
+                key={viewManager.viewCode ?? "__create"}
+                objectCode={objectCode}
+                viewCode={viewManager.viewCode}
+                onCancel={() => setViewManager(viewManager.returnToList ? { mode: "list" } : null)}
+                onSaved={(view, created) => {
+                  setViewManager(null);
+                  if (created) onSwitchView(view.code);
+                  else onReloadConfig();
+                }}
+              />
+            ) : null}
+          </Drawer>
           <ConfirmDialog
             open={deletingView !== null}
             onOpenChange={(open) => {

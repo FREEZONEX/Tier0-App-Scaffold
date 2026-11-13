@@ -1,7 +1,7 @@
 "use client";
 
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
-import { EllipsisVertical } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button, type ButtonSize } from "@/components/ui/button";
 import { DropdownMenu } from "@/components/kit/ui/dropdown-menu";
@@ -126,6 +126,7 @@ export interface SplitButtonProps {
   size?: ButtonSize;
   disabled?: boolean;
   loading?: boolean;
+  /** Optional accessible name. By default the visible button label is used. */
   menuLabel?: string;
   className?: string;
 }
@@ -139,37 +140,34 @@ export function SplitButton({
   size = "md",
   disabled = false,
   loading = false,
-  menuLabel = "更多",
+  menuLabel,
   className,
 }: SplitButtonProps) {
+  const items: MenuItem[] = onClick
+    ? [
+        { key: "__primary_action__", label: children, icon, onClick },
+        ...(menuItems.length ? [{ key: "__primary_divider__", type: "divider" as const }, ...menuItems] : []),
+      ]
+    : menuItems;
+
   return (
-    <span className={cn("inline-flex max-w-full items-stretch", className)}>
+    <DropdownMenu
+      items={items}
+      placement="bottom-end"
+      disabled={disabled || loading}
+      aria-label={menuLabel}
+      anchorClassName={className}
+    >
       <Button
         variant={variant}
         size={size}
         icon={icon}
         disabled={disabled}
         loading={loading}
-        className="rounded-r-none"
-        onClick={onClick}
       >
         {children}
+        <ChevronDown className="size-3.5 shrink-0 text-current opacity-70" aria-hidden="true" />
       </Button>
-      <DropdownMenu items={menuItems} placement="bottom-end" disabled={disabled}>
-        <Button
-          variant={variant}
-          size={size}
-          disabled={disabled}
-          aria-label={menuLabel}
-          className={cn(
-            "-ml-px rounded-l-none px-0",
-            size === "sm" ? "w-7" : size === "lg" ? "w-9" : "w-8",
-            variant === "primary" && "border-l-white/30",
-          )}
-        >
-          <EllipsisVertical className="size-4" />
-        </Button>
-      </DropdownMenu>
-    </span>
+    </DropdownMenu>
   );
 }

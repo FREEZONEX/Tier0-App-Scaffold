@@ -10,7 +10,7 @@
  *
  * `SortConditionList` is shared with the view editor's 默认排序 tab.
  */
-import { ArrowDownUp, ArrowUp, ArrowDown, GripVertical, Plus, X } from "lucide-react";
+import { ArrowDownUp, ArrowUp, ArrowDown, Plus, X } from "lucide-react";
 import { useRef, useState, type DragEvent } from "react";
 import { IconButton, TextButton } from "@/components/kit/ui/buttons";
 import { Popover } from "@/components/kit/ui/popover";
@@ -20,6 +20,7 @@ import { Tooltip } from "@/components/kit/ui/tooltip";
 import { moveItem } from "@/lib/component-kit/list-columns";
 import type { FieldDef, SortSpec } from "@/lib/component-kit/types";
 import { cn } from "@/lib/utils";
+import { DragHandle, dragInsertionClass } from "@/components/kit/ui/drag-handle";
 
 interface DraftSort {
   key: string;
@@ -65,6 +66,7 @@ export function SortConditionList({ fields, value, onChange, className }: SortCo
     if (JSON.stringify(toSorts(drafts)) !== valueKey) setDrafts(toDrafts(value));
   }
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dropTarget, setDropTarget] = useState<{ index: number; edge: "before" | "after" } | null>(null);
   const seedRef = useRef(0);
 
   const commit = (next: DraftSort[]) => {
@@ -82,24 +84,41 @@ export function SortConditionList({ fields, value, onChange, className }: SortCo
           draggable
           onDragStart={(event: DragEvent<HTMLDivElement>) => {
             setDragIndex(index);
+            setDropTarget(null);
             event.dataTransfer.effectAllowed = "move";
             event.dataTransfer.setData("text/plain", String(index));
           }}
           onDragOver={(event) => {
-            if (dragIndex !== null) event.preventDefault();
+            if (dragIndex === null) return;
+            event.preventDefault();
+            const rect = event.currentTarget.getBoundingClientRect();
+            const edge = event.clientY < rect.top + rect.height / 2 ? "before" : "after";
+            setDropTarget((current) => current?.index === index && current.edge === edge ? current : { index, edge });
           }}
           onDrop={(event) => {
             event.preventDefault();
-            if (dragIndex !== null && dragIndex !== index) commit(moveItem(drafts, dragIndex, index));
+            if (dragIndex !== null && dropTarget) {
+              const next = [...drafts];
+              const [moved] = next.splice(dragIndex, 1);
+              let insertAt = dropTarget.index + (dropTarget.edge === "after" ? 1 : 0);
+              if (dragIndex < insertAt) insertAt -= 1;
+              next.splice(Math.max(0, Math.min(insertAt, next.length)), 0, moved);
+              commit(next);
+            }
             setDragIndex(null);
+            setDropTarget(null);
           }}
-          onDragEnd={() => setDragIndex(null)}
+          onDragEnd={() => {
+            setDragIndex(null);
+            setDropTarget(null);
+          }}
           className={cn(
-            "flex min-w-0 flex-wrap items-center gap-2 rounded-[4px] bg-muted px-2 py-1.5",
+            "relative flex min-w-0 flex-wrap items-center gap-2 rounded-[4px] bg-muted px-2 py-1.5",
             dragIndex === index && "opacity-40",
+            dropTarget?.index === index && dragInsertionClass(dropTarget.edge),
           )}
         >
-          <GripVertical className="size-3.5 shrink-0 cursor-grab text-text-placeholder" aria-hidden="true" />
+          <DragHandle />
           <Select<string>
             aria-label="排序字段"
             className="min-w-[140px] flex-1"
@@ -172,6 +191,7 @@ export function SortPopover({ fields, value, onChange, disabled = false, isDefau
   const rules = value.map((sort) => describeSort(sort, fields));
   const trigger = (
     <TextButton
+      tone="success"
       icon={<ArrowDownUp />}
       disabled={disabled}
       aria-label={rules.length ? `排序：${rules.join("，")}${isDefault ? "（默认）" : ""}` : "排序"}
