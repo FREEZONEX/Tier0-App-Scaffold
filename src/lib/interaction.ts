@@ -16,7 +16,7 @@ export const FOCUS_FILL =
  * Brand ring at 40% opacity — readable without the heavy green double box.
  */
 export const FOCUS_RING =
-  "outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40";
+  "outline-none focus-visible:border-ring/40 focus-visible:ring-2 focus-visible:ring-ring/40";
 
 /** Alias kept for call sites that still import the compact name. */
 export const FOCUS_RING_COMPACT = FOCUS_RING;

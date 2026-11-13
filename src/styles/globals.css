@@ -152,10 +152,8 @@
   --border-strong: #cfcfcf;
   --input: var(--tier0-input-border);
   --input-bg: var(--tier0-input-bg);
-  /* Focus ring: pale CTA lime (DESIGN.md input.focusColor = highlight). */
-  /* Focus must stand out from a resting border (≥3:1): deep brand green on light
-     surfaces (7:1 on white); signal lime is ~1.3:1 on white and stays dark-mode only. */
-  --ring: var(--tier0-brand-ink);
+  /* Field focus: CTA lime #B2ED1D (DESIGN.md input.focusColor = highlight) at 40%. */
+  --ring: var(--tier0-highlight);
 
   --card: #ffffff;
   --card-foreground: var(--tier0-text-color);
@@ -580,7 +578,7 @@ body {
 
 @layer base {
   * {
-    @apply border-border outline-ring/70;
+    @apply border-border outline-ring/40;
   }
 
   html {
@@ -1294,7 +1292,16 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
   --tier0-shadow-primary-button: 0 1px 2px rgb(5 11 20 / 0.1);
   --tier0-shadow-highlight-button: 0 1px 2px rgb(115 178 0 / 0.18), 0 6px 14px -8px rgb(178 237 29 / 0.55);
   --tier0-shadow-overlay: var(--shadow-overlay);
-  --tier0-focus-ring: 0 0 0 3px color-mix(in srgb, var(--ring) 35%, transparent);
+  --tier0-focus-ring: 0 0 0 2px color-mix(in srgb, var(--ring) 40%, transparent);
+}
+
+/* Bare links and disclosure summaries have no component focus style of their
+   own; give them the field focus color. Buttons, tabs and chips show focus
+   with a light gray fill inside their components, text fields with their
+   frame — never a green outline box. */
+:where(a[href], summary):not([data-bare-control]):focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--ring) 40%, transparent);
+  outline-offset: 2px;
 }
 
 /* ── Phones and touch screens ────────────────────────────────────────────

@@ -181,7 +181,7 @@ export function Pagination({
             disabled={disabled}
             value={jumpText}
             className={cn(
-              "rounded-[4px] border border-border-strong bg-card text-center tabular-nums text-foreground outline-none transition-[border-color,box-shadow] hover:border-border-strong focus:border-ring focus:ring-2 focus:ring-ring/40",
+              "rounded-[4px] border border-border-strong bg-card text-center tabular-nums text-foreground outline-none transition-[border-color,box-shadow] hover:border-border-strong focus:border-ring/40 focus:ring-2 focus:ring-ring/40",
               small ? "h-6 w-11 text-sm" : "h-8 w-12 text-sm",
             )}
             onChange={(event) => setJumpText(event.target.value.replace(/\D/g, ""))}
