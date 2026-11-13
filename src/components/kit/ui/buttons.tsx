@@ -73,7 +73,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
 );
 
 const TEXT_TONE = {
-  primary: "text-primary hover:text-primary/80",
+  primary: "text-brand hover:text-brand-hover",
   success: "text-success-deep hover:text-success",
   warning: "text-warning-deep hover:text-warning",
   danger: "text-destructive hover:text-destructive/80",

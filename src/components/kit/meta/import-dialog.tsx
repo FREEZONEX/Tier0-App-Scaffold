@@ -264,7 +264,7 @@ function ImportBody({
         <h3 className="text-sm font-medium text-foreground">2. 上传完善好的表格</h3>
         {picked ? (
           <div className="mt-3 flex min-w-0 items-center gap-3 rounded-[4px] border border-border-secondary bg-card px-3 py-3">
-            <FileSpreadsheet className="size-8 shrink-0 text-[#1d7044]" aria-hidden="true" />
+            <FileSpreadsheet className="size-8 shrink-0 text-brand" aria-hidden="true" />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm text-foreground" title={picked.file.name}>
                 {picked.file.name}
@@ -304,7 +304,7 @@ function ImportBody({
               void acceptFile(event.dataTransfer.files?.[0]);
             }}
           >
-            <FileSpreadsheet className="size-10 text-[#1d7044]" aria-hidden="true" />
+            <FileSpreadsheet className="size-10 text-brand" aria-hidden="true" />
             <p className="text-sm text-text-secondary">
               {parsing ? "正在解析表格…" : (
                 <>

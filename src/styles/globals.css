@@ -32,7 +32,10 @@
   --tier0-highlight-bg-accent: #e7f9b9;
   --tier0-highlight-20: color-mix(in srgb, var(--tier0-highlight) 20%, transparent);
   /* Readable brand for text / icons on the theme canvas (not CTA lime). */
-  --tier0-brand: #467000;
+  /* Theme green for links, text buttons, selected radios, upload accents. */
+  --tier0-brand: #73b200;
+  /* Deeper green where contrast is a hard floor: focus ring (≥3:1) and status text on lime tint (≥4.5:1). */
+  --tier0-brand-ink: #467000;
 
   --tier0-text-color: #050b14;
   --tier0-text-secondary: #242424;
@@ -152,7 +155,7 @@
   /* Focus ring: pale CTA lime (DESIGN.md input.focusColor = highlight). */
   /* Focus must stand out from a resting border (≥3:1): deep brand green on light
      surfaces (7:1 on white); signal lime is ~1.3:1 on white and stays dark-mode only. */
-  --ring: var(--tier0-brand);
+  --ring: var(--tier0-brand-ink);
 
   --card: #ffffff;
   --card-foreground: var(--tier0-text-color);
@@ -181,7 +184,7 @@
   --destructive: var(--tier0-error-color);
 
   /* Deep brand ink on the lime tint (~6:1); #73b200 on it was 2.3:1. */
-  --state-running-fg: var(--tier0-brand);
+  --state-running-fg: var(--tier0-brand-ink);
   --state-running-bg: var(--tier0-highlight-bg-accent);
   --state-running-border: var(--tier0-highlight-bg-primary);
   --state-idle-fg: var(--tier0-text-secondary);

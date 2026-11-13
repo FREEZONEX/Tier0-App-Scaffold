@@ -368,7 +368,7 @@ Operator-facing principles, device baselines (phone, station touch console, desk
 wall screen) and the delivery checklist live in [docs/operator-ux.md](docs/operator-ux.md).
 
 - Body text, labels and enabled placeholders must have at least 4.5:1 contrast against their actual background in both themes. Test the composited color, including opacity. Enabled placeholders use `--tier0-text-placeholder` (`#6b6b6b` light / `#8b8b96` dark).
-- Text and icon accents on the canvas use `--tier0-brand` (`#467000` light / `#73b200` dark). Do not use highlight lime tokens for readable text, thin lines or selection indicators on light surfaces (`#73b200` is 2.6:1 on white).
+- Links, text buttons, selected radios and upload accents use the theme green `--tier0-brand` (`#73b200`) in both themes. Focus rings and status text on lime tints use the deeper `--tier0-brand-ink` (`#467000`), because `#73b200` is only 2.6:1 on white.
 - Keyboard focus uses `--ring` (brand green on light, signal lime on dark) as a solid 2px outline; selected tabs use a 2px foreground underline.
 - On phones and touch screens (`max-width: 639px`, `pointer: coarse`) text steps up one size, inputs reach 16px and every control reaches a 44px touch target.
 - Sidebar selection uses `bg-muted text-foreground` in light mode and the one-step deeper `--tier0-sidebar-selected` (`#2a2b30`) in dark mode, with no border or shadow. Keyboard focus uses the separate focus ring.
