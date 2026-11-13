@@ -288,9 +288,9 @@ function PrintBody({
                 aria-checked={selected === item.code}
                 title={item.name}
                 className={cn(
-                  "flex min-w-0 items-center gap-3 rounded-[4px] border px-3 py-3 text-left outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50",
+                  "flex min-w-0 items-center gap-3 rounded-[4px] border px-3 py-3 text-left outline-none transition-colors focus-visible:bg-muted focus-visible:text-foreground",
                   selected === item.code
-                    ? "border-foreground bg-muted text-foreground"
+                    ? "border-transparent bg-muted text-foreground"
                     : "border-border bg-card text-foreground hover:border-border-strong hover:bg-fill-hover",
                 )}
                 onClick={() => setSelected(item.code)}

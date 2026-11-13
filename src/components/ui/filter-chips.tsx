@@ -52,7 +52,7 @@ export function StatusFilterChips({
             className={cn(
               "inline-flex h-8 pointer-coarse:h-11 items-center gap-1.5 rounded-[4px] border px-3 text-sm leading-none outline-none",
               "transition-[color,background-color,border-color,box-shadow,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)]",
-              "focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-[0.98] motion-reduce:transition-none",
+              "focus-visible:bg-muted focus-visible:text-foreground active:scale-[0.98] motion-reduce:transition-none",
               active
                 // Selection is neutral: a tinted fill and heavier text, no outline darker than the label. Lime is for the key CTA only.
                 ? "border-transparent bg-foreground/[0.08] font-semibold text-foreground"

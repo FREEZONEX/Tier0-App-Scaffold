@@ -1297,16 +1297,6 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
   --tier0-focus-ring: 0 0 0 3px color-mix(in srgb, var(--ring) 35%, transparent);
 }
 
-/* Keyboard focus is always visible: a solid 2px outline in the ring color on
-   buttons, links, tabs and other focusable controls, on top of any soft glow a
-   component adds. Unlayered so a component's `outline-none` cannot hide it.
-   Text fields, list options and menu items show focus through their own frame
-   or fill instead. */
-:where(button, a[href], summary, [role="tab"], [role="button"], [role="switch"], [role="radio"], [role="checkbox"], [tabindex]:not([tabindex="-1"])):not([data-bare-control]):not([role="option"]):not([role="menuitem"]):focus-visible {
-  outline: 2px solid var(--ring);
-  outline-offset: 2px;
-}
-
 /* ── Phones and touch screens ────────────────────────────────────────────
    Field operators work on phones, shared touch consoles and with gloves. On
    narrow screens or coarse pointers text grows one step (inputs reach 16px,

@@ -53,7 +53,7 @@ export function Switch({
       className={cn(
         "peer group/switch relative inline-flex shrink-0 items-center rounded-full border border-transparent outline-none before:absolute before:-inset-y-3 before:-inset-x-1",
         "transition-[background-color,box-shadow] duration-[var(--motion-fast)] ease-[var(--motion-ease)]",
-        "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
+        "focus-visible:brightness-90",
         small ? "h-3.5 w-6" : "h-[18px] w-8",
         isOn
           ? "bg-[color:var(--tier0-highlight)] shadow-[inset_0_0_0_1px_rgb(115_178_0/0.15)]"

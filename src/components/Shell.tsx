@@ -36,14 +36,14 @@ const COLLAPSED_STORAGE_KEY = "tier0-shell-collapsed";
 const COLLAPSED_STORAGE_EVENT = "tier0-shell-collapsed-change";
 
 const sidebarItemBase =
-  "group flex items-center rounded-[4px] text-sm font-medium pointer-coarse:min-h-11 transition-[background-color,color,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:ring-offset-1 focus-visible:ring-offset-sidebar";
+  "group flex items-center rounded-[4px] text-sm font-medium pointer-coarse:min-h-11 transition-[background-color,color,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] focus:outline-none focus-visible:bg-sidebar-accent focus-visible:text-foreground";
 const sidebarItemActive =
   "bg-muted text-foreground";
 // Hover is a lighter fill than the selection, so hovering never looks like the current page.
 const sidebarItemInactive =
   "text-secondary-foreground hover:bg-muted/50 hover:text-foreground active:translate-x-px";
 const sidebarIconButton =
-  "inline-flex size-8 shrink-0 items-center justify-center rounded-[4px] text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/35";
+  "inline-flex size-8 shrink-0 items-center justify-center rounded-[4px] text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground focus:outline-none focus-visible:bg-sidebar-accent focus-visible:text-foreground";
 
 function normalizeMenuPath(value: string): string {
   if (!value) {
@@ -361,7 +361,7 @@ export function Shell({
                   aria-expanded={!isCollapsed}
                   aria-label={isCollapsed ? uiText("expandSidebar") : uiText("collapseSidebar")}
                   title={isCollapsed ? uiText("expandSidebar") : uiText("collapseSidebar")}
-                  className="inline-flex size-8 items-center justify-center rounded-[4px] border border-transparent bg-transparent text-muted-foreground transition-[background-color,color,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] hover:bg-sidebar-accent hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight/35 active:scale-95 pointer-coarse:size-11"
+                  className="inline-flex size-8 items-center justify-center rounded-[4px] border border-transparent bg-transparent text-muted-foreground transition-[background-color,color,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] hover:bg-sidebar-accent hover:text-foreground focus:outline-none focus-visible:bg-sidebar-accent focus-visible:text-foreground active:scale-95 pointer-coarse:size-11"
                 >
                   {isCollapsed ? (
                     <ChevronRight className="size-4" />
@@ -374,7 +374,7 @@ export function Shell({
                 <button
                   type="button"
                   aria-label={uiText("closeNavigation")}
-                  className="inline-flex size-8 items-center justify-center rounded-[4px] border border-transparent bg-transparent text-muted-foreground transition-[background-color,color,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] hover:bg-sidebar-accent hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight/35 active:scale-95 pointer-coarse:size-11"
+                  className="inline-flex size-8 items-center justify-center rounded-[4px] border border-transparent bg-transparent text-muted-foreground transition-[background-color,color,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] hover:bg-sidebar-accent hover:text-foreground focus:outline-none focus-visible:bg-sidebar-accent focus-visible:text-foreground active:scale-95 pointer-coarse:size-11"
                   onClick={() => setMobileOpen(false)}
                 >
                   <X className="size-4" />
@@ -624,7 +624,7 @@ export function Shell({
           <button
             type="button"
             aria-label={uiText("openNavigation")}
-            className="inline-flex size-10 items-center justify-center rounded-[4px] border border-border bg-card pointer-coarse:size-11 text-foreground shadow-sm transition-[background-color,border-color,box-shadow,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] hover:border-border-strong hover:bg-background hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight/35 active:scale-95"
+            className="inline-flex size-10 items-center justify-center rounded-[4px] border border-border bg-card pointer-coarse:size-11 text-foreground shadow-sm transition-[background-color,border-color,box-shadow,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] hover:border-border-strong hover:bg-muted hover:shadow-md focus:outline-none focus-visible:border-border-strong focus-visible:bg-muted active:scale-95"
             onClick={() => setMobileOpen(true)}
           >
             <Menu className="size-4" />

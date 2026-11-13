@@ -283,7 +283,7 @@ function SelectionControl({
           indeterminate={indeterminate && !checked}
           disabled={disabled}
           className={cn(
-            "peer-focus-visible:shadow-[0_0_0_2px_rgb(5_145_255/0.25)]",
+            "peer-focus-visible:ring-2 peer-focus-visible:ring-ring/40",
             !disabled && !checked && "group-hover:border-brand",
           )}
         />
@@ -842,7 +842,7 @@ export function DataGrid<Row>({
                                   type="button"
                                   aria-label={expanded ? "收起子级" : "展开子级"}
                                   aria-expanded={expanded}
-                                  className="inline-flex size-5 shrink-0 items-center justify-center rounded-[4px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+                                  className="inline-flex size-5 shrink-0 items-center justify-center rounded-[4px] text-muted-foreground outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:bg-muted focus-visible:text-foreground"
                                   onClick={() => toggleTreeRow(entry)}
                                 >
                                   {treeNode?.status === "loading" ? (

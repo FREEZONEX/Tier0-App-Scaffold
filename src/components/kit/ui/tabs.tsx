@@ -123,7 +123,7 @@ export function Tabs<K extends string = string>({
                   tabIndex={selected ? 0 : -1}
                   disabled={item.disabled}
                   className={cn(
-                    "relative inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50",
+                    "relative inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[4px] outline-none transition-colors focus-visible:bg-muted focus-visible:text-foreground",
                     type === "line"
                       ? cn(LINE_SIZE[size], selected ? "font-medium text-foreground" : "text-muted-foreground hover:text-foreground")
                       : cn(
@@ -223,7 +223,7 @@ export function CapsuleGroup<K extends string | number = string>({
             className={cn(
               "inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-[3px] outline-none",
               "transition-[color,background-color,box-shadow] duration-[var(--motion-fast)] ease-[var(--motion-ease)]",
-              "focus-visible:ring-2 focus-visible:ring-ring/50 motion-reduce:transition-none",
+              "focus-visible:bg-fill-hover focus-visible:text-foreground motion-reduce:transition-none",
               size === "sm" ? "px-2 py-0.5 text-xs" : "px-3 py-1 text-sm",
               "pointer-coarse:min-h-10",
               active
@@ -360,7 +360,7 @@ export function AnchorTabs({
               aria-selected={selected}
               tabIndex={selected ? 0 : -1}
               className={cn(
-                "relative inline-flex shrink-0 items-center whitespace-nowrap rounded-[4px] outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring/50",
+                "relative inline-flex shrink-0 items-center whitespace-nowrap rounded-[4px] outline-none transition-colors duration-150 focus-visible:bg-muted focus-visible:text-foreground",
                 size === "sm" ? "py-2 text-sm" : "py-3 text-sm",
                 selected
                   ? "font-medium text-foreground"

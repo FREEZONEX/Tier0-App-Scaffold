@@ -108,7 +108,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
           indeterminate={indeterminate}
           disabled={disabled}
           className={cn(
-            "peer-focus-visible:shadow-[0_0_0_2px_rgb(5_145_255/0.25)]",
+            "peer-focus-visible:ring-2 peer-focus-visible:ring-ring/40",
             !disabled && !isChecked && !indeterminate && "group-hover:border-brand",
           )}
         />

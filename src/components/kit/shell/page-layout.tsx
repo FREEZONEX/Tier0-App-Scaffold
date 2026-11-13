@@ -77,7 +77,7 @@ export interface PageHeaderLinkProps {
 }
 
 const LINK_CLASS =
-  "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[4px] text-sm text-text-secondary transition-colors hover:text-brand focus-visible:outline-2 focus-visible:outline-brand-border [&_svg]:size-4";
+  "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[4px] text-sm text-text-secondary outline-none transition-colors hover:text-brand focus-visible:bg-muted focus-visible:text-foreground [&_svg]:size-4";
 
 /** PageHeaderLink — quiet text link in the page title row. */
 export function PageHeaderLink({ icon, children, to, href, newTab = false, onClick, className }: PageHeaderLinkProps) {

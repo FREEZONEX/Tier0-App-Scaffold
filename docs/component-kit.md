@@ -153,7 +153,7 @@ const adapter: ComponentKitAdapter = {
 
 ## 样式与验证
 
-启用状态输入框为白底，浅灰填充仅用于禁用状态；沿用根 `globals.css` 的主题变量。交互组件保留 hover、focus、error、disabled 的区分。图标、文字、链接与按钮按各自职责保留。
+启用状态输入框为白底，浅灰填充仅用于禁用状态；沿用根 `globals.css` 的主题变量。交互组件保留 hover、focus、error、disabled 的区分。键盘焦点分流：按钮 / 页签 / 图标按钮 / 分段用浅灰填充（`FOCUS_FILL`），输入框 / 选择器 / 日期 / 复选框用品牌色 40% 描边（`FOCUS_RING`）；不要给按钮套绿色双描边。图标、文字、链接与按钮按各自职责保留。
 
 ## 标签、拖拽与浮层一致性
 

@@ -157,8 +157,8 @@ export function RecordSelect({
         aria-required={props.required} aria-expanded={open && !disabled} aria-haspopup="listbox"
         aria-controls={listId} aria-activedescendant={open ? `${listId}-${active}` : undefined}
         className={cn(
-          "flex h-10 w-full min-w-0 items-center gap-2 rounded-[4px] border border-input bg-card px-3 text-left text-sm text-foreground shadow-sm outline-none transition-[border-color,box-shadow] duration-150 disabled:bg-surface-inset disabled:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/30",
-          open && "border-ring ring-2 ring-ring/30",
+          "flex h-10 w-full min-w-0 items-center gap-2 rounded-[4px] border border-input bg-card px-3 text-left text-sm text-foreground shadow-sm outline-none transition-[border-color,box-shadow] duration-150 disabled:bg-surface-inset disabled:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/40",
+          open && "border-ring ring-2 ring-ring/40",
           className,
         )}
         onClick={() => { setActive(Math.max(0, items.findIndex(o => values.includes(o.value)))); setOpen(!open); }}

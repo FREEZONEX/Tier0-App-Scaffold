@@ -117,7 +117,7 @@ export function ViewTabs({
                   tabIndex={selected ? 0 : -1}
                   title={view.name}
                   className={cn(
-                    "inline-flex h-8 max-w-[12rem] items-center gap-2 rounded-[4px] px-2 text-sm leading-none outline-none pointer-coarse:h-11 focus-visible:ring-2 focus-visible:ring-ring/50",
+                    "inline-flex h-8 max-w-[12rem] items-center gap-2 rounded-[4px] px-2 text-sm leading-none outline-none pointer-coarse:h-11 focus-visible:bg-muted focus-visible:text-foreground",
                     "transition-colors duration-150 ease-out motion-reduce:transition-none",
                     index === 0 && "pl-1",
                     selected
