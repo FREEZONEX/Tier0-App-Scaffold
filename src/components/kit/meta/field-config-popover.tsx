@@ -229,7 +229,7 @@ export function FieldConfigPopover({ states, onChange, primaryField, label = "хн
       {compact ? (
         <IconButton variant="outline" size="lg" icon={<LayoutList />} label={label} title={label} tooltip={false} disabled={disabled} />
       ) : (
-        <TextButton tone="success" icon={<LayoutList />} disabled={disabled}>
+        <TextButton tone="primary" icon={<LayoutList />} disabled={disabled}>
           {label}
         </TextButton>
       )}

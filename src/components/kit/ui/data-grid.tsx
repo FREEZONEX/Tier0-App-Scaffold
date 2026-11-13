@@ -283,7 +283,7 @@ function SelectionControl({
           indeterminate={indeterminate && !checked}
           disabled={disabled}
           className={cn(
-            "peer-focus-visible:ring-2 peer-focus-visible:ring-ring/40",
+            "peer-focus-visible:ring-2 peer-focus-visible:ring-ring/60",
             !disabled && !checked && "group-hover:border-brand",
           )}
         />

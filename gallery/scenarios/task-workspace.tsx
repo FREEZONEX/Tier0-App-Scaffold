@@ -263,8 +263,8 @@ export function TaskWorkspace() {
     return (
       // Icon actions, fixed size; empty ⋯ slot keeps the column aligned with MetaListPage rows.
       <div className="flex items-center gap-1 whitespace-nowrap">
-        <IconButton size="sm" label={advanceLabel} icon={<AdvanceIcon />} className="text-primary hover:text-primary/80" onClick={() => advance(t)} />
-        <IconButton size="sm" label="编辑" icon={<Pencil />} className="text-primary hover:text-primary/80" onClick={() => edit(t)} />
+        <IconButton size="sm" label={advanceLabel} icon={<AdvanceIcon />} className="text-brand" onClick={() => advance(t)} />
+        <IconButton size="sm" label="编辑" icon={<Pencil />} className="text-brand" onClick={() => edit(t)} />
         {t.status !== 'closed' ? (
           <IconButton size="sm" label="关闭" icon={<X />} danger onClick={() => setClosing([t])} />
         ) : (
@@ -302,10 +302,29 @@ export function TaskWorkspace() {
                       STAGGER_ITEM,
                     )}
                   >
-                    <div className="flex items-center gap-2">
-                      <span className={cn('size-1.5 rounded-full', priorityDot[t.priority])} aria-hidden />
+                    <div className="flex min-h-7 items-center gap-2">
+                      <span
+                        className={cn('size-1.5 rounded-full', priorityDot[t.priority])}
+                        title={`${t.priority}优先级`}
+                        aria-label={`${t.priority}优先级`}
+                      />
                       <code className="caption">{t.id}</code>
-                      <span className="caption ml-auto">{t.priority}优先级</span>
+                      {/* Hover ✕ replaces the old「高优先级」slot at top-right; priority stays on the dot. */}
+                      {t.status !== 'closed' ? (
+                        <span className="ml-auto inline-flex shrink-0 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100">
+                          <IconButton
+                            size="sm"
+                            icon={<X className="size-3.5 stroke-[2.5]" />}
+                            label="关闭任务"
+                            danger
+                            tooltip={false}
+                            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                            onClick={() => setClosing([t])}
+                          />
+                        </span>
+                      ) : (
+                        <span className="caption ml-auto text-muted-foreground">{t.priority}优先级</span>
+                      )}
                     </div>
                     <button
                       type="button"
@@ -318,24 +337,20 @@ export function TaskWorkspace() {
                       计划 {t.due || '未排期'}
                       {t.lines.length ? ` · 领料 ${t.lines.length} 项 · ${money(totalOf(t.lines, 'amount'))}` : ''}
                     </p>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-end justify-between gap-2">
                       <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
                         <Avatar name={t.owner} size="sm" />
                         <EllipsisText>{t.owner}</EllipsisText>
                       </span>
-                      <span className="ml-auto flex items-center gap-0.5">
-                        <Button size="sm" variant="ghost" className="h-6 px-2 text-xs" onClick={() => advance(t)}>
-                          {t.status === 'todo' ? '开始' : t.status === 'running' ? '完成' : '重新打开'}
-                          <ArrowRight size={12} />
-                        </Button>
-                        <IconButton
-                          size="sm"
-                          icon={<X />}
-                          label="关闭任务"
-                          className="sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
-                          onClick={() => setClosing([t])}
-                        />
-                      </span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 shrink-0 px-2 text-xs"
+                        onClick={() => advance(t)}
+                      >
+                        {t.status === 'todo' ? '开始' : t.status === 'running' ? '完成' : '重新打开'}
+                        <ArrowRight size={12} />
+                      </Button>
                     </div>
                   </article>
                 ))}

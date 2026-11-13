@@ -368,8 +368,8 @@ Operator-facing principles, device baselines (phone, station touch console, desk
 wall screen) and the delivery checklist live in [docs/operator-ux.md](docs/operator-ux.md).
 
 - Body text, labels and enabled placeholders must have at least 4.5:1 contrast against their actual background in both themes. Test the composited color, including opacity. Enabled placeholders use `--tier0-text-placeholder` (`#6b6b6b` light / `#8b8b96` dark).
-- Links, text buttons, selected radios and upload accents use the theme green `--tier0-brand` (`#73b200`) in both themes. Status text on lime tints uses the deeper `--tier0-brand-ink` (`#467000`), because `#73b200` is only 2.6:1 on white.
-- Keyboard focus splits by control kind: buttons, tabs, chips, icon buttons and pagination use a light gray fill (`bg-muted`); text fields, selects, date pickers and checkboxes use `--ring` (`#B2ED1D`, both themes) at 40% opacity for the border and a 2px ring. Selected tabs use a 2px foreground underline.
+- Links, text buttons, selected radios and upload accents use readable `--tier0-brand` (`#467000` light / `#73b200` dark). Do not use `#73b200` for text on light surfaces (2.6:1). Text-button hover adds underline only — no color shift.
+- Keyboard focus splits by control kind: buttons, tabs, chips, icon buttons and pagination use a light gray fill (`bg-muted`); text fields, selects, date pickers and checkboxes use `--ring` (`#B2ED1D`, both themes): border at 40% opacity and a 2px outer ring at 60%. Selected tabs use a 2px foreground underline.
 - On phones and touch screens (`max-width: 639px`, `pointer: coarse`) text steps up one size, inputs reach 16px and every control reaches a 44px touch target.
 - Sidebar selection uses `bg-muted text-foreground` in light mode and the one-step deeper `--tier0-sidebar-selected` (`#2a2b30`) in dark mode, with no border or shadow. Keyboard focus on rail items uses the same muted fill, not a brand outline.
 - Same-row form controls and buttons use matching size tokens: sm 32px, md 36px, lg 40px.

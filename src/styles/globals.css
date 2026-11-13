@@ -32,9 +32,8 @@
   --tier0-highlight-bg-accent: #e7f9b9;
   --tier0-highlight-20: color-mix(in srgb, var(--tier0-highlight) 20%, transparent);
   /* Readable brand for text / icons on the theme canvas (not CTA lime). */
-  /* Theme green for links, text buttons, selected radios, upload accents. */
-  --tier0-brand: #73b200;
-  /* Deeper green where contrast is a hard floor: focus ring (≥3:1) and status text on lime tint (≥4.5:1). */
+  --tier0-brand: #467000;
+  /* Alias kept for status text on lime tints; same ink as --tier0-brand in light. */
   --tier0-brand-ink: #467000;
 
   --tier0-text-color: #050b14;
@@ -152,7 +151,7 @@
   --border-strong: #cfcfcf;
   --input: var(--tier0-input-border);
   --input-bg: var(--tier0-input-bg);
-  /* Field focus: CTA lime #B2ED1D (DESIGN.md input.focusColor = highlight) at 40%. */
+  /* Field focus: CTA lime #B2ED1D; border 40%, outer ring 60%. */
   --ring: var(--tier0-highlight);
 
   --card: #ffffff;
@@ -1292,7 +1291,7 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
   --tier0-shadow-primary-button: 0 1px 2px rgb(5 11 20 / 0.1);
   --tier0-shadow-highlight-button: 0 1px 2px rgb(115 178 0 / 0.18), 0 6px 14px -8px rgb(178 237 29 / 0.55);
   --tier0-shadow-overlay: var(--shadow-overlay);
-  --tier0-focus-ring: 0 0 0 2px color-mix(in srgb, var(--ring) 40%, transparent);
+  --tier0-focus-ring: 0 0 0 2px color-mix(in srgb, var(--ring) 60%, transparent);
 }
 
 /* Bare links and disclosure summaries have no component focus style of their
@@ -1341,6 +1340,7 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
 @theme inline {
   /* Brand for text / icons must stay ≥4.5:1 on the theme canvas — not CTA lime. */
   --color-brand: var(--tier0-brand);
+  --color-brand-ink: var(--tier0-brand-ink);
   --color-brand-hover: color-mix(in srgb, var(--tier0-brand) 82%, #050b14);
   --color-brand-active: color-mix(in srgb, var(--tier0-brand) 68%, #050b14);
   --color-brand-soft: var(--tier0-primary-bg);

@@ -191,7 +191,7 @@ export function SortPopover({ fields, value, onChange, disabled = false, isDefau
   const rules = value.map((sort) => describeSort(sort, fields));
   const trigger = (
     <TextButton
-      tone="success"
+      tone="primary"
       icon={<ArrowDownUp />}
       disabled={disabled}
       aria-label={rules.length ? `排序：${rules.join("，")}${isDefault ? "（默认）" : ""}` : "排序"}

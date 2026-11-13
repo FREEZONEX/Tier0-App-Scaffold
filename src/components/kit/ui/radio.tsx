@@ -87,7 +87,7 @@ export function RadioGroup<V extends string | number = string | number>({
                   : "border-border-strong bg-card text-foreground hover:text-brand",
                 isDisabled && "cursor-not-allowed border-border-strong bg-input-disabled text-text-placeholder hover:text-text-placeholder",
                 !isDisabled && "cursor-pointer",
-                "has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring/40",
+                "has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring/60",
               )}
             >
               <input
@@ -141,7 +141,7 @@ export function RadioGroup<V extends string | number = string | number>({
               <span
                 aria-hidden="true"
                 className={cn(
-                  "flex size-4 items-center justify-center rounded-full border transition-colors duration-150 peer-focus-visible:ring-2 peer-focus-visible:ring-ring/40",
+                  "flex size-4 items-center justify-center rounded-full border transition-colors duration-150 peer-focus-visible:ring-2 peer-focus-visible:ring-ring/60",
                   isSelected ? "border-brand bg-brand" : "border-border-strong bg-card",
                   !isDisabled && !isSelected && "group-hover:border-brand",
                   isDisabled && "border-border-strong bg-input-disabled",

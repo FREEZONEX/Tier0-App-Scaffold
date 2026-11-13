@@ -23,7 +23,7 @@ body{margin:0;background:var(--background)!important;color:var(--tier0-text-colo
 .task-column>header{display:flex;align-items:center;justify-content:space-between;padding:4px 4px 16px;font-size:13px;font-weight:600}
 .task-tile{display:flex;flex-direction:column;gap:12px;background:#fff;padding:16px;margin-bottom:12px;border-radius:4px;border:1px solid var(--tier0-border);box-shadow:0 1px 2px rgb(15 23 42 / 0.04)}
 .task-title{text-align:left;font-size:14px;font-weight:600;line-height:1.6;overflow-wrap:anywhere;cursor:pointer}
-.task-title:hover{text-decoration:underline}.task-title:focus-visible{outline:2px solid color-mix(in srgb,var(--ring) 40%,transparent);outline-offset:4px}
+.task-title:hover{text-decoration:underline}.task-title:focus-visible{outline:2px solid color-mix(in srgb,var(--ring) 60%,transparent);outline-offset:4px}
 @media(max-width:700px){.task-workspace{padding:16px;gap:16px}.task-metrics{gap:8px}.task-board{grid-template-columns:minmax(0,1fr)}}
 
 .scene-feed,.scene-attention{list-style:none;margin:0;padding:0}

@@ -4,14 +4,15 @@ import { useKitApi, type KitApi } from "@/components/kit/provider";
 
 
 /**
- * PrintDialog — 选择打印模板 (151 / 152): template buttons (selected = blue),
- * 「请先配置打印模板」 when none, 取消 / 确认 → 「打印渲染中，请稍候」 →
+ * PrintDialog — 选择打印模板 (151 / 152): template cards with a radio circle on
+ * the right to cue single-choice selection, 「请先配置打印模板」 when none,
+ * 取消 / 确认 → 「打印渲染中，请稍候」 →
  * POST /api/system/print/render → 打印预览 (CARD: 标题、二维码、字段网格、明细表;
  * LABEL: 标签 + 二维码) → 打印 = window.print(), printing only the preview pages.
  *
  * Row 打印 passes one id; 批量打印 passes up to 20 ids (one page per record).
  */
-import { ArrowLeft, Check, FileText, Printer, Tag as TagIcon } from "lucide-react";
+import { ArrowLeft, FileText, Printer, Tag as TagIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
@@ -280,16 +281,18 @@ function PrintBody({
       >
         {() => (
           <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="打印模板">
-            {available.map((item) => (
+            {available.map((item) => {
+              const isSelected = selected === item.code;
+              return (
               <button
                 type="button"
                 key={item.code}
                 role="radio"
-                aria-checked={selected === item.code}
+                aria-checked={isSelected}
                 title={item.name}
                 className={cn(
                   "flex min-w-0 items-center gap-3 rounded-[4px] border px-3 py-3 text-left outline-none transition-colors focus-visible:bg-muted focus-visible:text-foreground",
-                  selected === item.code
+                  isSelected
                     ? "border-transparent bg-muted text-foreground"
                     : "border-border bg-card text-foreground hover:border-border-strong hover:bg-fill-hover",
                 )}
@@ -302,9 +305,18 @@ function PrintBody({
                   <span className="block truncate text-sm font-medium">{item.name}</span>
                   <span className="mt-0.5 block text-xs text-text-tertiary">{item.layout === "LABEL" ? "标签" : "单据"}</span>
                 </span>
-                {selected === item.code ? <Check className="size-4 shrink-0" aria-hidden="true" /> : null}
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "flex size-4 shrink-0 items-center justify-center rounded-full border transition-colors",
+                    isSelected ? "border-foreground bg-foreground" : "border-border-strong bg-card",
+                  )}
+                >
+                  {isSelected ? <span className="size-1.5 rounded-full bg-background" /> : null}
+                </span>
               </button>
-            ))}
+              );
+            })}
           </div>
         )}
       </AsyncView>

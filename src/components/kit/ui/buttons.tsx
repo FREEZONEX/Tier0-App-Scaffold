@@ -73,11 +73,12 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
 );
 
 const TEXT_TONE = {
-  primary: "text-brand hover:text-brand-hover",
-  success: "text-success-deep hover:text-success",
-  warning: "text-warning-deep hover:text-warning",
-  danger: "text-destructive hover:text-destructive/80",
-  default: "text-muted-foreground hover:text-foreground",
+  /* Hover keeps the same color; TextButton underline is the only hover cue. */
+  primary: "text-brand",
+  success: "text-success-deep",
+  warning: "text-warning-deep",
+  danger: "text-destructive",
+  default: "text-muted-foreground",
 } as const;
 
 export interface TextButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {

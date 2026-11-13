@@ -13,10 +13,10 @@ export const FOCUS_FILL =
 
 /**
  * Keyboard focus for text fields, selects, date pickers, checkboxes.
- * Brand ring at 40% opacity — readable without the heavy green double box.
+ * Brand ring outer glow at 60% opacity (`#B2ED1D`); border stays at 40%.
  */
 export const FOCUS_RING =
-  "outline-none focus-visible:border-ring/40 focus-visible:ring-2 focus-visible:ring-ring/40";
+  "outline-none focus-visible:border-ring/40 focus-visible:ring-2 focus-visible:ring-ring/60";
 
 /** Alias kept for call sites that still import the compact name. */
 export const FOCUS_RING_COMPACT = FOCUS_RING;
