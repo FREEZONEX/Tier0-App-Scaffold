@@ -612,7 +612,8 @@ export function TaskWorkspace() {
           if (!v) setDraft(null);
         }}
         title={draft?.id ? '编辑任务' : '新建任务'}
-        size="xl"
+        size="lg"
+        className="sm:max-w-3xl"
         footer={
           <>
             <Button variant="outline" onClick={() => setDraft(null)}>
