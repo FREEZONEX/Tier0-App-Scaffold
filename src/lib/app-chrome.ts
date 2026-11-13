@@ -50,6 +50,12 @@ const UI_COPY = {
     loadError: "Couldn't load data",
     retry: "Reload",
     empty: "No data yet",
+    loading: "Loading…",
+    noRoles: "No role assigned",
+    expandSidebar: "Expand sidebar",
+    collapseSidebar: "Collapse sidebar",
+    openNavigation: "Open navigation",
+    closeNavigation: "Close navigation",
   },
   "zh-CN": {
     save: "保存",
@@ -58,6 +64,12 @@ const UI_COPY = {
     loadError: "数据加载失败",
     retry: "重新加载",
     empty: "暂无数据",
+    loading: "加载中…",
+    noRoles: "未分配角色",
+    expandSidebar: "展开侧边栏",
+    collapseSidebar: "收起侧边栏",
+    openNavigation: "打开导航",
+    closeNavigation: "关闭导航",
   },
 } as const;
 

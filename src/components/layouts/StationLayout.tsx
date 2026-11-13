@@ -3,7 +3,7 @@
 import { type ReactNode } from "react";
 import { Activity } from "lucide-react";
 import type { AppUser } from "@/lib/users";
-import { APP_ICON, APP_NAME } from "@/lib/app-chrome";
+import { APP_ICON, APP_NAME, uiText } from "@/lib/app-chrome";
 
 export function StationLayout({
   user,
@@ -33,7 +33,7 @@ export function StationLayout({
             <Activity className="size-4 shrink-0 text-brand" />
             <div className="min-w-0 text-right">
               <p className="truncate text-sm font-medium leading-5">
-                {user?.displayName ?? "Loading"}
+                {user?.displayName ?? uiText("loading")}
               </p>
             </div>
           </div>

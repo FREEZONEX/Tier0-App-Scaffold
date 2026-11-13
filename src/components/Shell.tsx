@@ -3,7 +3,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   createElement,
-  isValidElement,
   useState,
   useSyncExternalStore,
   type ElementType,
@@ -13,16 +12,15 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  icons,
   Lock,
   Menu,
   X,
-  type LucideIcon,
 } from "lucide-react";
 import { Tooltip } from "@/components/kit/ui/tooltip";
 import { cn } from "@/lib/utils";
 import type { AppUser } from "@/lib/users";
-import { APP_ICON, APP_NAME, filterSidebarModules } from "@/lib/app-chrome";
+import { APP_ICON, APP_NAME, filterSidebarModules, uiText } from "@/lib/app-chrome";
+import { resolveNavIconComponent } from "./nav-icons";
 import { getRoleMetadata } from "@/lib/role-metadata";
 import {
   defaultModules,
@@ -38,8 +36,9 @@ const sidebarItemBase =
   "group flex items-center rounded-[4px] text-sm font-medium transition-[background-color,color,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:ring-offset-1 focus-visible:ring-offset-sidebar";
 const sidebarItemActive =
   "bg-muted text-foreground";
+// Hover is a lighter fill than the selection, so hovering never looks like the current page.
 const sidebarItemInactive =
-  "text-secondary-foreground hover:bg-sidebar-accent hover:text-foreground active:translate-x-px";
+  "text-secondary-foreground hover:bg-muted/50 hover:text-foreground active:translate-x-px";
 
 function normalizeMenuPath(value: string): string {
   if (!value) {
@@ -144,42 +143,18 @@ function setStoredCollapsed(value: boolean) {
 }
 
 /**
- * Sidebar icons come from lucide-react. Prefer a component import; a PascalCase
- * / kebab-case name string is looked up in lucide's `icons` map. Anything else
- * falls through to the letter mark so the collapsed rail stays identifiable.
+ * Sidebar icons: a lucide component import, a name from the curated
+ * `NAV_ICON_LIBRARY`, or — when neither is given or usable — an icon matched
+ * from the label (「报修单」→ Wrench). See `./nav-icons`. Anything else falls
+ * through to the letter mark, so the collapsed rail never shows an empty entry.
  */
-function normalizeLucideIconName(name: string): string {
-  const trimmed = name.trim();
-  if (!trimmed) return "";
-  if (Object.prototype.hasOwnProperty.call(icons, trimmed)) return trimmed;
-  if (/^[A-Z][A-Za-z0-9]*$/.test(trimmed)) return trimmed;
-  return trimmed
-    .split(/[-_\s./]+/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join("");
+function resolveNavIcon(icon: unknown, label: string): ElementType | null {
+  return resolveNavIconComponent(icon, label);
 }
 
-function isLucideIconComponent(value: unknown): value is LucideIcon {
-  return (
-    typeof value === "function" ||
-    (Boolean(value) &&
-      typeof value === "object" &&
-      "$$typeof" in (value as object) &&
-      !isValidElement(value))
-  );
-}
-
-function resolveNavIcon(icon: unknown): ElementType | null {
-  if (isLucideIconComponent(icon)) return icon;
-  if (typeof icon === "string") {
-    const name = normalizeLucideIconName(icon);
-    const matched = name
-      ? icons[name as keyof typeof icons]
-      : undefined;
-    if (isLucideIconComponent(matched)) return matched;
-  }
-  return null;
+/** Collapsed-rail tooltip: the name, plus why the entry is locked. */
+function navTitle(module: NavModule): string {
+  return module.disabledReason ? `${module.label}：${module.disabledReason}` : module.label;
 }
 
 function NavIcon({
@@ -191,7 +166,7 @@ function NavIcon({
   label: string;
   className: string;
 }) {
-  const component = resolveNavIcon(icon);
+  const component = resolveNavIcon(icon, label);
   if (component) {
     return createElement(component, {
       "aria-hidden": true,
@@ -333,8 +308,8 @@ export function Shell({
                   type="button"
                   onClick={toggleCollapsed}
                   aria-expanded={!isCollapsed}
-                  aria-label={isCollapsed ? "展开侧边栏" : "收起侧边栏"}
-                  title={isCollapsed ? "展开侧边栏" : "收起侧边栏"}
+                  aria-label={isCollapsed ? uiText("expandSidebar") : uiText("collapseSidebar")}
+                  title={isCollapsed ? uiText("expandSidebar") : uiText("collapseSidebar")}
                   className="inline-flex size-8 items-center justify-center rounded-[4px] border border-transparent bg-transparent text-muted-foreground transition-[background-color,color,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] hover:bg-sidebar-accent hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight/35 active:scale-95"
                 >
                   {isCollapsed ? (
@@ -347,7 +322,7 @@ export function Shell({
               {showCloseControl && (
                 <button
                   type="button"
-                  aria-label="Close navigation"
+                  aria-label={uiText("closeNavigation")}
                   className="inline-flex size-8 items-center justify-center rounded-[4px] border border-transparent bg-transparent text-muted-foreground transition-[background-color,color,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] hover:bg-sidebar-accent hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight/35 active:scale-95"
                   onClick={() => setMobileOpen(false)}
                 >
@@ -374,7 +349,7 @@ export function Shell({
                 (isDirectActive || hasActiveDescendant));
 
             if (hasChildren) {
-              const groupTitle = mod.disabledReason ?? mod.label;
+              const groupTitle = navTitle(mod);
               return (
                 <div key={mod.key} className="mb-1">
                   <Tooltip title={groupTitle} disabled={!isCollapsed} placement="right" anchorClassName="flex w-full">
@@ -404,10 +379,11 @@ export function Shell({
                       isCollapsed ? "justify-center px-0" : "gap-2.5 overflow-hidden pl-4 pr-3",
                     )}
                   >
-                    <NavIcon icon={mod.icon} label={mod.label} className="size-4" />
+                    <NavIcon icon={mod.icon} label={mod.label} className={cn("size-4", isDirectActive || (hasActiveDescendant && !isExpanded) ? "text-foreground" : "text-muted-foreground group-hover:text-foreground")} />
                     <span
                       className={cn(
                         "min-w-0 flex-1 truncate whitespace-nowrap text-left transition-[max-width,opacity,transform] duration-200 ease-[cubic-bezier(0.2,0,0,1)]",
+                        isDirectActive || (hasActiveDescendant && !isExpanded) ? "font-semibold" : "",
                         isCollapsed
                           ? "max-w-0 -translate-x-1 opacity-0"
                           : "max-w-36 translate-x-0 opacity-100",
@@ -438,7 +414,7 @@ export function Shell({
                   {!isCollapsed && isExpanded && (
                     <div className="mt-1 space-y-1 pl-6">
                       {mod.children?.map((child) => {
-                        const childTitle = child.disabledReason ?? child.label;
+                        const childTitle = navTitle(child);
                         const isChildActive = child.key === activeModuleKey;
 
                         return (
@@ -467,8 +443,8 @@ export function Shell({
                               child.locked ? "opacity-70" : "",
                             )}
                           >
-                            <NavIcon icon={child.icon} label={child.label} className="size-3.5" />
-                            <span className="min-w-0 truncate whitespace-nowrap">
+                            <NavIcon icon={child.icon} label={child.label} className={cn("size-3.5", isChildActive ? "text-foreground" : "text-muted-foreground group-hover:text-foreground")} />
+                            <span className={cn("min-w-0 truncate whitespace-nowrap", isChildActive && "font-semibold")}>
                               {child.label}
                             </span>
                             {child.badge ? (
@@ -494,7 +470,7 @@ export function Shell({
             }
 
             return (
-              <Tooltip key={mod.key} title={mod.disabledReason ?? mod.label} disabled={!isCollapsed} placement="right" anchorClassName="flex w-full">
+              <Tooltip key={mod.key} title={navTitle(mod)} disabled={!isCollapsed} placement="right" anchorClassName="flex w-full">
               <Link
                 // `as never`: defaultModules is mutated by the Agent at build time,
                 // so the router-typed `to` prop cannot statically know the routes
@@ -523,10 +499,11 @@ export function Shell({
                   isCollapsed ? "justify-center px-0" : "gap-2.5 overflow-hidden pl-4 pr-3",
                 )}
               >
-                <NavIcon icon={mod.icon} label={mod.label} className="size-4" />
+                <NavIcon icon={mod.icon} label={mod.label} className={cn("size-4", isDirectActive ? "text-foreground" : "text-muted-foreground group-hover:text-foreground")} />
                 <span
                   className={cn(
                     "min-w-0 truncate whitespace-nowrap transition-[max-width,opacity,transform] duration-200 ease-[cubic-bezier(0.2,0,0,1)]",
+                    isDirectActive && "font-semibold",
                     isCollapsed
                       ? "max-w-0 -translate-x-1 opacity-0"
                       : "max-w-40 translate-x-0 opacity-100",
@@ -566,13 +543,13 @@ export function Shell({
             </span>
             <div className={isCollapsed ? "sr-only" : "min-w-0 overflow-hidden"}>
               <p className="truncate text-sm font-medium leading-5">
-                {user?.displayName ?? "Loading"}
+                {user?.displayName ?? uiText("loading")}
               </p>
-              {roleLabel && (
-                <p className="mt-0.5 truncate font-mono text-xs uppercase leading-4 text-muted-foreground" title={roleLabel}>
-                  {roleLabel}
+              {user ? (
+                <p className="mt-0.5 truncate font-mono text-xs uppercase leading-4 text-muted-foreground" title={roleLabel || undefined}>
+                  {roleLabel || uiText("noRoles")}
                 </p>
-              )}
+              ) : null}
             </div>
           </div>
         </div>
@@ -598,7 +575,7 @@ export function Shell({
         <div className="fixed inset-0 z-40 flex md:hidden">
           <button
             type="button"
-            aria-label="Close navigation"
+            aria-label={uiText("closeNavigation")}
             className="absolute inset-0 bg-black/40 supports-[backdrop-filter]:bg-black/30 supports-[backdrop-filter]:backdrop-blur-[2px] animate-[tier0-fade_160ms_ease-out]"
             onClick={() => setMobileOpen(false)}
           />
@@ -616,7 +593,7 @@ export function Shell({
         <div className="flex h-14 items-center bg-card px-4 md:hidden">
           <button
             type="button"
-            aria-label="Open navigation"
+            aria-label={uiText("openNavigation")}
             className="inline-flex size-10 items-center justify-center rounded-[4px] border border-border bg-card text-foreground shadow-sm transition-[background-color,border-color,box-shadow,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] hover:border-border-strong hover:bg-background hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight/35 active:scale-95"
             onClick={() => setMobileOpen(true)}
           >

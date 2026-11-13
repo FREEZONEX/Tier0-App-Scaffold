@@ -3,6 +3,7 @@
 import { type ReactNode } from "react";
 import { ClipboardCheck, ShieldCheck } from "lucide-react";
 import type { AppUser } from "@/lib/users";
+import { uiText } from "@/lib/app-chrome";
 
 export function ReviewLayout({
   user,
@@ -28,7 +29,7 @@ export function ReviewLayout({
             <ShieldCheck className="size-4 shrink-0 text-muted-foreground" />
             <div className="min-w-0 text-right">
               <p className="truncate text-sm font-medium leading-5">
-                {user?.displayName ?? "Loading"}
+                {user?.displayName ?? uiText("loading")}
               </p>
             </div>
           </div>
