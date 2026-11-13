@@ -1441,6 +1441,8 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
 
 .dark {
   --ring: var(--tier0-highlight);
+  /* Sidebar selection one step deeper than --muted, so the current page reads on #101114. */
+  --tier0-sidebar-selected: #2a2b30;
   /* "Deep" status inks are for light surfaces; on dark they flip to bright tints (≥4.5:1). */
   --tier0-success-deep: #4ade80;
   --tier0-warning-deep: #fb923c;
@@ -1608,4 +1610,9 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
   --color-cat-5-soft: var(--tier0-cat-5-soft);
   --color-cat-6: var(--tier0-cat-6);
   --color-cat-6-soft: var(--tier0-cat-6-soft);
+}
+
+/* Sidebar current page: light keeps bg-muted; dark uses the deeper selection fill. */
+.dark nav.bg-sidebar [aria-current="page"] {
+  background-color: var(--tier0-sidebar-selected);
 }

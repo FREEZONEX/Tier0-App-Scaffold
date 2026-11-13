@@ -52,3 +52,10 @@ test("a rule on a field that is no longer offered stays readable", () => {
   assert.ok(html.includes("createdAt"));
   assert.ok(!html.includes("请选择字段"));
 });
+
+test("view default rules are labelled （默认）", () => {
+  const html = renderToStaticMarkup(
+    <SortPopover fields={fields} value={[{ field: "code", direction: "desc" }]} isDefault onChange={() => {}} />,
+  );
+  assert.ok(html.includes("（默认）"));
+});

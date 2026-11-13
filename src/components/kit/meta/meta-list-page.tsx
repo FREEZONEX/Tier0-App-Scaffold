@@ -523,6 +523,7 @@ function MetaListBody({
               key={`${config.activeView?.code ?? ""}`}
               fields={sortFields}
               value={controller.sorts}
+              isDefault={controller.sortsAreDefault}
               onChange={(sorts) => void controller.saveSorts(sorts).catch(reportPrefsError)}
             />
             <RowHeightMenu value={controller.rowHeight} onChange={(next) => void controller.saveRowHeight(next).catch(reportPrefsError)} />

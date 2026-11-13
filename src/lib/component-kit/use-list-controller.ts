@@ -81,6 +81,8 @@ export interface ListController {
   setPageSize: (pageSize: number) => void;
   /* sorting */
   sorts: SortSpec[];
+  /** The current order is the active view's 默认排序 (no personal order saved). */
+  sortsAreDefault: boolean;
   saveSorts: (sorts: SortSpec[]) => Promise<void>;
   /* row height */
   rowHeight: RowHeight;
@@ -117,6 +119,10 @@ function initialDraft(config: EffectivePageConfig, ...layers: (SearchValues | un
   const values: SearchValues = {};
   for (const field of config.searchConditions) values[field.code] = defaultSearchValue(field);
   return Object.assign(values, ...layers.map((layer) => layer ?? {}));
+}
+
+function sameSorts(a: readonly SortSpec[], b: readonly SortSpec[]): boolean {
+  return a.length === b.length && a.every((sort, index) => sort.field === b[index].field && sort.direction === b[index].direction);
 }
 
 export function useListController({
@@ -218,13 +224,16 @@ export function useListController({
     [persist],
   );
 
+  const viewSorts = config.activeView?.sorts;
+  // Clearing every rule returns to the view's 默认排序 at once, so the button and the
+  // table read the same before and after a reload (saved personal order = none).
   const saveSorts = useCallback(
     async (next: SortSpec[]) => {
-      setSorts(next);
+      setSorts(next.length ? next : (viewSorts ?? []));
       setPageState(1);
       await persist({ sorts: next });
     },
-    [persist],
+    [persist, viewSorts],
   );
 
   const saveRowHeight = useCallback(
@@ -302,6 +311,7 @@ export function useListController({
     setPage,
     setPageSize,
     sorts,
+    sortsAreDefault: sameSorts(sorts, config.activeView?.sorts ?? []) && (config.activeView?.sorts?.length ?? 0) > 0,
     saveSorts,
     rowHeight,
     saveRowHeight,

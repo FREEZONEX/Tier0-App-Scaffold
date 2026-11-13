@@ -163,19 +163,22 @@ export interface SortPopoverProps {
   value: readonly SortSpec[];
   onChange: (sorts: SortSpec[]) => void;
   disabled?: boolean;
+  /** The rules are the view's 默认排序; the button adds 「（默认）」. */
+  isDefault?: boolean;
 }
 
 /** Toolbar「排序」 text button naming the active rules + popover. */
-export function SortPopover({ fields, value, onChange, disabled = false }: SortPopoverProps) {
+export function SortPopover({ fields, value, onChange, disabled = false, isDefault = false }: SortPopoverProps) {
   const rules = value.map((sort) => describeSort(sort, fields));
   const trigger = (
     <TextButton
       icon={<ArrowDownUp />}
       disabled={disabled}
-      aria-label={rules.length ? `排序：${rules.join("，")}` : "排序"}
+      aria-label={rules.length ? `排序：${rules.join("，")}${isDefault ? "（默认）" : ""}` : "排序"}
       className="max-w-[min(18rem,100%)]"
     >
       <span className="min-w-0 truncate">{rules.length > 0 ? `排序：${rules[0]}` : "排序"}</span>
+      {rules.length > 0 && isDefault ? <span className="shrink-0 text-muted-foreground">（默认）</span> : null}
       {rules.length > 0 ? (
         <>
           {rules.length > 1 ? (

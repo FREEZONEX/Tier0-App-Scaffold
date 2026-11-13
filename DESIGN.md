@@ -371,7 +371,7 @@ wall screen) and the delivery checklist live in [docs/operator-ux.md](docs/opera
 - Text and icon accents on the canvas use `--tier0-brand` (`#467000` light / `#73b200` dark). Do not use highlight lime tokens for readable text, thin lines or selection indicators on light surfaces (`#73b200` is 2.6:1 on white).
 - Keyboard focus uses `--ring` (brand green on light, signal lime on dark) as a solid 2px outline; selected tabs use a 2px foreground underline.
 - On phones and touch screens (`max-width: 639px`, `pointer: coarse`) text steps up one size, inputs reach 16px and every control reaches a 44px touch target.
-- Sidebar selection uses `bg-muted text-foreground`, with no border or shadow. Keyboard focus uses the separate focus ring.
+- Sidebar selection uses `bg-muted text-foreground` in light mode and the one-step deeper `--tier0-sidebar-selected` (`#2a2b30`) in dark mode, with no border or shadow. Keyboard focus uses the separate focus ring.
 - Same-row form controls and buttons use matching size tokens: sm 32px, md 36px, lg 40px.
 - Sorting supports selecting, changing direction, deleting and reordering using both pointer and keyboard. At 375px, field labels must retain a readable width.
 - Empty role sets show `未分配角色`, never a false `Loading` label.
