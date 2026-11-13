@@ -219,7 +219,7 @@ export function TreeList<T = unknown>({
                 aria-disabled={node.disabled || undefined}
                 tabIndex={node.key === tabStop ? 0 : -1}
                 className={cn(
-                  "group flex min-h-8 cursor-pointer select-none items-center gap-1 rounded-[4px] pr-2 text-sm leading-[22px] outline-none transition-colors duration-100 focus-visible:shadow-[inset_0_0_0_1px_var(--tier0-primary)]",
+                  "group flex min-h-8 cursor-pointer select-none items-center gap-1 rounded-[4px] pr-2 text-sm leading-[22px] outline-none transition-colors duration-100 focus-visible:bg-muted focus-visible:text-foreground",
                   selected && !checkable ? "bg-muted text-foreground" : "text-foreground hover:bg-fill-hover",
                   node.disabled && "cursor-not-allowed text-text-placeholder hover:bg-transparent",
                 )}

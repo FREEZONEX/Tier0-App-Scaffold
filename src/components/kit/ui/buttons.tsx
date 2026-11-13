@@ -52,11 +52,11 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         className={cn(
           "inline-flex shrink-0 items-center justify-center border select-none outline-none",
           "transition-[color,background-color,border-color,box-shadow,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)]",
-          "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
+          "focus-visible:bg-muted focus-visible:text-foreground",
           "active:scale-[0.92] disabled:pointer-events-none disabled:opacity-50",
           ICON_BUTTON_SIZE[size],
           variant === "outline"
-            ? "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
+            ? "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:border-border-strong"
             : "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
           active && "bg-muted text-foreground hover:bg-muted",
           danger && "text-destructive hover:bg-destructive/10 hover:text-destructive",
@@ -98,8 +98,8 @@ export const TextButton = forwardRef<HTMLButtonElement, TextButtonProps>(
         disabled={disabled}
         className={cn(
           "inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-[4px] select-none outline-none pointer-coarse:min-h-11",
-          "transition-[color,text-decoration-color,opacity] duration-[var(--motion-fast)] ease-[var(--motion-ease)]",
-          "underline decoration-transparent underline-offset-4 hover:decoration-current focus-visible:ring-3 focus-visible:ring-ring/50",
+          "transition-[color,background-color,text-decoration-color,opacity] duration-[var(--motion-fast)] ease-[var(--motion-ease)]",
+          "underline decoration-transparent underline-offset-4 hover:decoration-current focus-visible:bg-muted focus-visible:decoration-current",
           "active:opacity-70",
           size === "sm" ? "text-xs leading-5" : "text-sm leading-5",
           TEXT_TONE[tone],

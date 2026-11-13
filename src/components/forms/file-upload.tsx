@@ -239,7 +239,7 @@ export function FileUpload({
               </div>
               <button
                 type="button"
-                className="grid size-8 shrink-0 place-items-center rounded-[4px] text-muted-foreground transition-colors hover:bg-surface-inset hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-55"
+                className="grid size-8 shrink-0 place-items-center rounded-[4px] text-muted-foreground outline-none transition-colors hover:bg-surface-inset hover:text-foreground focus-visible:bg-muted focus-visible:text-foreground disabled:pointer-events-none disabled:opacity-55"
                 aria-label={`${copy.removeFile}: ${file.name}`}
                 disabled={disabled}
                 onClick={() => removeFile(index)}

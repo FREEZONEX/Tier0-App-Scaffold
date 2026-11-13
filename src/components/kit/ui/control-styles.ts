@@ -73,15 +73,15 @@ export function controlFrameClass({
     !disabled &&
       variant !== "borderless" &&
       !status &&
-      "hover:border-[color-mix(in_srgb,var(--input)_70%,var(--foreground))] focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50",
+      "hover:border-[color-mix(in_srgb,var(--input)_70%,var(--foreground))] focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/40",
     !disabled &&
       variant === "borderless" &&
-      "hover:bg-muted/60 focus-within:bg-card focus-within:ring-3 focus-within:ring-ring/40",
+      "hover:bg-muted/60 focus-within:bg-card focus-within:ring-2 focus-within:ring-ring/40",
     !disabled &&
       active &&
       !status &&
       variant !== "borderless" &&
-      "border-ring ring-3 ring-ring/50",
+      "border-ring ring-2 ring-ring/40",
     status === "error" &&
       "border-destructive focus-within:border-destructive focus-within:ring-3 focus-within:ring-destructive/20",
     status === "error" && active && "border-destructive ring-3 ring-destructive/20",

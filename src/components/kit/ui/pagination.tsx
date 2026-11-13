@@ -73,7 +73,7 @@ export function Pagination({
 
   const itemClass = (active: boolean) =>
     cn(
-      "inline-flex shrink-0 items-center justify-center rounded-[4px] tabular-nums transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+      "inline-flex shrink-0 items-center justify-center rounded-[4px] tabular-nums transition-colors outline-none focus-visible:bg-muted focus-visible:text-foreground",
       small ? "h-7 min-w-7 px-1 text-xs" : "h-8 min-w-8 px-1.5 text-sm",
       "pointer-coarse:h-11 pointer-coarse:min-w-11",
       active
@@ -181,7 +181,7 @@ export function Pagination({
             disabled={disabled}
             value={jumpText}
             className={cn(
-              "rounded-[4px] border border-border-strong bg-card text-center tabular-nums text-foreground outline-none transition-[border-color,box-shadow] hover:border-brand-hover focus:border-brand focus:shadow-[0_0_0_2px_rgb(115_178_0/0.15)]",
+              "rounded-[4px] border border-border-strong bg-card text-center tabular-nums text-foreground outline-none transition-[border-color,box-shadow] hover:border-border-strong focus:border-ring focus:ring-2 focus:ring-ring/40",
               small ? "h-6 w-11 text-sm" : "h-8 w-12 text-sm",
             )}
             onChange={(event) => setJumpText(event.target.value.replace(/\D/g, ""))}

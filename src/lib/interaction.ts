@@ -4,13 +4,22 @@
  * motion, focus, press, and elevation class fragments reused by primitives.
  */
 
-/** Keyboard focus ring — highlight-tinted, never a hard black outline. */
-export const FOCUS_RING =
-  "outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/35";
+/**
+ * Keyboard focus for buttons, tabs, chips, icon buttons, pagination.
+ * Light gray fill — never a brand-green outline (reserved for text fields).
+ */
+export const FOCUS_FILL =
+  "outline-none focus-visible:bg-muted focus-visible:text-foreground";
 
-/** Icon / compact controls use a tighter ring. */
-export const FOCUS_RING_COMPACT =
-  "outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background";
+/**
+ * Keyboard focus for text fields, selects, date pickers, checkboxes.
+ * Brand ring at 40% opacity — readable without the heavy green double box.
+ */
+export const FOCUS_RING =
+  "outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40";
+
+/** Alias kept for call sites that still import the compact name. */
+export const FOCUS_RING_COMPACT = FOCUS_RING;
 
 /** Soft press feedback for clickable surfaces (skip on links / menus with aria-haspopup). */
 export const PRESS_NUDGE =

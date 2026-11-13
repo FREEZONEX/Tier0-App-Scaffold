@@ -27,7 +27,7 @@ export function HeaderSortButton({
       aria-label={label}
       title={label}
       className={cn(
-        "inline-flex size-5 items-center justify-center rounded-[4px] transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 [&>svg]:size-3.5",
+        "inline-flex size-5 items-center justify-center rounded-[4px] outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:bg-muted focus-visible:text-foreground [&>svg]:size-3.5",
         direction ? "text-foreground" : "text-text-placeholder",
       )}
       onClick={() => onChange(next)}

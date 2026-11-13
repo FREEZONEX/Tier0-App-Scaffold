@@ -113,7 +113,7 @@ export function Segmented<V extends string | number = string | number>({
               trackRef.current?.querySelector<HTMLButtonElement>(`[data-segment-index="${next}"]`)?.focus();
             }}
             className={cn(
-              "relative z-10 inline-flex min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-[4px] transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+              "relative z-10 inline-flex min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-[4px] transition-colors outline-none focus-visible:bg-fill-hover focus-visible:text-foreground",
               ITEM_STYLE[size],
               block && "flex-1",
               isSelected ? "font-medium text-foreground" : "text-muted-foreground hover:text-foreground",

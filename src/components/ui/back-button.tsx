@@ -32,7 +32,7 @@ export function BackButton({ to, params, search, label, showLabel = false, class
       aria-label={`返回${label}`}
       title={`返回${label}`}
       className={cn(
-        "inline-flex shrink-0 items-center justify-center gap-1.5 rounded-[4px] border border-border bg-card text-foreground transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-brand-border [&_svg]:size-4",
+        "inline-flex shrink-0 items-center justify-center gap-1.5 rounded-[4px] border border-border bg-card text-foreground outline-none transition-colors hover:bg-muted focus-visible:bg-muted focus-visible:text-foreground [&_svg]:size-4",
         showLabel ? "h-9 px-3 text-sm font-medium" : "size-8",
         className,
       )}

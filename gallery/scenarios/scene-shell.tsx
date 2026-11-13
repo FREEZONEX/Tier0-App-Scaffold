@@ -123,7 +123,7 @@ function SceneNav({
             className={cn(
               "inline-flex size-8 shrink-0 items-center justify-center rounded-[4px]",
               "text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground",
-              "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/35",
+              "focus:outline-none focus-visible:bg-sidebar-accent focus-visible:text-foreground",
               collapsed && !onNavigate ? "" : "ml-auto",
             )}
           >
@@ -139,7 +139,7 @@ function SceneNav({
           <button
             type="button"
             aria-label="关闭导航"
-            className="inline-flex size-9 shrink-0 items-center justify-center rounded-[4px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--tier0-cta)]/40 md:hidden"
+            className="inline-flex size-9 shrink-0 items-center justify-center rounded-[4px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus-visible:bg-muted focus-visible:text-foreground md:hidden"
             onClick={onNavigate}
           >
             <X size={16} aria-hidden />
@@ -257,7 +257,7 @@ function SceneNav({
               title="通知"
               className={cn(
                 "inline-flex size-8 shrink-0 items-center justify-center rounded-[4px] text-muted-foreground transition-colors",
-                "hover:bg-sidebar-accent hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/35",
+                "hover:bg-sidebar-accent hover:text-foreground focus:outline-none focus-visible:bg-sidebar-accent focus-visible:text-foreground",
               )}
             >
               <Bell className="size-4" aria-hidden />
@@ -334,7 +334,7 @@ export function SceneShell({
             aria-label="打开导航"
             aria-expanded={mobileOpen}
             aria-controls={navId}
-            className="inline-flex size-9 items-center justify-center rounded-[4px] border border-border bg-card text-foreground shadow-sm transition-[background-color,border-color,box-shadow,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--tier0-cta)]/40 active:scale-95"
+            className="inline-flex size-9 items-center justify-center rounded-[4px] border border-border bg-card text-foreground shadow-sm transition-[background-color,border-color,box-shadow,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] hover:bg-muted focus:outline-none focus-visible:bg-muted focus-visible:text-foreground active:scale-95"
             onClick={() => setMobileOpen(true)}
           >
             <Menu size={16} aria-hidden />

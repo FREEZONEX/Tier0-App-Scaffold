@@ -369,9 +369,9 @@ wall screen) and the delivery checklist live in [docs/operator-ux.md](docs/opera
 
 - Body text, labels and enabled placeholders must have at least 4.5:1 contrast against their actual background in both themes. Test the composited color, including opacity. Enabled placeholders use `--tier0-text-placeholder` (`#6b6b6b` light / `#8b8b96` dark).
 - Text and icon accents on the canvas use `--tier0-brand` (`#467000` light / `#73b200` dark). Do not use highlight lime tokens for readable text, thin lines or selection indicators on light surfaces (`#73b200` is 2.6:1 on white).
-- Keyboard focus uses `--ring` (brand green on light, signal lime on dark) as a solid 2px outline; selected tabs use a 2px foreground underline.
+- Keyboard focus splits by control kind: buttons, tabs, chips, icon buttons and pagination use a light gray fill (`bg-muted`); text fields, selects, date pickers and checkboxes use `--ring` (brand green on light, signal lime on dark) as a 2px ring at 40% opacity. Selected tabs use a 2px foreground underline.
 - On phones and touch screens (`max-width: 639px`, `pointer: coarse`) text steps up one size, inputs reach 16px and every control reaches a 44px touch target.
-- Sidebar selection uses `bg-muted text-foreground` in light mode and the one-step deeper `--tier0-sidebar-selected` (`#2a2b30`) in dark mode, with no border or shadow. Keyboard focus uses the separate focus ring.
+- Sidebar selection uses `bg-muted text-foreground` in light mode and the one-step deeper `--tier0-sidebar-selected` (`#2a2b30`) in dark mode, with no border or shadow. Keyboard focus on rail items uses the same muted fill, not a brand outline.
 - Same-row form controls and buttons use matching size tokens: sm 32px, md 36px, lg 40px.
 - Sorting supports selecting, changing direction, deleting and reordering using both pointer and keyboard. At 375px, field labels must retain a readable width.
 - Empty role sets show `未分配角色`, never a false `Loading` label.
