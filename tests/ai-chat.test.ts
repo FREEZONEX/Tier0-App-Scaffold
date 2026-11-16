@@ -68,6 +68,14 @@ describe("workspace LLM provider", () => {
     assert.equal(model.provider, "tier0.chat");
     assert.equal((tier0Model("fast") as { modelId: string }).modelId, "fast");
   });
+
+  it("refuses an alias other than default and fast", () => {
+    configure();
+    for (const alias of ["gpt-4o", "openai/gpt-4o", "Default", ""]) {
+      assert.throws(() => tier0Model(alias as never), (error: unknown) =>
+        error instanceof Error && !(error instanceof HttpError) && /Unknown model alias/.test(error.message));
+    }
+  });
 });
 
 describe("example chat agent", () => {
