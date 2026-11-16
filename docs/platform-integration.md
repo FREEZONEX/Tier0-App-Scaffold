@@ -2,7 +2,7 @@
 
 ## Tier0 SDK (`@tier0/sdk-v2`)
 
-The unified `@tier0/sdk-v2` is the npm release `0.12.2`, pinned exactly in
+The unified `@tier0/sdk-v2` is the npm release `0.15.0`, pinned exactly in
 `package.json`. It keeps the 0.10.1 data and platform contracts, accepts Stream
 request contracts that omit both `sideEffect` and `idempotency`, and accepts
 only employee visitors. The lockfile records its registry URL and
@@ -114,8 +114,17 @@ sanitized message, not member data or SDK response bodies. No name cache is
 shared between requests: a refresh resolves the name again after an account
 switch or rename. Member roles never replace the visitor's effective roles.
 
+The same lookup carries the member's `avatarUrl` into `AppUser`, and the
+`Shell` user block shows it through the kit `Avatar`. `avatarUrl` is a
+temporary image URL valid for 24h after issue, or `""` when the member has no
+avatar; the field is always present, so pass it through without a fallback
+value. The kit `Avatar` shows the name's initial on `bg-muted` when the URL is
+empty or the image fails to load (for example after expiry). Every member
+query signs a new URL: query again when an avatar is needed, store only
+`userId`, and never write `avatarUrl` into a record, session or browser storage.
+
 Existing generated Apps need these layout/service changes before their user
-block changes. This does not add platform avatars (Backend #1426).
+block changes.
 
 ### Members before publication
 

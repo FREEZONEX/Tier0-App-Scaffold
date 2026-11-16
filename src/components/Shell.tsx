@@ -10,6 +10,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
+import { Avatar } from "@/components/kit/ui/avatar";
 import { cn } from "@/lib/utils";
 import type { AppUser } from "@/lib/users";
 import { APP_ICON, APP_NAME, filterSidebarModules } from "@/lib/app-chrome";
@@ -489,12 +490,7 @@ export function Shell({
         {!isCollapsed && (
           <div className="border-t border-sidebar-border bg-sidebar px-3 py-3">
             <div className="flex min-w-0 items-center gap-2.5 overflow-hidden">
-              <span
-                aria-hidden="true"
-                className="inline-flex size-8 shrink-0 items-center justify-center rounded-[4px] bg-muted text-xs font-semibold text-foreground"
-              >
-                {(user?.displayName ?? "?").slice(0, 1).toUpperCase()}
-              </span>
+              <Avatar name={user?.displayName} src={user?.avatarUrl} shape="square" />
               <div className="min-w-0 overflow-hidden">
                 <p className="truncate text-sm font-medium leading-5">
                   {user?.displayName ?? "Loading"}

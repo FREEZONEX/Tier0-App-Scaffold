@@ -9,6 +9,7 @@ import type { FieldDef, SectionDef } from '../src/lib/component-kit/types';
 import { formatNumber, parseNumberText, isTypingNumber } from '../src/components/kit/ui/number-utils';
 import { fileExtension, isPdfFile } from '../src/components/kit/ui/file-utils';
 import { validateCodeRuleDraft } from '../src/components/editors/code-rules/code-rule-model';
+import { Avatar } from '../src/components/kit/ui/avatar';
 
 const field: FieldDef = { code: 'name', name: '名称', type: 'TEXT', widget: {required: true} };
 const sections: SectionDef[] = [{key:'base',label:'基本信息',type:'form',zone:'FORM_HEADER',items:[field]}];
@@ -181,4 +182,18 @@ test('advanced filter combines filled conditions with AND and ignores empty ones
   assert.equal(describeCondition(conditions[3], ['2026-11-01', '2026-11-30']), '计划日期：2026-11-01 ~ 2026-11-30');
   assert.equal(describeCondition(conditions[3], [null, '2026-11-30']), '计划日期 ≤ 2026-11-30');
   assert.equal(describeCondition(conditions[1], '  '), null);
+});
+
+test('Avatar renders the image, else the initial or User icon, with tokens only', () => {
+  const render = (props: Parameters<typeof Avatar>[0]) => renderToString(createElement(Avatar, props));
+  const url = 'https://oss.example.test/a.png?X-Amz-Signature=s';
+  const image = render({ name: '张三', src: url, shape: 'square' });
+  assert.match(image, /<img src="https:\/\/oss\.example\.test\/a\.png\?X-Amz-Signature=s" alt="张三"/);
+  assert.match(image, /rounded-sm/);
+  // A member without an avatar ("") shows the initial on the muted token.
+  const initial = render({ name: ' mercy', src: '' });
+  assert.doesNotMatch(initial, /<img/);
+  assert.match(initial, /bg-muted[^"]*text-foreground[^"]*size-8[^"]*rounded-full[^"]*">M<\/span>$/);
+  assert.match(render({}), /<svg[^>]*lucide-user/);
+  for (const html of [image, initial]) assert.doesNotMatch(html, /style=|#[0-9a-f]{3,6}\b/i);
 });

@@ -364,7 +364,7 @@ work, then follow its nested domain Skill for the operation. The installed
 package's types and Skills describe this version; an SDK repository update
 alone neither upgrades the App nor refreshes platform-managed Skills.
 
-Use the installed `@tier0/sdk-v2` (`0.12.2` from npm, pinned exactly in `package.json`;
+Use the installed `@tier0/sdk-v2` (`0.15.0` from npm, pinned exactly in `package.json`;
 never change that dependency) for platform info (`tier0.system.info()`),
 workspace members (`tier0.members.listWorkspace`), App-scoped member pickers
 (`tier0.members.listApp({ appId: resolveAppId() })`), notifications, files and
@@ -377,7 +377,9 @@ preview, `deployed` online) and the SDK sends the matching `scope`, so preview
 lists the draft roles' members and the live App its published roles'. Never
 pass `scope` by hand, set `TIER0_RUNTIME` in `artifact.toml` or `.env`, or block
 on the response's `published` flag; the hosted key's response has no email
-(`email` is empty, show `userName`).
+(`email` is empty, show `userName`). Members carry `avatarUrl`, a 24h temporary
+image URL (`""` without an avatar): show it with the kit `Avatar` (`src`), which
+falls back to the initial; store only `userId`, never the URL.
 Notification channels, MQTT and credential handling:
 `docs/platform-integration.md`.
 MQTT runs on the App's server only; pages never connect to the broker. When a
