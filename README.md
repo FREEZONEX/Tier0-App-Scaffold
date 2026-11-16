@@ -72,6 +72,8 @@ above, read through `resolveAppId()`), the platform sets these variables:
 | `TIER0_MQTT_HOST`, `TIER0_MQTT_PORT` | MQTT broker entry for `Tier0MQClient` on the App's server |
 | `TIER0_WORKSPACE_ID` | Workspace of the App |
 | `TIER0_RUNTIME` | `deployed` or `preview` |
+| `TIER0_LLM_BASE_URL` | Workspace token gateway (OpenAI-compatible) for `tier0Model()` in `@/services/ai/provider` |
+| `TIER0_LLM_API_KEY` | Placeholder, not a secret: the platform's egress adds the workspace key, so App code never holds an LLM key |
 
 Call the platform through the SDK, not with a hand-written `fetch` / `curl` to
 `TIER0_API_HOST`. Every App has the same fixed platform capabilities
