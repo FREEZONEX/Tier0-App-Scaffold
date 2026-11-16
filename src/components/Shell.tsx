@@ -490,7 +490,7 @@ export function Shell({
         {!isCollapsed && (
           <div className="border-t border-sidebar-border bg-sidebar px-3 py-3">
             <div className="flex min-w-0 items-center gap-2.5 overflow-hidden">
-              <Avatar name={user?.displayName} src={user?.avatarUrl} shape="square" />
+              <Avatar name={user?.displayName} src={user?.avatarUrl} />
               <div className="min-w-0 overflow-hidden">
                 <p className="truncate text-sm font-medium leading-5">
                   {user?.displayName ?? "Loading"}

@@ -379,7 +379,7 @@ pass `scope` by hand, set `TIER0_RUNTIME` in `artifact.toml` or `.env`, or block
 on the response's `published` flag; the hosted key's response has no email
 (`email` is empty, show `userName`). Members carry `avatarUrl`, a 24h temporary
 image URL (`""` without an avatar): show it with the kit `Avatar` (`src`), which
-falls back to the initial; store only `userId`, never the URL.
+falls back to a User icon; store only `userId`, never the URL.
 Notification channels, MQTT and credential handling:
 `docs/platform-integration.md`.
 MQTT runs on the App's server only; pages never connect to the broker. When a

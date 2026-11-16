@@ -85,7 +85,7 @@ test("avatarUrl is passed through as returned, including empty, and never reused
     list: [member(visitor.id, "Mercy", "", avatarUrl)], page: 1, size: 100, total: 1,
   } }));
   assert.equal((await withUserDisplay(visitor))?.avatarUrl, AVATAR);
-  // A member without an avatar stays "": the initial fallback belongs to the UI.
+  // A member without an avatar stays "": the icon fallback belongs to the UI.
   avatarUrl = "";
   assert.equal((await withUserDisplay(visitor))?.avatarUrl, "");
 });

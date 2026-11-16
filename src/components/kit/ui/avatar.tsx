@@ -5,18 +5,18 @@ import { User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const AVATAR_SIZE = {
-  xs: { box: "size-5 text-xs", icon: "size-3" },
-  sm: { box: "size-6 text-xs", icon: "size-3.5" },
-  md: { box: "size-8 text-xs", icon: "size-4" },
-  lg: { box: "size-10 text-sm", icon: "size-5" },
+  xs: { box: "size-5", icon: "size-3" },
+  sm: { box: "size-6", icon: "size-3.5" },
+  md: { box: "size-8", icon: "size-4.5" },
+  lg: { box: "size-10", icon: "size-5.5" },
 } as const;
 
 export interface AvatarProps {
-  /** Person name; the first character is the fallback. */
+  /** Person name, used as the image's alt text and tooltip. */
   name?: string | null;
   /**
    * Image URL, e.g. a member's `avatarUrl` ("" when the member has none).
-   * The initial is shown when it is empty or fails to load.
+   * The platform's User icon fallback is shown when it is empty or fails to load.
    */
   src?: string | null;
   size?: keyof typeof AVATAR_SIZE;
@@ -29,7 +29,6 @@ export function Avatar({ name, src, size = "md", shape = "circle", title, classN
   // Remember which URL failed, so a new URL (re-queried after expiry) is tried again.
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const trimmed = name?.trim() ?? "";
-  const initial = trimmed ? Array.from(trimmed)[0].toUpperCase() : "";
   const image = src && src !== failedSrc ? src : null;
 
   return (
@@ -37,9 +36,10 @@ export function Avatar({ name, src, size = "md", shape = "circle", title, classN
       title={title ?? (trimmed || undefined)}
       aria-label={trimmed || undefined}
       className={cn(
-        "inline-flex shrink-0 select-none items-center justify-center overflow-hidden bg-muted font-semibold leading-none text-foreground",
+        "inline-flex shrink-0 select-none items-center justify-center overflow-hidden",
         AVATAR_SIZE[size].box,
         shape === "circle" ? "rounded-full" : "rounded-sm",
+        !image && "bg-foreground text-background",
         className,
       )}
     >
@@ -54,8 +54,6 @@ export function Avatar({ name, src, size = "md", shape = "circle", title, classN
           }}
           onError={() => setFailedSrc(image)}
         />
-      ) : initial ? (
-        initial
       ) : (
         <User aria-hidden="true" className={AVATAR_SIZE[size].icon} />
       )}

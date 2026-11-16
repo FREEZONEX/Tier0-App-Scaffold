@@ -118,8 +118,9 @@ The same lookup carries the member's `avatarUrl` into `AppUser`, and the
 `Shell` user block shows it through the kit `Avatar`. `avatarUrl` is a
 temporary image URL valid for 24h after issue, or `""` when the member has no
 avatar; the field is always present, so pass it through without a fallback
-value. The kit `Avatar` shows the name's initial on `bg-muted` when the URL is
-empty or the image fails to load (for example after expiry). Every member
+value. The kit `Avatar` falls back to a User icon (white on `bg-foreground`,
+as the platform shows users without an avatar) when the URL is empty
+or the image fails to load (for example after expiry). Every member
 query signs a new URL: query again when an avatar is needed, store only
 `userId`, and never write `avatarUrl` into a record, session or browser storage.
 

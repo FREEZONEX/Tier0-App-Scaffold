@@ -184,16 +184,19 @@ test('advanced filter combines filled conditions with AND and ignores empty ones
   assert.equal(describeCondition(conditions[1], '  '), null);
 });
 
-test('Avatar renders the image, else the initial or User icon, with tokens only', () => {
+test('Avatar renders the image, else the User icon fallback, with tokens only', () => {
   const render = (props: Parameters<typeof Avatar>[0]) => renderToString(createElement(Avatar, props));
   const url = 'https://oss.example.test/a.png?X-Amz-Signature=s';
-  const image = render({ name: '张三', src: url, shape: 'square' });
+  const image = render({ name: '张三', src: url });
   assert.match(image, /<img src="https:\/\/oss\.example\.test\/a\.png\?X-Amz-Signature=s" alt="张三"/);
-  assert.match(image, /rounded-sm/);
-  // A member without an avatar ("") shows the initial on the muted token.
-  const initial = render({ name: ' mercy', src: '' });
-  assert.doesNotMatch(initial, /<img/);
-  assert.match(initial, /bg-muted[^"]*text-foreground[^"]*size-8[^"]*rounded-full[^"]*">M<\/span>$/);
-  assert.match(render({}), /<svg[^>]*lucide-user/);
-  for (const html of [image, initial]) assert.doesNotMatch(html, /style=|#[0-9a-f]{3,6}\b/i);
+  assert.match(image, /size-8[^"]*rounded-full/);
+  assert.doesNotMatch(image, /bg-foreground|lucide-user/);
+  // A member without an avatar ("") gets the platform's fallback: a User icon
+  // on the dark token, never the name's initial, with or without a name.
+  for (const name of ['mercy', undefined]) {
+    const fallback = render({ name, src: '' });
+    assert.doesNotMatch(fallback, /<img|>M</);
+    assert.match(fallback, /rounded-full[^"]*bg-foreground[^"]*text-background[^"]*"[^>]*><svg[^>]*lucide-user/);
+  }
+  for (const html of [image, render({ name: 'mercy', src: '' })]) assert.doesNotMatch(html, /style=|#[0-9a-f]{3,6}\b/i);
 });
