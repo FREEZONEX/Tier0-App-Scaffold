@@ -26,10 +26,10 @@ body {
  * Every corner 4px (Tier0); no stacked dividers: surfaces separate by fill.
  * ======================================================================== */
 .doc {
-  /* Light sidebar — soft grey (not white, not heavy #f4f4f5). */
-  --doc-bg: #fafafa;
-  --doc-line: color-mix(in srgb, var(--tier0-border) 85%, transparent);
-  --doc-fill: #f1f1f2;
+  /* Portal chrome follows Lucent-aligned --sidebar* tokens (see globals.css). */
+  --doc-bg: var(--sidebar);
+  --doc-line: var(--sidebar-border);
+  --doc-fill: var(--sidebar-accent);
   --doc-lime: var(--tier0-highlight);
   --doc-lime-soft: var(--tier0-highlight-bg-accent);
   --doc-ink: var(--tier0-cta-foreground);
@@ -165,11 +165,12 @@ html.theme-switching .doc-filter * {
 }
 .doc-nav-group button:hover,
 .doc-nav-group a:hover {
-  background: var(--doc-fill);
+  background: var(--sidebar-accent);
+  color: var(--sidebar-accent-foreground);
 }
 .doc-nav-group button[aria-current="page"] {
-  background: var(--doc-fill);
-  color: var(--foreground);
+  background: var(--sidebar-selected);
+  color: var(--sidebar-foreground);
   font-weight: 600;
 }
 .doc-nav-group small {
@@ -586,19 +587,16 @@ html.theme-switching .doc-filter * {
   background: var(--muted);
 }
 
-/* Dark portal chrome — neutral greys only */
+/* Dark portal chrome — Lucent charcoal sidebar + Tier0 canvas */
 .dark body {
-  background: #0c0d0f;
+  background: var(--background);
 }
 .dark .sample-body {
-  background: #141518;
+  background: var(--card);
 }
 .dark .doc {
-  --doc-bg: #141518;
-  --doc-fill: #1a1b1e;
-  --doc-line: #2e2f33;
-  --doc-ink: #f4f4f5;
-  background: #0c0d0f;
+  --doc-ink: var(--sidebar-foreground);
+  background: var(--background);
 }
 .dark .doc-switch,
 .dark .doc-filter,
@@ -608,13 +606,13 @@ html.theme-switching .doc-filter * {
 .dark .doc-mobile-bar,
 .dark .doc-mobile-bar button,
 .dark .doc-group {
-  background: #1a1b1e;
+  background: var(--card);
 }
 .dark .doc-back {
-  background: #141518;
+  background: var(--sidebar);
 }
 .dark .doc-prefs-seg {
-  background: #1a1b1e;
+  background: var(--sidebar-accent);
 }
 /* Dark: ink tile + lime glyph (inverse of light brand mark) */
 .dark .doc-switch-icon {
@@ -623,25 +621,25 @@ html.theme-switching .doc-filter * {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--doc-lime) 40%, transparent);
 }
 .dark .doc-nav-group button[aria-current="page"] {
-  background: #222326;
-  color: #f4f4f5;
+  background: var(--sidebar-selected);
+  color: var(--sidebar-foreground);
 }
 /* Pressed chrome controls stay neutral greys — never CTA lime. */
 .dark .doc-group button[aria-pressed="true"] {
-  background: #2a2b2e;
-  color: #f4f4f5;
+  background: var(--sidebar-accent);
+  color: var(--sidebar-foreground);
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
 }
 .dark .doc-prefs-seg button[aria-pressed="true"] {
-  background: #2a2b2e;
-  color: #f4f4f5;
+  background: var(--card);
+  color: var(--sidebar-foreground);
   box-shadow: none;
 }
 .dark .doc-card:hover {
-  border-color: #f4f4f5;
+  border-color: var(--sidebar-foreground);
 }
 .dark .doc-thumb {
-  background: #101114;
+  background: var(--sidebar);
 }
 
 /* Category palette accents */
