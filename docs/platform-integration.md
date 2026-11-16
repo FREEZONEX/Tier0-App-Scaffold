@@ -378,12 +378,20 @@ concurrency limit, and a request over it is answered 429.
 `tier0Model()` from `@/services/ai/provider` is the only way in. It creates the
 provider on first use (nothing happens at import time) and throws a 503
 `HttpError` ("AI is not configured") when the variables are missing: locally,
-or when the platform has not enabled AI for Apps. Name models by alias only:
-`default` is the workspace's default model, mapped by the gateway. A string
-model id (`model: "openai/..."`) would go to the AI SDK's own global gateway,
-not the workspace; never use one. For local development export both variables
-in your shell (an OpenAI-compatible endpoint that knows the alias, and a key of
-your own); never write them into `.env.example` or source.
+or when the platform has not enabled AI for Apps. Name models by alias only;
+the gateway maps each alias to a real model of the workspace:
+
+| Alias | Call | Use for |
+|---|---|---|
+| `default` | `tier0Model()` | Chat and agent loops with tools; anything that needs reasoning |
+| `fast` | `tier0Model("fast")` | High-volume simple calls: classify, extract, summarize, rewrite, batch jobs, short answers |
+
+When unsure, use `default`. Any other alias throws (the type is
+`Tier0ModelAlias`). A string model id (`model: "openai/..."`) would go to the
+AI SDK's own global gateway, not the workspace; never use one. For local
+development export both variables in your shell (an OpenAI-compatible endpoint
+that knows both aliases, and a key of your own); never write them into
+`.env.example` or source.
 
 ```ts
 // src/services/ai/summary.ts — server only
@@ -392,7 +400,7 @@ import { tier0Model } from "@/services/ai/provider";
 
 export async function summarize(text: string, signal: AbortSignal): Promise<string> {
   const { text: summary } = await generateText({
-    model: tier0Model(),
+    model: tier0Model("fast"), // a short summary: the fast model is enough
     instructions: "Summarize the shift notes in three sentences.",
     prompt: text,
     abortSignal: signal,

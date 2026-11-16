@@ -122,7 +122,7 @@ src/
     api/uns/subscribe.ts       record change stream for useRecordChanges (do not modify)
     api/ai/chat.ts             example AI chat reply stream for useChat (POST)
   services/**                  domain logic, state machines, data access
-  services/ai/provider.ts      tier0Model(): the workspace LLM, server only
+  services/ai/provider.ts      tier0Model(): the workspace LLM (default | fast), server only
   services/ai/chat.ts          example agent loop with per-user tools
   data/collections.ts          collection declarations + seed (source of truth)
   data/seed-utils.ts           seed date/reference helpers
@@ -525,8 +525,11 @@ in place instead of adding a second AI stack. Details:
   functions). Pages use `useChat` with
   `new DefaultChatTransport({ api: apiUrl("/api/ai/chat") })` or call another
   App route; the browser never reaches the gateway.
-- Name models only by alias: `tier0Model()` (alias `default`); the gateway
-  maps it to a real model. Never pass a string model id (`model: "..."`): the
+- Name models only by alias; the gateway maps it to a real model. There are
+  two: `tier0Model()` (`default`) for chat and agent loops with tools, and
+  `tier0Model("fast")` for high-volume simple calls (classify, extract,
+  summarize, rewrite, batch jobs, short answers). When unsure, use `default`.
+  Any other alias throws. Never pass a string model id (`model: "..."`): the
   AI SDK resolves a bare string through its own global gateway, not the
   workspace. Do not add another provider package, base URL or key.
 - Tools run as the App, with the App's data access; the platform does not
