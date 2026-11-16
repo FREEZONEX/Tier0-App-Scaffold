@@ -154,9 +154,7 @@ export function StatCard({
           FOCUS_FILL,
           "hover:-translate-y-px hover:bg-[color:var(--tier0-fill-hover)] hover:shadow-card",
           "active:translate-y-0 active:scale-[0.99]",
-          active
-            ? "border-transparent bg-muted shadow-[inset_0_-2px_0_var(--foreground)]"
-            : "border-border",
+          active ? "border-border bg-muted" : "border-border",
         )
       : // Read-only KPI: faint fill only — never a divider strip or click affordance.
         "border-border hover:bg-[color:var(--tier0-fill-hover)]",
