@@ -4,8 +4,8 @@ import { useEffect, useId, useState, type ReactNode } from "react";
 import {
   Activity,
   Bell,
-  PanelLeftClose,
-  PanelLeftOpen,
+  ChevronLeft,
+  ChevronRight,
   ClipboardList,
   Coins,
   Factory,
@@ -128,9 +128,9 @@ function SceneNav({
             )}
           >
             {collapsed ? (
-              <PanelLeftOpen className="size-4" aria-hidden />
+              <ChevronRight className="size-4" aria-hidden />
             ) : (
-              <PanelLeftClose className="size-4" aria-hidden />
+              <ChevronLeft className="size-4" aria-hidden />
             )}
           </button>
         ) : null}
