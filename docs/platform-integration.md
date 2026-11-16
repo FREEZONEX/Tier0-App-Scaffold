@@ -55,6 +55,9 @@ fixed platform capabilities: `openapi.base`, `platform.users.read`,
 permissions, its mode and the workspace plan (`uns.dataAppContext({})` returns
 it as `platformPermissions`); a plan without Stream still refuses Stream
 requests and messages. Nothing is configured or approved per App.
+Besides these, every App can call the workspace LLM from its server (see
+[Calling the workspace LLM](#calling-the-workspace-llm)); that path does not
+use the App's key.
 
 `createClient()` instances share no configuration. Reuse one for work done as
 the App.
@@ -359,6 +362,77 @@ const stream = openEventStream({
 Messages published while a browser was disconnected or hidden are not replayed
 to it; the `reset` at the start of each connection makes the page reload.
 
+### Calling the workspace LLM
+
+The App's server calls the workspace LLM directly at the token gateway with the
+Vercel AI SDK v7 (`ai`, `@ai-sdk/openai-compatible`, and `@ai-sdk/react` for
+pages; all runtime dependencies). In Preview and deployments the platform
+injects `TIER0_LLM_BASE_URL` (the gateway, OpenAI-compatible) and
+`TIER0_LLM_API_KEY` (a placeholder, not a secret). The platform's egress adds
+the workspace key to the App's requests to the gateway and keeps it out of the
+App: App code never holds an LLM key, never reads, writes or logs one, and
+never configures another key, base URL or provider. Usage is billed to the
+workspace; Preview and the deployed App each have a request rate and
+concurrency limit, and a request over it is answered 429.
+
+`tier0Model()` from `@/services/ai/provider` is the only way in. It creates the
+provider on first use (nothing happens at import time) and throws a 503
+`HttpError` ("AI is not configured") when the variables are missing: locally,
+or when the platform has not enabled AI for Apps. Name models by alias only:
+`default` is the workspace's default model, mapped by the gateway. A string
+model id (`model: "openai/..."`) would go to the AI SDK's own global gateway,
+not the workspace; never use one. For local development export both variables
+in your shell (an OpenAI-compatible endpoint that knows the alias, and a key of
+your own); never write them into `.env.example` or source.
+
+```ts
+// src/services/ai/summary.ts — server only
+import { generateText } from "ai";
+import { tier0Model } from "@/services/ai/provider";
+
+export async function summarize(text: string, signal: AbortSignal): Promise<string> {
+  const { text: summary } = await generateText({
+    model: tier0Model(),
+    instructions: "Summarize the shift notes in three sentences.",
+    prompt: text,
+    abortSignal: signal,
+  });
+  return summary;
+}
+```
+
+Chat with tools is shipped as an example and mounted nowhere:
+`src/services/ai/chat.ts` (agent loop: `streamText`, `isStepCount`,
+`toUIMessageStream`), `src/routes/api/ai/chat.ts` (`POST`, `requireAuth()`,
+`createUIMessageStreamResponse`) and `ChatPanel` in `src/components/ai`
+(`useChat` with `new DefaultChatTransport({ api: apiUrl("/api/ai/chat") })`).
+Put `<ChatPanel />` on a page and replace the example tools with the App's own.
+
+- **Tools follow the visitor's roles.** Tools run on the App's server as the
+  App, so the platform does not narrow their data by user. `chatTools(user)`
+  builds the set per request: add a tool only when `can(user.roles, action)`
+  allows it, call the App's services with `user`, and trim results like the
+  matching API route would. Writes go through the same validated, permissioned
+  and audited service as the UI.
+- **No secrets in prompts.** Instructions, messages and tool output never
+  contain the App's key, another secret or data the visitor may not see.
+- **Stop with the request.** Pass `request.signal` as `abortSignal`; a closed
+  browser tab then stops the model call and the tool loop. Bound the loop with
+  `stopWhen: isStepCount(n)`.
+- **Streaming in the browser.** A chat reply is a `POST` answered with a UI
+  message stream, so `useChat` reads it rather than `openEventStream`. It is
+  not resumed after a reload or a dropped connection; the user sends the turn
+  again, and the history lives in the page unless the App stores it in a
+  collection.
+- **Errors.** The route answers 401/400/503 as JSON before streaming. A failure
+  during the reply is logged on the server and reaches the page as a generic
+  error part; `ChatPanel` shows it and logs it with `console.error`.
+
+The installed SDK is v7: read `node_modules/ai/docs` (for example
+`docs/03-agents` and `docs/04-ai-sdk-ui`) and the package types before AI work.
+v4–v6 examples (`system:`, `maxSteps`, `toDataStreamResponse`,
+`result.toUIMessageStreamResponse()`) no longer apply.
+
 ## Environment Variables
 
 There is no explicit mode switch. If a variable is missing, the app uses its
@@ -383,9 +457,12 @@ These variables are platform-driven. Local development does not need them.
 | `TIER0_API_KEY` | App data calls fail with `DATA_NOT_CONFIGURED` (503) | The App's key: a secret in the runtime process only, never at build. Preview gets the App's preview key, deployments the deployed one |
 | `TIER0_MQTT_HOST`, `TIER0_MQTT_PORT` | `Tier0MQClient` needs an explicit `host` | MQTT broker entry the App's server can reach |
 | `TIER0_WORKSPACE_ID` | — | Workspace of the App; the SDK uses it for MQTT |
+| `TIER0_LLM_BASE_URL` | `tier0Model()` throws a 503 `HttpError` ("AI is not configured") | The workspace token gateway (OpenAI-compatible, ends in `/v1`); used only by `@/services/ai/provider` |
+| `TIER0_LLM_API_KEY` | Same as `TIER0_LLM_BASE_URL` | A placeholder, not a secret: the platform's egress adds the workspace key, so App code never holds an LLM key |
 | `TIER0_RUNTIME` | No `scope` on member queries (local development) | `deployed` or `preview`; selects the member `scope`. Without `TIER0_API_KEY` the SDK would switch to its platform proxy mode, which the platform does not use today; any other value without a key is a configuration error |
 
-Only `TIER0_API_KEY` is a secret; the others are identifiers.
+Only `TIER0_API_KEY` is a secret; the others are identifiers, addresses or
+placeholders.
 
 `TIER0_APP_ID` is platform-owned: the agent-platform App UUID the platform can
 resolve back to the app's name, icon and Open button. Read it at runtime
