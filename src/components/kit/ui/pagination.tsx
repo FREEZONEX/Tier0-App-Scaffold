@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { FOCUS_FILL } from "@/lib/interaction";
 import { Select } from "@/components/kit/ui/select";
 
 export interface PaginationProps {
@@ -73,7 +74,8 @@ export function Pagination({
 
   const itemClass = (active: boolean) =>
     cn(
-      "inline-flex shrink-0 items-center justify-center rounded-[4px] tabular-nums transition-colors outline-none focus-visible:bg-muted focus-visible:text-foreground",
+      "inline-flex shrink-0 items-center justify-center rounded-[4px] tabular-nums transition-colors",
+      FOCUS_FILL,
       small ? "h-7 min-w-7 px-1 text-xs" : "h-8 min-w-8 px-1.5 text-sm",
       "pointer-coarse:h-11 pointer-coarse:min-w-11",
       active

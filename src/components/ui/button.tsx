@@ -2,6 +2,7 @@ import { forwardRef, type ReactNode, type ButtonHTMLAttributes } from "react";
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
+import { FOCUS_FILL } from "@/lib/interaction";
 
 /**
  * Button — ReUI (@base-ui/react + CVA) recipe.
@@ -24,7 +25,7 @@ const buttonVariants = cva(
     "group/button inline-flex shrink-0 items-center justify-center rounded-[4px] border border-transparent",
     "bg-clip-padding text-sm font-medium whitespace-nowrap outline-none select-none",
     "transition-[color,background-color,border-color,box-shadow,transform,filter] duration-[var(--motion-fast)] ease-[var(--motion-ease)]",
-    "focus-visible:bg-muted focus-visible:text-foreground",
+    FOCUS_FILL,
     "active:not-aria-[haspopup]:scale-[0.97]",
     "disabled:pointer-events-none disabled:opacity-50",
     "aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20",

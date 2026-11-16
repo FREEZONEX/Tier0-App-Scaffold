@@ -4,11 +4,11 @@ import { useKitApi, type KitApi } from "@/components/kit/provider";
 
 
 /**
- * PrintDialog — 选择打印模板 (151 / 152): template cards with a radio circle on
- * the right to cue single-choice selection, 「请先配置打印模板」 when none,
- * 取消 / 确认 → 「打印渲染中，请稍候」 →
- * POST /api/system/print/render → 打印预览 (CARD: 标题、二维码、字段网格、明细表;
- * LABEL: 标签 + 二维码) → 打印 = window.print(), printing only the preview pages.
+ * PrintDialog — 选择打印模板 (151 / 152): template cards with a lime radio
+ * circle (`--tier0-highlight-deep`) on the right. Cards are optional toggles
+ * (`aria-pressed`, not radiogroup) so the operator can clear the choice.
+ * Empty list → 「请先配置打印模板」; 取消 / 确认 → 「打印渲染中，请稍候」 →
+ * POST /api/system/print/render → 打印预览 → window.print().
  *
  * Row 打印 passes one id; 批量打印 passes up to 20 ids (one page per record).
  */
@@ -24,6 +24,7 @@ import { errorMessage } from "@/lib/component-kit/api-client";
 import { useRequest } from "@/lib/hooks";
 import type { PrintPage, PrintTemplate } from "@/lib/component-kit/types";
 import { cn } from "@/lib/utils";
+import { FOCUS_FILL } from "@/lib/interaction";
 import { resourcePath as apiUrl } from "@/lib/component-kit/api-client";
 
 export interface PrintDialogProps {
@@ -280,19 +281,20 @@ function PrintBody({
         empty={<Empty description="请先配置打印模板" />}
       >
         {() => (
-          <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="打印模板">
+          <div className="grid gap-2 sm:grid-cols-2" role="group" aria-label="打印模板">
             {available.map((item) => {
               const isSelected = selected === item.code;
               return (
               <button
                 type="button"
                 key={item.code}
-                role="radio"
-                aria-checked={isSelected}
+                aria-pressed={isSelected}
                 title={item.name}
                 className={cn(
-                  "flex min-w-0 items-center gap-3 rounded-[4px] border border-border bg-card px-3 py-3 text-left text-foreground outline-none transition-colors",
-                  "hover:border-border-strong focus-visible:bg-muted focus-visible:text-foreground",
+                  "flex min-w-0 items-center gap-3 rounded-[4px] border border-border bg-card px-3 py-3 text-left text-foreground transition-colors",
+                  FOCUS_FILL,
+                  "hover:border-border-strong",
+                  isSelected && "border-border-strong bg-muted",
                 )}
                 onClick={() => setSelected(isSelected ? null : item.code)}
               >

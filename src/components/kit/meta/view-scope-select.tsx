@@ -76,7 +76,7 @@ function ScopeRow({
         <button
           type="button"
           aria-label={expanded ? "收起" : "展开"}
-          className="inline-flex size-5 shrink-0 items-center justify-center rounded-[4px] text-text-secondary hover:text-brand"
+          className="inline-flex size-5 shrink-0 items-center justify-center rounded-[4px] text-text-secondary hover:bg-muted hover:text-foreground"
           onClick={onToggleExpand}
         >
           <svg

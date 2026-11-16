@@ -121,7 +121,7 @@ export function CalendarPanel({
               <button
                 type="button"
                 tabIndex={-1}
-                className="rounded-[4px] px-1 hover:text-brand"
+                className="rounded-[4px] px-1 underline decoration-transparent underline-offset-4 hover:decoration-current"
                 onClick={() => setMode("year")}
               >
                 {viewYear}年
@@ -130,7 +130,7 @@ export function CalendarPanel({
                 <button
                   type="button"
                   tabIndex={-1}
-                  className="rounded-[4px] px-1 hover:text-brand"
+                  className="rounded-[4px] px-1 underline decoration-transparent underline-offset-4 hover:decoration-current"
                   onClick={() => setMode("month")}
                 >
                   {viewMonth}月

@@ -178,7 +178,7 @@ export function ImageUpload({
             "flex flex-col items-center justify-center gap-1.5 rounded-[4px] border border-dashed bg-muted text-xs text-text-secondary transition-colors duration-150",
             disabled
               ? "cursor-not-allowed border-border-strong text-text-placeholder"
-              : "border-border-strong hover:border-brand hover:text-brand",
+              : "border-border-strong hover:border-border-strong hover:bg-fill-hover",
             dragging && "border-foreground/30 bg-muted text-foreground",
           )}
           style={tileStyle}
@@ -341,7 +341,7 @@ export function AttachmentUpload({
                   type="button"
                   aria-label={`下载 ${file.name}`}
                   title="下载"
-                  className="inline-flex size-6 shrink-0 items-center justify-center rounded-[4px] text-text-tertiary hover:bg-fill-active hover:text-brand"
+                  className="inline-flex size-6 shrink-0 items-center justify-center rounded-[4px] text-text-tertiary hover:bg-fill-active hover:text-foreground"
                   onClick={() => downloadFileValue(file)}
                 >
                   <Download className="size-3.5" />
@@ -410,7 +410,7 @@ export function ImageThumbs({ value, size = 32, max = 3, emptyText = "-", classN
         <button
           type="button"
           aria-label={`查看全部 ${images.length} 张图片`}
-          className="inline-flex shrink-0 items-center justify-center rounded-[4px] bg-fill-active text-xs text-text-secondary hover:text-brand"
+          className="inline-flex shrink-0 items-center justify-center rounded-[4px] bg-fill-active text-xs text-text-secondary hover:bg-fill-hover hover:text-foreground"
           style={{ width: size, height: size }}
           onClick={(event) => {
             event.stopPropagation();

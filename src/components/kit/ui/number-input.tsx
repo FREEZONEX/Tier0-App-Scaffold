@@ -233,7 +233,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
             type="button"
             tabIndex={-1}
             aria-label="增加"
-            className="flex flex-1 items-center justify-center text-text-tertiary hover:bg-fill-hover hover:text-brand"
+            className="flex flex-1 items-center justify-center text-text-tertiary hover:bg-fill-hover hover:text-foreground"
             onMouseDown={(event) => event.preventDefault()}
             onClick={() => stepBy(1)}
           >
@@ -243,7 +243,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
             type="button"
             tabIndex={-1}
             aria-label="减少"
-            className="flex flex-1 items-center justify-center border-t border-border-secondary text-text-tertiary hover:bg-fill-hover hover:text-brand"
+            className="flex flex-1 items-center justify-center border-t border-border-secondary text-text-tertiary hover:bg-fill-hover hover:text-foreground"
             onMouseDown={(event) => event.preventDefault()}
             onClick={() => stepBy(-1)}
           >

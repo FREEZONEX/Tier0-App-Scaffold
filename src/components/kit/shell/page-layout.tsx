@@ -2,6 +2,7 @@ import type { HTMLAttributes, ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import type { BackTarget } from "@/components/ui/back-button";
 import { PageHeader } from "@/components/ui/page-header";
+import { FOCUS_FILL } from "@/lib/interaction";
 import { cn } from "@/lib/utils";
 
 export interface PageContainerProps {
@@ -76,8 +77,10 @@ export interface PageHeaderLinkProps {
   className?: string;
 }
 
-const LINK_CLASS =
-  "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[4px] text-sm text-text-secondary outline-none transition-colors hover:text-brand focus-visible:bg-muted focus-visible:text-foreground [&_svg]:size-4";
+const LINK_CLASS = cn(
+  "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[4px] text-sm text-text-secondary transition-[color,background-color,text-decoration-color] underline decoration-transparent underline-offset-4 hover:decoration-current focus-visible:decoration-current [&_svg]:size-4",
+  FOCUS_FILL,
+);
 
 /** PageHeaderLink — quiet text link in the page title row. */
 export function PageHeaderLink({ icon, children, to, href, newTab = false, onClick, className }: PageHeaderLinkProps) {

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { FOCUS_FILL } from "@/lib/interaction";
 import { AnimatedNumber } from "@/components/ui/animated-number";
 
 /**
@@ -149,9 +150,9 @@ export function StatCard({
     "animate-[tier0-rise_260ms_var(--motion-spring)_both]",
     interactive
       ? cn(
-          "cursor-pointer outline-none",
+          "cursor-pointer",
+          FOCUS_FILL,
           "hover:-translate-y-px hover:bg-[color:var(--tier0-fill-hover)] hover:shadow-card",
-          "focus-visible:bg-muted focus-visible:text-foreground",
           "active:translate-y-0 active:scale-[0.99]",
           active
             ? "border-transparent bg-muted shadow-[inset_0_-2px_0_var(--foreground)]"

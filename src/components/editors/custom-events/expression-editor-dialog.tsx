@@ -71,7 +71,7 @@ function FieldTree({ groups, onPick }: { groups: EventVariableGroup[]; onPick: (
                         size="sm"
                         block
                         title={variable.value}
-                        className="justify-start pl-7 text-text-secondary hover:text-brand"
+                        className="justify-start pl-7 text-text-secondary hover:bg-muted hover:text-foreground"
                         onClick={() => onPick(variable.value)}
                       >
                         <span className="min-w-0 truncate">{variable.label}</span>

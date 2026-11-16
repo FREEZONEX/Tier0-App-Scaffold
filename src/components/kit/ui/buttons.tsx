@@ -3,6 +3,7 @@
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { FOCUS_FILL } from "@/lib/interaction";
 import { Button, type ButtonSize } from "@/components/ui/button";
 import { DropdownMenu } from "@/components/kit/ui/dropdown-menu";
 import { Tooltip } from "@/components/kit/ui/tooltip";
@@ -52,7 +53,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         className={cn(
           "inline-flex shrink-0 items-center justify-center border select-none outline-none",
           "transition-[color,background-color,border-color,box-shadow,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)]",
-          "focus-visible:bg-muted focus-visible:text-foreground",
+          FOCUS_FILL,
           "active:scale-[0.92] disabled:pointer-events-none disabled:opacity-50",
           ICON_BUTTON_SIZE[size],
           variant === "outline"
@@ -100,7 +101,8 @@ export const TextButton = forwardRef<HTMLButtonElement, TextButtonProps>(
         className={cn(
           "inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-[4px] select-none outline-none pointer-coarse:min-h-11",
           "transition-[color,background-color,text-decoration-color,opacity] duration-[var(--motion-fast)] ease-[var(--motion-ease)]",
-          "underline decoration-transparent underline-offset-4 hover:decoration-current focus-visible:bg-muted focus-visible:decoration-current",
+          "underline decoration-transparent underline-offset-4 hover:decoration-current focus-visible:decoration-current",
+          FOCUS_FILL,
           "active:opacity-70",
           size === "sm" ? "text-xs leading-5" : "text-sm leading-5",
           TEXT_TONE[tone],

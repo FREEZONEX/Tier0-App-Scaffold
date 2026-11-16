@@ -84,10 +84,10 @@ export function RadioGroup<V extends string | number = string | number>({
                     : selectedTone === "neutral"
                       ? "z-10 border-foreground bg-card text-foreground"
                       : "z-10 border-brand bg-card text-brand"
-                  : "border-border-strong bg-card text-foreground hover:text-brand",
-                isDisabled && "cursor-not-allowed border-border-strong bg-input-disabled text-text-placeholder hover:text-text-placeholder",
+                  : "border-border-strong bg-card text-foreground hover:bg-muted",
+                isDisabled && "cursor-not-allowed border-border-strong bg-input-disabled text-text-placeholder hover:bg-input-disabled hover:text-text-placeholder",
                 !isDisabled && "cursor-pointer",
-                "has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring/60",
+                "has-[:focus-visible]:bg-muted has-[:focus-visible]:text-foreground",
               )}
             >
               <input

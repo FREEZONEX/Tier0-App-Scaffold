@@ -146,6 +146,12 @@ const adapter: ComponentKitAdapter = {
 
 列表/工作台顶部的状态汇总必须用独立 `StatCard`（`WorkbenchLayout` 默认卡片栅格），不要收成竖线分割条。数字滚动用 `AnimatedNumber`；需要筛选时给 `StatCard` 传 `onClick` / `active`，与下方列表或看板联动，不要做成不可点的分割统计条。
 
+### 单选与打印选中圆
+
+- 表单 `RadioGroup`（圆点 / 按钮组）：选中用品牌色填充或描边（`--tier0-brand` / `#467000`），保证文字对比度。
+- 打印模板卡片右侧选中圆：用 `--tier0-highlight-deep`（`#73B200`），与表单单选区分；卡片可取消选中，用 `aria-pressed` 而非 `radiogroup`。
+- 文字链与文字按钮悬停只加下划线、不变字色。
+
 ## 图标
 
 导航与操作图标统一使用 `lucide-react`（ISC 许可，24px 网格、2px 描边，与脚手架现有图标同一风格），不引入第二套图标库，不使用 emoji 作图标。
