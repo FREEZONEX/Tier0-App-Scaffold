@@ -58,9 +58,10 @@ The sidebar follows the Tier0 platform sidebar: a gray rail (`--sidebar`,
 regular-weight dark items 36px high, hover one gray step darker
 (`--sidebar-accent`) and the selected item one more (`bg-muted`, mapped to
 `--sidebar-selected` inside the rail). The bottom of the rail always shows the
-account avatar with name and roles, and the notification bell at the right
-end (empty-state popover until the App wires real notices). Gallery business scenes (`SceneShell`)
-must mirror this footer — never ship a scene rail without the account strip.
+account avatar with name and roles. Do not add a notification bell until the
+App has a real notice feed and a clear click destination. Gallery business
+scenes (`SceneShell`) must mirror this footer — never ship a scene rail without
+the account strip.
 A module with `children` is a titled section (small gray label, always
 open; a divider in the collapsed rail), not a collapsible folder: group links
 by business area (生产 / 质量 / 主数据…) instead of nesting deeper. A link that

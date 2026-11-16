@@ -225,8 +225,9 @@ export function useListController({
   );
 
   const viewSorts = config.activeView?.sorts;
-  // Clearing every rule returns to the view's 默认排序 at once, so the button and the
-  // table read the same before and after a reload (saved personal order = none).
+  // Clearing every rule returns to the view's 默认排序 at once, so the button, the
+  // table, and the open 排序 panel (via reconcileSortDrafts) read the same rules —
+  // even when the restored defaults match the previous valueKey.
   const saveSorts = useCallback(
     async (next: SortSpec[]) => {
       setSorts(next.length ? next : (viewSorts ?? []));

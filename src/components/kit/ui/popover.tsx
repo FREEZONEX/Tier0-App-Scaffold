@@ -99,13 +99,23 @@ export function Popover({
   const triggerElement = () =>
     anchorRef.current?.querySelector<HTMLElement>("button, [tabindex], a, input") ?? null;
 
-  // Popup semantics on the focusable trigger (not the wrapper span).
+  // Popup semantics on the focusable trigger (not the wrapper span). When the
+  // popover is disabled (e.g. expanded sidebar group flyout off), leave the
+  // child's own aria-expanded / haspopup alone — overwriting them marks an
+  // open submenu as collapsed for assistive tech.
   useEffect(() => {
     const element = triggerElement();
     if (!element) return;
+    if (disabled) {
+      element.removeAttribute("aria-haspopup");
+      return;
+    }
     element.setAttribute("aria-haspopup", "dialog");
     element.setAttribute("aria-expanded", String(visible));
-  });
+    return () => {
+      element.removeAttribute("aria-haspopup");
+    };
+  }, [disabled, visible]);
 
   // The panel is portaled to the end of <body>: move focus into it when it opens so
   // keyboard users can reach its controls (hover popovers are previews and keep focus).

@@ -49,6 +49,40 @@ function toSorts(drafts: readonly DraftSort[]): SortSpec[] {
     .map((draft) => ({ field: draft.field, direction: draft.direction }));
 }
 
+function sortValueKey(sorts: readonly SortSpec[]): string {
+  return JSON.stringify(sorts.map(({ field, direction }) => ({ field, direction })));
+}
+
+/**
+ * Keep local drafts aligned with the parent `value`. Clearing every rule calls
+ * `onChange([])`, and the list controller restores the view's 默认排序 — often
+ * the same rules as before, so `valueKey` does not change. Incomplete rows
+ * (`field: null`) stay local until the user picks a field.
+ */
+export function reconcileSortDrafts(
+  value: readonly SortSpec[],
+  drafts: readonly DraftSort[],
+  previousValueKey: string,
+): { drafts: DraftSort[]; previousValueKey: string } {
+  const valueKey = sortValueKey(value);
+  const committedKey = sortValueKey(toSorts(drafts));
+  const hasIncomplete = drafts.some((draft) => !draft.field);
+
+  if (previousValueKey !== valueKey) {
+    return {
+      previousValueKey: valueKey,
+      // Keep the same array reference when only the key moved and commits match.
+      drafts: committedKey === valueKey ? (drafts as DraftSort[]) : toDrafts(value),
+    };
+  }
+
+  if (!hasIncomplete && committedKey !== valueKey) {
+    return { previousValueKey, drafts: toDrafts(value) };
+  }
+
+  return { previousValueKey, drafts: drafts as DraftSort[] };
+}
+
 export interface SortConditionListProps {
   /** Candidate fields (sortable columns). */
   fields: readonly Pick<FieldDef, "code" | "name">[];
@@ -59,11 +93,14 @@ export interface SortConditionListProps {
 
 export function SortConditionList({ fields, value, onChange, className }: SortConditionListProps) {
   const [drafts, setDrafts] = useState<DraftSort[]>(() => toDrafts(value));
-  const valueKey = JSON.stringify(value.map(({ field, direction }) => ({ field, direction })));
-  const [previousValueKey, setPreviousValueKey] = useState(valueKey);
-  if (previousValueKey !== valueKey) {
-    setPreviousValueKey(valueKey);
-    if (JSON.stringify(toSorts(drafts)) !== valueKey) setDrafts(toDrafts(value));
+  const [previousValueKey, setPreviousValueKey] = useState(() => sortValueKey(value));
+  const reconciled = reconcileSortDrafts(value, drafts, previousValueKey);
+  if (
+    reconciled.previousValueKey !== previousValueKey ||
+    reconciled.drafts !== drafts
+  ) {
+    setPreviousValueKey(reconciled.previousValueKey);
+    if (reconciled.drafts !== drafts) setDrafts(reconciled.drafts);
   }
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dropTarget, setDropTarget] = useState<{ index: number; edge: "before" | "after" } | null>(null);

@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describeSort, SortConditionList, SortPopover } from "../src/components/kit/meta/sort-popover";
+import {
+  describeSort,
+  reconcileSortDrafts,
+  SortConditionList,
+  SortPopover,
+} from "../src/components/kit/meta/sort-popover";
 
 const fields = [{ code: "code", name: "报修单号" }, { code: "priority", name: "优先级" }];
 test("saved sort rules render their own field labels and directions", () => {
@@ -58,4 +63,40 @@ test("view default rules are labelled （默认）", () => {
     <SortPopover fields={fields} value={[{ field: "code", direction: "desc" }]} isDefault onChange={() => {}} />,
   );
   assert.ok(html.includes("（默认）"));
+});
+
+const viewDefault = [{ field: "code", direction: "asc" as const }];
+const viewKey = JSON.stringify(viewDefault.map(({ field, direction }) => ({ field, direction })));
+
+test("clearing the last rule resyncs drafts to restored view defaults (same valueKey)", () => {
+  // User deleted every row → drafts empty; parent still exposes the view default
+  // (valueKey unchanged). Panel must show those defaults again, not stay empty.
+  const next = reconcileSortDrafts(viewDefault, [], viewKey);
+  assert.deepEqual(
+    next.drafts.map(({ field, direction }) => ({ field, direction })),
+    viewDefault,
+  );
+  assert.equal(next.previousValueKey, viewKey);
+});
+
+test("incomplete draft rows are kept while the valueKey is unchanged", () => {
+  const drafts = [
+    { key: "initial-0", field: "code", direction: "asc" as const },
+    { key: "added-1", field: null, direction: "asc" as const },
+  ];
+  const next = reconcileSortDrafts(viewDefault, drafts, viewKey);
+  assert.equal(next.drafts, drafts);
+});
+
+test("a real value change still replaces drafts", () => {
+  const nextValue = [{ field: "priority", direction: "desc" as const }];
+  const next = reconcileSortDrafts(
+    nextValue,
+    [{ key: "initial-0", field: "code", direction: "asc" }],
+    viewKey,
+  );
+  assert.deepEqual(
+    next.drafts.map(({ field, direction }) => ({ field, direction })),
+    nextValue,
+  );
 });

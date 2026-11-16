@@ -3,7 +3,6 @@
 import { useEffect, useId, useState, type ReactNode } from "react";
 import {
   Activity,
-  Bell,
   ChevronLeft,
   ChevronRight,
   ClipboardList,
@@ -17,7 +16,6 @@ import {
   X,
 } from "lucide-react";
 import { APP_NAME } from "@/lib/app-chrome";
-import { Popover } from "@/components/kit/ui/popover";
 import { cn } from "@/lib/utils";
 
 type SceneKey =
@@ -215,12 +213,12 @@ function SceneNav({
         ))}
       </nav>
 
-      {/* Same account + notification strip as src/components/Shell.tsx */}
+      {/* Same account strip as src/components/Shell.tsx */}
       <div className={cn("shrink-0 py-3", collapsed && !onNavigate ? "px-2" : "px-3")}>
         <div
           className={cn(
             "flex min-w-0 items-center overflow-hidden border-t border-sidebar-border pt-3",
-            collapsed && !onNavigate ? "flex-col gap-2" : "gap-1",
+            collapsed && !onNavigate ? "justify-center" : "gap-1",
           )}
         >
           <div
@@ -245,24 +243,6 @@ function SceneNav({
               </p>
             </div>
           </div>
-          <Popover
-            placement="top-end"
-            aria-label="通知"
-            title="通知"
-            content={<p className="text-xs text-muted-foreground">暂无新通知</p>}
-          >
-            <button
-              type="button"
-              aria-label="通知"
-              title="通知"
-              className={cn(
-                "inline-flex size-8 shrink-0 items-center justify-center rounded-[4px] text-muted-foreground transition-colors",
-                "hover:bg-sidebar-accent hover:text-foreground focus:outline-none focus-visible:bg-sidebar-accent focus-visible:text-foreground",
-              )}
-            >
-              <Bell className="size-4" aria-hidden />
-            </button>
-          </Popover>
         </div>
       </div>
     </aside>
