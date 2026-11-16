@@ -26,7 +26,7 @@ body {
  * Every corner 4px (Tier0); no stacked dividers: surfaces separate by fill.
  * ======================================================================== */
 .doc {
-  /* Portal chrome follows Lucent-aligned --sidebar* tokens (see globals.css). */
+  /* Portal chrome follows --sidebar* (white rail in light). */
   --doc-bg: var(--sidebar);
   --doc-line: var(--sidebar-border);
   --doc-fill: var(--sidebar-accent);

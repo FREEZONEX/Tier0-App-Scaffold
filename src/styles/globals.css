@@ -161,8 +161,8 @@
   --surface-raised: #ffffff;
   --surface-inset: #ffffff;
 
-  /* Sidebar rail — Lucent-devops light tokens (oklch neutrals); CTA stays Tier0. */
-  --sidebar: oklch(0.985 0 0);
+  /* Sidebar rail — white surface; Lucent-like accent/border steps. CTA stays Tier0. */
+  --sidebar: #ffffff;
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-primary: var(--tier0-cta);

@@ -433,40 +433,15 @@ export function TaskWorkspace() {
       }
       metrics={
         <>
-          <StatCard
-            label="进行中任务"
-            value={live.length}
-            unit="项"
-            icon={<ListTodo />}
-            active={status === 'active'}
-            onClick={() => setStatus('active')}
-          />
-          <StatCard
-            label="待处理"
-            value={count('todo')}
-            unit="项"
-            icon={<CircleDashed />}
-            tone="info"
-            active={status === 'todo'}
-            onClick={() => setStatus('todo')}
-          />
-          <StatCard
-            label="执行中"
-            value={count('running')}
-            unit="项"
-            icon={<Loader />}
-            tone="running"
-            active={status === 'running'}
-            onClick={() => setStatus('running')}
-          />
+          <StatCard label="进行中任务" value={live.length} unit="项" icon={<ListTodo />} />
+          <StatCard label="待处理" value={count('todo')} unit="项" icon={<CircleDashed />} tone="info" />
+          <StatCard label="执行中" value={count('running')} unit="项" icon={<Loader />} tone="running" />
           <StatCard
             label="完成率"
             value={donePct}
             unit="%"
             icon={<CheckCircle2 />}
             tone="running"
-            active={status === 'done'}
-            onClick={() => setStatus('done')}
             footer={<ProgressBar percent={donePct} size="sm" showInfo={false} className="w-24" />}
           />
         </>

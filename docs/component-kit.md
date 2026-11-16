@@ -144,7 +144,7 @@ const adapter: ComponentKitAdapter = {
 
 ### 工作台指标卡
 
-列表/工作台顶部的状态汇总必须用独立 `StatCard`（`WorkbenchLayout` 默认卡片栅格），不要收成竖线分割条。数字滚动用 `AnimatedNumber`；需要筛选时给 `StatCard` 传 `onClick` / `active`，与下方列表或看板联动，不要做成不可点的分割统计条。
+列表/工作台顶部的状态汇总必须用独立 `StatCard`（`WorkbenchLayout` 默认卡片栅格），不要收成竖线分割条。数字滚动用 `AnimatedNumber`。指标卡默认只读展示；筛选与操作集中在下方工具栏 / 操作按钮，不要把指标卡做成可点选的筛选控件。
 
 ### 单选与打印选中圆
 

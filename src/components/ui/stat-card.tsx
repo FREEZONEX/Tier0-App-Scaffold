@@ -44,11 +44,11 @@ export interface StatCardProps {
   trend?: StatTrend;
   tone?: StatTone;
   /**
-   * When set, the card is a filter control: click links the metric to the
-   * list/board below. Pair with `active` for the selected state.
+   * Optional. Prefer keeping StatCards read-only (KPI glance only) and put
+   * filters/actions in the toolbar below. When set, the card becomes a button.
    */
   onClick?: () => void;
-  /** Selected / pressed look for interactive metric cards. */
+  /** Selected look when `onClick` is used. */
   active?: boolean;
   className?: string;
 }
@@ -156,8 +156,8 @@ export function StatCard({
           "active:translate-y-0 active:scale-[0.99]",
           active ? "border-border bg-muted" : "border-border",
         )
-      : // Read-only KPI: faint fill only — never a divider strip or click affordance.
-        "border-border hover:bg-[color:var(--tier0-fill-hover)]",
+      : // Read-only KPI — white card, no hover/selected affordance (filters live in the toolbar).
+        "border-border",
     className,
   );
 
