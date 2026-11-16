@@ -43,7 +43,7 @@ function InlineAction({ action }: { action: RowAction }) {
       className={cn(
         !action.danger && action.tone === "success" && "text-success-deep hover:text-success",
         !action.danger && action.tone === "warning" && "text-warning-deep hover:text-warning",
-        !action.danger && (action.tone === "primary" || !action.tone) && "text-primary hover:text-primary/80",
+        !action.danger && (action.tone === "primary" || !action.tone) && "text-brand",
       )}
       onClick={onClick}
     />

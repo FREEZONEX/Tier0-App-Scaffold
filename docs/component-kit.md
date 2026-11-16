@@ -141,6 +141,11 @@ const adapter: ComponentKitAdapter = {
 
 移动卡片的 key、状态字段、详情布局和自定义内容均由应用传入；内置 `progress` 内容接收显式 `progress` 值，业务指标计算由应用负责。上传组件产生前端文件值，应用需对接文件持久化、大小/类型限制及权限。日期格式工具当前沿用 UTC+8 显示约定，多时区应用应先调整格式适配。
 
+
+### 工作台指标卡
+
+列表/工作台顶部的状态汇总必须用独立 `StatCard`（`WorkbenchLayout` 默认卡片栅格），不要收成竖线分割条。数字滚动用 `AnimatedNumber`；需要筛选时给 `StatCard` 传 `onClick` / `active`，与下方列表或看板联动，不要做成不可点的分割统计条。
+
 ## 图标
 
 导航与操作图标统一使用 `lucide-react`（ISC 许可，24px 网格、2px 描边，与脚手架现有图标同一风格），不引入第二套图标库，不使用 emoji 作图标。

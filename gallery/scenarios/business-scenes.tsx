@@ -202,7 +202,6 @@ export function SceneOpsMonitor() {
 
   return (
     <WorkbenchLayout
-      metricsVariant="strip"
       header={
         <PageHeader
           title="产线健康看板"

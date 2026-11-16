@@ -42,6 +42,13 @@ export interface StatCardProps {
   /** Movement vs a prior period, rendered as a semantic arrow + delta. */
   trend?: StatTrend;
   tone?: StatTone;
+  /**
+   * When set, the card is a filter control: click links the metric to the
+   * list/board below. Pair with `active` for the selected state.
+   */
+  onClick?: () => void;
+  /** Selected / pressed look for interactive metric cards. */
+  active?: boolean;
   className?: string;
 }
 
@@ -83,20 +90,13 @@ export function StatCard({
   footer,
   trend,
   tone = "default",
+  onClick,
+  active = false,
   className,
 }: StatCardProps) {
-  return (
-    <div
-      data-tone={tone}
-      className={cn(
-        // Read-only KPI: no stroke / lift on hover — only a faint fill shift.
-        "group relative rounded-[4px] border border-border bg-card p-4 shadow-sm",
-        "transition-colors duration-150 ease-out motion-reduce:transition-none",
-        "hover:bg-[color:var(--tier0-fill-hover)]",
-        "animate-[tier0-rise_260ms_var(--motion-spring)_both]",
-        className,
-      )}
-    >
+  const interactive = typeof onClick === "function";
+  const body = (
+    <>
       <div className="flex items-center justify-between gap-2">
         <p className="caption text-muted-foreground">{label}</p>
         {icon && (
@@ -140,6 +140,45 @@ export function StatCard({
           {footer && <div className="caption">{footer}</div>}
         </div>
       )}
+    </>
+  );
+
+  const surface = cn(
+    "group relative rounded-[4px] border bg-card p-4 text-left shadow-sm",
+    "transition-[background-color,border-color,box-shadow,transform] duration-150 ease-out motion-reduce:transition-none",
+    "animate-[tier0-rise_260ms_var(--motion-spring)_both]",
+    interactive
+      ? cn(
+          "cursor-pointer outline-none",
+          "hover:-translate-y-px hover:bg-[color:var(--tier0-fill-hover)] hover:shadow-card",
+          "focus-visible:bg-muted focus-visible:text-foreground",
+          "active:translate-y-0 active:scale-[0.99]",
+          active
+            ? "border-transparent bg-muted shadow-[inset_0_-2px_0_var(--foreground)]"
+            : "border-border",
+        )
+      : // Read-only KPI: faint fill only — never a divider strip or click affordance.
+        "border-border hover:bg-[color:var(--tier0-fill-hover)]",
+    className,
+  );
+
+  if (interactive) {
+    return (
+      <button
+        type="button"
+        data-tone={tone}
+        aria-pressed={active}
+        className={surface}
+        onClick={onClick}
+      >
+        {body}
+      </button>
+    );
+  }
+
+  return (
+    <div data-tone={tone} className={surface}>
+      {body}
     </div>
   );
 }

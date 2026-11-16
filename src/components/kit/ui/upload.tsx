@@ -329,7 +329,7 @@ export function AttachmentUpload({
                 <button
                   type="button"
                   title={viewable ? "预览" : "下载"}
-                  className="min-w-0 flex-1 truncate text-left text-sm text-brand hover:text-brand-hover"
+                  className="min-w-0 flex-1 truncate text-left text-sm text-brand underline decoration-transparent underline-offset-4 hover:decoration-current"
                   onClick={() => open(file)}
                 >
                   {file.name}

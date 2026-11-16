@@ -83,7 +83,7 @@ export function RadioGroup<V extends string | number = string | number>({
                       : "z-10 border-brand bg-brand text-white hover:border-brand-hover hover:bg-brand-hover"
                     : selectedTone === "neutral"
                       ? "z-10 border-foreground bg-card text-foreground"
-                      : "z-10 border-brand bg-card text-brand hover:border-brand-hover hover:text-brand-hover"
+                      : "z-10 border-brand bg-card text-brand"
                   : "border-border-strong bg-card text-foreground hover:text-brand",
                 isDisabled && "cursor-not-allowed border-border-strong bg-input-disabled text-text-placeholder hover:text-text-placeholder",
                 !isDisabled && "cursor-pointer",
