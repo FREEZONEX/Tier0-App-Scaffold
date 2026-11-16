@@ -86,7 +86,12 @@ export function ViewToggle<V extends string = string>({
       )}
     >
       {items.map((item, index) => (
-        <Tooltip key={item.value} title={item.label} anchorClassName="flex">
+        <Tooltip
+          key={item.value}
+          title={item.label}
+          /* Fill the segmented rail height; Tooltip's default self-start tops the icons. */
+          anchorClassName="flex h-full self-stretch"
+        >
           <button
             type="button"
             aria-label={item.label}
