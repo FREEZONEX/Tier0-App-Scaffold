@@ -101,15 +101,12 @@ export function Popover({
 
   // Popup semantics on the focusable trigger (not the wrapper span). When the
   // popover is disabled (e.g. expanded sidebar group flyout off), leave the
-  // child's own aria-expanded / haspopup alone — overwriting them marks an
-  // open submenu as collapsed for assistive tech.
+  // child's own aria-expanded / haspopup alone — do not set or strip them.
+  // Overwriting marks an open submenu as collapsed; stripping haspopup would
+  // erase a child that already declares menu/tree semantics.
   useEffect(() => {
     const element = triggerElement();
-    if (!element) return;
-    if (disabled) {
-      element.removeAttribute("aria-haspopup");
-      return;
-    }
+    if (!element || disabled) return;
     element.setAttribute("aria-haspopup", "dialog");
     element.setAttribute("aria-expanded", String(visible));
     return () => {
