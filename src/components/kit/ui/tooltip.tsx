@@ -65,7 +65,9 @@ export function Tooltip({
       <span
         ref={anchorRef}
         aria-describedby={visible ? tooltipId : undefined}
-        className={cn("inline-flex max-w-full", anchorClassName)}
+        /* w-fit + self-start: hug the trigger; avoid flex parents stretching
+           the anchor to full row width (tooltip would center far from the cursor). */
+        className={cn("inline-flex w-fit max-w-full self-start", anchorClassName)}
         onMouseEnter={hover.onEnter}
         onMouseLeave={hover.onLeave}
         onFocus={hover.onEnter}
