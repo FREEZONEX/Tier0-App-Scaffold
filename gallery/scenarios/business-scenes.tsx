@@ -407,7 +407,12 @@ export function SceneOpsMonitor() {
                   percent={Math.round((l.output / l.target) * 100)}
                   size="sm"
                   showInfo={false}
-                  status={l.state === "error" ? "exception" : "normal"}
+                  /* 达标 #73B200；未达标用前景黑，不跟默认 success/highlight 分流。 */
+                  strokeColor={
+                    l.output >= l.target
+                      ? "var(--tier0-highlight-deep)"
+                      : "var(--foreground)"
+                  }
                   trailColor="var(--tier0-surface-muted)"
                 />
                 {l.state !== "running" && (
