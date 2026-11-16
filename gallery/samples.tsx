@@ -41,7 +41,7 @@ export function Sample({name}:{name:string}){
  case 'StatusFilterChips':body=<><StatusFilterChips items={[{key:'all',label:'全部',count:2},{key:'pending',label:'待处理',count:1},{key:'running',label:'执行中',count:1}]} value={filter} onChange={setFilter}/><p>当前选择：{filter}</p></>;break;
  case 'RiskBanner':body=<>{(['info','warning','error'] as const).map(s=><RiskBanner key={s} severity={s} action={<Button size="sm" variant="ghost" onClick={()=>setValue(s)}>查看</Button>}>{s==='info'?'有一条新记录':s==='warning'?'一项检查即将到期':'温度超出范围'}</RiskBanner>)}<p className="caption">已查看：{value||'—'}</p></>;break;
  case 'EmptyState':body=count?<Table/>:<EmptyState title="暂无任务" description="创建一条示例记录" icon={<Package/>} action={<Button onClick={done}>创建示例</Button>}/>;break;
- case 'StatCard':body=<div className="grid grid-cols-2 gap-3"><StatCard label="今日完成" value={24} unit="项" tone="running" trend={{direction:'up',label:'+4',intent:'positive'}} icon={<Activity/>}/><StatCard label="异常记录" value={2} unit="项" tone="error" footer="样例数据"/></div>;break;
+ case 'StatCard':body=<div className="grid grid-cols-2 gap-4"><StatCard label="今日完成" value={24} unit="项" tone="running" trend={{direction:'up',label:'+4',intent:'positive'}} icon={<Activity/>}/><StatCard label="异常记录" value={2} unit="项" tone="error" trend={{direction:'up',label:'+2',intent:'negative'}} icon={<Package/>} footer="样例数据"/></div>;break;
  case 'FieldGroup':body=<>{field}<FieldGroup label="检查结果" error="请输入检查结果"><input aria-label="检查结果" aria-invalid="true" className="w-full max-w-sm"/></FieldGroup></>;break;
  case 'FieldLabel':body=<><FieldLabel htmlFor="label-input" required>设备名称</FieldLabel><input id="label-input" className="w-full max-w-sm" placeholder="点击标签可聚焦"/></>;break;
  case 'RequiredMark':body=<p>设备编号 <RequiredMark/> <span className="caption">仅必填标记，不提供校验</span></p>;break;
@@ -66,7 +66,7 @@ export function Sample({name}:{name:string}){
  case 'Shell':return <RouterProvider router={shellRouter}/>;
  case 'StationLayout':return <StationLayout user={user} title="装配执行" context="装配二线 · 工位 A-03 · 白班"><div className="p-5 space-y-4"><PageHeader title="当前检查任务"/>{field}<Button onClick={done}>完成检查 {count||''}</Button></div></StationLayout>;
  case 'ReviewLayout':return <ReviewLayout user={user} title="来料检验判定" context="待判定 12 批"><div className="p-5 space-y-4"><PageHeader title="待审核记录"/><Table/><Button onClick={done}>确认审核 {count||''}</Button></div></ReviewLayout>;
- case 'MonitorLayout':return <MonitorLayout title="一号线监控" subtitle="实时概览" updatedAt="2026-11-13T08:30:15+08:00"><div className="grid grid-cols-2 gap-4 p-5"><StatCard label="运行设备" value="12"/><StatCard label="待处理异常" value="2" tone="error"/></div></MonitorLayout>;
+ case 'MonitorLayout':return <MonitorLayout title="一号线监控" subtitle="实时概览" updatedAt="2026-11-13T08:30:15+08:00"><div className="grid grid-cols-2 gap-4 p-5"><StatCard label="运行设备" value="12" tone="running"/><StatCard label="待处理异常" value="2" tone="error"/></div></MonitorLayout>;
  case 'ClientOnly':body=<ClientOnly fallback={<p>等待客户端挂载</p>}><p>客户端已挂载，可交互。</p><Button onClick={done}>计数 {count}</Button></ClientOnly>;break;
  case 'Toaster':body=<><Button onClick={()=>toast.success('示例操作已完成')}>显示消息提示</Button><Toaster/></>;break;
  case 'RouteErrorBoundary':body=<><p>此组件按设计不渲染可见错误界面。点击后会挂载隐藏错误标记并发送 Preview 消息。</p><Button onClick={done}>触发示例错误</Button>{count>0&&<RouteErrorBoundary error={new Error('Gallery sample error')} scope="gallery-example"/>}<p className="caption">触发次数：{count}。本页不是 Builder 错误卡片宿主。</p></>;break;

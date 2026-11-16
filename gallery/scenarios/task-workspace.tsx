@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, exceptionItemClass } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatCard } from '@/components/ui/stat-card';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -72,6 +72,11 @@ const priorityDot: Record<string, string> = {
   高: 'bg-[color:var(--tier0-error-color)]',
   中: 'bg-[color:var(--tier0-warning-color)]',
   低: 'bg-muted-foreground/50',
+};
+const priorityException: Record<string, keyof typeof exceptionItemClass> = {
+  高: 'error',
+  中: 'paused',
+  低: 'info',
 };
 
 const OWNERS = ['张明', '王珊', '李晨'];
@@ -254,7 +259,7 @@ export function TaskWorkspace() {
   const searching = Boolean(query.trim()) || activeConditions > 0;
   const draftQty = totalOf(draftLines, 'qty');
   const draftAmount = totalOf(draftLines, 'amount');
-  const attention = tasks.filter((t) => t.priority === '高' && (t.status === 'todo' || t.status === 'running'));
+  const attention = tasks.filter((t) => t.status === 'todo' || t.status === 'running');
   const selectedTasks = tasks.filter((t) => selected.includes(t.id) && t.status !== 'closed');
 
   function actions(t: Task) {
@@ -282,7 +287,7 @@ export function TaskWorkspace() {
           const items = filtered.filter((t) => t.status === s.value);
           const Icon = stageIcon[s.value];
           return (
-            <section key={s.value} className="min-w-0 rounded-[4px] bg-fill-hover p-2">
+            <section key={s.value} className="min-w-0 rounded-[4px] bg-fill-hover p-2.5">
               <header className="flex items-center gap-2 px-1.5 pb-2 pt-1 text-[13px] font-medium">
                 <Icon className="size-3.5 text-muted-foreground" aria-hidden />
                 {s.label}
@@ -328,24 +333,24 @@ export function TaskWorkspace() {
                     </div>
                     <button
                       type="button"
-                      className="text-left text-sm font-medium leading-5 text-foreground underline-offset-4 hover:underline"
+                      className="line-clamp-2 min-h-10 text-left text-sm font-medium leading-5 text-foreground underline-offset-4 hover:underline"
                       onClick={() => edit(t)}
                     >
                       {t.name}
                     </button>
-                    <p className="caption tabular-nums">
+                    <p className="caption truncate tabular-nums">
                       计划 {t.due || '未排期'}
                       {t.lines.length ? ` · 领料 ${t.lines.length} 项 · ${money(totalOf(t.lines, 'amount'))}` : ''}
                     </p>
-                    <div className="flex items-end justify-between gap-2">
-                      <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+                    <div className="mt-auto flex h-6 items-center justify-between gap-2">
+                      <span className="flex min-w-0 items-center gap-1.5 text-xs leading-none text-muted-foreground">
                         <Avatar name={t.owner} size="sm" />
-                        <EllipsisText>{t.owner}</EllipsisText>
+                        <span className="min-w-0 truncate leading-none">{t.owner}</span>
                       </span>
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-6 shrink-0 px-2 text-xs"
+                        className="h-6 shrink-0 gap-0.5 px-2 text-xs leading-none"
                         onClick={() => advance(t)}
                       >
                         {t.status === 'todo' ? '开始' : t.status === 'running' ? '完成' : '重新打开'}
@@ -433,16 +438,28 @@ export function TaskWorkspace() {
       }
       metrics={
         <>
-          <StatCard label="进行中任务" value={live.length} unit="项" icon={<ListTodo />} />
-          <StatCard label="待处理" value={count('todo')} unit="项" icon={<CircleDashed />} tone="info" />
-          <StatCard label="执行中" value={count('running')} unit="项" icon={<Loader />} tone="running" />
+          <StatCard label="进行中任务" value={live.length} unit="项" icon={<ListTodo />} tone="info" />
+          <StatCard
+            label="待处理"
+            value={count('todo')}
+            unit="项"
+            icon={<CircleDashed />}
+            tone="info"
+          />
+          <StatCard
+            label="执行中"
+            value={count('running')}
+            unit="项"
+            icon={<Loader />}
+            tone="running"
+          />
           <StatCard
             label="完成率"
             value={donePct}
             unit="%"
             icon={<CheckCircle2 />}
             tone="running"
-            footer={<ProgressBar percent={donePct} size="sm" showInfo={false} className="w-24" />}
+            footer={<ProgressBar percent={donePct} size="sm" showInfo={false} className="w-full" />}
           />
         </>
       }
@@ -450,21 +467,26 @@ export function TaskWorkspace() {
         <>
           <Card
             title={
-              <span className="flex items-center gap-2">
-                <AlertTriangle className="size-4 text-[color:var(--tier0-warning-color)]" />
+              <>
+                <AlertTriangle />
                 需要关注
-              </span>
+              </>
             }
-            flush
           >
             {attention.length ? (
-              <ul className="divide-y divide-border">
+              <ul className="space-y-2">
                 {attention.map((t) => (
-                  <li key={t.id} className="flex items-center gap-3 px-4 py-3">
+                  <li
+                    key={t.id}
+                    className={cn(
+                      'flex items-center gap-3',
+                      exceptionItemClass[priorityException[t.priority] ?? 'paused'],
+                    )}
+                  >
                     <div className="min-w-0 flex-1">
                       <EllipsisText className="text-sm font-medium">{t.name}</EllipsisText>
                       <p className="caption">
-                        高优先级 · {stageLabel(t.status)} · {t.owner}
+                        {t.priority}优先级 · {stageLabel(t.status)} · {t.owner}
                       </p>
                     </div>
                     <Button size="sm" variant="outline" onClick={() => advance(t)}>
@@ -474,7 +496,7 @@ export function TaskWorkspace() {
                 ))}
               </ul>
             ) : (
-              <p className="caption px-4 py-6 text-center">高优先级任务均已处理</p>
+              <p className="caption py-6 text-center">暂无需要关注的任务</p>
             )}
           </Card>
           <Card
@@ -488,7 +510,7 @@ export function TaskWorkspace() {
             <ol className="relative space-y-4 before:absolute before:inset-y-1 before:left-[5px] before:w-px before:bg-border">
               {activity.map((a, i) => (
                 <li key={a.id} style={{ '--i': i } as CSSProperties} className={cn('relative pl-5', STAGGER_ITEM)}>
-                  <span className="absolute left-0 top-1.5 size-[11px] rounded-full border-2 border-card bg-muted-foreground/40" aria-hidden />
+                  <span className="absolute left-0 top-1.5 size-[11px] rounded-full border-2 border-card bg-[color:var(--tier0-highlight-deep)]" aria-hidden />
                   <p className="text-sm leading-5">{a.text}</p>
                   <p className="caption">{ago(a.at)}</p>
                 </li>
@@ -523,9 +545,8 @@ export function TaskWorkspace() {
               fields={keywordFields}
               className="order-last w-full sm:order-none sm:w-72"
             />
-            {/* size lg = the 36px control height of the select / search / view toggle beside it. */}
             <Button
-              size="lg"
+              size="md"
               variant={filterOpen ? 'secondary' : 'outline'}
               icon={<SlidersHorizontal size={14} />}
               aria-label={activeConditions > 0 ? `高级筛选，已应用 ${activeConditions} 个条件` : '高级筛选'}

@@ -2,14 +2,21 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { FOCUS_FILL } from "@/lib/interaction";
 import { AnimatedNumber } from "@/components/ui/animated-number";
+import { Tag } from "@/components/kit/ui/tag";
+import type { TagTone } from "@/components/kit/ui/types";
 
 /**
  * StatCard — dashboard summary tile. Value comes from real (seeded or live)
  * data, never an invented number.
  *
- * `icon` is a muted lucide glyph (no colored chip, so a KPI row stays calm);
- * `tone` is kept for API compatibility; primary metric values remain neutral. `trend` renders a semantic arrow +
- * delta. Numeric `value`s roll to new readings on live refresh. `footer` is free for a link or scope line. Use what the metric needs.
+ * Layout: muted label, a large tabular number, an optional trend Tag
+ * beside the number, and a 36px gray icon tile at the top-right. The card
+ * itself stays white. The trend Tag carries the semantic color (green /
+ * red / blue), with no stroke.
+ *
+ * `trend` is a Tag (arrow + delta), colored by intent. Numeric `value`s
+ * roll on live refresh. `footer` holds a progress bar or scope line.
+ * Filters and actions belong in the toolbar.
  */
 export type StatTone = "default" | "running" | "paused" | "error" | "info";
 
@@ -53,11 +60,11 @@ export interface StatCardProps {
   className?: string;
 }
 
-const trendIntentClass = {
-  positive: "text-[color:var(--tier0-success-color)]",
-  negative: "text-[color:var(--state-error-fg)]",
-  neutral: "text-muted-foreground",
-} as const;
+const trendTagTone: Record<NonNullable<StatTrend["intent"]>, TagTone> = {
+  positive: "success",
+  negative: "error",
+  neutral: "processing",
+};
 
 function TrendArrow({ direction }: { direction: StatTrend["direction"] }) {
   const d =
@@ -74,7 +81,7 @@ function TrendArrow({ direction }: { direction: StatTrend["direction"] }) {
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="size-3"
+      className="size-3.5"
       aria-hidden="true"
     >
       <path d={d} />
@@ -98,66 +105,58 @@ export function StatCard({
   const interactive = typeof onClick === "function";
   const body = (
     <>
-      <div className="flex items-center justify-between gap-2">
-        <p className="caption text-muted-foreground">{label}</p>
+      <div className="flex items-start justify-between gap-3">
+        <p className="caption pt-0.5 text-muted-foreground">{label}</p>
         {icon && (
           <span
             aria-hidden="true"
-            className="flex shrink-0 text-muted-foreground [&>svg]:size-[18px] [&>svg]:stroke-[1.75]"
+            className="flex size-9 shrink-0 items-center justify-center rounded-[4px] bg-muted text-foreground [&>svg]:size-5 [&>svg]:stroke-[1.75]"
           >
             {icon}
           </span>
         )}
       </div>
-      <p
-        className={cn(
-          // Sized to read as a deliberate big-number KPI even when the card
-          // carries nothing but a label + value (its most common generated
-          // form) — a small number floating in a wide tile reads as hollow.
-          "mt-1 text-3xl font-semibold leading-9 tabular-nums",
-          "text-foreground",
-        )}
-      >
-        {typeof value === "number" ? <AnimatedNumber value={value} format={format} /> : value}
-        {unit && (
-          <span className="ml-1 text-base font-normal text-muted-foreground">
-            {unit}
-          </span>
-        )}
-      </p>
-      {(trend || footer) && (
-        <div className="mt-1.5 flex items-center gap-2">
-          {trend && (
-            <span
-              className={cn(
-                "inline-flex items-center gap-0.5 text-xs font-medium tabular-nums",
-                trendIntentClass[trend.intent ?? "neutral"],
-              )}
-            >
-              <TrendArrow direction={trend.direction} />
-              {trend.label}
+      <div className="mt-3 flex min-w-0 flex-wrap items-end gap-2.5">
+        <p className="text-[2rem] font-semibold leading-none tracking-tight tabular-nums text-foreground sm:text-4xl sm:leading-none">
+          {typeof value === "number" ? (
+            <AnimatedNumber value={value} format={format} />
+          ) : (
+            value
+          )}
+          {unit && (
+            <span className="ml-1.5 text-lg font-normal tracking-normal text-muted-foreground">
+              {unit}
             </span>
           )}
-          {footer && <div className="caption">{footer}</div>}
-        </div>
-      )}
+        </p>
+        {trend && (
+          <Tag
+            bordered={false}
+            tone={trendTagTone[trend.intent ?? "neutral"]}
+            icon={<TrendArrow direction={trend.direction} />}
+            className="mb-0.5 h-6 !border-transparent px-2 text-sm leading-none tabular-nums [&_svg]:size-3.5"
+          >
+            {trend.label}
+          </Tag>
+        )}
+      </div>
+      {footer && <div className="mt-3 min-w-0">{footer}</div>}
     </>
   );
 
   const surface = cn(
-    "group relative rounded-[4px] border bg-card p-4 text-left shadow-sm",
+    "group relative flex h-full min-h-[7.25rem] min-w-0 flex-col rounded-[4px] border border-border bg-card p-4 text-left shadow-sm",
     "transition-[background-color,border-color,box-shadow,transform] duration-150 ease-out motion-reduce:transition-none",
     "animate-[tier0-rise_260ms_var(--motion-spring)_both]",
     interactive
       ? cn(
           "cursor-pointer",
           FOCUS_FILL,
-          "hover:-translate-y-px hover:bg-[color:var(--tier0-fill-hover)] hover:shadow-card",
+          "hover:-translate-y-px hover:shadow-card hover:bg-[color:var(--tier0-fill-hover)]",
           "active:translate-y-0 active:scale-[0.99]",
-          active ? "border-border bg-muted" : "border-border",
+          active && "bg-muted",
         )
-      : // Read-only KPI — white card, no hover/selected affordance (filters live in the toolbar).
-        "border-border",
+      : null,
     className,
   );
 

@@ -236,7 +236,7 @@ export function Shell({
   }
 
   /** One child entry; used by the expanded group list and by the collapsed-rail flyout. */
-  function renderChildLink(child: NavModule, onNavigate: () => void) {
+  function renderChildLink(child: NavModule, onNavigate: () => void, nested = false) {
     const childTitle = navTitle(child);
     const isChildActive = child.key === activeModuleKey;
 
@@ -259,14 +259,13 @@ export function Shell({
         }}
         className={cn(
           sidebarItemBase,
-          "min-h-9 gap-2 px-3",
+          nested ? "min-h-9 gap-2 py-1 pl-3 pr-3" : "min-h-9 gap-2 px-3",
           isChildActive
             ? sidebarItemActive
             : sidebarItemInactive,
           child.locked ? "opacity-70" : "",
         )}
       >
-        <NavIcon icon={child.icon} label={child.label} className={cn("size-3.5", isChildActive ? "text-foreground" : "text-muted-foreground group-hover:text-foreground")} />
         <span className={cn("min-w-0 truncate whitespace-nowrap", isChildActive && "font-semibold")}>
           {child.label}
         </span>
@@ -474,8 +473,10 @@ export function Shell({
                   </Tooltip>
                   </Popover>
                   {!isCollapsed && isExpanded && (
-                    <div className="mt-1 space-y-1 pl-6">
-                      {mod.children?.map((child) => renderChildLink(child, () => setMobileOpen(false)))}
+                    <div className="mt-0.5 mb-1 ml-7 border-l border-muted-foreground/45">
+                      {mod.children?.map((child) =>
+                        renderChildLink(child, () => setMobileOpen(false), true),
+                      )}
                     </div>
                   )}
                 </div>
@@ -559,7 +560,7 @@ export function Shell({
                 {user?.displayName ?? uiText("loading")}
               </p>
               {user ? (
-                <p className="mt-0.5 truncate font-mono text-xs uppercase leading-4 text-muted-foreground" title={roleLabel || undefined}>
+                <p className="mt-0.5 truncate font-mono text-xs capitalize leading-4 text-muted-foreground" title={roleLabel || undefined}>
                   {roleLabel || uiText("noRoles")}
                 </p>
               ) : null}
@@ -602,7 +603,7 @@ export function Shell({
         </div>
       )}
 
-      <main className="page-y-scroll min-h-0 min-w-0 flex-1">
+      <main className="page-y-scroll min-h-0 min-w-0 flex-1 bg-workspace">
         <OfflineBanner />
         <div className="flex h-14 items-center bg-card px-4 md:hidden">
           <button

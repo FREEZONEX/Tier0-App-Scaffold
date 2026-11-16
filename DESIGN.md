@@ -122,7 +122,11 @@ spacing:
 # those instead of re-deriving styles from this file. Usage rules:
 # - identifiers (doc/lot/location codes) render in font-mono
 # - highlight lime is a fill / ring color only; text accents use brand (≥4.5:1)
-# - status = StatusBadge + optional card accent bar; never tint whole cards
+# - status = StatusBadge; card accent bar is for a single status object, not a list shell
+# - problem KPIs get a light semantic wash; exception rows use a left bar (red / amber / blue) without a nested ring
+# - routine cards stay white
+# - StatCard: large number, gray icon tile (white on problem washes), trend as Tag
+# - Card headers stay compact, unfilled, no hairline; the pane right of the rail uses --workspace (sidebar gray mixed 60% with white)
 # - available where useful: .text-link (inline links), StatCard tone + trend props
 components:
   button-highlight:
@@ -313,6 +317,35 @@ the page canvas. Do not add an outer decorative card around `MetaListPage`;
 use its page inset and internal spacing. Cards remain available for distinct
 content groups in other compositions.
 
+### Workbench hierarchy
+
+A management workspace is three stacked bands, not a dump of equal-weight
+boxes. Keep each band to one job; mixing them is the anti-pattern (plain
+canvas, unclear actions, filters/charts/forms in the title row).
+
+1. **Title row** — `PageHeader`: title + at most one primary action (and
+   optional secondary outline). No filters, charts, forms, or data boards.
+2. **KPI row** — `StatCard` in `WorkbenchLayout` `metrics`. Four equal
+   white cards. The number is the largest type on the tile (32–36px,
+   tabular, neutral ink). The top-right icon is a 36px gray (`bg-muted`)
+   tile. Period deltas render as a Tag beside the number: semantic fill
+   (green / red / blue), no stroke, never gray. RiskBanner and exception
+   rows share `--state-*-wash`. Do not put filters on StatCards. Only add
+   a `trend` when the metric has a real delta.
+3. **Work surface** — one primary `Card` (queue, board, table) plus an
+   optional aside, on `--workspace` (sidebar gray mixed 60% with white).
+   Card/Frame headers are compact (`min-h-10`, a little extra top
+   padding), unfilled, and have no divider under the title. Nested board tiles sit on a
+   gray well (`bg-fill-hover`); each tile is `bg-card`. Exception lists
+   (需要关注 / 未确认告警 / 需要处理) keep a plain outer Card — no accent
+   bar on the shell — and each row uses `exceptionItemClass` (red / amber /
+   blue left bar, no gray ring). Use `Card variant="frame"` when a
+   toolbar-heavy table needs a muted shell around a white inset.
+
+Actions: one primary `Button` per band; row actions stay icon-only or a
+single ghost/outline control on the tile. Status color lives on tags,
+chips, and chart series — not on whole KPI cards or the page canvas.
+
 The shipped component families are a discoverable toolkit, not a mandatory
 screen recipe:
 
@@ -371,7 +404,7 @@ wall screen) and the delivery checklist live in [docs/operator-ux.md](docs/opera
 - Links, text buttons, selected radios and upload accents use readable `--tier0-brand` (`#467000` light / `#73b200` dark). Do not use `#73b200` for text on light surfaces (2.6:1). Text-button hover adds underline only — no color shift.
 - Keyboard focus splits by control kind: buttons, tabs, chips, icon buttons and pagination use a light gray fill (`bg-muted`); text fields, selects, date pickers and checkboxes use `--ring` (`#B2ED1D`, both themes): border at 40% opacity and a 2px outer ring at 60%. Selected tabs use a 2px foreground underline.
 - On phones and touch screens (`max-width: 639px`, `pointer: coarse`) text steps up one size, inputs reach 16px and every control reaches a 44px touch target.
-- Light sidebar surface is soft gray (`--sidebar: oklch(0.985)`); hover/selection use muted fill (`--sidebar-selected`) with no border or shadow. Dark rail is charcoal `oklch(0.205)`. Keyboard focus on rail items uses the same muted fill, not a brand outline.
+- Light sidebar surface is soft gray (`--sidebar: oklch(0.985)`); hover/selection use a slightly deeper muted fill (`--sidebar-selected`) with no border or shadow. Dark rail is charcoal `oklch(0.205)`. Keyboard focus on rail items uses the same muted fill, not a brand outline. Nested child links use a vertical guide line instead of a second icon. The account strip role line is title case, not all caps.
 - Same-row form controls and buttons use matching size tokens: sm 32px, md 36px, lg 40px.
 - Sorting supports selecting, changing direction, deleting and reordering using both pointer and keyboard. At 375px, field labels must retain a readable width.
 - Empty role sets show `未分配角色`, never a false `Loading` label.

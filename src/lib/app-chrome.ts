@@ -51,7 +51,7 @@ const UI_COPY = {
     retry: "Reload",
     empty: "No data yet",
     loading: "Loading…",
-    noRoles: "No role assigned",
+    noRoles: "No Role Assigned",
     expandSidebar: "Expand sidebar",
     collapseSidebar: "Collapse sidebar",
     openNavigation: "Open navigation",

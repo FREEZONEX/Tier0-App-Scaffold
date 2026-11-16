@@ -325,7 +325,7 @@ export function SceneShell({
           </div>
         </div>
 
-        <main className="min-h-0 min-w-0 flex-1 overflow-auto overscroll-contain bg-background">
+        <main className="min-h-0 min-w-0 flex-1 overflow-auto overscroll-contain bg-workspace">
           {/* WorkbenchLayout / page-shell own responsive padding */}
           {children}
         </main>

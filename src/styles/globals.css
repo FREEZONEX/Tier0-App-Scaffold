@@ -161,7 +161,7 @@
   --surface-raised: #ffffff;
   --surface-inset: #ffffff;
 
-  /* Sidebar rail — soft gray surface; Lucent-like accent/border steps. CTA stays Tier0. */
+  /* Sidebar rail — original soft gray. CTA stays Tier0. */
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-border: oklch(0.922 0 0);
@@ -171,6 +171,8 @@
   --sidebar-selected: oklch(0.97 0 0);
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-ring: var(--tier0-highlight);
+  /* Content pane to the right of the rail: sidebar gray mixed 60% with canvas. */
+  --workspace: color-mix(in oklch, var(--sidebar), var(--tier0-canvas) 60%);
 
   /* Accent surfaces stay neutral. Lime is highlight / selected emphasis only. */
   --accent: #f4f4f5;
@@ -189,15 +191,20 @@
   --state-idle-fg: var(--tier0-text-secondary);
   --state-idle-bg: var(--color-neutral-100);
   --state-idle-border: var(--tier0-border);
-  --state-paused-fg: var(--tier0-warning-color);
-  --state-paused-bg: var(--tier0-warning-tertiary);
-  --state-paused-border: color-mix(in srgb, var(--tier0-warning-color) 42%, white);
+  --state-paused-fg: #b45309;
+  --state-paused-bg: #fde68a;
+  --state-paused-border: #fbbf24;
   --state-error-fg: var(--tier0-error-color);
-  --state-error-bg: var(--tier0-error-tertiary);
-  --state-error-border: color-mix(in srgb, var(--tier0-error-color) 40%, white);
+  --state-error-bg: #fecaca;
+  --state-error-border: #f87171;
   --state-info-fg: var(--tier0-blue-color);
-  --state-info-bg: var(--tier0-blue-tertiary);
-  --state-info-border: color-mix(in srgb, var(--tier0-blue-color) 38%, white);
+  --state-info-bg: #bfdbfe;
+  --state-info-border: #60a5fa;
+  /* Shared surface wash for StatCard / RiskBanner / exception rows. */
+  --state-running-wash: color-mix(in srgb, var(--state-running-bg) 80%, var(--tier0-bg-color));
+  --state-paused-wash: color-mix(in srgb, var(--state-paused-bg) 40%, var(--tier0-bg-color));
+  --state-error-wash: color-mix(in srgb, var(--state-error-bg) 40%, var(--tier0-bg-color));
+  --state-info-wash: color-mix(in srgb, var(--state-info-bg) 40%, var(--tier0-bg-color));
 
   --gantt-planned-fg: var(--tier0-highlight-foreground);
   --gantt-planned-bg: var(--tier0-highlight-bg-accent);
@@ -215,11 +222,12 @@
   --gantt-locked-bg: #ede9fe;
   --gantt-locked-border: #ddd6fe;
 
+  /* Same hue set as tags / status: lime, blue, violet, amber, red. */
   --chart-1: var(--tier0-highlight-deep);
-  --chart-2: var(--tier0-blue-color);
-  --chart-3: var(--tier0-text-tertiary);
-  --chart-4: var(--tier0-warning-color);
-  --chart-5: var(--tier0-error-color);
+  --chart-2: var(--tier0-cat-2);
+  --chart-3: var(--tier0-cat-3);
+  --chart-4: var(--tier0-cat-4);
+  --chart-5: #ef4444;
 
   --radius: var(--tier0-radius);
   --shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.05);
@@ -275,6 +283,7 @@
   --color-surface-inset: var(--surface-inset);
 
   --color-sidebar: var(--sidebar);
+  --color-workspace: var(--workspace);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -304,6 +313,10 @@
   --color-state-error-fg: var(--state-error-fg);
   --color-state-error-bg: var(--state-error-bg);
   --color-state-error-border: var(--state-error-border);
+  --color-state-running-wash: var(--state-running-wash);
+  --color-state-paused-wash: var(--state-paused-wash);
+  --color-state-error-wash: var(--state-error-wash);
+  --color-state-info-wash: var(--state-info-wash);
   --color-state-info-fg: var(--state-info-fg);
   --color-state-info-bg: var(--state-info-bg);
   --color-state-info-border: var(--state-info-border);
@@ -930,11 +943,11 @@ body {
 
   /* Alarm rows inside a bordered panel: a tint, never a second border. */
   .monitor-row[data-tone="alarm"] {
-    background: var(--state-error-bg);
+    background: var(--state-error-wash);
   }
 
   .monitor-row[data-tone="warn"] {
-    background: var(--state-paused-bg);
+    background: var(--state-paused-wash);
   }
 
   .monitor-panel {
@@ -1136,31 +1149,31 @@ body {
   .state-running {
     color: var(--state-running-fg);
     background-color: var(--state-running-bg);
-    border-color: transparent;
+    border-color: var(--state-running-border);
   }
 
   .state-idle {
     color: var(--muted-foreground);
     background-color: var(--muted);
-    border-color: transparent;
+    border-color: var(--state-idle-border);
   }
 
   .state-paused {
     color: var(--state-paused-fg);
     background-color: var(--state-paused-bg);
-    border-color: transparent;
+    border-color: var(--state-paused-border);
   }
 
   .state-error {
     color: var(--state-error-fg);
     background-color: var(--state-error-bg);
-    border-color: transparent;
+    border-color: var(--state-error-border);
   }
 
   .state-info {
     color: var(--state-info-fg);
     background-color: var(--state-info-bg);
-    border-color: transparent;
+    border-color: var(--state-info-border);
   }
 
   .dark .state-idle {
@@ -1640,16 +1653,16 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
  * resource types). Lime stays the brand accent; use these only to tell
  * categories apart, always in this order, and pair each with its soft tint. */
 :root {
-  --tier0-cat-1: #7cb342; /* lime-green */
-  --tier0-cat-1-soft: #eef7e3;
-  --tier0-cat-2: #3b6be8; /* blue */
+  --tier0-cat-1: #73b200; /* lime — same as chart-1 / running */
+  --tier0-cat-1-soft: #eef8d4;
+  --tier0-cat-2: #3b6be8; /* blue — same as info / processing */
   --tier0-cat-2-soft: #e8eefc;
-  --tier0-cat-3: #7c3aed; /* purple */
+  --tier0-cat-3: #7c3aed; /* violet */
   --tier0-cat-3-soft: #f0e9fd;
-  --tier0-cat-4: #e0a24e; /* amber */
-  --tier0-cat-4-soft: #fcf3e6;
-  --tier0-cat-5: #8fc7d9; /* sky (secondary series) */
-  --tier0-cat-5-soft: #ebf5f9;
+  --tier0-cat-4: #f59e0b; /* amber — same as paused / warning */
+  --tier0-cat-4-soft: #fef3c7;
+  --tier0-cat-5: #06b6d4; /* cyan */
+  --tier0-cat-5-soft: #cffafe;
   --tier0-cat-6: #050b14; /* ink */
   --tier0-cat-6-soft: #eeeff1;
 }
@@ -1662,9 +1675,9 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
   --tier0-cat-2-soft: #1a2238;
   --tier0-cat-3: #a78bfa;
   --tier0-cat-3-soft: #241a38;
-  --tier0-cat-4: #f0b55c;
+  --tier0-cat-4: #fbbf24;
   --tier0-cat-4-soft: #2a2216;
-  --tier0-cat-5: #7eb8cc;
+  --tier0-cat-5: #22d3ee;
   --tier0-cat-5-soft: #162228;
   /* Ink cat must stay visible on dark chrome (not near-black). */
   --tier0-cat-6: #c4c4c8;

@@ -16,9 +16,18 @@ export interface RiskBannerProps {
 }
 
 const severityConfig = {
-  info: { icon: Info, tone: "state-info" },
-  warning: { icon: AlertTriangle, tone: "state-paused" },
-  error: { icon: OctagonAlert, tone: "state-error" },
+  info: {
+    icon: Info,
+    tone: "bg-state-info-wash text-foreground [&_svg]:text-state-info-fg",
+  },
+  warning: {
+    icon: AlertTriangle,
+    tone: "bg-state-paused-wash text-foreground [&_svg]:text-state-paused-fg",
+  },
+  error: {
+    icon: OctagonAlert,
+    tone: "bg-state-error-wash text-foreground [&_svg]:text-state-error-fg",
+  },
 } as const;
 
 export function RiskBanner({

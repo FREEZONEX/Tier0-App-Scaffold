@@ -460,7 +460,11 @@ export function inkOnFill(fill: string): string {
 }
 
 /** Chart series: lime / Tier0 blue / neutral tertiary (not cool slate fills). */
-export const STACKED_PALETTE = ["#73b200", "#1d4ed8", "#7c3aed"] as const;
+export const STACKED_PALETTE = [
+  "var(--color-chart-1)",
+  "var(--color-chart-2)",
+  "var(--color-chart-3)",
+] as const;
 
 export interface StackedUsageSeries {
   key: string;

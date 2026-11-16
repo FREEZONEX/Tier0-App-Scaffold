@@ -16,8 +16,8 @@ export interface TimelineItem {
 }
 
 const dotTone: Record<TimelineTone, string> = {
-  default: "bg-muted-foreground/40",
-  running: "bg-[color:var(--state-running-fg)]",
+  default: "bg-[color:var(--tier0-highlight-deep)]",
+  running: "bg-[color:var(--tier0-highlight-deep)]",
   paused: "bg-[color:var(--state-paused-fg)]",
   error: "bg-[color:var(--state-error-fg)]",
   info: "bg-[color:var(--state-info-fg)]",

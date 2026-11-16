@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, exceptionItemClass } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard } from "@/components/ui/stat-card";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -64,7 +64,7 @@ type Alarm = {
   id: string;
   line: string;
   text: string;
-  level: "error" | "paused";
+  level: "error" | "paused" | "info";
   at: number;
 };
 
@@ -229,26 +229,32 @@ export function SceneOpsMonitor() {
             value={avgOee}
             unit="%"
             icon={<Gauge />}
-            tone="running"
+            tone={avgOee < 80 ? "error" : "running"}
+            trend={
+              avgOee >= 80
+                ? { direction: "up", label: `+${(avgOee - 80).toFixed(1)}`, intent: "positive" }
+                : { direction: "down", label: `${(avgOee - 80).toFixed(1)}`, intent: "negative" }
+            }
           />
           <StatCard
             label="今日产出"
             value={output}
             unit="件"
             icon={<Factory />}
+            tone="running"
           />
           <StatCard
             label="运行线体"
             value={`${running.length}/${lines.length}`}
             icon={<CheckCircle2 />}
-            tone="running"
+            tone={running.length === lines.length ? "running" : "info"}
           />
           <StatCard
             label="未确认告警"
             value={alarms.length}
             unit="条"
             icon={<AlertTriangle />}
-            tone={alarms.length ? "error" : "default"}
+            tone={alarms.length ? "error" : "running"}
           />
         </>
       }
@@ -261,14 +267,16 @@ export function SceneOpsMonitor() {
                 未确认告警
               </>
             }
-            flush
           >
             {alarms.length ? (
-              <ul className="divide-y divide-border">
+              <ul className="space-y-2">
                 {alarms.map((a) => (
-                  <li key={a.id} className="flex items-start gap-3 px-4 py-3">
+                  <li
+                    key={a.id}
+                    className={cn("flex items-start gap-3", exceptionItemClass[a.level])}
+                  >
                     <StatusBadge tone={a.level} pulse className="mt-0.5">
-                      {a.level === "error" ? "停机" : "预警"}
+                      {a.level === "error" ? "停机" : a.level === "paused" ? "预警" : "提示"}
                     </StatusBadge>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium">{a.line}</p>
@@ -287,7 +295,7 @@ export function SceneOpsMonitor() {
                 ))}
               </ul>
             ) : (
-              <p className="caption px-4 py-6 text-center">告警均已确认</p>
+              <p className="caption py-6 text-center">告警均已确认</p>
             )}
           </Card>
           <Card
@@ -337,14 +345,14 @@ export function SceneOpsMonitor() {
               bar={{
                 name: "产量",
                 unit: "件",
-                color: "#b2ed1d",
+                color: "var(--color-chart-1)",
                 format: String,
                 integer: true,
               }}
               line={{
                 name: "不良率",
                 unit: "%",
-                color: "#1d4ed8",
+                color: "var(--color-chart-2)",
                 format: (v) => `${v}`,
                 tickSuffix: "%",
               }}
@@ -368,7 +376,7 @@ export function SceneOpsMonitor() {
                 className={cn(
                   "space-y-3 rounded-[4px] bg-muted p-3 transition-[background-color,box-shadow] duration-[var(--motion-fast)] hover:bg-[color:var(--tier0-fill-active)]",
                   l.state === "error" &&
-                    "bg-[color:var(--state-error-bg)] hover:bg-[color:var(--state-error-bg)]",
+                    "bg-state-error-wash hover:bg-state-error-wash",
                   STAGGER_ITEM,
                 )}
               >

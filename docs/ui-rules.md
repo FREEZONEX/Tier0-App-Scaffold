@@ -77,6 +77,27 @@ shrinkable; keep page-specific vertical rhythm such as `space-y-6` on the same
 element. Do not add a second outer `px-*` / `py-*` layer. Station, review, and
 monitor layouts own their spacing separately and do not use `page-shell`.
 
+## Workbench layout
+
+Management pages use `WorkbenchLayout`: title → KPI cards → primary work +
+optional aside. Do not flatten these into one undifferentiated canvas.
+
+- **KPI strip**: independent `StatCard`s (never a divider strip). Large
+  tabular number, 36px icon tile (white on problem washes). Add a trend
+  Tag (`↑2%` / `+18`)
+  only when the metric has a real delta — do not invent one. White card;
+  problem KPIs (`tone` error/paused) use a light wash, not a saturated fill.
+- **Card chrome**: headers stay compact (`min-h-10`, extra top padding)
+  and unfilled, with no hairline under the title. The pane to the right of the sidebar uses
+  `--workspace` (sidebar gray mixed 60% with white).
+  Nested board tiles sit in a gray well (`bg-fill-hover`) as white
+  cards. Exception lists do not accent the outer Card; rows use a semantic
+  left bar (severe red, mid amber, low blue) and no gray ring.
+- **Actions**: one primary button in the header; filters and view toggles
+  live in the work-surface toolbar, not the title row or the KPI cards.
+- **Anti-pattern**: equal-weight white boxes, unlabeled icon soup, filters
+  mixed into the page title, charts and forms sharing one header band.
+
 The workspace fills the available width beside the sidebar. Lists, ledgers,
 quality review and planning pages must not inherit a global centered maximum.
 Page insets are 16px horizontally on narrow screens and 24px on desktop.

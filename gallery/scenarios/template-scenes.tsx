@@ -17,7 +17,7 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { TextButton } from "@/components/kit/ui/buttons";
-import { Card } from "@/components/ui/card";
+import { Card, exceptionItemClass } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard } from "@/components/ui/stat-card";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -189,6 +189,7 @@ export function SceneWorkflowHub() {
             value={flows.length}
             unit="个"
             icon={<Workflow />}
+            tone="info"
           />
           <StatCard
             label="24h 运行"
@@ -210,7 +211,7 @@ export function SceneWorkflowHub() {
             value={issues.length}
             unit="项"
             icon={<AlertTriangle />}
-            tone={issues.length ? "error" : "default"}
+            tone={issues.length ? "error" : "running"}
           />
         </>
       }
@@ -223,12 +224,14 @@ export function SceneWorkflowHub() {
                 需要处理
               </>
             }
-            flush
           >
             {issues.length ? (
-              <ul className="divide-y divide-border">
+              <ul className="space-y-2">
                 {issues.map((f) => (
-                  <li key={f.id} className="space-y-2 px-4 py-3">
+                  <li
+                    key={f.id}
+                    className={cn("space-y-2", exceptionItemClass.error)}
+                  >
                     <p className="text-sm font-medium">{f.name}</p>
                     <p className="caption">
                       {f.lastError} · 成功率 {f.success}%
@@ -240,7 +243,7 @@ export function SceneWorkflowHub() {
                 ))}
               </ul>
             ) : (
-              <p className="caption px-4 py-6 text-center">
+              <p className="caption py-6 text-center">
                 所有工作流运行正常
               </p>
             )}
@@ -490,26 +493,32 @@ export function SceneAuditTimeline() {
             value={auditEvents.length}
             unit="条"
             icon={<CalendarClock />}
+            tone="info"
           />
           <StatCard
             label="高危"
             value={auditEvents.filter((e) => e.severity === "critical").length}
             unit="条"
             icon={<AlertCircle />}
-            tone="error"
+            tone={
+              auditEvents.some((e) => e.severity === "critical") ? "error" : "running"
+            }
           />
           <StatCard
             label="警告"
             value={auditEvents.filter((e) => e.severity === "warning").length}
             unit="条"
             icon={<AlertTriangle />}
-            tone="paused"
+            tone={
+              auditEvents.some((e) => e.severity === "warning") ? "info" : "running"
+            }
           />
           <StatCard
             label="操作人"
             value={new Set(auditEvents.map((e) => e.actor)).size}
             unit="人"
             icon={<Activity />}
+            tone="info"
           />
         </>
       }
@@ -669,21 +678,21 @@ const providers = [
     name: "App Builder",
     spend: 1280,
     tokens: 4.1,
-    color: "#73b200",
+    color: "var(--color-chart-1)",
   },
   {
     id: "p2",
     name: "UNS Agent",
     spend: 1065,
     tokens: 3.2,
-    color: "#1d4ed8",
+    color: "var(--color-chart-2)",
   },
   {
     id: "p3",
     name: "Anchor",
     spend: 702,
     tokens: 2.4,
-    color: "#7c3aed",
+    color: "var(--color-chart-3)",
   },
 ];
 const DAY = 3;
@@ -741,15 +750,16 @@ export function SceneAgentSpend() {
             value={spend}
             unit="¥"
             icon={<Coins />}
+            tone="info"
             trend={{ direction: "up", label: "+12%", intent: "negative" }}
           />
-          <StatCard label="月度预算" value={budget} unit="¥" icon={<Gauge />} />
+          <StatCard label="月度预算" value={budget} unit="¥" icon={<Gauge />} tone="info" />
           <StatCard
             label="预算剩余"
             value={Math.max(0, 100 - used)}
             unit="%"
             icon={<AlertCircle />}
-            tone={used > 80 ? "error" : used > 60 ? "paused" : "running"}
+            tone={used >= 90 ? "error" : "running"}
           />
           <StatCard
             label="Token 用量"

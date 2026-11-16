@@ -9,8 +9,10 @@ import { ResponsivePage } from "@/components/ui/responsive-page";
  *
  * Put PageHeader in `header`, separate StatCards in `metrics`, and the primary
  * work surface in `children`. Never collapse metrics into a divider strip —
- * KPIs stay as read-only cards with entrance motion. Filters and actions belong
- * in the toolbar / buttons under the metrics, not on the StatCards.
+ * KPIs stay as read-only cards with entrance motion: large number, gray
+ * icon tile, optional short trend. Filters and actions belong in the toolbar /
+ * buttons under the metrics, not on the StatCards. The title row is title +
+ * primary action only — not filters, charts, or forms.
  *
  * At wide breakpoints the optional `aside` becomes a restrained 2:1 column
  * that stays in view while the main queue scrolls; on smaller screens every
@@ -52,7 +54,7 @@ export function WorkbenchLayout({
       {metrics && (
         <section
           className={cn(
-            "grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 lg:grid-cols-4",
+            "grid grid-cols-1 gap-4 min-[360px]:grid-cols-2 lg:grid-cols-4",
             METRIC_STAGGER,
           )}
         >

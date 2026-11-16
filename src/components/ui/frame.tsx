@@ -19,7 +19,7 @@ export function Frame({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
     <div
       data-slot="frame"
       className={cn(
-        "relative flex min-w-0 flex-col gap-1 rounded-[4px] border border-border bg-fill-hover p-1",
+        "relative flex min-w-0 flex-col gap-1 rounded-[4px] border border-border bg-sidebar p-1",
         className,
       )}
       {...props}
@@ -53,7 +53,7 @@ export function FrameHeader({ className, ...props }: HTMLAttributes<HTMLElement>
     <header
       data-slot="frame-header"
       className={cn(
-        "flex min-h-9 flex-wrap items-center justify-between gap-x-3 gap-y-2 px-3 py-1.5",
+        "flex min-h-10 flex-wrap items-center justify-between gap-x-3 gap-y-1.5 px-3 pb-2 pt-3",
         className,
       )}
       {...props}
@@ -66,7 +66,7 @@ export function FrameTitle({ className, ...props }: HTMLAttributes<HTMLHeadingEl
     <h3
       data-slot="frame-title"
       className={cn(
-        "flex min-w-0 max-w-full items-center gap-2 truncate text-sm font-semibold text-foreground [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-muted-foreground",
+        "flex min-w-0 max-w-full items-center gap-2 truncate text-sm font-semibold text-foreground [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:stroke-[1.75] [&_svg]:text-muted-foreground",
         className,
       )}
       {...props}
