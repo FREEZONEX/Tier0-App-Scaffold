@@ -15,7 +15,7 @@ read the named file **before** that kind of work:
 | Before you… | Read |
 |---|---|
 | declare/change collections, write services that touch records, add live updates, evolve a schema | `docs/app-data.md` |
-| build or rework routes, pages, forms, dialogs, data loading, responsive layouts | `docs/ui-rules.md`, `docs/component-kit.md` |
+| build or rework routes, pages, forms, dialogs, data loading, responsive layouts | `docs/ui-rules.md`, `docs/component-kit.md`, `docs/operator-ux.md` |
 | register or change roles | `docs/role-registration.md` |
 | use the Tier0 SDK, notifications, MQTT, files, env vars, scaffold version | `docs/platform-integration.md` |
 
@@ -346,7 +346,8 @@ Use `DESIGN.md`, existing tokens and the shipped primitives
   `defaultErrorComponent`, so new pages need no `errorComponent` of their own.
 - Do not add a page-introduction subtitle that explains navigation or repeats
   the title. Shell `defaultModules` starts empty; declare real routes through
-  `defineNavigationModules`, one unique href per clickable leaf.
+  `defineNavigationModules`, one unique href per clickable leaf. Assign every
+  group and leaf a business-appropriate icon imported from `lucide-react`.
 - Interactive pages remain usable at 375px without page-level overflow; wide
   tables own their horizontal scroll region and search/filter controls have a
   bounded width. Check affected pages at a real 375px viewport when browser

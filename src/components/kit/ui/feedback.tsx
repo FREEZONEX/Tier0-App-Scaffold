@@ -219,6 +219,8 @@ function progressColor(percent: number, status: ProgressStatus | undefined, stro
 export interface ProgressBarProps {
   /** 0–100 */
   percent: number;
+  /** Accessible name, e.g. 「WO-0012 完成率」 (default 进度). */
+  label?: string;
   status?: ProgressStatus;
   showInfo?: boolean;
   size?: "sm" | "md";
@@ -230,6 +232,7 @@ export interface ProgressBarProps {
 
 export function ProgressBar({
   percent,
+  label = "进度",
   status,
   showInfo = true,
   size = "md",
@@ -243,6 +246,7 @@ export function ProgressBar({
   return (
     <div
       role="progressbar"
+      aria-label={label}
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={Number(value.toFixed(2))}
@@ -277,6 +281,8 @@ export function ProgressBar({
 export interface ProgressRingProps {
   /** 0–100 */
   percent: number;
+  /** Accessible name (default: `title` when it is text, else 进度). */
+  label?: string;
   /** Diameter in px (default 28). */
   size?: number;
   strokeWidth?: number;
@@ -292,12 +298,13 @@ export interface ProgressRingProps {
 /** ProgressRing — small circular progress (工序进度链 nodes). */
 export function ProgressRing({
   percent,
+  label,
   size = 28,
   strokeWidth = 2.5,
   status,
   showInfo = true,
   strokeColor,
-  trailColor = "#e8e8e8",
+  trailColor = "var(--muted)",
   format,
   title,
   className,
@@ -310,6 +317,7 @@ export function ProgressRing({
   return (
     <span
       role="progressbar"
+      aria-label={label ?? (typeof title === "string" ? title : "进度")}
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={Number(value.toFixed(2))}

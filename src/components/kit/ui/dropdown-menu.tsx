@@ -40,6 +40,14 @@ export interface DropdownMenuProps {
   className?: string;
   anchorClassName?: string;
   "aria-label"?: string;
+  /**
+   * Where focus returns when the menu closes (default: the trigger). Use it
+   * when the visible trigger is pointer-only and keyboard users opened the
+   * menu from another element (e.g. a tab's Shift+F10).
+   */
+  returnFocus?: () => void;
+  /** Move focus to the first item whenever the menu opens (keyboard-opened controlled menus). */
+  focusFirstOnOpen?: boolean;
 }
 
 function enabledItems(panel: HTMLElement | null): HTMLElement[] {
@@ -66,6 +74,8 @@ export function DropdownMenu({
   className,
   anchorClassName,
   "aria-label": ariaLabel,
+  returnFocus,
+  focusFirstOnOpen = false,
 }: DropdownMenuProps) {
   const layerId = useId();
   const menuId = `${layerId}-menu`;
@@ -88,12 +98,32 @@ export function DropdownMenu({
   });
 
   useEffect(() => {
-    if (!visible || position.style.visibility === "hidden" || !focusFirstRef.current) return;
+    if (!visible || position.style.visibility === "hidden") return;
+    if (!focusFirstRef.current && !focusFirstOnOpen) return;
     focusFirstRef.current = false;
     enabledItems(floatingRef.current)[0]?.focus();
-  }, [visible, position.style.visibility]);
+  }, [visible, position.style.visibility, focusFirstOnOpen]);
+
+  function triggerElement(): HTMLElement | null {
+    return anchorRef.current?.querySelector<HTMLElement>("button, a, [tabindex]") ?? null;
+  }
+
+  // Menu-button semantics belong on the focusable trigger, not on the wrapper span,
+  // so screen readers announce 「has popup, expanded/collapsed」.
+  useEffect(() => {
+    const element = triggerElement();
+    if (!element) return;
+    element.setAttribute("aria-haspopup", "menu");
+    element.setAttribute("aria-expanded", String(visible));
+    if (visible) element.setAttribute("aria-controls", menuId);
+    else element.removeAttribute("aria-controls");
+  });
 
   function focusTrigger() {
+    if (returnFocus) {
+      returnFocus();
+      return;
+    }
     anchorRef.current
       ?.querySelector<HTMLElement>("button, a, [tabindex]:not([tabindex='-1'])")
       ?.focus();
@@ -131,9 +161,6 @@ export function DropdownMenu({
     <>
       <span
         ref={anchorRef}
-        aria-haspopup="menu"
-        aria-expanded={visible}
-        aria-controls={visible ? menuId : undefined}
         className={cn("inline-flex w-fit max-w-full items-center self-center", anchorClassName)}
         onClick={
           disabled
@@ -151,6 +178,9 @@ export function DropdownMenu({
             focusFirstRef.current = true;
             if (visible) enabledItems(floatingRef.current)[0]?.focus();
             else setOpen(true);
+          } else if ((event.key === "Enter" || event.key === " ") && trigger === "click" && !visible) {
+            // The following click opens the menu; keyboard users land on its first item.
+            focusFirstRef.current = true;
           }
         }}
       >

@@ -35,11 +35,11 @@ export function PrintTemplatePreview({ name, layout, showQrCode, headerFields, d
               headerFields.map((field) => (
                 <div key={field.code} className="flex min-w-0 gap-1">
                   <dt className="shrink-0 font-medium">{field.name}：</dt>
-                  <dd className="min-w-0 text-black/50">xxxx</dd>
+                  <dd className="min-w-0 text-black/65">xxxx</dd>
                 </div>
               ))
             ) : (
-              <p className="text-black/50">请选择表头字段</p>
+              <p className="text-black/65">请选择表头字段</p>
             )}
           </dl>
         </div>
@@ -74,11 +74,11 @@ export function PrintTemplatePreview({ name, layout, showQrCode, headerFields, d
           </table>
         </div>
       ) : (
-        <p className="py-4 text-center text-black/50">请选择表头字段</p>
+        <p className="py-4 text-center text-black/65">请选择表头字段</p>
       )}
       {detailFields.length ? (
         <div className="mt-4 overflow-x-auto">
-          <table className="w-full border-collapse [&_td]:border [&_td]:border-black [&_td]:px-2 [&_td]:py-1.5 [&_th]:border [&_th]:border-black [&_th]:bg-[#f2f2f2] [&_th]:px-2 [&_th]:py-1.5 [&_th]:text-left [&_th]:font-semibold">
+          <table className="w-full border-collapse text-black [&_td]:border [&_td]:border-black [&_td]:px-2 [&_td]:py-1.5 [&_th]:border [&_th]:border-black [&_th]:bg-[#f2f2f2] [&_th]:px-2 [&_th]:py-1.5 [&_th]:text-left [&_th]:font-semibold">
             <thead>
               <tr>
                 <th className="w-12 text-center">序号</th>
@@ -92,7 +92,7 @@ export function PrintTemplatePreview({ name, layout, showQrCode, headerFields, d
                 <tr key={row}>
                   <td className="text-center">{row}</td>
                   {detailFields.map((field) => (
-                    <td key={field.code} className="text-black/50">
+                    <td key={field.code} className="text-black/65">
                       xxxx
                     </td>
                   ))}
@@ -110,7 +110,7 @@ function FieldCells({ label }: { label: string }) {
   return (
     <>
       <td className="w-24 bg-[#f7f7f7] font-medium break-words">{label}</td>
-      <td className="text-black/50">xxxx</td>
+      <td className="text-black/65">xxxx</td>
     </>
   );
 }

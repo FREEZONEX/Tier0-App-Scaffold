@@ -96,7 +96,8 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
           checked={isChecked}
           disabled={disabled}
           aria-checked={indeterminate ? "mixed" : isChecked}
-          className="peer absolute inset-0 z-10 m-0 size-full cursor-[inherit] opacity-0"
+          // On touch screens the invisible input extends to a 44px hit area around the 16px box.
+          className="peer absolute inset-0 z-10 m-0 size-full cursor-[inherit] opacity-0 pointer-coarse:inset-[-14px] pointer-coarse:size-auto"
           onChange={(event) => {
             setChecked(event.target.checked);
             onChange?.(event.target.checked, event);
@@ -107,7 +108,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
           indeterminate={indeterminate}
           disabled={disabled}
           className={cn(
-            "peer-focus-visible:shadow-[0_0_0_2px_rgb(5_145_255/0.25)]",
+            "peer-focus-visible:ring-2 peer-focus-visible:ring-ring/60",
             !disabled && !isChecked && !indeterminate && "group-hover:border-brand",
           )}
         />

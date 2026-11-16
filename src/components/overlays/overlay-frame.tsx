@@ -90,8 +90,8 @@ export function OverlayHeader({
         type="button"
         variant="ghost"
         size="sm"
-        aria-label="Close"
-        className="size-8 shrink-0 px-0 text-muted-foreground hover:text-foreground"
+        aria-label="关闭"
+        className="size-8 shrink-0 px-0 text-muted-foreground hover:text-foreground focus-visible:bg-muted focus-visible:text-foreground"
         onClick={onClose}
         icon={<X className="size-4" />}
       />

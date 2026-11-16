@@ -504,7 +504,7 @@ export function Select<V extends Primitive = Primitive>(props: SelectProps<V>) {
         ) : (
           <>
             {hasValue && !keyword ? (
-              <span className={cn("min-w-0 flex-1 truncate", visible && searchable && "opacity-40")}>
+              <span className="pointer-events-none min-w-0 flex-1 truncate">
                 <OptionLabel option={selectedList[0]} labelRender={labelRender} />
               </span>
             ) : null}
@@ -528,7 +528,7 @@ export function Select<V extends Primitive = Primitive>(props: SelectProps<V>) {
               value={keyword}
               className={cn(
                 "absolute inset-0 m-0 h-full w-full min-w-0 border-0 bg-transparent p-0 text-sm outline-none disabled:cursor-not-allowed",
-                searchable ? "cursor-text" : "cursor-pointer caret-transparent opacity-0",
+                searchable ? cn("cursor-text", !keyword && hasValue && "caret-transparent") : "cursor-pointer caret-transparent opacity-0",
               )}
               onChange={(event) => {
                 setKeyword(event.target.value);

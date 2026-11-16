@@ -16,8 +16,6 @@ import { AsyncView } from "@/components/data/async-view";
 import { Dialog } from "@/components/overlays/dialog";
 import { Button } from "@/components/ui/button";
 import { DataGrid, type DataGridColumn } from "@/components/kit/ui/data-grid";
-import { resolveFieldIconKind } from "@/components/kit/ui/field-icons";
-import { FieldTypeIcon } from "@/components/kit/ui/field-type-icon";
 import { Pagination } from "@/components/kit/ui/pagination";
 
 import { useRequest } from "@/lib/hooks";
@@ -111,7 +109,6 @@ function PickerList({
       visibleColumns(controller.columns).map((state) => ({
         key: state.code,
         title: state.name,
-        headerIcon: <FieldTypeIcon kind={resolveFieldIconKind(state.field, config.primaryField)} />,
         width: defaultColumnWidth({ ...state.field, width: state.width ?? state.field.width }, config.primaryField),
         fixed: state.fixed,
         align: state.field.type === "NUMBER" ? "right" : "left",

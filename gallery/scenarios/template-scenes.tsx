@@ -167,7 +167,6 @@ export function SceneWorkflowHub() {
 
   return (
     <WorkbenchLayout
-      metricsVariant="strip"
       header={
         <PageHeader
           title="工作流总览"
@@ -467,7 +466,6 @@ export function SceneAuditTimeline() {
 
   return (
     <WorkbenchLayout
-      metricsVariant="strip"
       header={
         <PageHeader
           title="审计日志"
@@ -719,7 +717,6 @@ export function SceneAgentSpend() {
 
   return (
     <WorkbenchLayout
-      metricsVariant="strip"
       header={
         <PageHeader
           title="用量与成本"

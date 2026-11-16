@@ -32,5 +32,13 @@
     "**/*.mts",
     "src/routeTree.gen.ts"
   ],
-  "exclude": ["node_modules", ".output", "dist"]
+  "exclude": [
+    "node_modules",
+    ".output",
+    ".local-preview",
+    ".preview-migration",
+    ".tier0-output",
+    ".tanstack",
+    "dist"
+  ]
 }

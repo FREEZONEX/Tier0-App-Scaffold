@@ -9,7 +9,7 @@
  * runs the query, other edits wait for 查询. 查询 first commits a half-typed input
  * (e.g. a typed date); 重置 also clears whatever is still typed in the controls.
  */
-import { ChevronsDown, ChevronsUp, Search } from "lucide-react";
+import { ChevronUp, ListFilter, Search } from "lucide-react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DateRangePicker } from "@/components/kit/ui/date-picker";
@@ -205,14 +205,6 @@ export function SearchPanel({
       >
         重置
       </Button>
-      {canExpand ? (
-        <IconButton
-          variant="outline"
-          label={expanded ? "收起" : "展开"}
-          icon={expanded ? <ChevronsUp /> : <ChevronsDown />}
-          onClick={() => onExpandedChange(!expanded)}
-        />
-      ) : null}
     </div>
   );
 
@@ -238,7 +230,18 @@ export function SearchPanel({
 
   if (expanded) {
     return (
-      <div ref={rootRef} role="search" className={cn("@container/search min-w-0", className)}>
+      <div
+        ref={rootRef}
+        role="search"
+        className={cn(
+          "@container/search min-w-0 rounded-[4px] border border-border-secondary bg-muted/45 p-4 shadow-[inset_0_1px_0_rgb(5_11_20/0.05)]",
+          className,
+        )}
+      >
+        <div className="mb-3 flex items-center justify-between gap-3 border-b border-border-secondary pb-2">
+          <span className="text-sm font-medium text-foreground">筛选条件</span>
+          {canExpand ? <IconButton size="sm" label="收起筛选" icon={<ChevronUp />} onClick={() => onExpandedChange(false)} /> : null}
+        </div>
         <div className="flex min-w-0 flex-wrap items-center gap-x-6 gap-y-3">
           {shown.map((field) => {
             const wide = searchControlKind(field) === "date-range";
@@ -251,8 +254,8 @@ export function SearchPanel({
                 : "w-full @min-[40rem]/search:w-[calc((100%_-_1.5rem)/2)] @min-[64rem]/search:w-[calc((100%_-_4.5rem)/4)]";
             return item(field, cn("shrink-0", sizeClass));
           })}
-          {actions}
         </div>
+        <div className="mt-4 flex justify-end">{actions}</div>
       </div>
     );
   }
@@ -267,7 +270,14 @@ export function SearchPanel({
       >
         {shown.map((field) => item(field))}
       </div>
-      {actions}
+      <div className="flex shrink-0 items-center gap-2">
+        {canExpand ? (
+          <Button variant="outline" icon={<ListFilter />} onClick={() => onExpandedChange(true)}>
+            更多筛选
+          </Button>
+        ) : null}
+        {actions}
+      </div>
     </div>
   );
 }

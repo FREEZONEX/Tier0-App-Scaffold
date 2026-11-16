@@ -17,7 +17,7 @@ export function FieldTypeIcon({ kind, className, showTitle = false }: FieldTypeI
       aria-hidden={showTitle ? undefined : true}
       aria-label={showTitle ? FIELD_ICON_LABELS[kind] : undefined}
       strokeWidth={1.8}
-      className={cn("size-3.5 shrink-0 text-text-secondary", className)}
+      className={cn("size-3.5 shrink-0 text-muted-foreground", className)}
     >
       {showTitle ? <title>{FIELD_ICON_LABELS[kind]}</title> : null}
     </Icon>

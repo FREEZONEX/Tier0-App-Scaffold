@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { FOCUS_FILL } from "@/lib/interaction";
 import { AnimatedNumber } from "@/components/ui/animated-number";
 
 /**
@@ -42,6 +43,13 @@ export interface StatCardProps {
   /** Movement vs a prior period, rendered as a semantic arrow + delta. */
   trend?: StatTrend;
   tone?: StatTone;
+  /**
+   * Optional. Prefer keeping StatCards read-only (KPI glance only) and put
+   * filters/actions in the toolbar below. When set, the card becomes a button.
+   */
+  onClick?: () => void;
+  /** Selected look when `onClick` is used. */
+  active?: boolean;
   className?: string;
 }
 
@@ -83,20 +91,13 @@ export function StatCard({
   footer,
   trend,
   tone = "default",
+  onClick,
+  active = false,
   className,
 }: StatCardProps) {
-  return (
-    <div
-      data-tone={tone}
-      className={cn(
-        // Read-only KPI: no stroke / lift on hover — only a faint fill shift.
-        "group relative rounded-[4px] border border-border bg-card p-4 shadow-sm",
-        "transition-colors duration-150 ease-out motion-reduce:transition-none",
-        "hover:bg-[color:var(--tier0-fill-hover)]",
-        "animate-[tier0-rise_260ms_var(--motion-spring)_both]",
-        className,
-      )}
-    >
+  const interactive = typeof onClick === "function";
+  const body = (
+    <>
       <div className="flex items-center justify-between gap-2">
         <p className="caption text-muted-foreground">{label}</p>
         {icon && (
@@ -140,6 +141,43 @@ export function StatCard({
           {footer && <div className="caption">{footer}</div>}
         </div>
       )}
+    </>
+  );
+
+  const surface = cn(
+    "group relative rounded-[4px] border bg-card p-4 text-left shadow-sm",
+    "transition-[background-color,border-color,box-shadow,transform] duration-150 ease-out motion-reduce:transition-none",
+    "animate-[tier0-rise_260ms_var(--motion-spring)_both]",
+    interactive
+      ? cn(
+          "cursor-pointer",
+          FOCUS_FILL,
+          "hover:-translate-y-px hover:bg-[color:var(--tier0-fill-hover)] hover:shadow-card",
+          "active:translate-y-0 active:scale-[0.99]",
+          active ? "border-border bg-muted" : "border-border",
+        )
+      : // Read-only KPI — white card, no hover/selected affordance (filters live in the toolbar).
+        "border-border",
+    className,
+  );
+
+  if (interactive) {
+    return (
+      <button
+        type="button"
+        data-tone={tone}
+        aria-pressed={active}
+        className={surface}
+        onClick={onClick}
+      >
+        {body}
+      </button>
+    );
+  }
+
+  return (
+    <div data-tone={tone} className={surface}>
+      {body}
     </div>
   );
 }

@@ -1,7 +1,9 @@
 import type {
   HTMLAttributes,
+  ReactNode,
   TableHTMLAttributes,
   TdHTMLAttributes,
+  ThHTMLAttributes,
 } from "react";
 
 import { cn } from "@/lib/utils";
@@ -17,6 +19,11 @@ import { cn } from "@/lib/utils";
  *     <thead><tr><th>批号</th><th>物料</th>…</tr></thead>
  *     <tbody>…</tbody>
  *   </DataTable>
+ *
+ * Alignment rules (keep th and td the same):
+ * - text / identity: left (default)
+ * - quantities and ranges: `TableNumericCell` / `TableNumericHeader` (right)
+ * - status / actions / checkboxes: `table-col-fit`, left, vertically middle
  */
 export interface DataTableProps extends TableHTMLAttributes<HTMLTableElement> {
   /** Remove the raised card frame (e.g. when already inside a Card). */
@@ -55,33 +62,75 @@ export function TableViewport({ className, children, ...props }: TableViewportPr
 
 export interface TableCellTextProps extends HTMLAttributes<HTMLDivElement> {
   clamp?: boolean;
+  /** Optional secondary line under the primary text (codes, hints). */
+  secondary?: ReactNode;
 }
 
 export function TableCellText({
   className,
   clamp = false,
+  secondary,
   children,
   ...props
 }: TableCellTextProps) {
   return (
     <div
       className={cn(
-        "min-w-0 align-top leading-snug",
+        "min-w-0 leading-snug",
+        secondary ? "flex flex-col gap-0.5" : null,
         clamp ? "line-clamp-2" : "break-words",
         className,
       )}
       {...props}
     >
-      {children}
+      <div className={cn(clamp && secondary ? "line-clamp-2" : null)}>{children}</div>
+      {secondary ? <div className="caption font-mono">{secondary}</div> : null}
     </div>
   );
 }
 
-export type TableStatusCellProps = TdHTMLAttributes<HTMLTableCellElement>;
+export type TableNumericHeaderProps = ThHTMLAttributes<HTMLTableCellElement>;
 
-export function TableStatusCell({ className, children, ...props }: TableStatusCellProps) {
+/** Right-aligned header for quantity / amount / range columns. */
+export function TableNumericHeader({ className, children, ...props }: TableNumericHeaderProps) {
   return (
-    <td className={cn("align-top whitespace-nowrap", className)} {...props}>
+    <th className={cn("text-right", className)} {...props}>
+      {children}
+    </th>
+  );
+}
+
+export type TableNumericCellProps = TdHTMLAttributes<HTMLTableCellElement>;
+
+/** Right-aligned body cell for quantities; matches `TableNumericHeader`. */
+export function TableNumericCell({ className, children, ...props }: TableNumericCellProps) {
+  return (
+    <td className={cn("text-right tabular-nums whitespace-nowrap", className)} {...props}>
+      {children}
+    </td>
+  );
+}
+
+export interface TableStatusCellProps extends TdHTMLAttributes<HTMLTableCellElement> {
+  /**
+   * `middle` (default) lines the badge up with one- or two-line rows; use
+   * `top` when sibling cells wrap long paragraphs so the badge stays on the
+   * first line.
+   */
+  valign?: "middle" | "top";
+}
+
+/** Status / badge column: content-width, never wraps. */
+export function TableStatusCell({ valign = "middle", className, children, ...props }: TableStatusCellProps) {
+  return (
+    <td
+      className={cn(
+        "table-col-fit whitespace-nowrap",
+        valign === "top" ? "align-top" : "align-middle",
+        className,
+      )}
+      {...props}
+    >
       {children}
     </td>
   );

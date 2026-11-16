@@ -1,0 +1,102 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { renderToStaticMarkup } from "react-dom/server";
+import {
+  describeSort,
+  reconcileSortDrafts,
+  SortConditionList,
+  SortPopover,
+} from "../src/components/kit/meta/sort-popover";
+
+const fields = [{ code: "code", name: "报修单号" }, { code: "priority", name: "优先级" }];
+test("saved sort rules render their own field labels and directions", () => {
+  const html = renderToStaticMarkup(
+    <SortConditionList fields={fields} value={[
+      { field: "code", direction: "desc" },
+      { field: "priority", direction: "asc" },
+    ]} onChange={() => {}} />,
+  );
+  assert.ok(html.includes("报修单号"));
+  assert.ok(html.includes("优先级"));
+  assert.equal((html.match(/aria-checked="true"/g) ?? []).length, 2);
+  assert.ok(!html.includes("请选择字段"));
+});
+
+test("cleared sorting renders no stale rules", () => {
+  const html = renderToStaticMarkup(
+    <SortConditionList fields={fields} value={[]} onChange={() => {}} />,
+  );
+  assert.ok(!html.includes('aria-label="排序字段"'));
+  assert.ok(html.includes("添加排序条件"));
+});
+
+test("toolbar trigger names the first rule, its direction and how many more", () => {
+  const html = renderToStaticMarkup(
+    <SortPopover fields={fields} value={[
+      { field: "code", direction: "desc" },
+      { field: "priority", direction: "asc" },
+    ]} onChange={() => {}} />,
+  );
+  assert.ok(html.includes("：报修单号 降序"));
+  assert.ok(html.includes("+1"));
+  assert.ok(html.includes('aria-label="排序：报修单号 降序，优先级 升序"'));
+});
+
+test("trigger without rules shows only 排序 and never a stale count", () => {
+  const html = renderToStaticMarkup(<SortPopover fields={fields} value={[]} onChange={() => {}} />);
+  assert.ok(html.includes("排序"));
+  assert.ok(!html.includes("："));
+  assert.ok(!/>\+?\d+</.test(html));
+});
+
+test("a rule on a field that is no longer offered stays readable", () => {
+  assert.equal(describeSort({ field: "createdAt", direction: "desc" }, fields), "createdAt 降序");
+  const html = renderToStaticMarkup(
+    <SortConditionList fields={fields} value={[{ field: "createdAt", direction: "asc" }]} onChange={() => {}} />,
+  );
+  assert.ok(html.includes("createdAt"));
+  assert.ok(!html.includes("请选择字段"));
+});
+
+test("view default rules are labelled （默认）", () => {
+  const html = renderToStaticMarkup(
+    <SortPopover fields={fields} value={[{ field: "code", direction: "desc" }]} isDefault onChange={() => {}} />,
+  );
+  assert.ok(html.includes("（默认）"));
+});
+
+const viewDefault = [{ field: "code", direction: "asc" as const }];
+const viewKey = JSON.stringify(viewDefault.map(({ field, direction }) => ({ field, direction })));
+
+test("clearing the last rule resyncs drafts to restored view defaults (same valueKey)", () => {
+  // User deleted every row → drafts empty; parent still exposes the view default
+  // (valueKey unchanged). Panel must show those defaults again, not stay empty.
+  const next = reconcileSortDrafts(viewDefault, [], viewKey);
+  assert.deepEqual(
+    next.drafts.map(({ field, direction }) => ({ field, direction })),
+    viewDefault,
+  );
+  assert.equal(next.previousValueKey, viewKey);
+});
+
+test("incomplete draft rows are kept while the valueKey is unchanged", () => {
+  const drafts = [
+    { key: "initial-0", field: "code", direction: "asc" as const },
+    { key: "added-1", field: null, direction: "asc" as const },
+  ];
+  const next = reconcileSortDrafts(viewDefault, drafts, viewKey);
+  assert.equal(next.drafts, drafts);
+});
+
+test("a real value change still replaces drafts", () => {
+  const nextValue = [{ field: "priority", direction: "desc" as const }];
+  const next = reconcileSortDrafts(
+    nextValue,
+    [{ key: "initial-0", field: "code", direction: "asc" }],
+    viewKey,
+  );
+  assert.deepEqual(
+    next.drafts.map(({ field, direction }) => ({ field, direction })),
+    nextValue,
+  );
+});

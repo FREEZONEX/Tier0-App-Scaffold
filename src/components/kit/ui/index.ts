@@ -97,6 +97,7 @@ export {
 } from "@/components/kit/ui/tabs";
 export { Pagination, type PaginationProps } from "@/components/kit/ui/pagination";
 export { DataGrid, type DataGridColumn, type DataGridProps, type DataGridSelection } from "@/components/kit/ui/data-grid";
+export { DragHandle, dragInsertionClass, type DragHandleProps } from "@/components/kit/ui/drag-handle";
 export { CollapseSection, type CollapseSectionProps } from "@/components/kit/ui/collapse-section";
 export { TreeList, type TreeListProps } from "@/components/kit/ui/tree-list";
 

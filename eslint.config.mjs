@@ -203,12 +203,17 @@ const eslintConfig = defineConfig([
     "backup-pre-reactbits/**",
     ".refs/**",
     ".output/**",
+    ".local-preview/**",
+    ".preview-migration/**",
+    ".tier0-output/**",
+    ".tanstack/**",
     "dist/**",
     "build/**",
     "src/routeTree.gen.ts",
     "node_modules/**",
     // Platform-private workspace (managed skills, preview state); not App code.
     ".tier0/**",
+    ".tier0-output/**",
   ]),
   {
     files: ["**/*.{ts,tsx,js,jsx,mjs}"],

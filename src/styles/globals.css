@@ -15,7 +15,8 @@
   --tier0-primary-hover: #1c1f1e;
   --tier0-on-primary: #ffffff;
 
-  /* Signal / CTA green — reserved for highlight buttons & selected emphasis. */
+  /* Signal / CTA green — reserved for highlight buttons and progress fills.
+     Navigation selection uses muted gray fills, not CTA lime. */
   --tier0-cta: #cbf368;
   --tier0-cta-hover: #b8e055;
   --tier0-cta-active: #a8d04a;
@@ -23,16 +24,22 @@
 
   --tier0-highlight: #b2ed1d;
   --tier0-highlight-foreground: #050b14;
+  /* Fill / chart accents only. Body/link text accents must use --tier0-brand
+     (≥4.5:1 on the theme canvas). highlight-text / highlight-deep fail on white. */
   --tier0-highlight-text: #a2db1a;
   --tier0-highlight-deep: #73b200;
   --tier0-highlight-bg-primary: #cbf368;
   --tier0-highlight-bg-accent: #e7f9b9;
   --tier0-highlight-20: color-mix(in srgb, var(--tier0-highlight) 20%, transparent);
+  /* Readable brand for text / icons on the theme canvas (not CTA lime). */
+  --tier0-brand: #467000;
+  /* Alias kept for status text on lime tints; same ink as --tier0-brand in light. */
+  --tier0-brand-ink: #467000;
 
   --tier0-text-color: #050b14;
   --tier0-text-secondary: #242424;
-  --tier0-text-tertiary: #878787;
-  --tier0-text-placeholder: #d9d9d9;
+  --tier0-text-tertiary: #6b6b6b;
+  --tier0-text-placeholder: #6b6b6b;
 
   --tier0-bg-color: #ffffff;
   /* Page canvas. User decision 2026-07-13: pure white — the gray canvas
@@ -144,7 +151,7 @@
   --border-strong: #cfcfcf;
   --input: var(--tier0-input-border);
   --input-bg: var(--tier0-input-bg);
-  /* Focus ring: pale CTA lime (DESIGN.md input.focusColor = highlight). */
+  /* Field focus: CTA lime #B2ED1D; border 40%, outer ring 60%. */
   --ring: var(--tier0-highlight);
 
   --card: #ffffff;
@@ -154,13 +161,15 @@
   --surface-raised: #ffffff;
   --surface-inset: #ffffff;
 
-  --sidebar: #ffffff;
-  --sidebar-foreground: var(--tier0-text-color);
-  --sidebar-border: #e3e3e3;
+  /* Sidebar rail — soft gray surface; Lucent-like accent/border steps. CTA stays Tier0. */
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-border: oklch(0.922 0 0);
   --sidebar-primary: var(--tier0-cta);
   --sidebar-primary-foreground: var(--tier0-cta-foreground);
-  --sidebar-accent: #f4f4f5;
-  --sidebar-accent-foreground: var(--tier0-text-color);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-selected: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-ring: var(--tier0-highlight);
 
   /* Accent surfaces stay neutral. Lime is highlight / selected emphasis only. */
@@ -173,7 +182,8 @@
   --secondary-foreground: var(--tier0-text-secondary);
   --destructive: var(--tier0-error-color);
 
-  --state-running-fg: var(--tier0-highlight-deep);
+  /* Deep brand ink on the lime tint (~6:1); #73b200 on it was 2.3:1. */
+  --state-running-fg: var(--tier0-brand-ink);
   --state-running-bg: var(--tier0-highlight-bg-accent);
   --state-running-border: var(--tier0-highlight-bg-primary);
   --state-idle-fg: var(--tier0-text-secondary);
@@ -372,21 +382,23 @@
   --spacing-monitor-pad-compact: clamp(8px, 1vmin, 16px);
   --spacing-monitor-panel-pad: clamp(10px, 1.2vmin, 22px);
   --spacing-monitor-panel-pad-compact: clamp(8px, 0.9vmin, 14px);
-  --spacing-monitor-header-height: clamp(40px, 5.2vh, 56px);
+  --spacing-monitor-header-height: clamp(44px, 6.4vh, 96px);
   --spacing-monitor-header-pad-x: clamp(12px, 1.25vw, 24px);
-  --spacing-monitor-header-icon: clamp(28px, 3.2vmin, 36px);
+  --spacing-monitor-header-icon: clamp(28px, 3.6vmin, 60px);
 
-  --text-monitor-label: clamp(12px, 0.72vmin, 15px);
+  /* Wall screens are read from metres away: type scales with the screen (1080p
+     ≈ body 17px / title 22px / KPI 56px; 4K doubles), never below desktop sizes. */
+  --text-monitor-label: clamp(12px, 1.3vmin, 28px);
   --text-monitor-label-compact: clamp(11px, 0.82vmin, 13px);
-  --text-monitor-body: clamp(13px, 0.82vmin, 18px);
+  --text-monitor-body: clamp(13px, 1.6vmin, 34px);
   --text-monitor-body-compact: clamp(12px, 0.94vmin, 15px);
-  --text-monitor-title: clamp(16px, 1.25vmin, 28px);
+  --text-monitor-title: clamp(16px, 2vmin, 44px);
   --text-monitor-title-compact: clamp(15px, 1.35vmin, 22px);
-  --text-monitor-kpi: clamp(30px, 4.1vmin, 76px);
+  --text-monitor-kpi: clamp(30px, 5.2vmin, 120px);
   --text-monitor-kpi-compact: clamp(28px, 4.6vmin, 56px);
-  --text-monitor-header-title: clamp(13px, 0.9vmin, 16px);
-  --text-monitor-header-subtitle: clamp(11px, 0.72vmin, 13px);
-  --text-monitor-header-meta: clamp(10px, 0.66vmin, 12px);
+  --text-monitor-header-title: clamp(15px, 2vmin, 40px);
+  --text-monitor-header-subtitle: clamp(12px, 1.3vmin, 26px);
+  --text-monitor-header-meta: clamp(12px, 1.25vmin, 24px);
   --color-invert-foreground: var(--invert-foreground);
   --color-invert: var(--invert);
   --color-warning-foreground: var(--warning-foreground);
@@ -565,7 +577,7 @@ body {
 
 @layer base {
   * {
-    @apply border-border outline-ring/70;
+    @apply border-border outline-ring/40;
   }
 
   html {
@@ -596,10 +608,10 @@ body {
     cursor: not-allowed;
   }
 
-  input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]),
+  input:not([data-bare-control]):not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]),
   select,
   textarea,
-  [role="combobox"],
+  [role="combobox"]:not([data-bare-control]),
   [role="listbox"],
   [role="menu"] {
     background-color: var(--input-bg) !important;
@@ -613,9 +625,9 @@ body {
      content-width, so fields don't even fill their column. Same failure class
      as the bare-table incident: color was backstopped, box model wasn't.
      Base layer — any utility class on the element overrides. */
-  input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="file"]):not([type="range"]):not([type="color"]),
+  input:not([data-bare-control]):not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="file"]):not([type="range"]):not([type="color"]),
   select,
-  [role="combobox"] {
+  [role="combobox"]:not([data-bare-control]) {
     width: 100%;
     min-height: var(--tier0-control-height-md);
     padding: 0 12px;
@@ -666,11 +678,11 @@ body {
 
   /* Brighten to the surface color on focus so the active field lifts off the
      resting fill, alongside the highlight ring. */
-  input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):focus,
+  input:not([data-bare-control]):not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):focus,
   select:focus,
   textarea:focus,
-  [role="combobox"]:focus,
-  [role="textbox"]:focus {
+  [role="combobox"]:not([data-bare-control]):focus,
+  [role="textbox"]:not([data-bare-control]):focus {
     background-color: var(--card) !important;
   }
 
@@ -679,10 +691,10 @@ body {
     color: var(--tier0-text-tertiary);
   }
 
-  input:disabled,
+  input:not([data-bare-control]):disabled,
   select:disabled,
   textarea:disabled,
-  [role="combobox"][aria-disabled="true"],
+  [role="combobox"]:not([data-bare-control])[aria-disabled="true"],
   [role="listbox"][aria-disabled="true"],
   [role="menu"][aria-disabled="true"] {
     background-color: var(--tier0-disabled-bg) !important;
@@ -726,7 +738,7 @@ body {
     text-align: left;
     font-size: var(--tier0-text-caption-size);
     font-weight: 500;
-    color: var(--tier0-text-tertiary);
+    color: var(--foreground);
     white-space: nowrap;
     border-bottom: 1px solid var(--border);
   }
@@ -757,6 +769,12 @@ body {
 }
 
 @layer components {
+  /* Default label color lives here, below utilities, so `text-white` etc. on a
+     filled badge always wins (it used to turn red badges red-on-red). */
+  .monitor-label {
+    color: var(--tier0-text-tertiary);
+  }
+
   /* Ordinary workspace routes own their vertical rhythm but share one page
      inset. Keep this separate from Shell: Shell caps the workspace width,
      while station/review/monitor layouts keep their purpose-built spacing.
@@ -853,6 +871,72 @@ body {
     overflow: hidden;
   }
 
+  /* Adaptive board: a KPI band sized to its content, then panels that share the
+     remaining height. Tiles and panels wrap by available width (wall screen,
+     1366 laptop, portrait TV) instead of stretching into fixed grid rows. */
+  .monitor-board {
+    display: flex;
+    flex-direction: column;
+    gap: var(--monitor-gap);
+    height: 100%;
+    min-height: 0;
+  }
+
+  .monitor-kpis {
+    display: grid;
+    flex: none;
+    gap: var(--monitor-gap);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  }
+
+  .monitor-kpi-tile {
+    @apply min-w-0 rounded-[4px] border border-border bg-card;
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--monitor-gap) / 2);
+    padding: var(--monitor-panel-pad);
+  }
+
+  .monitor-columns {
+    display: grid;
+    flex: 1 1 0;
+    min-height: 0;
+    gap: var(--monitor-gap);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 28rem), 1fr));
+    grid-auto-rows: minmax(0, 100%);
+    /* Panels hug their rows (no tall empty frames) and stop at the stage height. */
+    align-items: start;
+  }
+
+  .monitor-columns > .monitor-panel {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--monitor-gap) / 1.5);
+    max-height: 100%;
+  }
+
+  /* One record per row, readable from a distance. Children: optional tag, content, state. */
+  .monitor-row {
+    /* [tag] [name + context, left aligned, truncates] [state / time, right] */
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--monitor-gap);
+    min-width: 0;
+    padding: calc(var(--monitor-panel-pad) * 0.6) var(--monitor-panel-pad);
+    border-radius: 4px;
+    background: var(--muted);
+  }
+
+  /* Alarm rows inside a bordered panel: a tint, never a second border. */
+  .monitor-row[data-tone="alarm"] {
+    background: var(--state-error-bg);
+  }
+
+  .monitor-row[data-tone="warn"] {
+    background: var(--state-paused-bg);
+  }
+
   .monitor-panel {
     @apply min-h-0 min-w-0 overflow-hidden rounded-[4px] border border-border bg-card;
     padding: var(--monitor-panel-pad);
@@ -865,7 +949,6 @@ body {
   .monitor-label {
     font-size: var(--monitor-label-size);
     line-height: 1.2;
-    color: var(--tier0-text-tertiary);
   }
 
   .monitor-text {
@@ -1208,14 +1291,58 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
   --tier0-shadow-primary-button: 0 1px 2px rgb(5 11 20 / 0.1);
   --tier0-shadow-highlight-button: 0 1px 2px rgb(115 178 0 / 0.18), 0 6px 14px -8px rgb(178 237 29 / 0.55);
   --tier0-shadow-overlay: var(--shadow-overlay);
-  --tier0-focus-ring: 0 0 0 3px color-mix(in srgb, var(--tier0-highlight) 35%, transparent);
+  --tier0-focus-ring: 0 0 0 2px color-mix(in srgb, var(--ring) 60%, transparent);
+}
+
+/* Bare links and disclosure summaries have no component focus style of their
+   own; give them the field focus color. Buttons, tabs and chips show focus
+   with a light gray fill inside their components, text fields with their
+   frame — never a green outline box. */
+:where(a[href], summary):not([data-bare-control]):focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--ring) 40%, transparent);
+  outline-offset: 2px;
+}
+
+/* ── Phones and touch screens ────────────────────────────────────────────
+   Field operators work on phones, shared touch consoles and with gloves. On
+   narrow screens or coarse pointers text grows one step (inputs reach 16px,
+   which also stops iOS zooming on focus) and controls reach the 44px touch
+   target. Desktop mouse layouts keep the dense sizes. Monitor boards size
+   their own type for viewing distance. */
+:root {
+  --tier0-control-text-sm: 0.8rem;
+}
+@media (max-width: 639px), (pointer: coarse) {
+  :root {
+    --text-xs: 0.8125rem; /* 13px */
+    --text-xs--line-height: 1.25rem;
+    --text-sm: 1rem; /* 16px */
+    --text-sm--line-height: 1.5rem;
+    --text-base: 1.0625rem; /* 17px */
+    --text-base--line-height: 1.625rem;
+    --tier0-text-body-size: 16px;
+    --tier0-text-body-line: 24px;
+    --tier0-text-body-lg-size: 17px;
+    --tier0-text-body-lg-line: 26px;
+    --tier0-text-label-size: 15px;
+    --tier0-text-label-line: 22px;
+    --tier0-text-caption-size: 13px;
+    --tier0-text-caption-line: 20px;
+    --tier0-text-mono-size: 13px;
+    --tier0-text-mono-line: 20px;
+    --tier0-control-text-sm: 0.9375rem; /* 15px */
+    --tier0-control-height-sm: 40px;
+    --tier0-control-height-md: 44px;
+    --tier0-control-height-lg: 48px;
+  }
 }
 
 @theme inline {
-  /* Brand for text / solid selected fills must stay readable on white — not CTA lime. */
-  --color-brand: var(--tier0-highlight-deep);
-  --color-brand-hover: color-mix(in srgb, var(--tier0-highlight-deep) 82%, #050b14);
-  --color-brand-active: color-mix(in srgb, var(--tier0-highlight-deep) 68%, #050b14);
+  /* Brand for text / icons must stay ≥4.5:1 on the theme canvas — not CTA lime. */
+  --color-brand: var(--tier0-brand);
+  --color-brand-ink: var(--tier0-brand-ink);
+  --color-brand-hover: color-mix(in srgb, var(--tier0-brand) 82%, #050b14);
+  --color-brand-active: color-mix(in srgb, var(--tier0-brand) 68%, #050b14);
   --color-brand-soft: var(--tier0-primary-bg);
   --color-brand-soft-hover: var(--tier0-primary-bg-hover);
   --color-brand-border: var(--tier0-primary-border);
@@ -1386,6 +1513,13 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
 }
 
 .dark {
+  --ring: var(--tier0-highlight);
+  /* Sidebar selection — Lucent dark accent step on charcoal rail. */
+  --tier0-sidebar-selected: oklch(0.269 0 0);
+  /* "Deep" status inks are for light surfaces; on dark they flip to bright tints (≥4.5:1). */
+  --tier0-success-deep: #4ade80;
+  --tier0-warning-deep: #fb923c;
+  --tier0-error-deep: #f87171;
   /* Neutral dark canvas. CTA stays lime — never invert to stark white. */
   --tier0-primary: #f4f4f5;
   --tier0-primary-hover: #e4e4e7;
@@ -1399,7 +1533,10 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
   --tier0-text-color: #f4f4f5;
   --tier0-text-secondary: #d4d4d8;
   --tier0-text-tertiary: #a1a1aa;
-  --tier0-text-placeholder: #52525b;
+  /* Must stay ≥4.5:1 on --tier0-input-bg (#141518); #52525b was 2.36:1. */
+  --tier0-text-placeholder: #8b8b96;
+  /* Brand text/icons on dark canvas; light-mode #467000 fails (~3.1:1). */
+  --tier0-brand: #73b200;
   --tier0-bg-color: #0c0d0f;
   --tier0-canvas: #0c0d0f;
   --tier0-bg-secondary: #141518;
@@ -1435,11 +1572,12 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
   --popover-foreground: #f4f4f5;
   --surface-raised: #1a1b1e;
   --surface-inset: #101114;
-  --sidebar: #101114;
-  --sidebar-foreground: #f4f4f5;
-  --sidebar-border: #2e2f33;
-  --sidebar-accent: #1a1b1e;
-  --sidebar-accent-foreground: #f4f4f5;
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-selected: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-primary: var(--tier0-cta);
   --sidebar-primary-foreground: var(--tier0-cta-foreground);
   --accent: #1a1b1e;
@@ -1546,4 +1684,9 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
   --color-cat-5-soft: var(--tier0-cat-5-soft);
   --color-cat-6: var(--tier0-cat-6);
   --color-cat-6-soft: var(--tier0-cat-6-soft);
+}
+
+/* Sidebar current page: light keeps bg-muted; dark uses the deeper selection fill. */
+.dark nav.bg-sidebar [aria-current="page"] {
+  background-color: var(--tier0-sidebar-selected);
 }
