@@ -72,15 +72,7 @@ const YES_NO = [
 ];
 
 function SectionTitle({ children }: { children: ReactNode }) {
-  return (
-    <h3 className="flex items-center gap-2 text-base font-semibold text-foreground">
-      <span
-        className="h-4 w-1 rounded-full bg-gradient-to-b from-[#050b14] to-[color:var(--tier0-highlight-deep)]"
-        aria-hidden="true"
-      />
-      {children}
-    </h3>
-  );
+  return <h3 className="text-base font-semibold text-foreground">{children}</h3>;
 }
 
 function HeaderWithTip({ title, tip, required }: { title: string; tip?: string; required?: boolean }) {
