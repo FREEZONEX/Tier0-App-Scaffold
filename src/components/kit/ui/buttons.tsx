@@ -69,7 +69,13 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       </button>
     );
     if (!tooltip || disabled) return button;
-    return <Tooltip title={label}>{button}</Tooltip>;
+    // self-center: Tooltip's default self-start would misalign icon rows when
+    // some buttons are disabled (no wrapper) and others are wrapped.
+    return (
+      <Tooltip title={label} anchorClassName="inline-flex shrink-0 self-center">
+        {button}
+      </Tooltip>
+    );
   },
 );
 

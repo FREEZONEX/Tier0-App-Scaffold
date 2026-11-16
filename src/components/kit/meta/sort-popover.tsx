@@ -185,16 +185,28 @@ export function SortConditionList({ fields, value, onChange, className }: SortCo
             ]}
             onChange={(next) => commit(drafts.map((item) => (item.key === draft.key ? { ...item, direction: next } : item)))}
           />
-          <IconButton size="sm" label="上移排序条件" icon={<ArrowUp />} disabled={index === 0}
-            onClick={() => commit(moveItem(drafts, index, index - 1))} />
-          <IconButton size="sm" label="下移排序条件" icon={<ArrowDown />} disabled={index === drafts.length - 1}
-            onClick={() => commit(moveItem(drafts, index, index + 1))} />
-          <IconButton
-            size="sm"
-            label="删除排序条件"
-            icon={<X />}
-            onClick={() => commit(drafts.filter((item) => item.key !== draft.key))}
-          />
+          <div className="flex shrink-0 items-center gap-0.5">
+            <IconButton
+              size="sm"
+              label="上移排序条件"
+              icon={<ArrowUp />}
+              disabled={index === 0}
+              onClick={() => commit(moveItem(drafts, index, index - 1))}
+            />
+            <IconButton
+              size="sm"
+              label="下移排序条件"
+              icon={<ArrowDown />}
+              disabled={index === drafts.length - 1}
+              onClick={() => commit(moveItem(drafts, index, index + 1))}
+            />
+            <IconButton
+              size="sm"
+              label="删除排序条件"
+              icon={<X />}
+              onClick={() => commit(drafts.filter((item) => item.key !== draft.key))}
+            />
+          </div>
         </div>
       ))}
       <div>
