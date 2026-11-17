@@ -346,8 +346,11 @@ Use `DESIGN.md`, existing tokens and the shipped primitives
   `defaultErrorComponent`, so new pages need no `errorComponent` of their own.
 - Do not add a page-introduction subtitle that explains navigation or repeats
   the title. Shell `defaultModules` starts empty; declare real routes through
-  `defineNavigationModules`, one unique href per clickable leaf. Assign every
-  group and leaf a business-appropriate icon imported from `lucide-react`.
+  `defineNavigationModules`, one unique href per clickable leaf. Keep the
+  sidebar flat; use `children` only for 3+ related destinations in one
+  business area. Assign every group and leaf a business-appropriate icon
+  imported from `lucide-react`. Card header extras and row "处理" actions
+  use outline buttons, not green `TextButton`s.
 - Interactive pages remain usable at 375px without page-level overflow; wide
   tables own their horizontal scroll region and search/filter controls have a
   bounded width. Check affected pages at a real 375px viewport when browser

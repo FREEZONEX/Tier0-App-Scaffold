@@ -343,7 +343,10 @@ canvas, unclear actions, filters/charts/forms in the title row).
    toolbar-heavy table needs a muted shell around a white inset.
 
 Actions: one primary `Button` per band; row actions stay icon-only or a
-single ghost/outline control on the tile. Status color lives on tags,
+single **outline** control on the tile. Card header extras (维保中心 /
+全部模具) are outline `sm` buttons, not green underline `TextButton`s.
+`TextButton` is only for sparse chrome (toolbar 字段配置 / 排序 / 行高,
+in-form "delete field") and in-copy links. Status color lives on tags,
 chips, and chart series — not on whole KPI cards or the page canvas.
 
 The shipped component families are a discoverable toolkit, not a mandatory
@@ -401,10 +404,10 @@ Operator-facing principles, device baselines (phone, station touch console, desk
 wall screen) and the delivery checklist live in [docs/operator-ux.md](docs/operator-ux.md).
 
 - Body text, labels and enabled placeholders must have at least 4.5:1 contrast against their actual background in both themes. Test the composited color, including opacity. Enabled placeholders use `--tier0-text-placeholder` (`#6b6b6b` light / `#8b8b96` dark).
-- Links, text buttons, selected radios and upload accents use readable `--tier0-brand` (`#467000` light / `#73b200` dark). Do not use `#73b200` for text on light surfaces (2.6:1). Text-button hover adds underline only — no color shift.
+- Links and `TextButton` use readable `--tier0-brand` (`#467000` light / `#73b200` dark). Do not use `#73b200` for text on light surfaces (2.6:1). Text-button hover adds underline only — no color shift. Do not use `TextButton` for card headers, banners, or repeating row actions — those are outline buttons.
 - Keyboard focus splits by control kind: buttons, tabs, chips, icon buttons and pagination use a light gray fill (`bg-muted`); text fields, selects, date pickers and checkboxes use `--ring` (`#B2ED1D`, both themes): border at 40% opacity and a 2px outer ring at 60%. Selected tabs use a 2px foreground underline.
 - On phones and touch screens (`max-width: 639px`, `pointer: coarse`) text steps up one size, inputs reach 16px and every control reaches a 44px touch target.
-- Light sidebar surface is soft gray (`--sidebar: oklch(0.985)`); hover/selection use a slightly deeper muted fill (`--sidebar-selected`) with no border or shadow. Dark rail is charcoal `oklch(0.205)`. Keyboard focus on rail items uses the same muted fill, not a brand outline. Nested child links use a vertical guide line instead of a second icon. The account strip role line is title case, not all caps.
+- Light sidebar surface is soft gray (`--sidebar: oklch(0.985)`); hover/selection use a slightly deeper muted fill (`--sidebar-selected`) with no border or shadow. Dark rail is charcoal `oklch(0.205)`. Keyboard focus on rail items uses the same muted fill, not a brand outline. Nested child links (only when a group of 3+ related destinations is justified) use a short, light vertical guide line instead of a second icon. Do not nest one or two items under a folder. The account strip role line is title case, not all caps.
 - Same-row form controls and buttons use matching size tokens: sm 32px, md 36px, lg 40px.
 - Sorting supports selecting, changing direction, deleting and reordering using both pointer and keyboard. At 375px, field labels must retain a readable width.
 - Empty role sets show `未分配角色`, never a false `Loading` label.

@@ -88,6 +88,14 @@ const TEXT_TONE = {
   default: "text-muted-foreground",
 } as const;
 
+/**
+ * TextButton — sparse text action (toolbar table settings, an in-form
+ * "delete field"). Brand-green, underline on hover, no box.
+ *
+ * Do not use it as the default secondary control. Card headers, repeating
+ * row actions ("处理"), banners, and "view ledger" jumps use
+ * `Button variant="outline" size="sm"` instead.
+ */
 export interface TextButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   tone?: keyof typeof TEXT_TONE;
   icon?: ReactNode;

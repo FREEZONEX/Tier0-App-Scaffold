@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { TextButton } from "@/components/kit/ui/buttons";
 import { Card, exceptionItemClass } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard } from "@/components/ui/stat-card";
@@ -331,19 +330,18 @@ export function SceneWorkflowHub() {
               fixed: "right",
               ellipsis: false,
               render: (f) => (
-                // Same row-action style as the task list: text buttons only.
-                <span className="flex items-center gap-4 whitespace-nowrap">
-                  <TextButton size="sm" onClick={() => run(f)}>
+                <span className="flex items-center gap-2 whitespace-nowrap">
+                  <Button size="sm" variant="outline" onClick={() => run(f)}>
                     运行
-                  </TextButton>
+                  </Button>
                   {f.state === "paused" ? (
-                    <TextButton size="sm" onClick={() => setState(f, "running")}>
+                    <Button size="sm" variant="outline" onClick={() => setState(f, "running")}>
                       恢复
-                    </TextButton>
+                    </Button>
                   ) : (
-                    <TextButton size="sm" tone="warning" onClick={() => setPausing(f)}>
+                    <Button size="sm" variant="outline" onClick={() => setPausing(f)}>
                       暂停
-                    </TextButton>
+                    </Button>
                   )}
                 </span>
               ),

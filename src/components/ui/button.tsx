@@ -7,6 +7,9 @@ import { FOCUS_FILL } from "@/lib/interaction";
 /**
  * Button — ReUI (@base-ui/react + CVA) recipe.
  * Keeps Tier0 color tokens and business variants; every corner is 4px.
+ *
+ * Secondary chrome (card headers, row "处理", banner jumps) uses `outline`.
+ * `link` is for in-copy links only — not a stand-in for outline.
  */
 export type ButtonVariant =
   | "highlight"

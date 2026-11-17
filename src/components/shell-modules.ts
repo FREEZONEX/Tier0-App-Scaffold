@@ -17,6 +17,12 @@ export interface NavModule {
   href?: string;
   icon?: NavIconSource;
   actions?: Action[];
+  /**
+   * Nested leaves under this item. Use only when a business area has enough
+   * sibling destinations that a flat list would mix unrelated work (typically
+   * 3+). Never wrap one or two links in a folder — keep those as top-level
+   * items with their own icons.
+   */
   children?: NavModule[];
   badge?: string;
   locked?: boolean;
@@ -117,6 +123,7 @@ type GeneratedNavModule = Omit<NavModule, "icon" | "children"> & {
   children?: GeneratedNavModule[];
 };
 
+/** Declare sidebar modules. Prefer a flat list of leaves; nest only for 3+ related destinations. */
 export function defineNavigationModules(modules: GeneratedNavModule[]): NavModule[] {
   validateNavigationModules(modules);
   return modules;

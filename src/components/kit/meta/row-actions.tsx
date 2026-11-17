@@ -4,12 +4,14 @@
  * RowActions — 操作列.
  *
  * Prefer icons (`action.icon`): fixed-size IconButtons keep every row's ⋯ in
- * the same column. Text labels are the fallback when no icon is given. A
- * reserved ⋯ slot is always measured so rows without overflow still align.
+ * the same column. Without an icon, fall back to an outline `Button` (not a
+ * green TextButton). A reserved ⋯ slot is always measured so rows without
+ * overflow still align.
  */
 import type { MouseEvent } from "react";
 import { Ellipsis } from "lucide-react";
-import { IconButton, TextButton } from "@/components/kit/ui/buttons";
+import { Button } from "@/components/ui/button";
+import { IconButton } from "@/components/kit/ui/buttons";
 import { DropdownMenu } from "@/components/kit/ui/dropdown-menu";
 import { Tooltip } from "@/components/kit/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -20,11 +22,6 @@ export interface RowActionsProps {
   /** Inline actions before the ⋯ menu (default 2). */
   inlineCount?: number;
   className?: string;
-}
-
-function toneOf(action: RowAction) {
-  if (action.danger) return "danger" as const;
-  return action.tone ?? "primary";
 }
 
 function InlineAction({ action }: { action: RowAction }) {
@@ -48,9 +45,14 @@ function InlineAction({ action }: { action: RowAction }) {
       onClick={onClick}
     />
   ) : (
-    <TextButton tone={toneOf(action)} disabled={action.disabled} onClick={onClick}>
+    <Button
+      size="sm"
+      variant={action.danger || action.tone === "danger" ? "danger" : "outline"}
+      disabled={action.disabled}
+      onClick={onClick}
+    >
       {action.label}
-    </TextButton>
+    </Button>
   );
 
   if (action.disabled && action.disabledReason) {

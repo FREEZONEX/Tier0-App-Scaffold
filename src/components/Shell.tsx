@@ -473,10 +473,16 @@ export function Shell({
                   </Tooltip>
                   </Popover>
                   {!isCollapsed && isExpanded && (
-                    <div className="mt-0.5 mb-1 ml-7 border-l border-muted-foreground/45">
-                      {mod.children?.map((child) =>
-                        renderChildLink(child, () => setMobileOpen(false), true),
-                      )}
+                    <div className="relative ml-7">
+                      <span
+                        aria-hidden="true"
+                        className="pointer-events-none absolute top-2 bottom-2 left-0 w-px bg-sidebar-border"
+                      />
+                      <div className="pl-3">
+                        {mod.children?.map((child) =>
+                          renderChildLink(child, () => setMobileOpen(false), true),
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>

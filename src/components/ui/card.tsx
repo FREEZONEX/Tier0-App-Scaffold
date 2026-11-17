@@ -19,6 +19,10 @@ import { cn } from "@/lib/utils";
 export interface CardProps
   extends Omit<HTMLAttributes<HTMLDivElement>, "title"> {
   title?: ReactNode;
+  /**
+   * Header extra actions. Use `Button size="sm" variant="outline"`
+   * (e.g. 维保中心 / 全部模具). Do not put brand-green `TextButton`s here.
+   */
   actions?: ReactNode;
   footer?: ReactNode;
   accent?: "running" | "paused" | "error" | "info";

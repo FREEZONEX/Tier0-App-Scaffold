@@ -62,11 +62,14 @@ account avatar with name and roles. Do not add a notification bell until the
 App has a real notice feed and a clear click destination. Gallery business
 scenes (`SceneShell`) must mirror this footer — never ship a scene rail without
 the account strip.
-A module with `children` is a titled section (small gray label, always
-open; a divider in the collapsed rail), not a collapsible folder: group links
-by business area (生产 / 质量 / 主数据…) instead of nesting deeper. A link that
-opens another surface in a new tab sets `newTab: true` and shows the
-external-link mark.
+Keep the sidebar **flat** by default: every destination is a top-level leaf
+with its own icon. Use `children` only when a real business area has enough
+sibling destinations that a flat list would mix unrelated work (typically
+3+). Never wrap one or two links (巡检记录 / 不合格品) under a folder such as
+质量管理. Nested children sit on a short, light guide line — not a full-height
+rail. Prefer a small always-open section label over a collapsible folder
+when grouping is justified. A link that opens another surface in a new tab
+sets `newTab: true` and shows the external-link mark.
 
 ## Page shell, required fields and forms
 
@@ -95,6 +98,9 @@ optional aside. Do not flatten these into one undifferentiated canvas.
   left bar (severe red, mid amber, low blue) and no gray ring.
 - **Actions**: one primary button in the header; filters and view toggles
   live in the work-surface toolbar, not the title row or the KPI cards.
+  Card header extras and repeating row actions ("处理", "查看台账") use
+  `Button variant="outline" size="sm"`. Do not use brand-green `TextButton`
+  / underline text as the default secondary control.
 - **Anti-pattern**: equal-weight white boxes, unlabeled icon soup, filters
   mixed into the page title, charts and forms sharing one header band.
 

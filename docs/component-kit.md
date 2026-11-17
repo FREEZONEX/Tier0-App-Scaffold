@@ -36,7 +36,7 @@
 档案、台账、单据、任务及其他以记录查询和列表操作为主的页面，默认以 `@/components/kit/meta/meta-list-page` 的 `MetaListPage` 为基础。先配置对象字段、查询条件和列，再接入业务动作，复用组件已有的查询区、视图、列配置、排序和分页，不重新拼装一套页面壳。列表内容默认直接铺在页面上，页签、查询区、工具栏、表格和分页外不再套装饰性 `Card` / `PageCard`；仅保留 `PageContainer` 的页面留白及列表内部间距。生产业务页面默认铺满侧边栏之外的可用宽度，桌面左右各留 24px，不在列表外添加居中限宽容器。简单表单和长文本可在自身内容块按需限宽；多列表单、明细表及页面标题不随之统一收窄。
 
 - 页面以 `objectCode` 和 `title` 标识业务对象；创建、打开详情、行操作和批量操作分别通过 `onCreate`、`onOpenRecord`、`rowActions`、`batchActions` 接入。差异化展示使用 `cellRenderers`，额外入口使用 `headerExtra` / `toolbarExtra`。
-- 操作列优先给每个 `RowAction` 配 `icon`（标签仍作无障碍名称 / tooltip）；`RowActions` 用固定尺寸的图标按钮，并始终预留 ⋯ 槽位，保证各行对齐。没有图标时才退回文字按钮。溢出「⋯」菜单默认 `trigger="click"`（触控与键盘可打开）；不要用纯 hover。
+- 操作列优先给每个 `RowAction` 配 `icon`（标签仍作无障碍名称 / tooltip）；`RowActions` 用固定尺寸的图标按钮，并始终预留 ⋯ 槽位，保证各行对齐。没有图标时退回描边按钮（`Button variant="outline" size="sm"`），不要用绿色 `TextButton`。溢出「⋯」菜单默认 `trigger="click"`（触控与键盘可打开）；不要用纯 hover。
 - 在应用范围内配置 `ComponentKitProvider`，将 `meta/config` 与 `meta/query` 等逻辑请求映射到真实服务，并提供 `canObject`。业务接口仍执行服务端权限校验；图库适配器不能用于应用数据。
 - 只开启业务需要且已完成接入的视图保存、导入导出、打印等能力。组件存在不代表相应后端接口已经提供。
 - `DataGrid` / `DataTable` 用于局部表格展示，`DetailTable` 用于表单中的受控可编辑明细，不作为普通列表页面的默认替代。
@@ -150,14 +150,14 @@ const adapter: ComponentKitAdapter = {
 
 - 表单 `RadioGroup`（圆点 / 按钮组）：选中用品牌色填充或描边（`--tier0-brand` / `#467000`），保证文字对比度。
 - 打印模板卡片右侧选中圆：用 `--tier0-highlight-deep`（`#73B200`），与表单单选区分；卡片可取消选中，用 `aria-pressed` 而非 `radiogroup`。
-- 文字链与文字按钮悬停只加下划线、不变字色。
+- 文字链与 `TextButton` 悬停只加下划线、不变字色。它们只用于工具栏表格设置（字段配置 / 排序 / 行高）和表单内稀疏操作；卡片表头次要入口、行内「处理」、横幅「查看台账」一律用描边按钮。
 
 ## 图标
 
 导航与操作图标统一使用 `lucide-react`（ISC 许可，24px 网格、2px 描边，与脚手架现有图标同一风格），不引入第二套图标库，不使用 emoji 作图标。
 
 - **按名称导入**：`import { Wrench } from "lucide-react"`，只打包用到的图标。禁止 `import { icons } from "lucide-react"` 或按字符串动态取整个图标表：整表约 1700 个图标，会让应用主包增加约 480 kB（gzip 约 125 kB）。
-- **侧栏菜单**：每个分组和叶子都配置与业务含义匹配的图标，优先传组件；也可以写 `src/components/nav-icons.ts` 中 `NAV_ICON_LIBRARY` 的名称（`"Wrench"`）。库外的字符串名称会在类型检查时报错，改为直接导入对应组件；运行时读到的未知名称不会报错，开发环境控制台给出提示。未配置或名称不在库中时，Shell 依次按菜单名称关键词匹配（「报修单」→ Wrench、「库存台账」→ Warehouse，见 `NAV_ICON_KEYWORDS`），仍无匹配则显示名称首字的方框标记。侧栏折叠后每项都有可见标识，悬停或键盘聚焦显示菜单名称（锁定项附原因），当前页以浅灰底、加粗文字和深色图标标示。
+- **侧栏菜单**：默认扁平，每个叶子自己带图标。只有同一业务域有足够多的并列入口（通常 3 个以上）才用 `children`；不要把「巡检记录 / 不合格品」收进「质量管理」这种两级文件夹。嵌套时引导线上下留白、颜色用 `--sidebar-border`。每个分组和叶子都配置与业务含义匹配的图标，优先传组件；也可以写 `src/components/nav-icons.ts` 中 `NAV_ICON_LIBRARY` 的名称（`"Wrench"`）。库外的字符串名称会在类型检查时报错，改为直接导入对应组件；运行时读到的未知名称不会报错，开发环境控制台给出提示。未配置或名称不在库中时，Shell 依次按菜单名称关键词匹配（「报修单」→ Wrench、「库存台账」→ Warehouse，见 `NAV_ICON_KEYWORDS`），仍无匹配则显示名称首字的方框标记。侧栏折叠后每项都有可见标识，悬停或键盘聚焦显示菜单名称（锁定项附原因），当前页以浅灰底、加粗文字和深色图标标示。
 - **尺寸与颜色**：侧栏一级 16px、二级 14px；按钮与工具栏 14–16px（`[&>svg]:size-3.5` / `size-4`）。图标跟随文字颜色：未选中为 `text-muted-foreground`，选中、悬停为 `text-foreground`；只有状态和危险操作使用语义色。图标与文字同一行垂直居中，间距 8–10px（`gap-2` / `gap-2.5`）。
 - **常用操作对照**：新增 `Plus` / `CirclePlus`，编辑 `Pencil`，删除 `Trash2`，搜索 `Search`，筛选 `Funnel`，排序 `ArrowDownUp`，导入 `FileInput`，导出 `FileOutput`，打印 `Printer`，刷新 `RefreshCw`，更多 `EllipsisVertical`，设置 `Settings`。同一含义在整个应用只用同一个图标。
 - 新增业务概念需要库外图标时，直接按名称导入组件即可；常用于菜单的再补进 `NAV_ICON_LIBRARY` 和关键词表，并同步 `tests/nav-icons.test.tsx`。

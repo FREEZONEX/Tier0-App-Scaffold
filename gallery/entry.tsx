@@ -60,7 +60,7 @@ case'DateRangePicker':body=<Comp defaultValue={['2026-09-18','2026-09-25']}/>;br
 case'CalendarPanel':body=<Comp viewYear={wall.year} viewMonth={wall.month} onViewChange={(year:number,month:number)=>W({...wall,year,month})} today={wall} selected={wall} onPick={W}/>;break;
 case'TimeColumns':body=<Comp value={wall} onChange={W} withSeconds/>;break;
 case'IconButton':body=<div className="demo-row"><Comp icon={<Plus/>} label="新增" onClick={hit}/><Comp icon={<Settings/>} label="设置" variant="outline"/><Comp icon={<Plus/>} label="禁用" disabled/></div>;break;
-case'TextButton':body=<div className="demo-row"><Comp icon={<Plus/>} onClick={hit}>新增物料</Comp><Comp tone="danger">删除</Comp><Comp disabled>不可编辑</Comp></div>;break;
+case'TextButton':body=<><div className="demo-row"><Comp>字段配置</Comp><Comp>排序</Comp><Comp tone="danger">删除字段</Comp></div><p className="caption">仅用于工具栏设置或表单内稀疏操作；卡片表头和行操作请用描边按钮。</p></>;break;
 case'SplitButton':body=<Comp icon={<Download/>} variant="primary" onClick={hit} menuItems={[{key:'all',label:'导出全部',onClick:hit},{key:'selected',label:'导出已选',onClick:hit}]}>导出</Comp>;break;
 case'Tag':case'StatusTag':body=<div className="demo-row">{['default','processing','success','warning','error'].map((tone,i)=><Comp key={tone} tone={tone} dot closable={name==='Tag'}>{['草稿','执行中','已完成','待审核','异常'][i]}</Comp>)}</div>;break;
 case'ColorDotLabel':body=<div className="demo-row"><Comp color="#050b14">装配车间</Comp><Comp color="#166534">质检车间</Comp></div>;break;
