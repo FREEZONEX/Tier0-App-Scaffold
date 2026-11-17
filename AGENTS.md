@@ -200,13 +200,17 @@ API, limits, examples, error codes and tier0 MCP operations are in
 - Seed: fixed `_id`s, coherent across lifecycle states, written **once** when a
   collection is created; editing `seed` never reseeds. Never insert baseline
   data from services.
-- Model documents, not tables: embed what changes with the record, reference
-  shared entities by ID plus a display snapshot, one collection per business
-  object kind.
-- Read efficiently: one `data.queryBatch` per screen, `get(ids)` for records by
-  ID (`missing` = 404, never "forbidden"), a `limit` on every list read, one
-  `countBy` / `aggregate` for statistics, capped counts shown as "10000+".
-  Never call the data layer once per loop iteration or `map` item.
+- Model documents, not tables: embed what changes with the record and reference
+  shared entities by ID. Keep a display snapshot when the business needs the
+  historical value; a scoped `$lookup` can supply current related values.
+  Use one collection per business object kind.
+- Read efficiently: push filtering, joins and statistics into the database;
+  combine independent, single-page reads with `data.queryBatch`. Resolve
+  dependencies first, then batch the next reads; a screen may need several
+  requests. Use `get(ids)` for records by ID (`missing` = 404, never "forbidden"),
+  bound visible lists and consume every page when a complete aggregate is
+  required. A batch item is one page, not the whole result. Show capped counts
+  as "10000+". Never call the data layer once per record or `map` item.
 - Consistency: put the expected state in the filter for transitions
   (`findOneAndUpdate`, `null` → 409); send `_meta.revision` as
   `expectedRevision` for edits; use one `data.transact` for cross-document
