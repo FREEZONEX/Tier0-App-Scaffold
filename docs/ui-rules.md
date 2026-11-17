@@ -25,6 +25,30 @@ as a mandatory page recipe.
 - `actions`: `RecommendationAction` and `ImpactPreviewDialog` for transparent
   automatic/recommended/bulk changes.
 
+### Reuse before replacing
+
+When adding or changing a control, first check the shipped component's props
+and examples, then compose it with the page's data and actions. Prefer those
+components for inputs, buttons, pickers, menus and overlays so both the closed
+control and its open content follow the app's theme and interaction patterns.
+"Built-in" means the components shipped in this scaffold, not browser-native
+widgets such as a visible `<select>`.
+
+For metrics, time-window presets and other option values, use kit `Select`.
+For a supplied list of business records with form/change-event semantics, use
+`RecordSelect`; for remote record lookup, inspect `ReferenceSelect` /
+`ReferencePicker` and the application adapter contract. Use `DropdownMenu` for
+actions such as opening or editing a record, not for a field's selected value.
+See [selection examples](component-kit.md#选择与操作菜单) for imports and callbacks.
+
+Keep native elements used inside components for semantics, form submission or
+event compatibility; `RecordSelect`'s hidden `<select>` is intentional. A
+specific workflow or explicit user request may need another implementation.
+This preference adds no scanner, lint rule, build check or runtime restriction,
+and does not require a bulk rewrite of existing pages. Verify representative
+generated controls by opening them and using the keyboard; do not turn style
+differences into preview or publishing blockers.
+
 ## List pages
 
 List-type pages (master data, ledgers, documents, tasks, and searchable record

@@ -343,6 +343,14 @@ Use `DESIGN.md`, existing tokens and the shipped primitives
 `src/components/kit`); details and rationale are in `docs/ui-rules.md` and
 `docs/component-kit.md`.
 
+- Prefer scaffold-built components for new or changed controls; inspect their
+  props and examples before writing a replacement. For option filters use kit
+  `Select`, for supplied record options use `RecordSelect`, and for action
+  menus use `DropdownMenu`. These are the scaffold's components, not the
+  browser's native widgets. See `docs/component-kit.md` → 选择与操作菜单 for
+  selection guidance and examples. This is non-blocking guidance: preserve
+  hidden native form controls and allow explicit user or workflow exceptions;
+  do not add component-use gates or bulk-migrate existing pages.
 - List-type pages default to `MetaListPage` (`@/components/kit/meta/meta-list-page`)
   with an application-scoped provider and real data adapter; extend its hooks
   instead of rebuilding the list shell. Render list content directly on the page

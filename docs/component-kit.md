@@ -17,6 +17,114 @@
 
 可从 `@/components/kit` 导入公开能力；实际页面优先按文件导入。类型在 `@/lib/component-kit/types`。可视图库覆盖 56 个非业务组件分类（含原有能力，并非新增 56 个组件）。
 
+生成或修改控件前，先查阅内置组件的类型与示例，优先通过现有属性、数据和回调完成组合。这里的“内置组件”指脚手架随模板提供的组件，不是浏览器原生控件。输入、按钮、选择器、菜单和弹层均沿用这一选型顺序。
+
+### 选择与操作菜单
+
+| 场景 | 组件与导入路径 | 数据与回调 |
+| --- | --- | --- |
+| 指标、时间范围预设、枚举等选项值 | `Select`：`@/components/kit/ui/select` | 传 `options`；单选 `onChange(value, option)` 接收值或 `null`，多选传 `multiple` 后回调接收数组 |
+| 已加载的业务记录，需保留表单字段语义 | `RecordSelect`：`@/components/forms/record-select` | 传记录选项；支持 `name`、`required`，`onChange(event)` 读取 `event.target.value`；多选读取 `selectedOptions` |
+| 需要远程查找的业务记录 | `ReferenceSelect` / `ReferencePicker`：`@/components/kit/meta/reference-select` / `@/components/kit/meta/reference-picker` | 按各自类型接入引用值和回填；需要下文的 `ComponentKitProvider` 与真实数据适配器 |
+| 查看、编辑等操作菜单 | `DropdownMenu`：`@/components/kit/ui/dropdown-menu` | 传 `items`，使用条目的 `onClick` 或菜单的 `onSelect(key)` 接业务动作 |
+
+普通下拉选择优先使用上述组件，以便触发控件和展开内容都沿用应用主题；仅为可见原生 `<select>` 设置边框、背景和尺寸，不能替代内置浮层。组件内部用于语义、提交或事件兼容的原生元素仍需保留，例如 `RecordSelect` 的隐藏 `<select>`。
+
+这是生成指引，不新增扫描器、lint 规则、构建检查或运行时拦截。业务确有差异或用户明确要求时可采用其他实现；已有页面的局部修改不扩大为批量迁移。
+
+#### 指标与时间范围
+
+`Select` 的回调接收选中值，不接收原生 change 事件。下面的筛选值由页面持有，`onChange` 接入页面查询；时间范围预设使用数字值，具体起止日期选择使用 `DateRangePicker`（`@/components/kit/ui/date-picker`）。
+
+```tsx
+import { FieldGroup } from '@/components/forms/form-layout';
+import { Select } from '@/components/kit/ui/select';
+
+type EnvironmentFilterValue = { metric: string | null; hours: number | null };
+
+export function EnvironmentFilters({ value, onChange }: {
+  value: EnvironmentFilterValue;
+  onChange: (next: EnvironmentFilterValue) => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-3">
+      <FieldGroup label="指标" htmlFor="metric" className="w-full max-w-xs">
+        <Select<string>
+          id="metric" value={value.metric}
+          options={[
+            { value: 'temperature', label: '温度（°C）' },
+            { value: 'tvoc', label: 'TVOC 指数' },
+          ]}
+          onChange={(metric) => onChange({ ...value, metric })}
+        />
+      </FieldGroup>
+      <FieldGroup label="时间范围" htmlFor="hours" className="w-full max-w-xs">
+        <Select<number>
+          id="hours" value={value.hours}
+          options={[
+            { value: 24, label: '最近 24 小时' },
+            { value: 168, label: '最近 7 天' },
+          ]}
+          onChange={(hours) => onChange({ ...value, hours })}
+        />
+      </FieldGroup>
+    </div>
+  );
+}
+```
+
+#### 已加载的记录
+
+由业务接口提供 `options`，用名称及必要的状态、位置等信息帮助识别记录；选中值仍为记录 ID。需要搜索或分页时按上表选择远程参照组件，不将截断的数据当作完整列表。
+
+```tsx
+import { FieldGroup } from '@/components/forms/form-layout';
+import { RecordSelect, type RecordSelectOption } from '@/components/forms/record-select';
+
+export function EquipmentField({ value, options, onChange }: {
+  value: string;
+  options: RecordSelectOption[];
+  onChange: (id: string) => void;
+}) {
+  return (
+    <FieldGroup label="设备" htmlFor="equipment" required>
+      <RecordSelect
+        id="equipment" name="equipmentId" required
+        placeholder="选择设备" value={value} options={options}
+        metaLabels={{ status: '状态', quantity: '数量', location: '位置', date: '日期' }}
+        onChange={(event) => onChange(event.target.value)}
+      />
+    </FieldGroup>
+  );
+}
+```
+
+#### 操作菜单
+
+菜单项执行动作，不作为筛选值。由页面传入实际操作与权限结果；服务端继续校验权限。
+
+```tsx
+import { DropdownMenu } from '@/components/kit/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+
+export function RecordActions({ canEdit, onOpen, onEdit }: {
+  canEdit: boolean;
+  onOpen: () => void;
+  onEdit: () => void;
+}) {
+  return (
+    <DropdownMenu aria-label="记录操作" trigger="click" items={[
+      { key: 'open', label: '查看详情', onClick: onOpen },
+      { key: 'edit', label: '编辑', disabled: !canEdit, onClick: onEdit },
+    ]}>
+      <Button type="button" variant="outline">更多操作</Button>
+    </DropdownMenu>
+  );
+}
+```
+
+生成样本后，实际展开指标、时间范围、记录选择和操作菜单，检查主题、选中值、禁用态与键盘操作；记录选择还需核验必填和表单提交。这些是人工验收场景，不加入构建或发布门禁。
+
 ## 必填标记
 
 必填字段只在标题右侧显示一个红色 `*`，输入框下方不显示星号；下方保留帮助或校验错误文案。横向、纵向表单及可编辑明细表使用相同规则。
@@ -24,8 +132,11 @@
 使用 `FieldGroup required` 或 `FieldLabel required`，标题文本不手写 `*`，不反转标题排列方向。`FieldLabel` 只放标题，不包住输入框。`MetaForm` 使用字段的 `widget.required`，明细表使用列的 `required`。自定义标题可在文本后使用一次 `RequiredMark`。控件自身的 `required` / `aria-required` 和业务校验仍需保留。
 
 ```tsx
+import { FieldGroup } from '@/components/forms/form-layout';
+import { Input } from '@/components/kit/ui/input';
+
 <FieldGroup label="设备名称" htmlFor="equipment-name" required>
-  <input id="equipment-name" required />
+  <Input id="equipment-name" required />
 </FieldGroup>
 ```
 
