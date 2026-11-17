@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, ChevronDown } from "lucide-react";
 
 import { uiText } from "@/lib/app-chrome";
 import type { RequestResult } from "@/lib/hooks";
 import { Button, EmptyState } from "@/components/ui";
-import { cn } from "@/lib/utils";
+import { cn, isTransientFailure } from "@/lib/utils";
 import { ENTER_FADE, SKELETON_SHIMMER } from "@/lib/interaction";
 
 /**
@@ -12,7 +12,9 @@ import { ENTER_FADE, SKELETON_SHIMMER } from "@/lib/interaction";
  * three states a data view actually has so pages never hand-roll
  * `if (!data) return null` (which stalls on an error as a fake "loading"):
  *
- *   - error with no data → message + Reload button (calls result.refresh)
+ *   - error with no data → one compact line: what failed + Retry (calls
+ *                          result.refresh); the technical message sits behind
+ *                          "Details". It stays inside the AsyncView's own area.
  *   - loading            → skeleton (only while in flight — a settled request
  *                          with no data shows the empty view, never a spinner)
  *   - loaded             → children(data); empty arrays show the empty view
@@ -49,27 +51,12 @@ export function AsyncView<T>({
 
   if (error && data == null) {
     return (
-      <div
-        role="alert"
-        className={cn(
-          "flex flex-col items-center justify-center gap-3 rounded-[4px] border border-state-error-border/70 bg-card px-6 py-10 text-center shadow-sm",
-          ENTER_FADE,
-          className,
-        )}
-      >
-        <span className="inline-flex size-10 items-center justify-center rounded-[4px] border border-state-error-border bg-state-error-bg text-state-error-fg">
-          <AlertCircle className="size-5" aria-hidden="true" />
-        </span>
-        <div className="space-y-1">
-          <p className="typo-label text-foreground">{uiText("loadError")}</p>
-          <p className="typo-body max-w-md text-muted-foreground">
-            {error.message}
-          </p>
-        </div>
-        <Button variant="outline" onClick={refresh}>
-          {uiText("retry")}
-        </Button>
-      </div>
+      <LoadFailure
+        error={error}
+        retrying={isLoading}
+        onRetry={refresh}
+        className={className}
+      />
     );
   }
 
@@ -132,4 +119,59 @@ export function AsyncView<T>({
   }
 
   return <>{children(data)}</>;
+}
+
+/**
+ * A failed load, said plainly: the copy names only a transient platform
+ * failure (by its error code); the raw message stays behind "Details".
+ */
+function LoadFailure({
+  error,
+  retrying,
+  onRetry,
+  className,
+}: {
+  error: Error;
+  retrying: boolean;
+  onRetry: () => void;
+  className?: string;
+}) {
+  const details = error.message.trim();
+  const summary = (
+    <>
+      <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
+      <span className="min-w-0 flex-auto text-secondary-foreground">
+        {uiText(isTransientFailure(error) ? "loadErrorTransient" : "loadError")}
+      </span>
+    </>
+  );
+
+  return (
+    <div
+      role="alert"
+      className={cn(
+        "flex flex-wrap items-start gap-x-3 gap-y-1 rounded-[4px] border border-border/70 bg-muted/40 px-3 py-2 text-sm text-muted-foreground",
+        ENTER_FADE,
+        className,
+      )}
+    >
+      {details ? (
+        <details className="group min-w-0 flex-auto">
+          <summary className="flex min-h-8 cursor-pointer list-none flex-wrap items-center gap-x-2 [&::-webkit-details-marker]:hidden">
+            {summary}
+            <span className="inline-flex items-center gap-1 hover:text-foreground">
+              {uiText("errorDetails")}
+              <ChevronDown className="size-3.5 transition-transform group-open:rotate-180" aria-hidden="true" />
+            </span>
+          </summary>
+          <p className="mt-1 break-all font-mono text-xs">{details}</p>
+        </details>
+      ) : (
+        <div className="flex min-h-8 min-w-0 flex-auto items-center gap-x-2">{summary}</div>
+      )}
+      <Button variant="outline" size="sm" loading={retrying} onClick={onRetry}>
+        {uiText("retry")}
+      </Button>
+    </div>
+  );
 }

@@ -134,7 +134,9 @@ Load local APIs with `requestJson()` (it applies `apiUrl()`); pass the loader
 `signal` through. Shared loads use stable primitive request keys with
 `useRequest()` / `usePolling()`; do not depend on a newly created loader
 function each render. Render request state through `AsyncView` so failures show
-an error and retry instead of indefinite loading.
+an error and retry instead of indefinite loading. Its failure state is one
+compact line inside the area that failed, with Retry and the technical message
+behind "Details"; do not hand-roll another load-failure block.
 
 Keep live data current without routine Refresh buttons: `useRequest` revalidates
 on visible/reconnect; shared operational lists of App records refresh on
