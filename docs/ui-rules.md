@@ -58,8 +58,9 @@ The sidebar follows the Tier0 platform sidebar: a gray rail (`--sidebar`,
 regular-weight dark items 36px high, hover one gray step darker
 (`--sidebar-accent`) and the selected item one more (`bg-muted`, mapped to
 `--sidebar-selected` inside the rail). The bottom of the rail always shows the
-account avatar with name and roles. Do not add a notification bell until the
-App has a real notice feed and a clear click destination. Gallery business
+account avatar and name, with a role line only when role names are present.
+Do not show an empty-role or loading placeholder in that line. Do not add a
+notification bell until the App has a real notice feed and a clear click destination. Gallery business
 scenes (`SceneShell`) must mirror this footer — never ship a scene rail without
 the account strip.
 A module with `children` is a titled section (small gray label, always
