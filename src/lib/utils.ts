@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { readPlatformError, reportAuthError, type PlatformError } from "@tier0/sdk-v2/page-runtime";
+import { reloadVisitor } from "@/lib/use-visitor";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -160,9 +161,10 @@ export async function requestJson<T>(
   path: string,
   init: RequestInit = {},
 ): Promise<T> {
+  const method = (init.method ?? "GET").toUpperCase();
   let res = await fetch(apiUrl(path), { cache: "no-store", ...init });
   let failure = res.ok ? undefined : await readPlatformError(res);
-  const retryAfter = transientWait(failure, (init.method ?? "GET").toUpperCase());
+  const retryAfter = transientWait(failure, method);
   if (retryAfter !== undefined) {
     await wait(retryAfter, init.signal);
     res = await fetch(apiUrl(path), { cache: "no-store", ...init });
@@ -177,6 +179,8 @@ export async function requestJson<T>(
       failure?.code,
     );
     reportAuthError(failure?.code);
+    // A refused write: the visitor's roles may have changed since the page loaded.
+    if ((res.status === 401 || res.status === 403) && method !== "GET" && method !== "HEAD") reloadVisitor();
     if (!isAppWaiting(error)) console.error("[api]", error.message);
     throw error;
   }

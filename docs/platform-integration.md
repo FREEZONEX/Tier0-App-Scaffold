@@ -100,8 +100,19 @@ Updating injected guidance alone does not upgrade an application's installed SDK
 The layout server functions enrich the visitor through
 `src/services/user-display.ts`. This is display metadata only: authentication,
 `requireAuth()` and `/api/auth/me` continue to use the visitor header without
-depending on a member lookup. `useVisitor()` still returns that identity-only
-profile; layout descendants can read the enriched user from route context.
+depending on a member lookup, and the roles always come from the header.
+`useVisitor()` returns the user in route context, the same object the Shell
+shows, so the page holds one copy of the roles.
+
+The roles can change while a page is open: the platform revokes or grants a
+role, and the front door then refuses writes the old roles allowed and ends
+the visitor's long connections to the App. `reloadVisitor()` re-runs the
+layouts' `beforeLoad`, which reads the header again; it runs when a write
+through `requestJson` is refused with 401/403, when the change stream of
+`useRecordChanges` reconnects, and on the runtime's `resumed`. The role line,
+the navigation and every gate on `useVisitor()` then change together. Reads
+refused with 401/403 do not reload (a page may read what the visitor may not),
+and nothing polls.
 
 The service queries `members.listWorkspace({ keyword: user.id, page, size })`
 and accepts only an exact `userId` match, following pages for keyword

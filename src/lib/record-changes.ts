@@ -19,7 +19,9 @@
  *
  * The App server holds one upstream subscription per process and fans it out
  * to every browser, so a page may subscribe freely; the stream reconnects on
- * its own and resumes from the last event it saw. While the page is hidden
+ * its own and resumes from the last event it saw. Each reconnect also reloads
+ * the visitor's roles in route context (`reloadVisitor`): the front door ends
+ * the connection when they change. While the page is hidden
  * (background tab, minimized window) the connection is closed, so the page
  * does not hold a long connection to the App; when it is visible again the
  * stream resumes from the last event it saw: the server replays what was
@@ -35,6 +37,7 @@
 
 import { useEffect, useRef } from "react";
 import { openEventStream } from "@tier0/sdk-v2/event-stream";
+import { reloadVisitor } from "@/lib/use-visitor";
 import { apiUrl } from "@/lib/utils";
 
 /** A `change` event of `/api/uns/subscribe`. */
@@ -71,6 +74,24 @@ type CollectionRef = string | { alias: string };
 
 /** Three missed 15 s heartbeats of `/api/uns/subscribe`. */
 const STREAM_IDLE_TIMEOUT_MS = 45_000;
+
+/**
+ * `fetch` for the stream that calls `onReconnect` each time the stream is
+ * accepted again after its first connection. The front door ends a visitor's
+ * long connections when their roles change, and the stream reconnects at
+ * once, so a reconnect is when the page reloads the visitor's roles.
+ */
+export function noticeReconnects(onReconnect: () => void, fetchImpl: typeof fetch = fetch): typeof fetch {
+  let connected = false;
+  return async (input, init) => {
+    const response = await fetchImpl(input, init);
+    if (response.ok) {
+      if (connected) onReconnect();
+      connected = true;
+    }
+    return response;
+  };
+}
 
 /** URL of the change stream for the given collections (aliases or declarations). */
 export function recordChangesUrl(
@@ -141,6 +162,7 @@ export function useRecordChanges(
 
     const stream = openEventStream({
       url,
+      fetch: noticeReconnects(reloadVisitor),
       idleTimeoutMs: STREAM_IDLE_TIMEOUT_MS,
       onEvent(event) {
         if (event.event === "change") onChange(event.data);
