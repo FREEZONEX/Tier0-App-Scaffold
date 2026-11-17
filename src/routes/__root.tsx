@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-router";
 import { Toaster } from "@/components/toaster";
 import { APP_LOCALE, APP_NAME } from "@/lib/app-chrome";
+import { useVisitorSync } from "@/lib/use-visitor";
 import "@fontsource/ibm-plex-sans/400.css";
 import "@fontsource/ibm-plex-sans/500.css";
 import "@fontsource/ibm-plex-sans/600.css";
@@ -52,6 +53,8 @@ export const Route = createRootRoute({
 });
 
 function RootDocument() {
+  // Reload the visitor in route context when the server may see other roles.
+  useVisitorSync();
   return (
     <html lang={APP_LOCALE} className="h-full antialiased font-sans">
       <head>
