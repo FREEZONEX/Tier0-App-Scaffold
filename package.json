@@ -5,7 +5,7 @@
   "type": "module",
   "tier0Scaffold": {
     "version": 44,
-    "ref": "248dae6"
+    "ref": "31ab5c5"
   },
   "engines": {
     "node": ">=22.12.0"
