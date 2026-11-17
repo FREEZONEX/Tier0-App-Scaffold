@@ -139,9 +139,12 @@ Never insert baseline data from services (on startup, or when a list is empty).
 - Embed what belongs to one record and changes with it (order lines, checklist
   steps, approval history) as arrays inside that document; one write keeps it
   consistent. Keep arrays bounded.
-- Reference shared entities by ID plus a snapshot of the fields you display
-  (`customer: { id, name }`) instead of joining at read time. `$lookup` exists
-  in `aggregate` (see below) but has row limits; do not build list pages on it.
+- Reference shared entities by ID. Store a display snapshot
+  (`customer: { id, name }`) when the business needs the historical value.
+  A scoped `$lookup` can read current related values. Keep authorization
+  filters in the query, use an indexed join key and project only needed fields.
+  List pages may use scoped joins within the pipeline's row and byte budgets;
+  do not replace a database join with one network request per record.
 - One collection per business object kind, not per screen.
 - Use `_meta.createdAt` / `_meta.updatedAt` for "newest first"; they are kept by
   UNS.
@@ -174,15 +177,17 @@ Also available: `insertMany`, `updateMany`, `replaceOne`, `deleteOne`,
 (`insertOne` / `updateOne` / `replaceOne` / `deleteOne`), `distinct`, and
 `data.transact(...)`.
 
-A screen that shows several things (a list with its total, status chips, a
-selected record, a lookup list) loads them with **one** `data.queryBatch`:
-up to 20 reads in one request, all from the same snapshot, typed by name.
+Combine independent, single-page reads (a list with its total, status chips,
+a lookup list) with `data.queryBatch`: up to 20 reads in
+one request, all from the same snapshot, typed by name. Resolve the service's
+authorized `filter` before constructing the batch. When one read needs a
+previous read's result, await that result before building the next batch;
+there is no one-request-per-screen requirement.
 
 ```ts
-const { list, byStatus, selected } = await data.queryBatch({
+const { list, byStatus } = await data.queryBatch({
   list: orders.query.findPage(filter, { sort, page, pageSize }),
-  byStatus: orders.query.countBy("status"),
-  ...(selectedId ? { selected: orders.query.get([selectedId]) } : {}),
+  byStatus: orders.query.countBy("status", filter),
 });
 ```
 
@@ -192,8 +197,45 @@ each item returns one page (≤200 rows; `query.get` takes 1–100 IDs and
 throws a `TypeError` for none, so add it only when there is an ID). A refused item
 rejects the whole call with its `DataError`; pass `{ settle: true }` to get
 `{ ok: true, value } | { ok: false, error }` per item instead. A statement
-timeout or more than 2000 rows / 8 MiB in total fails the batch. Several
-separate reads per screen are the main cause of `OVERLOADED`.
+timeout or more than 2000 rows / 8 MiB in total fails the batch. Batch only
+reads that fit those budgets; do not truncate results to fit one request.
+
+When the selected order determines which line to read, resolve it first.
+Both reads retain the service's authorized `filter`; a missing or hidden
+order produces no related read:
+
+```ts
+const selected = await orders.findOne({ $and: [filter, { _id: selectedId }] });
+const related = selected
+  ? await orders.findPage(
+      { $and: [filter, { "line.id": selected.line.id }] },
+      { sort, page, pageSize },
+    )
+  : null;
+```
+
+For a complete grouped result, use the ordinary `aggregate()` cursor. Unlike
+`query.aggregate()` inside a batch, it follows all pages. `batchSize(200)`
+sets the per-request size, not a total-result cap. This example loads an
+independent visible page and complete line totals after `filter` has been
+resolved by the service:
+
+```ts
+const [list, totalsByLine] = await Promise.all([
+  orders.findPage(filter, { sort, page, pageSize }),
+  orders.aggregate([
+    { $match: filter },
+    { $group: { _id: "$line.id", total: { $sum: "$targetQty" } } },
+    { $sort: { _id: 1 } },
+  ]).batchSize(200).toArray(),
+]);
+```
+
+The database computes the totals; the App does not fetch every order to sum
+them. Keep a deterministic sort when paging aggregates. `toArray()` retains
+all output groups in memory; use the same cursor with `for await` when they
+must be processed incrementally. Separate requests, including cursor pages,
+do not share one snapshot; preserve business revision checks when required.
 
 Read records by ID with `get(ids)`: IDs that do not exist or are deleted are
 listed in `missing`; treat them as not found (404). Records the current user
@@ -417,9 +459,9 @@ on message text. `execution` says how far the request got: `notStarted` /
 `rolledBack` changed nothing, `unknown` (`outcomeUnknown: true`, writes only)
 means it may have landed — read back before writing again. `withErrors`
 answers `{ error, code, requestId }` and, for a 429 / 503 that is safe to
-repeat, `Retry-After`. A
-frequent `OVERLOADED` means the App sends too many requests: merge page reads
-into one `data.queryBatch` and drop per-record loops. Full mapping:
+repeat, `Retry-After`. Frequent `OVERLOADED` indicates concurrency pressure:
+remove per-record requests and combine independent page reads with
+`data.queryBatch` within its budgets. Full mapping:
 `docs/platform-integration.md` → Errors.
 
 ## Schema evolution
