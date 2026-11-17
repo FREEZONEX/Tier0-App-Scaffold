@@ -114,6 +114,8 @@ export default defineConfig({
       "sonner",
       "@tier0/sdk-v2/event-stream",
       "@tier0/sdk-v2/page-runtime",
+      "@ai-sdk/react",
+      "ai",
     ],
   },
   plugins: [

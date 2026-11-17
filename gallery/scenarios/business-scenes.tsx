@@ -202,7 +202,6 @@ export function SceneOpsMonitor() {
 
   return (
     <WorkbenchLayout
-      metricsVariant="strip"
       header={
         <PageHeader
           title="产线健康看板"
@@ -408,7 +407,12 @@ export function SceneOpsMonitor() {
                   percent={Math.round((l.output / l.target) * 100)}
                   size="sm"
                   showInfo={false}
-                  status={l.state === "error" ? "exception" : "normal"}
+                  /* 达标 #73B200；未达标用前景黑，不跟默认 success/highlight 分流。 */
+                  strokeColor={
+                    l.output >= l.target
+                      ? "var(--tier0-highlight-deep)"
+                      : "var(--foreground)"
+                  }
                   trailColor="var(--tier0-surface-muted)"
                 />
                 {l.state !== "running" && (
@@ -488,7 +492,7 @@ export function SceneEmptyContrast() {
             {[
               ["加载中", "首次请求在途；表格形骨架，避免数据到达时跳动"],
               ["空数据", "请求成功但没有记录；给出下一步动作"],
-              ["加载失败", "请求失败且没有旧数据；显示原因与重新加载"],
+              ["加载失败", "请求失败且没有旧数据；一行提示与重试，原因收在「查看详情」"],
               ["有数据", "正常渲染；后台刷新不清空已显示的数据"],
             ].map(([k, v]) => (
               <div key={k}>

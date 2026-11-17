@@ -63,7 +63,7 @@ function FieldTree({ groups, onPick }: { groups: EventVariableGroup[]; onPick: (
                 <span className="min-w-0 truncate">{group.label}</span>
               </Button>
               {open ? (
-                <ul role="group" className="pb-1">
+                <ul aria-label={group.label} className="pb-1">
                   {group.variables.map((variable) => (
                     <li key={variable.value}>
                       <Button
@@ -71,7 +71,7 @@ function FieldTree({ groups, onPick }: { groups: EventVariableGroup[]; onPick: (
                         size="sm"
                         block
                         title={variable.value}
-                        className="justify-start pl-7 text-text-secondary hover:text-brand"
+                        className="justify-start pl-7 text-text-secondary hover:bg-muted hover:text-foreground"
                         onClick={() => onPick(variable.value)}
                       >
                         <span className="min-w-0 truncate">{variable.label}</span>

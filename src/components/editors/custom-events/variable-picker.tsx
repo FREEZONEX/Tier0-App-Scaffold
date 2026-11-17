@@ -66,7 +66,7 @@ export function VariablePicker({ groups, onPick, disabled = false }: VariablePic
                             variant="ghost"
                             size="sm"
                             block
-                            className="justify-start pl-7 font-normal text-text-secondary hover:text-brand"
+                            className="justify-start pl-7 font-normal text-text-secondary hover:bg-muted hover:text-foreground"
                             onClick={() => {
                               onPick(variable.value);
                               close();

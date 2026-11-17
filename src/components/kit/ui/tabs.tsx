@@ -123,7 +123,7 @@ export function Tabs<K extends string = string>({
                   tabIndex={selected ? 0 : -1}
                   disabled={item.disabled}
                   className={cn(
-                    "relative inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50",
+                    "relative inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[4px] outline-none transition-colors focus-visible:bg-muted focus-visible:text-foreground",
                     type === "line"
                       ? cn(LINE_SIZE[size], selected ? "font-medium text-foreground" : "text-muted-foreground hover:text-foreground")
                       : cn(
@@ -149,7 +149,7 @@ export function Tabs<K extends string = string>({
             {type === "line" && ink ? (
               <span
                 aria-hidden="true"
-                className="absolute bottom-0 h-0.5 origin-left rounded-full bg-[color:var(--tier0-highlight-deep)] transition-transform duration-[var(--motion-base)] ease-[var(--motion-spring)] motion-reduce:transition-none"
+                className="absolute bottom-0 h-0.5 origin-left rounded-full bg-foreground transition-transform duration-[var(--motion-base)] ease-[var(--motion-spring)] motion-reduce:transition-none"
                 style={{
                   left: 0,
                   width: 1,
@@ -184,7 +184,14 @@ export interface CapsuleGroupProps<K extends string | number = string> {
   "aria-label"?: string;
 }
 
-/** CapsuleGroup — pill filters with counts (「全部 45」「进行中 22」). */
+/**
+ * CapsuleGroup — single-choice scope / status switch with counts
+ * (「全部 45」「进行中 22」), drawn as a segmented control: a soft tray the
+ * height of the neighbouring buttons, with no outer or selected-item outline.
+ * The selected item is raised by its card fill and subtle shadow. It never uses the filled primary-button look, so a selected scope
+ * cannot be mistaken for an action such as 「创建」. Long labels wrap inside
+ * their item and the tray wraps onto more rows instead of overlapping.
+ */
 export function CapsuleGroup<K extends string | number = string>({
   items,
   value,
@@ -196,7 +203,15 @@ export function CapsuleGroup<K extends string | number = string>({
 }: CapsuleGroupProps<K>) {
   const [selected, setSelected] = useControllableState<K | undefined>(value, defaultValue ?? items[0]?.key);
   return (
-    <div role="group" aria-label={ariaLabel} className={cn("flex min-w-0 flex-wrap items-center gap-2", className)}>
+    <div
+      role="group"
+      aria-label={ariaLabel}
+      className={cn(
+        "inline-flex w-fit min-w-0 max-w-full flex-wrap items-stretch gap-0.5 rounded-[4px] bg-muted/60 p-0.5",
+        size === "sm" ? "min-h-[var(--tier0-control-height-sm)]" : "min-h-[var(--tier0-control-height-md)]",
+        className,
+      )}
+    >
       {items.map((item) => {
         const active = item.key === selected;
         return (
@@ -206,23 +221,29 @@ export function CapsuleGroup<K extends string | number = string>({
             aria-pressed={active}
             disabled={item.disabled}
             className={cn(
-              "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full outline-none",
-              "transition-[color,background-color,box-shadow,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)]",
-              "focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-[0.98] motion-reduce:transition-none",
-              size === "sm" ? "h-7 px-3 text-xs" : "h-8 px-3.5 text-sm",
+              "inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-[3px] outline-none",
+              "transition-[color,background-color,box-shadow] duration-[var(--motion-fast)] ease-[var(--motion-ease)]",
+              "focus-visible:bg-fill-hover focus-visible:text-foreground motion-reduce:transition-none",
+              size === "sm" ? "px-2 py-0.5 text-xs" : "px-3 py-1 text-sm",
+              "pointer-coarse:min-h-10",
               active
-                ? "bg-[color:var(--tier0-highlight-bg-primary)] font-medium text-[color:var(--tier0-highlight-foreground)] shadow-sm"
-                : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground",
+                ? "bg-card font-medium text-foreground shadow-sm"
+                : "bg-transparent text-muted-foreground hover:bg-card/60 hover:text-foreground",
               item.disabled && "pointer-events-none opacity-50",
             )}
             onClick={() => {
+              if (active) return;
               setSelected(item.key);
               onChange?.(item.key);
             }}
           >
             {item.icon ? <span className="flex shrink-0 [&>svg]:size-3.5">{item.icon}</span> : null}
-            <span>{item.label}</span>
-            {item.count !== undefined ? <span className="tabular-nums">{item.count}</span> : null}
+            <span className="min-w-0 break-words text-left">{item.label}</span>
+            {item.count !== undefined ? (
+              <span className={cn("shrink-0 text-xs font-normal tabular-nums", active ? "text-text-secondary" : "text-text-tertiary")}>
+                {item.count}
+              </span>
+            ) : null}
           </button>
         );
       })}
@@ -339,11 +360,11 @@ export function AnchorTabs({
               aria-selected={selected}
               tabIndex={selected ? 0 : -1}
               className={cn(
-                "relative inline-flex shrink-0 items-center whitespace-nowrap outline-none transition-colors duration-150 focus-visible:text-[color:var(--tier0-highlight-deep)]",
+                "relative inline-flex shrink-0 items-center whitespace-nowrap rounded-[4px] outline-none transition-colors duration-150 focus-visible:bg-muted focus-visible:text-foreground",
                 size === "sm" ? "py-2 text-sm" : "py-3 text-sm",
                 selected
-                  ? "font-medium text-[color:var(--tier0-highlight-deep)]"
-                  : "text-foreground hover:text-foreground",
+                  ? "font-medium text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
               onClick={() => jump(item.key)}
               onKeyDown={(event) => focusSibling(event, (next) => {
@@ -358,7 +379,7 @@ export function AnchorTabs({
         {ink ? (
           <span
             aria-hidden="true"
-            className="absolute bottom-0 h-0.5 origin-left rounded-full bg-[color:var(--tier0-highlight-deep)] transition-transform duration-[var(--motion-base)] ease-[var(--motion-spring)] motion-reduce:transition-none"
+            className="absolute bottom-0 h-0.5 origin-left rounded-full bg-foreground transition-transform duration-[var(--motion-base)] ease-[var(--motion-spring)] motion-reduce:transition-none"
             style={{
               left: 0,
               width: 1,

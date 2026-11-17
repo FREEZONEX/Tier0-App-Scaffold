@@ -9,8 +9,12 @@ import {
   List,
   ListTodo,
   Loader,
+  Pencil,
+  Play,
   Plus,
+  RotateCcw,
   SlidersHorizontal,
+  SquareCheck,
   X,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -28,7 +32,7 @@ import { StatusTag } from '@/components/kit/ui/tag';
 import { DataGrid } from '@/components/kit/ui/data-grid';
 import { ProgressBar } from '@/components/kit/ui/feedback';
 import { Avatar } from '@/components/kit/ui/avatar';
-import { IconButton, TextButton } from '@/components/kit/ui/buttons';
+import { IconButton } from '@/components/kit/ui/buttons';
 import { EllipsisText } from '@/components/kit/ui/tooltip';
 import { Drawer } from '@/components/overlays/drawer';
 import { ConfirmDialog } from '@/components/overlays/confirm-dialog';
@@ -254,19 +258,17 @@ export function TaskWorkspace() {
   const selectedTasks = tasks.filter((t) => selected.includes(t.id) && t.status !== 'closed');
 
   function actions(t: Task) {
+    const advanceLabel = t.status === 'todo' ? '开始' : t.status === 'running' ? '完成' : '重新打开';
+    const AdvanceIcon = t.status === 'todo' ? Play : t.status === 'running' ? SquareCheck : RotateCcw;
     return (
-      // One style for every row action: text buttons, same size and spacing; 关闭 is the only danger tone.
-      <div className="flex items-center gap-4 whitespace-nowrap">
-        <TextButton size="sm" onClick={() => advance(t)}>
-          {t.status === 'todo' ? '开始' : t.status === 'running' ? '完成' : '重新打开'}
-        </TextButton>
-        <TextButton size="sm" onClick={() => edit(t)}>
-          编辑
-        </TextButton>
-        {t.status !== 'closed' && (
-          <TextButton size="sm" tone="danger" onClick={() => setClosing([t])}>
-            关闭
-          </TextButton>
+      // Icon actions, fixed size; empty ⋯ slot keeps the column aligned with MetaListPage rows.
+      <div className="flex items-center gap-1 whitespace-nowrap">
+        <IconButton size="sm" label={advanceLabel} icon={<AdvanceIcon />} className="text-brand" onClick={() => advance(t)} />
+        <IconButton size="sm" label="编辑" icon={<Pencil />} className="text-brand" onClick={() => edit(t)} />
+        {t.status !== 'closed' ? (
+          <IconButton size="sm" label="关闭" icon={<X />} danger onClick={() => setClosing([t])} />
+        ) : (
+          <span className="inline-flex size-7 shrink-0" aria-hidden="true" />
         )}
       </div>
     );
@@ -300,10 +302,29 @@ export function TaskWorkspace() {
                       STAGGER_ITEM,
                     )}
                   >
-                    <div className="flex items-center gap-2">
-                      <span className={cn('size-1.5 rounded-full', priorityDot[t.priority])} aria-hidden />
+                    <div className="flex min-h-7 items-center gap-2">
+                      <span
+                        className={cn('size-1.5 rounded-full', priorityDot[t.priority])}
+                        title={`${t.priority}优先级`}
+                        aria-label={`${t.priority}优先级`}
+                      />
                       <code className="caption">{t.id}</code>
-                      <span className="caption ml-auto">{t.priority}优先级</span>
+                      {/* Hover ✕ replaces the old「高优先级」slot at top-right; priority stays on the dot. */}
+                      {t.status !== 'closed' ? (
+                        <span className="ml-auto inline-flex shrink-0 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100">
+                          <IconButton
+                            size="sm"
+                            icon={<X className="size-3.5 stroke-[2.5]" />}
+                            label="关闭任务"
+                            danger
+                            tooltip={false}
+                            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                            onClick={() => setClosing([t])}
+                          />
+                        </span>
+                      ) : (
+                        <span className="caption ml-auto text-muted-foreground">{t.priority}优先级</span>
+                      )}
                     </div>
                     <button
                       type="button"
@@ -316,24 +337,20 @@ export function TaskWorkspace() {
                       计划 {t.due || '未排期'}
                       {t.lines.length ? ` · 领料 ${t.lines.length} 项 · ${money(totalOf(t.lines, 'amount'))}` : ''}
                     </p>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-end justify-between gap-2">
                       <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
                         <Avatar name={t.owner} size="sm" />
                         <EllipsisText>{t.owner}</EllipsisText>
                       </span>
-                      <span className="ml-auto flex items-center gap-0.5">
-                        <Button size="sm" variant="ghost" className="h-6 px-2 text-xs" onClick={() => advance(t)}>
-                          {t.status === 'todo' ? '开始' : t.status === 'running' ? '完成' : '重新打开'}
-                          <ArrowRight size={12} />
-                        </Button>
-                        <IconButton
-                          size="sm"
-                          icon={<X />}
-                          label="关闭任务"
-                          className="sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
-                          onClick={() => setClosing([t])}
-                        />
-                      </span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 shrink-0 px-2 text-xs"
+                        onClick={() => advance(t)}
+                      >
+                        {t.status === 'todo' ? '开始' : t.status === 'running' ? '完成' : '重新打开'}
+                        <ArrowRight size={12} />
+                      </Button>
                     </div>
                   </article>
                 ))}
@@ -397,14 +414,13 @@ export function TaskWorkspace() {
           ellipsis: false,
           render: (t) => <span className="whitespace-nowrap tabular-nums">{t.lines.length ? money(totalOf(t.lines, 'amount')) : '—'}</span>,
         },
-        { key: 'actions', title: '操作', width: 168, fixed: 'right', ellipsis: false, render: actions },
+        { key: 'actions', title: '操作', width: 112, fixed: 'right', ellipsis: false, render: actions },
       ]}
     />
   );
 
   return (
     <WorkbenchLayout
-      metricsVariant="strip"
       header={
         <PageHeader
           title="任务工作台"
@@ -595,7 +611,8 @@ export function TaskWorkspace() {
           if (!v) setDraft(null);
         }}
         title={draft?.id ? '编辑任务' : '新建任务'}
-        size="xl"
+        size="lg"
+        className="sm:max-w-3xl"
         footer={
           <>
             <Button variant="outline" onClick={() => setDraft(null)}>

@@ -98,8 +98,14 @@ const TRANSIENT_CODES = new Set(["node_restarting", "upstream_error"]);
 const TRANSIENT_RETRY_MAX_MS = 5_000;
 const TRANSIENT_RETRY_DEFAULT_MS = 1_000;
 
+/** The platform reported a transient failure: trying again later can succeed. */
+export function isTransientFailure(error: unknown): error is { code: string } {
+  const code = (error as { code?: unknown } | null)?.code;
+  return typeof code === "string" && TRANSIENT_CODES.has(code);
+}
+
 function transientWait(failure: PlatformError | undefined, method: string): number | undefined {
-  if (!failure || !TRANSIENT_CODES.has(failure.code) || (method !== "GET" && method !== "HEAD")) return undefined;
+  if (!isTransientFailure(failure) || (method !== "GET" && method !== "HEAD")) return undefined;
   return Math.min(failure.retryAfterMs ?? TRANSIENT_RETRY_DEFAULT_MS, TRANSIENT_RETRY_MAX_MS);
 }
 

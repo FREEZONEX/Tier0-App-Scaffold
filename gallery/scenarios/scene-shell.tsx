@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   Menu,
   ScrollText,
+  User,
   Workflow,
   X,
 } from "lucide-react";
@@ -76,10 +77,10 @@ function SceneNav({
     <aside
       id={navId}
       className={cn(
-        "flex shrink-0 flex-col overflow-hidden border-r border-border bg-sidebar",
+        "flex shrink-0 flex-col overflow-hidden border-r border-sidebar-border bg-sidebar text-sidebar-foreground [--muted:var(--sidebar-selected)]",
         "transition-[width] duration-200",
         railEase,
-        onNavigate ? "w-full" : collapsed ? "w-16" : "w-56",
+        onNavigate ? "w-full" : collapsed ? "w-16" : "w-60",
         className,
       )}
       aria-label="应用导航"
@@ -118,9 +119,9 @@ function SceneNav({
             aria-label={collapsed ? "展开侧边栏" : "收起侧边栏"}
             title={collapsed ? "展开侧边栏" : "收起侧边栏"}
             className={cn(
-              "inline-flex size-8 shrink-0 items-center justify-center rounded-[4px] border border-transparent",
-              "text-muted-foreground transition-[background-color,color,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)]",
-              "hover:bg-sidebar-accent hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--tier0-cta)]/40 active:scale-95",
+              "inline-flex size-8 shrink-0 items-center justify-center rounded-[4px]",
+              "text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground",
+              "focus:outline-none focus-visible:bg-sidebar-accent focus-visible:text-foreground",
               collapsed && !onNavigate ? "" : "ml-auto",
             )}
           >
@@ -136,7 +137,7 @@ function SceneNav({
           <button
             type="button"
             aria-label="关闭导航"
-            className="inline-flex size-9 shrink-0 items-center justify-center rounded-[4px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--tier0-cta)]/40 md:hidden"
+            className="inline-flex size-9 shrink-0 items-center justify-center rounded-[4px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus-visible:bg-muted focus-visible:text-foreground md:hidden"
             onClick={onNavigate}
           >
             <X size={16} aria-hidden />
@@ -144,7 +145,7 @@ function SceneNav({
         ) : null}
       </div>
 
-      <nav className="flex flex-1 flex-col gap-3 overflow-auto overscroll-contain px-2 pb-4 pt-4">
+      <nav className="flex min-h-0 flex-1 flex-col gap-3 overflow-auto overscroll-contain px-2 pb-2 pt-4">
         {GROUPS.map((group) => (
           <div key={group.title}>
             <div className="relative mb-1 h-5" aria-hidden={collapsed}>
@@ -177,17 +178,18 @@ function SceneNav({
                       title={collapsed ? label : undefined}
                       aria-label={collapsed ? label : undefined}
                       className={cn(
-                        "group flex h-9 items-center gap-2.5 overflow-hidden rounded-[4px] pl-4 pr-2 text-sm font-medium",
+                        "group flex h-9 items-center overflow-hidden rounded-[4px] text-sm font-normal",
+                        collapsed && !onNavigate ? "justify-center px-0" : "gap-2 px-2",
                         "transition-colors duration-200",
                         railEase,
                         current
-                          ? "bg-fill-active text-foreground"
-                          : "text-secondary-foreground",
+                          ? "bg-muted text-foreground"
+                          : "text-sidebar-foreground hover:bg-sidebar-accent",
                       )}
                     >
                       <Icon
                         size={16}
-                        className="shrink-0 opacity-70 transition-transform duration-200 group-hover:scale-105"
+                        className="shrink-0"
                         aria-hidden
                       />
                       <span
@@ -210,6 +212,39 @@ function SceneNav({
           </div>
         ))}
       </nav>
+
+      {/* Same account strip as src/components/Shell.tsx */}
+      <div className={cn("shrink-0 py-3", collapsed && !onNavigate ? "px-2" : "px-3")}>
+        <div
+          className={cn(
+            "flex min-w-0 items-center overflow-hidden border-t border-sidebar-border pt-3",
+            collapsed && !onNavigate ? "justify-center" : "gap-1",
+          )}
+        >
+          <div
+            className={cn(
+              "flex min-w-0 items-center overflow-hidden",
+              collapsed && !onNavigate ? "justify-center" : "min-w-0 flex-1 gap-2.5 px-1",
+            )}
+          >
+            <span
+              aria-hidden="true"
+              title={collapsed ? "验收用户" : undefined}
+              className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-foreground text-background"
+            >
+              <User className="size-4" />
+            </span>
+            <div className={collapsed && !onNavigate ? "sr-only" : "min-w-0 flex-1 overflow-hidden"}>
+              <p className="truncate text-sm leading-5" title="验收用户">
+                验收用户
+              </p>
+              <p className="truncate text-xs leading-4 text-muted-foreground" title="计划员">
+                计划员
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </aside>
   );
 }
@@ -279,7 +314,7 @@ export function SceneShell({
             aria-label="打开导航"
             aria-expanded={mobileOpen}
             aria-controls={navId}
-            className="inline-flex size-9 items-center justify-center rounded-[4px] border border-border bg-card text-foreground shadow-sm transition-[background-color,border-color,box-shadow,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--tier0-cta)]/40 active:scale-95"
+            className="inline-flex size-9 items-center justify-center rounded-[4px] border border-border bg-card text-foreground shadow-sm transition-[background-color,border-color,box-shadow,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)] hover:bg-muted focus:outline-none focus-visible:bg-muted focus-visible:text-foreground active:scale-95"
             onClick={() => setMobileOpen(true)}
           >
             <Menu size={16} aria-hidden />

@@ -15,9 +15,10 @@ read the named file **before** that kind of work:
 | Before you… | Read |
 |---|---|
 | declare/change collections, write services that touch records, add live updates, evolve a schema | `docs/app-data.md` |
-| build or rework routes, pages, forms, dialogs, data loading, responsive layouts | `docs/ui-rules.md`, `docs/component-kit.md` |
+| build or rework routes, pages, forms, dialogs, data loading, responsive layouts | `docs/ui-rules.md`, `docs/component-kit.md`, `docs/operator-ux.md` |
 | register or change roles | `docs/role-registration.md` |
 | use the Tier0 SDK, notifications, MQTT, files, env vars, scaffold version | `docs/platform-integration.md` |
+| add AI features (LLM calls, chat, agent tools) | `docs/platform-integration.md` ("Calling the workspace LLM") |
 
 ## Delivery Floor: Complete the Legal Lifecycle
 
@@ -119,10 +120,14 @@ src/
     login.tsx                  hidden platform-auth error bridge
     api/**                     thin HTTP wrappers
     api/uns/subscribe.ts       record change stream for useRecordChanges (do not modify)
+    api/ai/chat.ts             example AI chat reply stream for useChat (POST)
   services/**                  domain logic, state machines, data access
+  services/ai/provider.ts      tier0Model(): the workspace LLM (default | fast), server only
+  services/ai/chat.ts          example agent loop with per-user tools
   data/collections.ts          collection declarations + seed (source of truth)
   data/seed-utils.ts           seed date/reference helpers
   components/{ui,forms,overlays,data,actions,layouts,kit}   shipped primitives
+  components/ai/chat-panel.tsx ChatPanel (useChat); mounted nowhere by default
   lib/                         auth, permissions, routing and runtime helpers
   lib/data/                    App instance of the @tier0/sdk-v2/data client (locked)
   lib/record-changes.ts        useRecordChanges(): live record changes in the browser
@@ -165,6 +170,9 @@ Hard invariants:
   transitions with a conflict/error instead of silently rewriting state.
 - Never fetch Tier0 UNS paths yourself and never put a platform credential in the
   browser; the data layer is the only UNS client.
+- App server code calls the LLM only through `@/services/ai/provider` and
+  never reads, writes or logs any LLM key: the platform's egress adds the
+  workspace key on the way out, so App code never holds an LLM key.
 
 ## App Data
 
@@ -346,7 +354,8 @@ Use `DESIGN.md`, existing tokens and the shipped primitives
   `defaultErrorComponent`, so new pages need no `errorComponent` of their own.
 - Do not add a page-introduction subtitle that explains navigation or repeats
   the title. Shell `defaultModules` starts empty; declare real routes through
-  `defineNavigationModules`, one unique href per clickable leaf.
+  `defineNavigationModules`, one unique href per clickable leaf. Assign every
+  group and leaf a business-appropriate icon imported from `lucide-react`.
 - Interactive pages remain usable at 375px without page-level overflow; wide
   tables own their horizontal scroll region and search/filter controls have a
   bounded width. Check affected pages at a real 375px viewport when browser
@@ -408,6 +417,12 @@ unexpected empty list using the installed SDK, preview runtime and role bindings
   `TIER0_RUNTIME`, `VITE_BASE_PATH`); see `docs/platform-integration.md`. Do not add them to
   `.env.example`, collections or user-facing settings. Apps have no database
   connection variables.
+- For AI features the platform also provides `TIER0_LLM_BASE_URL` (the
+  workspace token gateway, OpenAI-compatible) and `TIER0_LLM_API_KEY` (a
+  placeholder, not a secret: the platform's egress replaces it with the
+  workspace key). Only `@/services/ai/provider` uses them; do not add them to
+  `.env.example`, collections or user-facing settings, and never configure a
+  real LLM key or another gateway in App code.
 - **In Preview and deployments the App's key is in the App's process
   environment** as `TIER0_API_KEY` (a secret: Preview runs with the App's
   preview key, deployments with the deployed one), and the SDK uses it by
@@ -417,9 +432,9 @@ unexpected empty list using the installed SDK, preview runtime and role bindings
 - Scripts and App code call the platform through the SDK, never with a
   hand-written `fetch` / `curl` to `TIER0_API_HOST`.
 - Every App has the same fixed platform capabilities: members, notifications
-  (send), files, Stream requests and Stream messages, bounded by the workspace
-  plan. Nothing is configured or approved per App and there is no permission
-  request to file from code.
+  (send), files, Stream requests and Stream messages, and the workspace LLM
+  (see AI Features), bounded by the workspace plan. Nothing is configured or
+  approved per App and there is no permission request to file from code.
 - Data: the App accesses its own collections and external collections granted
   to it. For task-required access to existing collections, built-in Builder uses its
   injected management identity and the installed SDK grant workflow. Verify the
@@ -439,6 +454,10 @@ unexpected empty list using the installed SDK, preview runtime and role bindings
   is hidden and resumes from the last event id when the page is visible again,
   and it comes back after the App sleeps (`EventSource` never retries a 503). A hand-written WebSocket does not come back
   after a node agent restart either; reconnect it yourself.
+  The one exception is an AI chat reply: a POST to the App's own route
+  answered with a UI message stream, read with `useChat` from `@ai-sdk/react`
+  (see AI Features). It is not resumed after a reload or a dropped
+  connection; the user sends the turn again.
 - `GET /api/health` stays free of dependencies (contract in `artifact.toml`).
 - `.tier0ignore` (gitignore syntax) keeps local files out of the published source.
 - Do not use the sandbox file system for application-generated or uploaded
@@ -494,6 +513,42 @@ credential, browser-side platform call or synthesized identity. Persisted
 business data stays in `@/lib/data` (with `useRecordChanges` for live
 updates). Usage: `docs/platform-integration.md`, "App Stream requests and
 messages".
+
+## AI Features
+
+Add AI only when the user asks for it. The scaffold ships the pieces and mounts
+none of them: `tier0Model()` in `src/services/ai/provider.ts`, an example agent
+loop with tools in `src/services/ai/chat.ts`, the route
+`src/routes/api/ai/chat.ts` and `ChatPanel` in `src/components/ai`. Adapt them
+in place instead of adding a second AI stack. Details:
+`docs/platform-integration.md`, "Calling the workspace LLM".
+
+- Call the LLM on the App's server only (API routes, services, server
+  functions). Pages use `useChat` with
+  `new DefaultChatTransport({ api: apiUrl("/api/ai/chat") })` or call another
+  App route; the browser never reaches the gateway.
+- Name models only by alias; the gateway maps it to a real model. There are
+  two: `tier0Model()` (`default`) for chat and agent loops with tools, and
+  `tier0Model("fast")` for high-volume simple calls (classify, extract,
+  summarize, rewrite, batch jobs, short answers). When unsure, use `default`.
+  Any other alias throws. Never pass a string model id (`model: "..."`): the
+  AI SDK resolves a bare string through its own global gateway, not the
+  workspace. Do not add another provider package, base URL or key.
+- Tools run as the App, with the App's data access; the platform does not
+  narrow it by user. Build the tool set per request from `requireAuth()` and
+  include a tool only when `can(user.roles, action)` allows it; filter and trim
+  what a tool returns the same way, and send writes through the same service,
+  validation and audit path as the UI.
+- Never put the App's key, another secret or data the visitor may not see into
+  instructions, messages or tool output.
+- Pass the request's `signal` as the model call's `abortSignal` (the data
+  layer gets it from `src/start.ts`, the model call does not) and bound the
+  loop with `stopWhen: isStepCount(n)`.
+- The installed AI SDK is v7 (`ai`, `@ai-sdk/react`,
+  `@ai-sdk/openai-compatible`, runtime dependencies). Read
+  `node_modules/ai/docs` and the package types before AI work; v4–v6 examples
+  (`system:`, `maxSteps`, `toDataStreamResponse`,
+  `result.toUIMessageStreamResponse()`) are outdated.
 
 ## Build, Gates, and Deployment
 

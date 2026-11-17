@@ -2,6 +2,7 @@ import { forwardRef, type ReactNode, type ButtonHTMLAttributes } from "react";
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
+import { FOCUS_FILL } from "@/lib/interaction";
 
 /**
  * Button — ReUI (@base-ui/react + CVA) recipe.
@@ -24,7 +25,7 @@ const buttonVariants = cva(
     "group/button inline-flex shrink-0 items-center justify-center rounded-[4px] border border-transparent",
     "bg-clip-padding text-sm font-medium whitespace-nowrap outline-none select-none",
     "transition-[color,background-color,border-color,box-shadow,transform,filter] duration-[var(--motion-fast)] ease-[var(--motion-ease)]",
-    "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
+    FOCUS_FILL,
     "active:not-aria-[haspopup]:scale-[0.97]",
     "disabled:pointer-events-none disabled:opacity-50",
     "aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20",
@@ -34,26 +35,26 @@ const buttonVariants = cva(
     variants: {
       variant: {
         highlight:
-          "bg-[color:var(--tier0-cta)] text-[color:var(--tier0-cta-foreground)] shadow-[var(--tier0-shadow-highlight-button)] hover:bg-[color:var(--tier0-cta-hover)] active:bg-[color:var(--tier0-cta-active)]",
+          "bg-[color:var(--tier0-cta)] text-[color:var(--tier0-cta-foreground)] shadow-[var(--tier0-shadow-highlight-button)] hover:bg-[color:var(--tier0-cta-hover)] focus-visible:bg-[color:var(--tier0-cta-hover)] focus-visible:text-[color:var(--tier0-cta-foreground)] active:bg-[color:var(--tier0-cta-active)]",
         primary:
-          "bg-primary text-primary-foreground shadow-primary hover:bg-[color:var(--tier0-primary-hover)] active:brightness-95",
+          "bg-primary text-primary-foreground shadow-primary hover:bg-[color:var(--tier0-primary-hover)] focus-visible:bg-[color:var(--tier0-primary-hover)] focus-visible:text-primary-foreground active:brightness-95",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-[color-mix(in_srgb,var(--secondary),var(--foreground)_5%)]",
+          "bg-secondary text-secondary-foreground hover:bg-[color-mix(in_srgb,var(--secondary),var(--foreground)_5%)] focus-visible:bg-[color-mix(in_srgb,var(--secondary),var(--foreground)_5%)] focus-visible:text-secondary-foreground",
         outline:
-          "border-border bg-card text-foreground shadow-xs hover:border-[color-mix(in_srgb,var(--border)_70%,var(--foreground))] hover:bg-muted aria-pressed:border-transparent aria-pressed:bg-primary aria-pressed:text-primary-foreground aria-pressed:hover:bg-[color:var(--tier0-primary-hover)]",
+          "border-border bg-card text-foreground shadow-xs hover:border-[color-mix(in_srgb,var(--border)_70%,var(--foreground))] hover:bg-muted focus-visible:border-border-strong aria-pressed:border-transparent aria-pressed:bg-muted aria-pressed:text-foreground aria-pressed:hover:bg-muted",
         ghost: "hover:bg-muted hover:text-foreground",
         danger:
-          "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20",
-        link: "text-primary underline-offset-4 hover:underline",
+          "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:bg-destructive/20 focus-visible:text-destructive",
+        link: "text-primary underline-offset-4 hover:underline focus-visible:bg-muted focus-visible:text-primary",
       },
       size: {
-        sm: "h-7 gap-1 px-2.5 text-[0.8rem] [&_svg:not([class*='size-'])]:size-3.5",
-        md: "h-8 gap-1.5 px-2.5",
-        lg: "h-9 gap-1.5 px-3",
-        "icon-xs": "size-6 [&_svg:not([class*='size-'])]:size-3",
-        "icon-sm": "size-7 [&_svg:not([class*='size-'])]:size-3.5",
-        icon: "size-8",
-        "icon-lg": "size-9",
+        sm: "h-[var(--tier0-control-height-sm)] gap-1 px-2.5 text-[length:var(--tier0-control-text-sm)] [&_svg:not([class*='size-'])]:size-3.5",
+        md: "h-[var(--tier0-control-height-md)] gap-1.5 px-2.5",
+        lg: "h-[var(--tier0-control-height-lg)] gap-1.5 px-3",
+        "icon-xs": "size-6 pointer-coarse:min-h-11 pointer-coarse:min-w-11 [&_svg:not([class*='size-'])]:size-3",
+        "icon-sm": "size-7 pointer-coarse:min-h-11 pointer-coarse:min-w-11 [&_svg:not([class*='size-'])]:size-3.5",
+        icon: "size-8 pointer-coarse:min-h-11 pointer-coarse:min-w-11",
+        "icon-lg": "size-9 pointer-coarse:min-h-11 pointer-coarse:min-w-11",
       },
     },
     defaultVariants: {

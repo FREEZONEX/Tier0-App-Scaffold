@@ -86,7 +86,12 @@ export function ViewToggle<V extends string = string>({
       )}
     >
       {items.map((item, index) => (
-        <Tooltip key={item.value} title={item.label} anchorClassName="flex">
+        <Tooltip
+          key={item.value}
+          title={item.label}
+          /* Fill the segmented rail height; Tooltip's default self-start tops the icons. */
+          anchorClassName="flex h-full self-stretch"
+        >
           <button
             type="button"
             aria-label={item.label}
@@ -96,7 +101,7 @@ export function ViewToggle<V extends string = string>({
               "inline-flex aspect-square h-full items-center justify-center text-muted-foreground outline-none",
               "transition-[background-color,color] duration-[var(--motion-fast)] ease-[var(--motion-ease)]",
               "hover:bg-fill-hover hover:text-foreground focus-visible:bg-fill-hover focus-visible:text-foreground",
-              "aria-pressed:bg-highlight-bg-accent aria-pressed:text-foreground [&_svg]:size-4",
+              "aria-pressed:bg-muted aria-pressed:text-foreground [&_svg]:size-4",
               index > 0 && "border-l border-input",
             )}
           >

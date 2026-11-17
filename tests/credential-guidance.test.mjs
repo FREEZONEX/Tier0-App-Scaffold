@@ -118,3 +118,72 @@ test("MQTT examples stay in the App's namespace through appTopic", () => {
   assert.match(integration, /mq\.subscribe\(appTopic\("alarms\/#"\)/);
   assert.match(read("AGENTS.md"), /`appTopic\(suffix\)`/);
 });
+
+// App 服务端经 @/services/ai/provider 直接调网关；真 key 由平台出站时加上，App 代码和 .env.example 里不能有 LLM key。
+function sourceFiles(root) {
+  return readdirSync(root, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(root, entry.name);
+    if (entry.isDirectory()) return sourceFiles(path);
+    return /\.(?:[cm]?[jt]sx?)$/.test(entry.name) ? [path] : [];
+  });
+}
+
+const LLM_PROVIDER = join("src", "services", "ai", "provider.ts");
+// 网关只认两个别名：default（通用、带工具的 agent loop）和 fast（高量的简单调用）。
+const MODEL_ALIASES = ["default", "fast"];
+const LIKELY_KEYS = [
+  /\bsk-(?:ant-|proj-)?[A-Za-z0-9_-]{20,}/,
+  /\bAIza[0-9A-Za-z_-]{30,}/,
+  /\bBearer\s+[A-Za-z0-9._~+/-]{24,}/,
+];
+
+test("App code and .env.example hold no LLM key", () => {
+  const envExample = read(".env.example");
+  assert.doesNotMatch(envExample, /TIER0_LLM_/, ".env.example must not list the platform-injected LLM variables");
+  assert.doesNotMatch(envExample, /^\s*(?:export\s+)?[A-Z0-9_]*(?:LLM|OPENAI|ANTHROPIC|AI_GATEWAY|GEMINI|DEEPSEEK|AXONHUB)[A-Z0-9_]*\s*=/m, ".env.example must not configure an LLM key or gateway");
+  for (const path of [".env.example", ...sourceFiles("src")]) {
+    const text = read(path);
+    for (const pattern of LIKELY_KEYS) assert.doesNotMatch(text, pattern, `${path} contains what looks like an API key (${pattern})`);
+    assert.doesNotMatch(text, /\b(?:OPENAI|ANTHROPIC|AI_GATEWAY|GEMINI|GOOGLE_GENERATIVE_AI|DEEPSEEK|AXONHUB)_API_KEY\b/, `${path} reads a provider key; use tier0Model() from @/services/ai/provider`);
+    assert.doesNotMatch(text, /\bTIER0_LLM_[A-Z_]+\s*(?:=(?!=)|:)/, `${path} assigns an LLM variable; only the platform sets them`);
+    if (path === LLM_PROVIDER) continue;
+    assert.doesNotMatch(text, /TIER0_LLM_/, `${path} reads the LLM variables; only @/services/ai/provider may`);
+    if (/from\s+["'](?:ai|@ai-sdk\/[\w-]+)["']/.test(text)) {
+      assert.doesNotMatch(text, /\bmodel\s*:\s*["'`]/, `${path} passes a string model id; use tier0Model()`);
+    }
+    for (const [call, alias] of text.matchAll(/\btier0Model\(\s*["'`]([^"'`]*)["'`]/g)) {
+      assert.ok(MODEL_ALIASES.includes(alias), `${path}: ${call} names an unknown model; the aliases are ${MODEL_ALIASES.join(" and ")}`);
+    }
+  }
+  const provider = read(LLM_PROVIDER);
+  assert.match(provider, /createOpenAICompatible\(\{ name: "tier0", baseURL, apiKey, includeUsage: true \}\)/);
+  assert.match(provider, /export const TIER0_MODEL_ALIASES = \["default", "fast"\] as const;/);
+  assert.match(provider, /export function tier0Model\(alias: Tier0ModelAlias = "default"\)/);
+  assert.match(provider, /if \(!\(TIER0_MODEL_ALIASES as readonly string\[\]\)\.includes\(alias\)\) \{\n\s*throw new Error\(/, "the provider refuses an unknown alias");
+  assert.doesNotMatch(provider, /console\.\w+\(/, "the provider never logs");
+});
+
+test("guidance routes LLM calls through the provider and keeps the key out of App code", () => {
+  const agents = read("AGENTS.md");
+  assert.match(agents, /calls the LLM only through `@\/services\/ai\/provider` and\s+never reads, writes or logs any LLM key/);
+  assert.match(agents, /`TIER0_LLM_BASE_URL`[\s\S]*`TIER0_LLM_API_KEY` \(a\s+placeholder, not a secret/);
+  assert.match(agents, /Never pass a string model id/);
+  assert.match(agents, /`tier0Model\(\)` \(`default`\) for chat and agent loops with tools, and\s+`tier0Model\("fast"\)` for high-volume simple calls/);
+  assert.match(agents, /When unsure, use `default`/);
+  assert.match(agents, /include a tool only when `can\(user\.roles, action\)` allows it/);
+  assert.match(agents, /`node_modules\/ai\/docs`/);
+  const integration = read("docs/platform-integration.md");
+  assert.match(integration, /### Calling the workspace LLM/);
+  assert.match(integration, /\| `default` \| `tier0Model\(\)` \|/);
+  assert.match(integration, /\| `fast` \| `tier0Model\("fast"\)` \|/);
+  for (const path of GUIDANCE) {
+    for (const [call, alias] of read(path).matchAll(/\btier0Model\(\s*["'`]([^"'`]*)["'`]/g)) {
+      assert.ok(MODEL_ALIASES.includes(alias), `${path}: ${call} names an unknown model alias`);
+    }
+  }
+  assert.match(integration, /\| `TIER0_LLM_API_KEY` \| [^\n]*A placeholder, not a secret/);
+  assert.match(integration, /Only `TIER0_API_KEY` is a secret/);
+  for (const path of GUIDANCE) {
+    assert.doesNotMatch(read(path), /TIER0_LLM_API_KEY[^.\n]*\(secret/, `${path} calls the LLM placeholder a secret`);
+  }
+});

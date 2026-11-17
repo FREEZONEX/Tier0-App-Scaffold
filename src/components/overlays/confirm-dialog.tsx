@@ -1,11 +1,10 @@
 "use client";
 
 import { useId } from "react";
-import { AlertTriangle } from "lucide-react";
 import { uiText } from "@/lib/app-chrome";
 import { Dialog } from "@/components/overlays/dialog";
 import { OverlayActionButton } from "@/components/overlays/overlay-frame";
-import { cn } from "@/lib/utils";
+import { RiskBanner } from "@/components/ui/risk-banner";
 
 export interface ConfirmDialogProps {
   open: boolean;
@@ -63,28 +62,11 @@ export function ConfirmDialog({
         </>
       }
     >
-      <div
-        className={cn(
-          "flex gap-3 rounded-[4px] border p-4",
-          destructive
-            ? "border-state-error-border bg-state-error-bg/70"
-            : "border-border bg-surface-inset",
-        )}
-      >
-        <span
-          className={cn(
-            "mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-[4px] border",
-            destructive
-              ? "border-state-error-border bg-card text-state-error-fg"
-              : "border-border bg-card text-state-paused-fg",
-          )}
-        >
-          <AlertTriangle className="size-4" aria-hidden="true" />
-        </span>
-        <p id={descriptionId} className="text-sm leading-6 text-foreground/85">
+      <RiskBanner severity={destructive ? "error" : "warning"}>
+        <p id={descriptionId} className="text-sm leading-6">
           {description}
         </p>
-      </div>
+      </RiskBanner>
     </Dialog>
   );
 }

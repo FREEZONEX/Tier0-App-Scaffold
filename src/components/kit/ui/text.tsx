@@ -30,7 +30,7 @@ export function HighlightText({ text, keyword, className, highlightClassName }: 
     <span className={className}>
       {parts.map((part, index) =>
         part.match ? (
-          <mark key={index} className={cn("bg-transparent font-medium text-[#fa8c16]", highlightClassName)}>
+          <mark key={index} className={cn("rounded-[2px] bg-highlight-bg-accent px-px font-semibold text-foreground", highlightClassName)}>
             {part.text}
           </mark>
         ) : (

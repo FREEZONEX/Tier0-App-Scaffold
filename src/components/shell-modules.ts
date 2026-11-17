@@ -1,15 +1,27 @@
-import type { ElementType } from "react";
+import type { LucideIcon } from "lucide-react";
+import type { NavIconName } from "./nav-icons";
 import { can, type Action, type RoleInput } from "@/lib/permissions";
+
+/**
+ * A lucide component import (preferred), or a name from `NAV_ICON_LIBRARY`
+ * in `./nav-icons` ("Wrench"). Any other string is a type error: import that
+ * icon from lucide-react instead. Without a usable icon (data loaded at
+ * runtime, empty value) the Shell picks one from the label, then falls back to
+ * the label's first letter.
+ */
+export type NavIconSource = LucideIcon | NavIconName;
 
 export interface NavModule {
   key: string;
   label: string;
   href?: string;
-  icon?: ElementType;
+  icon?: NavIconSource;
   actions?: Action[];
   children?: NavModule[];
   badge?: string;
   locked?: boolean;
+  /** Opens in a new tab (e.g. a station or monitor screen); shows an external-link mark. */
+  newTab?: boolean;
   disabledReason?: string;
 }
 
@@ -99,7 +111,13 @@ export function validateNavigationModules(
   return leaves;
 }
 
-export function defineNavigationModules(modules: NavModule[]): NavModule[] {
+type GeneratedNavModule = Omit<NavModule, "icon" | "children"> & {
+  /** Prefer `import { ClipboardList } from "lucide-react"`; a `NAV_ICON_LIBRARY` name also works. */
+  icon: NavIconSource;
+  children?: GeneratedNavModule[];
+};
+
+export function defineNavigationModules(modules: GeneratedNavModule[]): NavModule[] {
   validateNavigationModules(modules);
   return modules;
 }

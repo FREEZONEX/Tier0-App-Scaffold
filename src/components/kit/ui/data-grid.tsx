@@ -274,7 +274,8 @@ function SelectionControl({
         checked={checked}
         disabled={disabled}
         onChange={(event) => onChange(mode === "radio" ? true : event.target.checked)}
-        className="peer absolute inset-0 z-10 m-0 size-full cursor-[inherit] opacity-0"
+        // Touch screens: the invisible input covers a 44px hit area around the 24px box.
+        className="peer absolute inset-0 z-10 m-0 size-full cursor-[inherit] opacity-0 pointer-coarse:inset-[-10px] pointer-coarse:size-auto"
       />
       {mode === "checkbox" ? (
         <CheckboxIndicator
@@ -282,7 +283,7 @@ function SelectionControl({
           indeterminate={indeterminate && !checked}
           disabled={disabled}
           className={cn(
-            "peer-focus-visible:shadow-[0_0_0_2px_rgb(5_145_255/0.25)]",
+            "peer-focus-visible:ring-2 peer-focus-visible:ring-ring/60",
             !disabled && !checked && "group-hover:border-brand",
           )}
         />
@@ -699,7 +700,7 @@ export function DataGrid<Row>({
                     scope="col"
                     style={stickyStyle(cell)}
                     className={cn(
-                      "sticky top-0 z-[2] h-10 border-b border-border/80 bg-muted/40 px-3 py-2 text-left text-xs font-medium uppercase tracking-wide whitespace-nowrap text-muted-foreground",
+                      "sticky top-0 z-[2] h-10 border-b border-border/80 bg-muted/40 px-3 py-2 text-left text-xs font-medium whitespace-nowrap text-foreground",
                       BORDER,
                       HEADER_BG,
                       cell.sticky && "z-[3]",
@@ -726,7 +727,7 @@ export function DataGrid<Row>({
                     {column ? (
                       <span className={cn("flex min-w-0 items-center gap-1.5", alignClass(column.align))}>
                         {column.headerIcon ? (
-                          <span className="inline-flex shrink-0 text-muted-foreground [&>svg]:size-3.5" aria-hidden="true">
+                          <span className="inline-flex shrink-0 text-text-placeholder [&>svg]:size-3.5" aria-hidden="true">
                             {column.headerIcon}
                           </span>
                         ) : null}
@@ -841,7 +842,7 @@ export function DataGrid<Row>({
                                   type="button"
                                   aria-label={expanded ? "收起子级" : "展开子级"}
                                   aria-expanded={expanded}
-                                  className="inline-flex size-5 shrink-0 items-center justify-center rounded-[4px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+                                  className="inline-flex size-5 shrink-0 items-center justify-center rounded-[4px] text-muted-foreground outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:bg-muted focus-visible:text-foreground"
                                   onClick={() => toggleTreeRow(entry)}
                                 >
                                   {treeNode?.status === "loading" ? (
