@@ -182,3 +182,88 @@ test('advanced filter combines filled conditions with AND and ignores empty ones
   assert.equal(describeCondition(conditions[3], [null, '2026-11-30']), '计划日期 ≤ 2026-11-30');
   assert.equal(describeCondition(conditions[1], '  '), null);
 });
+
+/** uiText as renderToString escapes it. */
+async function copy(key: Parameters<typeof import('../src/lib/app-chrome').uiText>[0]) {
+ const { uiText } = await import('../src/lib/app-chrome');
+ return uiText(key).replace(/&/g, '&amp;').replace(/'/g, '&#x27;').replace(/"/g, '&quot;');
+}
+
+async function renderFailure(error: Error, extra: {data?: unknown; isLoading?: boolean; empty?: string} = {}) {
+ const { AsyncView } = await import('../src/components/data/async-view');
+ const calls: string[] = [];
+ const result = {data: extra.data ?? null, error, isLoading: extra.isLoading ?? false, refresh: () => { calls.push('refresh'); }};
+ const props = {result, children: () => 'LOADED', empty: extra.empty};
+ return {html: renderToString(createElement(AsyncView<unknown>, props)), view: AsyncView<unknown>(props), calls};
+}
+
+/** Expands hook-free function components and returns the first element matching `match`. */
+function findElement(node: unknown, match: (props: Record<string, unknown>) => boolean): {props: Record<string, unknown>} | null {
+ if (Array.isArray(node)) {
+  for (const child of node) { const hit = findElement(child, match); if (hit) return hit; }
+  return null;
+ }
+ if (!node || typeof node !== 'object' || !('props' in node)) return null;
+ const element = node as {type: unknown; props: Record<string, unknown>};
+ if (match(element.props)) return element;
+ if (typeof element.type === 'function') return findElement((element.type as (props: unknown) => unknown)(element.props), match);
+ return findElement(element.props.children, match);
+}
+
+test('AsyncView failure is one quiet line; the raw message waits behind Details', async () => {
+ const { ApiRequestError } = await import('../src/lib/utils');
+ const error = new ApiRequestError(500, '/api/orders', 'relation "app_orders" does not exist');
+ const { html } = await renderFailure(error);
+ assert.match(html, /role="alert"/);
+ assert.ok(html.includes(await copy('loadError')) && html.includes(await copy('retry')) && html.includes(await copy('errorDetails')));
+ const start = html.indexOf('<details'), end = html.indexOf('</details>');
+ assert.ok(start >= 0 && end > start, 'technical details sit in a disclosure');
+ assert.doesNotMatch(html.slice(start, html.indexOf('>', start)), /\bopen\b/, 'details start collapsed');
+ assert.ok(html.slice(start, end).includes('HTTP 500 /api/orders: relation &quot;app_orders&quot; does not exist'), 'expanding shows the message as is');
+ assert.ok(!(html.slice(0, start) + html.slice(end)).includes('HTTP 500'), 'nothing technical outside the disclosure');
+ assert.doesNotMatch(html.slice(0, html.indexOf('>')), /state-error|destructive|py-10/, 'neutral, compact container');
+});
+
+test('AsyncView names only transient platform codes, never guesses from text or status', async () => {
+ const { ApiRequestError } = await import('../src/lib/utils');
+ const neutral = await copy('loadError'), transient = await copy('loadErrorTransient');
+ for (const code of ['node_restarting', 'upstream_error']) {
+  const { html } = await renderFailure(new ApiRequestError(502, '/api/orders', 'upstream connection reset', code));
+  assert.ok(html.includes(transient) && !html.includes(neutral), code);
+ }
+ for (const error of [
+  new ApiRequestError(503, '/api/orders', 'node restarting, upstream error'),
+  new ApiRequestError(403, '/api/orders', 'forbidden', 'grant_expired'),
+  new Error('Failed to fetch'),
+ ]) {
+  const { html } = await renderFailure(error);
+  assert.ok(html.includes(neutral) && !html.includes(transient), error.message);
+ }
+});
+
+test('AsyncView Retry calls refresh and shows the retry in flight', async () => {
+ const { uiText } = await import('../src/lib/app-chrome');
+ const isRetry = (props: Record<string, unknown>) => props.children === uiText('retry') && typeof props.onClick === 'function';
+ const idle = await renderFailure(new Error('HTTP 500 /api/orders'));
+ const retry = findElement(idle.view, isRetry);
+ assert.ok(retry, 'Retry button is rendered');
+ (retry.props.onClick as () => void)();
+ assert.deepEqual(idle.calls, ['refresh']);
+ assert.equal(retry.props.loading, false);
+ const busy = await renderFailure(new Error('HTTP 500 /api/orders'), {isLoading: true});
+ assert.equal(findElement(busy.view, isRetry)?.props.loading, true);
+ assert.match(busy.html, /aria-busy="true"/);
+});
+
+test('AsyncView never shows a failed load as empty or loaded', async () => {
+ const { uiText } = await import('../src/lib/app-chrome');
+ for (const extra of [{data: []}, {empty: 'NOTHING-HERE'}, {isLoading: true}]) {
+  const error = new Error('HTTP 500 /api/orders');
+  const { html } = await renderFailure(error, extra.data ? {} : extra);
+  assert.match(html, /role="alert"/);
+  assert.ok(!html.includes('NOTHING-HERE') && !html.includes(uiText('empty')) && !html.includes('LOADED'));
+ }
+ // Data already on screen stays there when a later refresh fails.
+ const stale = await renderFailure(new Error('HTTP 500 /api/orders'), {data: [1]});
+ assert.equal(stale.html, 'LOADED');
+});
