@@ -178,9 +178,12 @@ export async function requestJson<T>(
       extractApiErrorDetail(body),
       failure?.code,
     );
-    reportAuthError(failure?.code);
-    // A refused write: the visitor's roles may have changed since the page loaded.
-    if ((res.status === 401 || res.status === 403) && method !== "GET" && method !== "HEAD") reloadVisitor();
+    // A platform authorization failure goes to the runtime; its `resumed` reloads the visitor.
+    const platformAuthFailure = reportAuthError(failure?.code);
+    // A write the App refused: the visitor's roles may have changed since the page loaded.
+    if (!platformAuthFailure && (res.status === 401 || res.status === 403) && method !== "GET" && method !== "HEAD") {
+      reloadVisitor();
+    }
     if (!isAppWaiting(error)) console.error("[api]", error.message);
     throw error;
   }

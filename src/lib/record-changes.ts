@@ -77,7 +77,8 @@ const STREAM_IDLE_TIMEOUT_MS = 45_000;
 
 /**
  * `fetch` for the stream that calls `onReconnect` each time the stream is
- * accepted again after its first connection. The front door ends a visitor's
+ * accepted again after its first connection: an OK `text/event-stream`
+ * response with a body, as `openEventStream` accepts it. The front door ends a visitor's
  * long connections when their roles change, and the stream reconnects at
  * once, so a reconnect is when the page reloads the visitor's roles.
  */
@@ -85,7 +86,7 @@ export function noticeReconnects(onReconnect: () => void, fetchImpl: typeof fetc
   let connected = false;
   return async (input, init) => {
     const response = await fetchImpl(input, init);
-    if (response.ok) {
+    if (response.ok && /^text\/event-stream\b/i.test(response.headers.get("content-type") ?? "") && response.body) {
       if (connected) onReconnect();
       connected = true;
     }

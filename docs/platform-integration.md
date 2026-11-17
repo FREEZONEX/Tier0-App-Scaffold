@@ -112,7 +112,21 @@ through `requestJson` is refused with 401/403, when the change stream of
 `useRecordChanges` reconnects, and on the runtime's `resumed`. The role line,
 the navigation and every gate on `useVisitor()` then change together. Reads
 refused with 401/403 do not reload (a page may read what the visitor may not),
-and nothing polls.
+and neither does a platform authorization failure (`grant_expired`,
+`signed_out`, `need_role`, `unavailable`): the runtime handles it and its
+`resumed` reloads. Calls during a reload join it, and nothing polls.
+
+Existing generated Apps need these changes when they align:
+
+- `useVisitor()` returns `{ visitor }`: `isLoading` and `error` are gone, and
+  `visitor` is `null` (not `undefined`) outside the layouts. Remove code that
+  waited on `isLoading` or showed `error`; under the layouts the visitor is
+  always there.
+- `src/routes/__root.tsx` must call `useVisitorSync()` in its component.
+  Without it `reloadVisitor()` reaches no router and the page keeps the roles
+  it loaded with.
+- Take `src/lib/use-visitor.ts`, `requestJson` in `src/lib/utils.ts` and
+  `src/lib/record-changes.ts` from the scaffold together.
 
 The service queries `members.listWorkspace({ keyword: user.id, page, size })`
 and accepts only an exact `userId` match, following pages for keyword

@@ -302,9 +302,12 @@ APIs, or logout, and reads no other identity header.
   `useVisitor()` from `@/lib/use-visitor`. The header has no name or email.
 - `useVisitor()` reads the `user` the layout put in route context, the one the
   Shell shows; gate UI on it and keep no other copy of the roles. Roles can
-  change while a page is open: a write refused with 401/403 (`requestJson`)
-  and a reconnect of the change stream (`useRecordChanges`) reload it, so the
-  role line and every gate follow the server together. Do not poll for roles.
+  change while a page is open: a write the App refused with 401/403
+  (`requestJson`) and a reconnect of the change stream (`useRecordChanges`)
+  reload it, so the role line and every gate follow the server together. Do
+  not poll for roles. It returns `{ visitor }` only (no `isLoading` / `error`;
+  `null` outside the layouts), and `src/routes/__root.tsx` must keep
+  `useVisitorSync()` or nothing reloads.
 - `npm run dev` sets a local visitor for `PREVIEW_USER_ID` (roles from
   `PREVIEW_USER_ROLE`) in `vite.config.ts`.
 

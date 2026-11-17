@@ -71,6 +71,8 @@ function roleLine(html: string): string | null {
   return /uppercase[^"]*" title="([^"]*)"/.exec(html)?.[1] ?? null;
 }
 
+const sse = (status = 200, type = "text/event-stream") => new Response("", { status, headers: { "Content-Type": type } });
+
 function stubFetch(answer: (method: string) => Response) {
   const calls: string[] = [];
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -102,7 +104,7 @@ test("the change stream's reconnect after an upgrade shows save on an open read-
   assert.doesNotMatch(page.html(), /保存/);
 
   // The front door ends the stream when the roles change; it reconnects at once.
-  const streamFetch = noticeReconnects(reloadVisitor, async () => new Response("", { headers: { "Content-Type": "text/event-stream" } }));
+  const streamFetch = noticeReconnects(reloadVisitor, async () => sse());
   await streamFetch("/api/uns/subscribe");
   serverRoles = ["editor", "viewer"];
   await streamFetch("/api/uns/subscribe");
@@ -112,7 +114,7 @@ test("the change stream's reconnect after an upgrade shows save on an open read-
   assert.match(page.html(), /保存/);
 });
 
-test("only a write refused with 401/403 reloads the visitor", async () => {
+test("only a write the App refused with 401/403 reloads the visitor", async () => {
   let reloads = 0;
   cleanups.push(syncVisitor({ invalidate: async () => { reloads += 1; } }));
   const cases: [string, number, boolean][] = [
@@ -125,16 +127,37 @@ test("only a write refused with 401/403 reloads the visitor", async () => {
     await requestJson("/api/orders", { method }).catch(() => undefined);
     assert.equal(reloads, reloadsVisitor ? 1 : 0, `${method} ${status}`);
   }
+  // A platform authorization failure is the runtime's: its `resumed` reloads after reauthorization.
+  reloads = 0;
+  stubFetch(() => Response.json({ code: "signed_out" }, { status: 403, headers: { "x-sbx-error": "signed_out" } }));
+  await assert.rejects(requestJson("/api/orders", { method: "POST" }), /HTTP 403/);
+  assert.equal(reloads, 0, "POST 403 signed_out");
 });
 
-test("the stream's first connection and refused attempts do not reload; each accepted reconnect does", async () => {
+test("calls during a reload join it: beforeLoad runs once", async () => {
+  let invalidations = 0;
+  let finish!: () => void;
+  cleanups.push(syncVisitor({ invalidate: () => { invalidations += 1; return new Promise<void>((resolve) => { finish = resolve; }); } }));
+  reloadVisitor();
+  reloadVisitor();
+  reloadVisitor();
+  assert.equal(invalidations, 1);
+  finish();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  reloadVisitor();
+  assert.equal(invalidations, 2, "a later call starts a new reload");
+  finish();
+});
+
+test("the stream's first connection and attempts the SDK refuses do not reload; each accepted reconnect does", async () => {
   let reloads = 0;
-  const answers = [200, 503, 200, 401, 200];
-  const streamFetch = noticeReconnects(() => { reloads += 1; }, async () => new Response("", { status: answers.shift()! }));
+  // An OK answer that is not an event stream (a proxy's HTML page) is a failed attempt to the SDK too.
+  const answers = [sse(), sse(503), sse(200, "text/html"), sse(), sse(401), new Response(null, { headers: { "Content-Type": "text/event-stream" } }), sse()];
+  const streamFetch = noticeReconnects(() => { reloads += 1; }, async () => answers.shift()!);
   const seen: number[] = [];
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 7; i++) {
     await streamFetch("/api/uns/subscribe");
     seen.push(reloads);
   }
-  assert.deepEqual(seen, [0, 0, 1, 1, 2]);
+  assert.deepEqual(seen, [0, 0, 0, 1, 1, 1, 2]);
 });

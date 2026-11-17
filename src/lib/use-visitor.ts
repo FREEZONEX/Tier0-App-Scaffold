@@ -34,10 +34,11 @@ const reloads = new Set<() => void>();
 
 /**
  * The server may now see this visitor with other roles: reload the route
- * context. Called when a write is refused with 401/403 (`requestJson`) and
- * when the change stream reconnects after the front door ended it
- * (`useRecordChanges`); the front door ends a visitor's long connections when
- * their roles change.
+ * context. Called when the App refuses a write with 401/403 (`requestJson`;
+ * a platform authorization failure is the runtime's, and its `resumed`
+ * reloads) and when the change stream reconnects after the front door ended
+ * it (`useRecordChanges`); the front door ends a visitor's long connections
+ * when their roles change. Calls during a reload join it.
  */
 export function reloadVisitor(): void {
   for (const reload of reloads) reload();
@@ -49,7 +50,12 @@ export function reloadVisitor(): void {
  * unsubscribe function.
  */
 export function syncVisitor(router: Pick<AnyRouter, "invalidate">): () => void {
-  const reload = () => void router.invalidate();
+  let reloading: Promise<void> | undefined;
+  const reload = () => {
+    reloading ??= router.invalidate().finally(() => {
+      reloading = undefined;
+    });
+  };
   reloads.add(reload);
   const offResumed = onPageRuntime("resumed", reload);
   return () => {
