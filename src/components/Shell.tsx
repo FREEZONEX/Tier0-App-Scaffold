@@ -556,11 +556,11 @@ export function Shell({
               <p className="truncate text-sm font-medium leading-5">
                 {user?.displayName ?? uiText("loading")}
               </p>
-              {user ? (
-                <p className="mt-0.5 truncate font-mono text-xs uppercase leading-4 text-muted-foreground" title={roleLabel || undefined}>
-                  {roleLabel || uiText("noRoles")}
+              {roleLabel && (
+                <p className="mt-0.5 truncate font-mono text-xs uppercase leading-4 text-muted-foreground" title={roleLabel}>
+                  {roleLabel}
                 </p>
-              ) : null}
+              )}
             </div>
           </div>
         </div>

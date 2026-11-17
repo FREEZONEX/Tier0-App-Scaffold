@@ -374,4 +374,4 @@ wall screen) and the delivery checklist live in [docs/operator-ux.md](docs/opera
 - Light sidebar surface is soft gray (`--sidebar: oklch(0.985)`); hover/selection use muted fill (`--sidebar-selected`) with no border or shadow. Dark rail is charcoal `oklch(0.205)`. Keyboard focus on rail items uses the same muted fill, not a brand outline.
 - Same-row form controls and buttons use matching size tokens: sm 32px, md 36px, lg 40px.
 - Sorting supports selecting, changing direction, deleting and reordering using both pointer and keyboard. At 375px, field labels must retain a readable width.
-- Empty role sets show `未分配角色`, never a false `Loading` label.
+- Empty role sets hide the sidebar role line entirely; keep the account avatar and name, without `未分配角色`, `No role assigned`, or role-loading placeholders.
