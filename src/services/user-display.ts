@@ -19,9 +19,8 @@ export async function resolveUserDisplay(
     if (member) {
       const username = member.userName?.trim();
       const displayName = member.nickName?.trim() || username;
-      return displayName
-        ? { ...user, username: username || displayName, displayName }
-        : user;
+      const names = displayName ? { username: username || displayName, displayName } : {};
+      return { ...user, ...names, avatarUrl: member.avatarUrl };
     }
     if (result.list.length === 0 || page * size >= Number(result.total)) {
       return user;

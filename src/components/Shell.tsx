@@ -16,6 +16,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
+import { Avatar } from "@/components/kit/ui/avatar";
 import { Popover } from "@/components/kit/ui/popover";
 import { Tooltip } from "@/components/kit/ui/tooltip";
 import { OfflineBanner } from "@/components/ui/offline-banner";
@@ -547,12 +548,9 @@ export function Shell({
         {/* Account — always visible at the bottom of the rail. */}
         <div className={cn("shrink-0 border-t border-sidebar-border bg-sidebar py-3", isCollapsed ? "px-2" : "px-3")}>
           <div className={cn("flex min-w-0 items-center overflow-hidden", isCollapsed ? "justify-center" : "gap-2.5")}>
-            <span
-              aria-hidden="true"
-              title={isCollapsed ? user?.displayName : undefined}
-              className="inline-flex size-8 shrink-0 items-center justify-center rounded-[4px] bg-muted text-xs font-semibold text-foreground"
-            >
-              {(user?.displayName ?? "?").slice(0, 1).toUpperCase()}
+            {/* The name is in the text beside it (sr-only when collapsed); the avatar's title shows it on hover. */}
+            <span aria-hidden="true" className="inline-flex shrink-0">
+              <Avatar name={user?.displayName} src={user?.avatarUrl} />
             </span>
             <div className={isCollapsed ? "sr-only" : "min-w-0 overflow-hidden"}>
               <p className="truncate text-sm font-medium leading-5">

@@ -17,8 +17,10 @@ const visitor: AppUser = {
   roles: ["repairer", "coordinator"], primaryRole: "repairer",
 };
 
-function member(userId: string, userName = "Mercy", nickName = "") {
-  return { userId, userName, nickName, status: "active", roles: [], updatedAt: "2026-11-10T00:00:00Z" };
+const AVATAR = "https://oss.example.test/avatar/12345.png?X-Amz-Expires=86400&X-Amz-Signature=sig";
+
+function member(userId: string, userName = "Mercy", nickName = "", avatarUrl = "") {
+  return { userId, userName, nickName, avatarUrl, status: "active", roles: [], updatedAt: "2026-11-10T00:00:00Z" };
 }
 
 for (const runtime of ["preview", "deployed"]) {
@@ -30,11 +32,11 @@ for (const runtime of ["preview", "deployed"]) {
       assert.equal(new URL(url).pathname, "/openapi/v2/platform/getMembers");
       assert.deepEqual(JSON.parse(String(init.body)), { keyword: visitor.id, page: 1, size: 100 });
       return Response.json({ code: 200, msg: "ok", data: {
-        list: [member(visitor.id, "Mercy", "平台姓名")], page: 1, size: 100, total: 1,
+        list: [member(visitor.id, "Mercy", "平台姓名", AVATAR)], page: 1, size: 100, total: 1,
       } });
     });
     const result = await withUserDisplay(visitor);
-    assert.deepEqual(result, { ...visitor, username: "Mercy", displayName: "平台姓名" });
+    assert.deepEqual(result, { ...visitor, username: "Mercy", displayName: "平台姓名", avatarUrl: AVATAR });
     assert.equal(visitor.displayName, visitor.id);
     assert.equal(result?.roles, visitor.roles);
   });
@@ -71,8 +73,21 @@ test("account switch, rename and role switch do not reuse a cached name", async 
   assert.equal((await withUserDisplay(visitor))?.displayName, "原姓名");
   name = "新姓名";
   const switched = { ...visitor, roles: ["coordinator"], primaryRole: "coordinator" };
-  assert.deepEqual(await withUserDisplay(switched), { ...switched, username: name, displayName: name });
+  assert.deepEqual(await withUserDisplay(switched), { ...switched, username: name, displayName: name, avatarUrl: "" });
   assert.equal((await withUserDisplay({ ...visitor, id: "67890" }))?.displayName, "另一个账号");
+});
+
+test("avatarUrl is passed through as returned, including empty, and never reused", async (t) => {
+  setEnv(t, "TIER0_API_HOST", "https://platform.example.test");
+  setEnv(t, "TIER0_API_KEY", "test-only-placeholder");
+  let avatarUrl = AVATAR;
+  t.mock.method(globalThis, "fetch", async () => Response.json({ code: 200, msg: "ok", data: {
+    list: [member(visitor.id, "Mercy", "", avatarUrl)], page: 1, size: 100, total: 1,
+  } }));
+  assert.equal((await withUserDisplay(visitor))?.avatarUrl, AVATAR);
+  // A member without an avatar stays "": the icon fallback belongs to the UI.
+  avatarUrl = "";
+  assert.equal((await withUserDisplay(visitor))?.avatarUrl, "");
 });
 
 test("missing, blank or other members' names keep the original identity", async (t) => {
@@ -84,7 +99,7 @@ test("missing, blank or other members' names keep the original identity", async 
   } }));
   assert.equal(await withUserDisplay(visitor), visitor);
   list = [member(visitor.id, "  ", "  ")];
-  assert.equal(await withUserDisplay(visitor), visitor);
+  assert.deepEqual(await withUserDisplay(visitor), { ...visitor, avatarUrl: "" });
   list = [];
   assert.equal(await withUserDisplay(visitor), visitor);
 });

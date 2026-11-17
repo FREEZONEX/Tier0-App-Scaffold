@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "tier0Scaffold": {
-    "version": 42,
-    "ref": "c8b2e47"
+    "version": 43,
+    "ref": "a8f0eb1"
   },
   "engines": {
     "node": ">=22.12.0"
@@ -47,7 +47,7 @@
     "@fontsource/inter": "^5.2.8",
     "@tanstack/react-router": "^1.168.0",
     "@tanstack/react-start": "^1.167.0",
-    "@tier0/sdk-v2": "0.12.2",
+    "@tier0/sdk-v2": "0.15.0",
     "ai": "^7.0.173",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
