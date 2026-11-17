@@ -283,6 +283,13 @@ Use the asset dimensions, root/public copy, and registration workflow in
 
 ## Composition
 
+**Avoid unnecessary secondary labels and descriptions. Let the layout do the explaining.**
+
+Use grouping, alignment, spacing, and visual hierarchy before explanatory copy.
+Omit subtitles, helper paragraphs, and labels that repeat an already clear
+layout. Preserve necessary field/action labels, accessible names, and guidance
+about conditions, errors, or consequences.
+
 Choose layout and density from the workflow. Keep the persistent page body
 focused on current state, primary work, and useful decisions; secondary detail
 can live behind an explicit control or focused tab.
@@ -336,6 +343,10 @@ background blobs, glass effects, and heavy shadows. Import shared motion through
 `@/lib/motion`.
 
 ## Review
+
+Remove secondary copy whose absence does not reduce understanding or correct
+use. Apply the global interface constraint in [AGENTS.md](AGENTS.md#global-interface-constraint)
+to every surface, including cards, forms, dialogs, and empty states.
 
 Check semantic-token use, control affordance, status readability, density,
 responsive overflow, text fitting, page-header discipline, and consistency with

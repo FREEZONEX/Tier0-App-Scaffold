@@ -20,6 +20,18 @@ read the named file **before** that kind of work:
 | use the Tier0 SDK, notifications, MQTT, files, env vars, scaffold version | `docs/platform-integration.md` |
 | add AI features (LLM calls, chat, agent tools) | `docs/platform-integration.md` ("Calling the workspace LLM") |
 
+## Global Interface Constraint
+
+**Avoid unnecessary secondary labels and descriptions. Let the layout do the explaining.**
+
+Apply this throughout design, development, prototyping, and UI review. Use
+grouping, alignment, spacing, and visual hierarchy to communicate relationships
+before adding explanatory copy. Omit redundant subtitles, helper paragraphs,
+and labels that repeat an already clear layout. Retain necessary field/action
+labels, accessible names, and information needed to understand conditions,
+errors, or consequences. Before delivery, remove secondary copy whose absence
+does not reduce understanding or correct use.
+
 ## Delivery Floor: Complete the Legal Lifecycle
 
 Infer each business object's lifecycle from the domain. Do not mechanically add
