@@ -7,7 +7,7 @@ import { useKitApi } from "@/components/kit/provider";
  * MetaListPage — the generic list page: page title + headerExtra,
  * 顶部胶囊页签 (topTabs), 视图页签, 二级分组胶囊, 查询区, 工具栏 (创建 / 导入⋮导入日志 /
  * 导出⋮导出日志 / toolbarExtra / 字段配置 / 排序 / 行高), 勾选批量栏, table
- * (勾选、序号、类型图标、主字段链接、按类型渲染、操作列 + ⋯ 悬停菜单), 分页.
+ * (勾选、序号、类型图标、主字段打开记录、按类型渲染、操作列 + ⋯ 点击菜单), 分页.
  *
  * Everything is driven by GET /api/meta/config/$objectCode and
  * POST /api/meta/query/$objectCode. Pages add business behaviour through
@@ -337,7 +337,11 @@ function MetaListBody({
           if (isPrimary && onOpenRecord) {
             const text = formatFieldValue(field, row[state.code]);
             return (
-              <TextButton className="max-w-full shrink" onClick={() => onOpenRecord(row)}>
+              <TextButton
+                tone="default"
+                className="max-w-full shrink font-medium text-foreground"
+                onClick={() => onOpenRecord(row)}
+              >
                 <span className="truncate">{text}</span>
               </TextButton>
             );

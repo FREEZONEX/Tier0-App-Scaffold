@@ -11,6 +11,7 @@ const categories = [
   "数据录入",
   "数据展示",
   "反馈",
+  "AI 对话",
   "重型组件",
 ] as const;
 
@@ -21,6 +22,9 @@ const scenes = [
   ["SceneOpsMonitor", "运营监控"],
   ["SceneAgentSpend", "用量与成本"],
   ["SceneEmptyContrast", "空状态与引导"],
+  ["SceneAiChat", "工艺助手"],
+  ["SceneAiDock", "侧栏助手"],
+  ["SceneAiLauncher", "角落助手"],
 ] as const;
 
 function Library() {

@@ -9,8 +9,9 @@ import { ResponsivePage } from "@/components/ui/responsive-page";
  *
  * Put PageHeader in `header`, separate StatCards in `metrics`, and the primary
  * work surface in `children`. Never collapse metrics into a divider strip —
- * KPIs stay as read-only cards with entrance motion: large number, gray
- * icon tile, optional short trend. Filters and actions belong in the toolbar /
+ * KPIs stay as read-only cards with entrance motion: large number, circular
+ * icon, optional short trend / spark. One card may use a green wash.
+ * Filters and actions belong in the toolbar /
  * buttons under the metrics, not on the StatCards. The title row is title +
  * primary action only — not filters, charts, or forms.
  *

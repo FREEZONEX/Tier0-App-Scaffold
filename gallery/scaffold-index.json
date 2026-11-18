@@ -1351,6 +1351,293 @@
         }
       ],
       "origin": "scaffold"
+    },
+    {
+      "name": "ChatThread",
+      "label": "对话线程",
+      "category": "AI 对话",
+      "layer": "extension",
+      "detail": "@/components/ui/chat-thread",
+      "reason": "",
+      "samples": [
+        {
+          "name": "ChatThread",
+          "label": "ChatThread",
+          "engine": "library",
+          "importPath": "@/components/ui/chat-thread",
+          "source": "src/components/ui/chat-thread.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "ChatMessage",
+      "label": "消息",
+      "category": "AI 对话",
+      "layer": "extension",
+      "detail": "@/components/ui/chat-message",
+      "reason": "",
+      "samples": [
+        {
+          "name": "ChatMessage",
+          "label": "ChatMessage",
+          "engine": "library",
+          "importPath": "@/components/ui/chat-message",
+          "source": "src/components/ui/chat-message.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "ChatComposer",
+      "label": "对话输入",
+      "category": "AI 对话",
+      "layer": "extension",
+      "detail": "@/components/ui/chat-composer",
+      "reason": "",
+      "samples": [
+        {
+          "name": "ChatComposer",
+          "label": "ChatComposer",
+          "engine": "library",
+          "importPath": "@/components/ui/chat-composer",
+          "source": "src/components/ui/chat-composer.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "StreamText",
+      "label": "流式文本",
+      "category": "AI 对话",
+      "layer": "extension",
+      "detail": "@/components/ui/stream-text",
+      "reason": "",
+      "samples": [
+        {
+          "name": "StreamText",
+          "label": "StreamText",
+          "engine": "library",
+          "importPath": "@/components/ui/stream-text",
+          "source": "src/components/ui/stream-text.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "ChatPanel",
+      "label": "整页对话",
+      "category": "AI 对话",
+      "layer": "extension",
+      "detail": "@/components/ui/chat-panel",
+      "reason": "",
+      "samples": [
+        {
+          "name": "ChatPanel",
+          "label": "ChatPanel",
+          "engine": "library",
+          "importPath": "@/components/ui/chat-panel",
+          "source": "src/components/ui/chat-panel.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "ChatDock",
+      "label": "侧栏助手",
+      "category": "AI 对话",
+      "layer": "extension",
+      "detail": "@/components/ui/chat-dock",
+      "reason": "",
+      "samples": [
+        {
+          "name": "ChatDock",
+          "label": "ChatDock",
+          "engine": "library",
+          "importPath": "@/components/ui/chat-dock",
+          "source": "src/components/ui/chat-dock.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "ChatLauncher",
+      "label": "角落助手",
+      "category": "AI 对话",
+      "layer": "extension",
+      "detail": "@/components/ui/chat-launcher",
+      "reason": "",
+      "samples": [
+        {
+          "name": "ChatLauncher",
+          "label": "ChatLauncher",
+          "engine": "library",
+          "importPath": "@/components/ui/chat-launcher",
+          "source": "src/components/ui/chat-launcher.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "ChatReasoning",
+      "label": "核对过程",
+      "category": "AI 对话",
+      "layer": "extension",
+      "detail": "@/components/ui/chat-reasoning",
+      "reason": "",
+      "samples": [
+        {
+          "name": "ChatReasoning",
+          "label": "ChatReasoning",
+          "engine": "library",
+          "importPath": "@/components/ui/chat-reasoning",
+          "source": "src/components/ui/chat-reasoning.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "ChatCodeBlock",
+      "label": "代码块",
+      "category": "AI 对话",
+      "layer": "extension",
+      "detail": "@/components/ui/chat-code-block",
+      "reason": "",
+      "samples": [
+        {
+          "name": "ChatCodeBlock",
+          "label": "ChatCodeBlock",
+          "engine": "library",
+          "importPath": "@/components/ui/chat-code-block",
+          "source": "src/components/ui/chat-code-block.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "ChatStatus",
+      "label": "生成状态",
+      "category": "AI 对话",
+      "layer": "extension",
+      "detail": "@/components/ui/chat-status",
+      "reason": "",
+      "samples": [
+        {
+          "name": "ChatStatus",
+          "label": "ChatStatus",
+          "engine": "library",
+          "importPath": "@/components/ui/chat-status",
+          "source": "src/components/ui/chat-status.tsx"
+        },
+        {
+          "name": "ChatRetrieval",
+          "label": "ChatRetrieval",
+          "engine": "library",
+          "importPath": "@/components/ui/chat-status",
+          "source": "src/components/ui/chat-status.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "ChatHistory",
+      "label": "历史对话",
+      "category": "AI 对话",
+      "layer": "extension",
+      "detail": "@/components/ui/chat-history",
+      "reason": "",
+      "samples": [
+        {
+          "name": "ChatHistory",
+          "label": "ChatHistory",
+          "engine": "library",
+          "importPath": "@/components/ui/chat-history",
+          "source": "src/components/ui/chat-history.tsx"
+        },
+        {
+          "name": "ChatHistoryButton",
+          "label": "ChatHistoryButton",
+          "engine": "library",
+          "importPath": "@/components/ui/chat-history",
+          "source": "src/components/ui/chat-history.tsx"
+        },
+        {
+          "name": "ChatHistorySelect",
+          "label": "ChatHistorySelect",
+          "engine": "library",
+          "importPath": "@/components/ui/chat-history",
+          "source": "src/components/ui/chat-history.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "ChatToolCall",
+      "label": "工具调用",
+      "category": "AI 对话",
+      "layer": "extension",
+      "detail": "@/components/ui/chat-tool-call",
+      "reason": "",
+      "samples": [
+        {
+          "name": "ChatToolCall",
+          "label": "ChatToolCall",
+          "engine": "library",
+          "importPath": "@/components/ui/chat-tool-call",
+          "source": "src/components/ui/chat-tool-call.tsx"
+        },
+        {
+          "name": "ChatToolGroup",
+          "label": "ChatToolGroup",
+          "engine": "library",
+          "importPath": "@/components/ui/chat-tool-call",
+          "source": "src/components/ui/chat-tool-call.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "ChatMetricCard",
+      "label": "对话指标",
+      "category": "AI 对话",
+      "layer": "extension",
+      "detail": "@/components/ui/chat-metric",
+      "reason": "",
+      "samples": [
+        {
+          "name": "ChatMetricCard",
+          "label": "ChatMetricCard",
+          "engine": "library",
+          "importPath": "@/components/ui/chat-metric",
+          "source": "src/components/ui/chat-metric.tsx"
+        },
+        {
+          "name": "ChatMetricRow",
+          "label": "ChatMetricRow",
+          "engine": "library",
+          "importPath": "@/components/ui/chat-metric",
+          "source": "src/components/ui/chat-metric.tsx"
+        }
+      ],
+      "origin": "scaffold"
+    },
+    {
+      "name": "ChatActionPanel",
+      "label": "对话操作",
+      "category": "AI 对话",
+      "layer": "extension",
+      "detail": "@/components/ui/chat-action-panel",
+      "reason": "",
+      "samples": [
+        {
+          "name": "ChatActionPanel",
+          "label": "ChatActionPanel",
+          "engine": "library",
+          "importPath": "@/components/ui/chat-action-panel",
+          "source": "src/components/ui/chat-action-panel.tsx"
+        }
+      ],
+      "origin": "scaffold"
     }
   ],
   "sourceCommit": "f7c2adb32071b8222c58910bea23556cbb3aa2fd"

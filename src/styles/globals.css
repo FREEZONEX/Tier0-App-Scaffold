@@ -10,12 +10,13 @@
   --tier0-disabled-bg: #ededee;
   --tier0-disabled-text: #929296;
   --tier0-disabled-border: #d4d4d6;
-  /* Ink primary actions (DESIGN.md). Lime is --tier0-cta / Button highlight only. */
+  /* Ink remains the text/link primary. CTA lime is the filled action
+     (Button primary / highlight) and progress fills — not body text. */
   --tier0-primary: #050b14;
   --tier0-primary-hover: #1c1f1e;
   --tier0-on-primary: #ffffff;
 
-  /* Signal / CTA green — reserved for highlight buttons and progress fills.
+  /* Signal / CTA green — filled primary buttons, highlight, progress fills.
      Navigation selection uses muted gray fills, not CTA lime. */
   --tier0-cta: #cbf368;
   --tier0-cta-hover: #b8e055;
@@ -205,6 +206,11 @@
   --state-paused-wash: color-mix(in srgb, var(--state-paused-bg) 40%, var(--tier0-bg-color));
   --state-error-wash: color-mix(in srgb, var(--state-error-bg) 40%, var(--tier0-bg-color));
   --state-info-wash: color-mix(in srgb, var(--state-info-bg) 40%, var(--tier0-bg-color));
+  /* Pastel KPI emphasis (Threshold-style peach → brand lime). Softer than
+     badge fills so a strip of cards stays readable. */
+  --kpi-emphasis-bg: color-mix(in srgb, var(--tier0-cta) 22%, var(--card));
+  --kpi-emphasis-border: color-mix(in srgb, var(--tier0-cta) 42%, var(--tier0-border));
+  --kpi-emphasis-icon: color-mix(in srgb, var(--tier0-cta) 48%, var(--card));
 
   --gantt-planned-fg: var(--tier0-highlight-foreground);
   --gantt-planned-bg: var(--tier0-highlight-bg-accent);
@@ -1214,6 +1220,108 @@ body {
   }
 }
 
+@keyframes chat-spark-ray {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.18;
+  }
+}
+
+@keyframes chat-spark-breathe {
+  0%,
+  100% {
+    transform: scale(0.92);
+    opacity: 0.72;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes chat-spark-write {
+  0%,
+  100% {
+    transform: scale(0.94);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+@keyframes chat-shimmer-sweep {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0% 0;
+  }
+}
+
+[data-slot="chat-spark"] svg {
+  transform-origin: center;
+}
+
+[data-slot="chat-spark"][data-status="idle"] svg {
+  animation: chat-spark-breathe 2.8s ease-in-out infinite;
+}
+
+[data-slot="chat-spark"][data-status="idle"] line {
+  opacity: 0.42;
+}
+
+[data-slot="chat-spark"][data-status="thinking"] line {
+  animation: chat-spark-ray 800ms linear infinite;
+}
+
+[data-slot="chat-spark"][data-status="writing"] svg {
+  animation: chat-spark-write 1.15s ease-in-out infinite;
+}
+
+[data-slot="chat-spark"][data-status="writing"] line {
+  opacity: 0.88;
+}
+
+[data-slot="chat-spark"][data-status="done"] line {
+  opacity: 0.7;
+}
+
+.chat-shimmer {
+  background-image: linear-gradient(
+    90deg,
+    var(--muted-foreground) 0%,
+    var(--muted-foreground) 40%,
+    var(--foreground) 50%,
+    var(--muted-foreground) 60%,
+    var(--muted-foreground) 100%
+  );
+  background-size: 220% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: chat-shimmer-sweep 1.8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="chat-spark"] svg,
+  [data-slot="chat-spark"] line,
+  .chat-shimmer {
+    animation: none !important;
+  }
+
+  [data-slot="chat-spark"] line {
+    opacity: 0.7;
+  }
+
+  .chat-shimmer {
+    background-image: none;
+    color: var(--muted-foreground);
+    -webkit-text-fill-color: unset;
+  }
+}
+
 @keyframes border-beam {
   0% {
     offset-distance: 0%;
@@ -1301,7 +1409,7 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
   --tier0-shadow-card: 0 1px 2px 0 rgb(16 24 40 / 0.04), 0 8px 24px -10px rgb(16 24 40 / 0.1);
   --tier0-shadow-popup: 0 0 0 1px rgb(15 23 42 / 0.04), 0 12px 28px -14px rgb(15 23 42 / 0.2),
     0 4px 10px -6px rgb(15 23 42 / 0.08);
-  --tier0-shadow-primary-button: 0 1px 2px rgb(5 11 20 / 0.1);
+  --tier0-shadow-primary-button: 0 1px 2px rgb(115 178 0 / 0.18), 0 6px 14px -8px rgb(178 237 29 / 0.55);
   --tier0-shadow-highlight-button: 0 1px 2px rgb(115 178 0 / 0.18), 0 6px 14px -8px rgb(178 237 29 / 0.55);
   --tier0-shadow-overlay: var(--shadow-overlay);
   --tier0-focus-ring: 0 0 0 2px color-mix(in srgb, var(--ring) 60%, transparent);
@@ -1599,6 +1707,9 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
   --secondary-foreground: #d4d4d8;
   --primary: var(--tier0-primary);
   --primary-foreground: var(--tier0-on-primary);
+  --kpi-emphasis-bg: color-mix(in srgb, var(--tier0-cta) 16%, var(--card));
+  --kpi-emphasis-border: color-mix(in srgb, var(--tier0-cta) 28%, var(--tier0-border));
+  --kpi-emphasis-icon: color-mix(in srgb, var(--tier0-cta) 26%, var(--card));
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.35);
   --shadow-md: 0 8px 24px -12px rgb(0 0 0 / 0.55), 0 2px 6px -2px rgb(0 0 0 / 0.4);
   --shadow-lg: 0 18px 40px -20px rgb(0 0 0 / 0.65), 0 4px 12px -4px rgb(0 0 0 / 0.45);
@@ -1638,6 +1749,11 @@ button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select
   --state-running-fg: var(--tier0-cta);
   --state-running-bg: color-mix(in srgb, var(--tier0-cta) 16%, transparent);
   --state-running-border: color-mix(in srgb, var(--tier0-cta) 40%, transparent);
+  /* Mix against the dark canvas — never keep the light-mode pastel wash. */
+  --state-running-wash: color-mix(in srgb, var(--state-running-bg) 80%, var(--tier0-bg-color));
+  --state-paused-wash: color-mix(in srgb, var(--state-paused-bg) 40%, var(--tier0-bg-color));
+  --state-error-wash: color-mix(in srgb, var(--state-error-bg) 40%, var(--tier0-bg-color));
+  --state-info-wash: color-mix(in srgb, var(--state-info-bg) 40%, var(--tier0-bg-color));
 
   --view-icon-dark: #52525b;
   --view-icon-green: #22c55e;

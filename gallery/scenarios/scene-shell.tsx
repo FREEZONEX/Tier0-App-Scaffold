@@ -10,6 +10,9 @@ import {
   Factory,
   LayoutDashboard,
   Menu,
+  MessageCircle,
+  MessageSquare,
+  PanelRight,
   ScrollText,
   User,
   Workflow,
@@ -24,15 +27,20 @@ type SceneKey =
   | "SceneEmptyContrast"
   | "SceneWorkflowHub"
   | "SceneAuditTimeline"
-  | "SceneAgentSpend";
+  | "SceneAgentSpend"
+  | "SceneAiChat"
+  | "SceneAiDock"
+  | "SceneAiLauncher";
 
-/** Shell-aligned scene chrome: desktop rail + mobile drawer (md breakpoint). */
+/** Shell-aligned scene chrome: desktop rail + mobile drawer (md breakpoint).
+ * Section labels are always-open and only used when a group has 3+ related
+ * destinations — never a 1–2 item folder. */
 const GROUPS: {
   title: string;
   items: { key: SceneKey; label: string; icon: typeof ClipboardList }[];
 }[] = [
   {
-    title: "Platform",
+    title: "现场",
     items: [
       { key: "SceneTaskOps", label: "任务运营台", icon: ClipboardList },
       { key: "SceneOpsMonitor", label: "产线监控", icon: Factory },
@@ -40,14 +48,17 @@ const GROUPS: {
     ],
   },
   {
-    title: "Organization",
+    title: "助手",
     items: [
-      { key: "SceneAuditTimeline", label: "审计日志", icon: ScrollText },
+      { key: "SceneAiChat", label: "工艺助手", icon: MessageSquare },
+      { key: "SceneAiDock", label: "侧栏助手", icon: PanelRight },
+      { key: "SceneAiLauncher", label: "角落助手", icon: MessageCircle },
     ],
   },
   {
-    title: "Data",
+    title: "治理",
     items: [
+      { key: "SceneAuditTimeline", label: "审计日志", icon: ScrollText },
       { key: "SceneEmptyContrast", label: "数据状态", icon: LayoutDashboard },
       { key: "SceneAgentSpend", label: "用量与成本", icon: Coins },
     ],
@@ -325,7 +336,7 @@ export function SceneShell({
           </div>
         </div>
 
-        <main className="min-h-0 min-w-0 flex-1 overflow-auto overscroll-contain bg-workspace">
+        <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-auto overscroll-contain bg-workspace">
           {/* WorkbenchLayout / page-shell own responsive padding */}
           {children}
         </main>

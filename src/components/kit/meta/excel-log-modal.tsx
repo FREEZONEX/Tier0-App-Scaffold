@@ -14,8 +14,8 @@ import { toast } from "sonner";
 import { AsyncView } from "@/components/data/async-view";
 import { Dialog } from "@/components/overlays/dialog";
 import { Button } from "@/components/ui/button";
-import { TextButton } from "@/components/kit/ui/buttons";
 import { DataGrid, type DataGridColumn } from "@/components/kit/ui/data-grid";
+import { RowActions } from "@/components/kit/meta/row-actions";
 import { DateRangePicker } from "@/components/kit/ui/date-picker";
 import { Pagination } from "@/components/kit/ui/pagination";
 import { errorMessage } from "@/lib/component-kit/api-client";
@@ -101,9 +101,17 @@ function LogBody({ type, objectCode, onClose }: { type: "IMPORT" | "EXPORT"; obj
       ellipsis: false,
       render: (log) =>
         log.hasFile ? (
-          <TextButton icon={<Download />} disabled={downloadingId === log.id} onClick={() => void download(log)}>
-            下载
-          </TextButton>
+          <RowActions
+            actions={[
+              {
+                key: "download",
+                label: "下载",
+                icon: <Download />,
+                disabled: downloadingId === log.id,
+                onClick: () => void download(log),
+              },
+            ]}
+          />
         ) : (
           <span className="text-text-tertiary">-</span>
         ),

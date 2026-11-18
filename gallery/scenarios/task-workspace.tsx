@@ -359,9 +359,7 @@ export function TaskWorkspace() {
                     </div>
                   </article>
                 ))}
-                {!items.length && (
-                  <p className="caption py-6 text-center">暂无任务</p>
-                )}
+                {!items.length && <EmptyState size="sm" title="暂无任务" />}
               </div>
             </section>
           );
@@ -438,27 +436,24 @@ export function TaskWorkspace() {
       }
       metrics={
         <>
-          <StatCard label="进行中任务" value={live.length} unit="项" icon={<ListTodo />} tone="info" />
+          <StatCard label="进行中任务" value={live.length} unit="项" icon={<ListTodo />} />
           <StatCard
             label="待处理"
             value={count('todo')}
             unit="项"
             icon={<CircleDashed />}
-            tone="info"
           />
           <StatCard
             label="执行中"
             value={count('running')}
             unit="项"
             icon={<Loader />}
-            tone="running"
           />
           <StatCard
             label="完成率"
             value={donePct}
             unit="%"
             icon={<CheckCircle2 />}
-            tone="running"
             footer={<ProgressBar percent={donePct} size="sm" showInfo={false} className="w-full" />}
           />
         </>
@@ -496,7 +491,7 @@ export function TaskWorkspace() {
                 ))}
               </ul>
             ) : (
-              <p className="caption py-6 text-center">暂无需要关注的任务</p>
+              <EmptyState size="sm" title="暂无需要关注的任务" />
             )}
           </Card>
           <Card

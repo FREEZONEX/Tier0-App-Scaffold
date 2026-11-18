@@ -11,6 +11,7 @@ import {
   SceneAuditTimeline,
   SceneWorkflowHub,
 } from './scenarios/template-scenes';
+import { SceneAiChat, SceneAiDock, SceneAiLauncher } from './scenarios/ai-chat-scene';
 import { SceneShell } from './scenarios/scene-shell';
 import { SESSION_EXPIRED_EVENT } from '@/lib/component-kit/api-client';
 import { ComponentKitProvider } from '@/components/kit/provider';
@@ -21,7 +22,7 @@ import React,{useState,useRef}from'react';import{createRoot}from'react-dom/clien
   const theme = new URLSearchParams(location.search).get('theme');
   document.documentElement.classList.toggle('dark', theme === 'dark');
 })();
-const sample=new URLSearchParams(location.search).get('sample')||'Input';const variants=new Set(["Shell", "ImpactPreviewDialog", "RecommendationAction", "ClientOnly", "AsyncView", "DataTable", "TableViewport", "TableCellText", "TableStatusCell", "RequiredMark", "FieldLabel", "FileUpload", "FieldGroup", "FormGrid", "LineItemSection", "RecordSelect", "MonitorLayout", "ReviewLayout", "StationLayout", "ConfirmDialog", "Dialog", "DialogActions", "Drawer", "FormDialog", "OverlayPortal", "OverlayHeader", "OverlayFooter", "OverlayActionButton", "Toaster", "Button", "Card", "EmptyState", "StatusFilterChips", "PageHeader", "RiskBanner", "StatCard", "StatusBadge"]);
+const sample=new URLSearchParams(location.search).get('sample')||'Input';const variants=new Set(["Shell", "ImpactPreviewDialog", "RecommendationAction", "ClientOnly", "AsyncView", "DataTable", "TableViewport", "TableCellText", "TableStatusCell", "RequiredMark", "FieldLabel", "FileUpload", "FieldGroup", "FormGrid", "LineItemSection", "RecordSelect", "MonitorLayout", "ReviewLayout", "StationLayout", "ConfirmDialog", "Dialog", "DialogActions", "Drawer", "FormDialog", "OverlayPortal", "OverlayHeader", "OverlayFooter", "OverlayActionButton", "Toaster", "Button", "Card", "EmptyState", "StatusFilterChips", "PageHeader", "RiskBanner", "StatCard", "StatusBadge", "ChatThread", "ChatMessage", "ChatComposer", "StreamText", "ChatPanel", "ChatDock", "ChatLauncher", "ChatReasoning", "ChatCodeBlock", "ChatStatus", "ChatRetrieval", "ChatSpark", "ThinkingLoader", "ChatHistory", "ChatHistoryButton", "ChatHistorySelect", "ChatToolCall", "ChatToolGroup", "ChatMetricCard", "ChatMetricRow", "ChatActionPanel"]);
 class Boundary extends React.Component<any,any>{state={e:null};static getDerivedStateFromError(e:any){return{e}}componentDidCatch(e:any){(window as any).__demoError=String(e);parent.postMessage({type:'sample-error',name:sample,error:String(e)},'*')}render(){return this.state.e?<div className="demo-error">此样例仍需适配，请重置样例重试。<br/>{String(this.state.e)}</div>:this.props.children}}
 function SegmentedDemo(){
  const [selected,setSelected]=useState<string | number>('a');
@@ -131,6 +132,9 @@ case'SceneEmptyContrast':body=<SceneShell active="SceneEmptyContrast"><SceneEmpt
 case'SceneWorkflowHub':body=<SceneShell active="SceneWorkflowHub"><SceneWorkflowHub/></SceneShell>;break;
 case'SceneAuditTimeline':body=<SceneShell active="SceneAuditTimeline"><SceneAuditTimeline/></SceneShell>;break;
 case'SceneAgentSpend':body=<SceneShell active="SceneAgentSpend"><SceneAgentSpend/></SceneShell>;break;
+case'SceneAiChat':body=<SceneShell active="SceneAiChat"><SceneAiChat/></SceneShell>;break;
+case'SceneAiDock':body=<SceneShell active="SceneAiDock"><SceneAiDock/></SceneShell>;break;
+case'SceneAiLauncher':body=<SceneShell active="SceneAiLauncher"><SceneAiLauncher/></SceneShell>;break;
 default:body=<GenericDemo name={name} common={common} value={value} V={V} list={list} L={L} hit={hit}/>;
 }
 return <><div className="sample-body"><div className="demo-stack">{body}</div>{msg&&<p className="demo-status">{msg}</p>}</div><Toaster/></>;

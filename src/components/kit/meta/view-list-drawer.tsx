@@ -8,14 +8,14 @@ import { useKitApi } from "@/components/kit/provider";
  * 最多创建 20 条」, table 视图名称 (drag handle + icon) / 操作 (编辑 复制 删除).
  * Dragging a row saves the new order (PUT sortOrder).
  */
-import { Plus } from "lucide-react";
+import { Copy, PenLine, Plus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AsyncView } from "@/components/data/async-view";
 import { Drawer } from "@/components/overlays/drawer";
 import { Button } from "@/components/ui/button";
-import { TextButton } from "@/components/kit/ui/buttons";
 import { DataGrid, type DataGridColumn } from "@/components/kit/ui/data-grid";
+import { RowActions } from "@/components/kit/meta/row-actions";
 import { errorMessage } from "@/lib/component-kit/api-client";
 import { useRequest } from "@/lib/hooks";
 import type { ViewDef } from "@/lib/component-kit/types";
@@ -111,17 +111,28 @@ export function ViewListContent({
       width: 168,
       ellipsis: false,
       render: (view) => (
-        <span className="flex items-center gap-3">
-          <TextButton onClick={() => onEdit(view.code)}>编辑</TextButton>
-          <TextButton onClick={() => onCopy(view.code)} disabled={(views.data?.length ?? 0) >= VIEW_LIMIT}>
-            复制
-          </TextButton>
-          {!view.builtIn ? (
-            <TextButton tone="danger" onClick={() => onDelete(view)}>
-              删除
-            </TextButton>
-          ) : null}
-        </span>
+        <RowActions
+          inlineCount={3}
+          actions={[
+            { key: "edit", label: "编辑", icon: <PenLine />, onClick: () => onEdit(view.code) },
+            {
+              key: "copy",
+              label: "复制",
+              icon: <Copy />,
+              disabled: (views.data?.length ?? 0) >= VIEW_LIMIT,
+              disabledReason: `最多创建 ${VIEW_LIMIT} 条视图`,
+              onClick: () => onCopy(view.code),
+            },
+            {
+              key: "delete",
+              label: "删除",
+              icon: <Trash2 />,
+              danger: true,
+              hidden: view.builtIn,
+              onClick: () => onDelete(view),
+            },
+          ]}
+        />
       ),
     },
   ];

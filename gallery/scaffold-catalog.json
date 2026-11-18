@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "f7c2adb32071b8222c58910bea23556cbb3aa2fd",
+  "sourceCommit": "c256f295e534ef66c2fcb71dc34dfa093bd4e766",
   "items": [
     {
       "id": "Button",
@@ -714,6 +714,223 @@
       ]
     },
     {
+      "id": "ChatThread",
+      "label": "对话线程",
+      "category": "AI 对话",
+      "examples": [
+        {
+          "name": "ChatThread",
+          "source": "src/components/ui/chat-thread.tsx",
+          "importPath": "@/components/ui/chat-thread"
+        }
+      ]
+    },
+    {
+      "id": "ChatMessage",
+      "label": "消息",
+      "category": "AI 对话",
+      "examples": [
+        {
+          "name": "ChatMessage",
+          "source": "src/components/ui/chat-message.tsx",
+          "importPath": "@/components/ui/chat-message"
+        }
+      ]
+    },
+    {
+      "id": "ChatComposer",
+      "label": "对话输入",
+      "category": "AI 对话",
+      "examples": [
+        {
+          "name": "ChatComposer",
+          "source": "src/components/ui/chat-composer.tsx",
+          "importPath": "@/components/ui/chat-composer"
+        }
+      ]
+    },
+    {
+      "id": "StreamText",
+      "label": "流式文本",
+      "category": "AI 对话",
+      "examples": [
+        {
+          "name": "StreamText",
+          "source": "src/components/ui/stream-text.tsx",
+          "importPath": "@/components/ui/stream-text"
+        }
+      ]
+    },
+    {
+      "id": "ChatPanel",
+      "label": "整页对话",
+      "category": "AI 对话",
+      "examples": [
+        {
+          "name": "ChatPanel",
+          "source": "src/components/ui/chat-panel.tsx",
+          "importPath": "@/components/ui/chat-panel"
+        }
+      ]
+    },
+    {
+      "id": "ChatDock",
+      "label": "侧栏助手",
+      "category": "AI 对话",
+      "examples": [
+        {
+          "name": "ChatDock",
+          "source": "src/components/ui/chat-dock.tsx",
+          "importPath": "@/components/ui/chat-dock"
+        }
+      ]
+    },
+    {
+      "id": "ChatLauncher",
+      "label": "角落助手",
+      "category": "AI 对话",
+      "examples": [
+        {
+          "name": "ChatLauncher",
+          "source": "src/components/ui/chat-launcher.tsx",
+          "importPath": "@/components/ui/chat-launcher"
+        }
+      ]
+    },
+    {
+      "id": "ChatReasoning",
+      "label": "核对过程",
+      "category": "AI 对话",
+      "examples": [
+        {
+          "name": "ChatReasoning",
+          "source": "src/components/ui/chat-reasoning.tsx",
+          "importPath": "@/components/ui/chat-reasoning"
+        }
+      ]
+    },
+    {
+      "id": "ChatCodeBlock",
+      "label": "代码块",
+      "category": "AI 对话",
+      "examples": [
+        {
+          "name": "ChatCodeBlock",
+          "source": "src/components/ui/chat-code-block.tsx",
+          "importPath": "@/components/ui/chat-code-block"
+        }
+      ]
+    },
+    {
+      "id": "ChatStatus",
+      "label": "生成状态",
+      "category": "AI 对话",
+      "examples": [
+        {
+          "name": "ChatStatus",
+          "source": "src/components/ui/chat-status.tsx",
+          "importPath": "@/components/ui/chat-status"
+        },
+        {
+          "name": "ChatRetrieval",
+          "source": "src/components/ui/chat-status.tsx",
+          "importPath": "@/components/ui/chat-status"
+        }
+      ]
+    },
+    {
+      "id": "ChatSpark",
+      "label": "助手标记",
+      "category": "AI 对话",
+      "examples": [
+        {
+          "name": "ChatSpark",
+          "source": "src/components/ui/chat-spark.tsx",
+          "importPath": "@/components/ui/chat-spark"
+        }
+      ]
+    },
+    {
+      "id": "ThinkingLoader",
+      "label": "思考指示",
+      "category": "AI 对话",
+      "examples": [
+        {
+          "name": "ThinkingLoader",
+          "source": "src/components/ui/thinking-loader.tsx",
+          "importPath": "@/components/ui/thinking-loader"
+        }
+      ]
+    },
+    {
+      "id": "ChatHistory",
+      "label": "历史对话",
+      "category": "AI 对话",
+      "examples": [
+        {
+          "name": "ChatHistory",
+          "source": "src/components/ui/chat-history.tsx",
+          "importPath": "@/components/ui/chat-history"
+        },
+        {
+          "name": "ChatHistoryButton",
+          "source": "src/components/ui/chat-history.tsx",
+          "importPath": "@/components/ui/chat-history"
+        },
+        {
+          "name": "ChatHistorySelect",
+          "source": "src/components/ui/chat-history.tsx",
+          "importPath": "@/components/ui/chat-history"
+        }
+      ]
+    },
+    {
+      "id": "ChatToolCall",
+      "label": "工具调用",
+      "category": "AI 对话",
+      "examples": [
+        {
+          "name": "ChatToolCall",
+          "source": "src/components/ui/chat-tool-call.tsx",
+          "importPath": "@/components/ui/chat-tool-call"
+        },
+        {
+          "name": "ChatToolGroup",
+          "source": "src/components/ui/chat-tool-call.tsx",
+          "importPath": "@/components/ui/chat-tool-call"
+        }
+      ]
+    },
+    {
+      "id": "ChatMetricCard",
+      "label": "对话指标",
+      "category": "AI 对话",
+      "examples": [
+        {
+          "name": "ChatMetricCard",
+          "source": "src/components/ui/chat-metric.tsx",
+          "importPath": "@/components/ui/chat-metric"
+        },
+        {
+          "name": "ChatMetricRow",
+          "source": "src/components/ui/chat-metric.tsx",
+          "importPath": "@/components/ui/chat-metric"
+        }
+      ]
+    },
+    {
+      "id": "ChatActionPanel",
+      "label": "对话操作",
+      "category": "AI 对话",
+      "examples": [
+        {
+          "name": "ChatActionPanel",
+          "source": "src/components/ui/chat-action-panel.tsx",
+          "importPath": "@/components/ui/chat-action-panel"
+        }
+      ]
+    },
+    {
       "id": "MetaForm",
       "label": "元数据表单",
       "category": "重型组件",
@@ -785,6 +1002,30 @@
           "name": "SortConditionList",
           "source": "src/components/kit/meta/sort-popover.tsx",
           "importPath": "@/components/kit/meta/sort-popover"
+        }
+      ]
+    },
+    {
+      "id": "KeywordSearch",
+      "label": "关键词搜索",
+      "category": "重型组件",
+      "examples": [
+        {
+          "name": "KeywordSearch",
+          "source": "src/components/kit/meta/keyword-search.tsx",
+          "importPath": "@/components/kit/meta/keyword-search"
+        }
+      ]
+    },
+    {
+      "id": "AdvancedFilter",
+      "label": "高级筛选",
+      "category": "重型组件",
+      "examples": [
+        {
+          "name": "AdvancedFilter",
+          "source": "src/components/kit/meta/advanced-filter.tsx",
+          "importPath": "@/components/kit/meta/advanced-filter"
         }
       ]
     },
@@ -1076,6 +1317,11 @@
     },
     {
       "name": "ProgressRingChain",
+      "source": "@/components/charts/board-charts",
+      "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
+    },
+    {
+      "name": "StackedUsageChart",
       "source": "@/components/charts/board-charts",
       "reason": "辅助构件、应用布局或尚未独立整理的扩展；不冒充基础组件"
     },

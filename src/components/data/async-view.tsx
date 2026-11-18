@@ -1,18 +1,19 @@
 import type { ReactNode } from "react";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, ShieldOff } from "lucide-react";
 
 import { uiText } from "@/lib/app-chrome";
 import type { RequestResult } from "@/lib/hooks";
 import { Button, EmptyState } from "@/components/ui";
-import { cn } from "@/lib/utils";
+import { cn, isForbiddenError } from "@/lib/utils";
 import { ENTER_FADE, SKELETON_SHIMMER } from "@/lib/interaction";
 
 /**
  * AsyncView — the one way to render a `useRequest` result. It resolves the
- * three states a data view actually has so pages never hand-roll
+ * states a data view actually has so pages never hand-roll
  * `if (!data) return null` (which stalls on an error as a fake "loading"):
  *
- *   - error with no data → message + Reload button (calls result.refresh)
+ *   - 403 with no data   → EmptyState (no Retry — retrying will not grant access)
+ *   - other error, no data → message + Reload button (calls result.refresh)
  *   - loading            → skeleton (only while in flight — a settled request
  *                          with no data shows the empty view, never a spinner)
  *   - loaded             → children(data); empty arrays show the empty view
@@ -34,6 +35,8 @@ export interface AsyncViewProps<T> {
   isEmpty?: (data: T) => boolean;
   /** Shown when data is empty. Defaults to a neutral EmptyState. */
   empty?: ReactNode;
+  /** Shown on 403 with no data. Defaults to the shared EmptyState, not Retry. */
+  forbidden?: ReactNode;
   className?: string;
 }
 
@@ -42,12 +45,23 @@ export function AsyncView<T>({
   children,
   isEmpty,
   empty,
+  forbidden,
   className,
 }: AsyncViewProps<T>) {
   const { data, error, isLoading, refresh } = result;
   const emptyView = empty ?? <EmptyState title={uiText("empty")} />;
+  const forbiddenView = forbidden ?? (
+    <EmptyState
+      icon={<ShieldOff aria-hidden="true" />}
+      title={uiText("forbidden")}
+      description={uiText("forbiddenHint")}
+    />
+  );
 
   if (error && data == null) {
+    if (isForbiddenError(error)) {
+      return <>{forbiddenView}</>;
+    }
     return (
       <div
         role="alert"

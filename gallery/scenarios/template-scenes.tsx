@@ -188,14 +188,12 @@ export function SceneWorkflowHub() {
             value={flows.length}
             unit="个"
             icon={<Workflow />}
-            tone="info"
           />
           <StatCard
             label="24h 运行"
             value={runs}
             unit="次"
             icon={<Activity />}
-            tone="running"
             trend={{ direction: "up", label: "+18", intent: "positive" }}
           />
           <StatCard
@@ -210,7 +208,7 @@ export function SceneWorkflowHub() {
             value={issues.length}
             unit="项"
             icon={<AlertTriangle />}
-            tone={issues.length ? "error" : "running"}
+            tone={issues.length ? "error" : "default"}
           />
         </>
       }
@@ -242,9 +240,7 @@ export function SceneWorkflowHub() {
                 ))}
               </ul>
             ) : (
-              <p className="caption py-6 text-center">
-                所有工作流运行正常
-              </p>
+              <EmptyState size="sm" title="所有工作流运行正常" />
             )}
           </Card>
           <Card
@@ -491,7 +487,6 @@ export function SceneAuditTimeline() {
             value={auditEvents.length}
             unit="条"
             icon={<CalendarClock />}
-            tone="info"
           />
           <StatCard
             label="高危"
@@ -499,7 +494,7 @@ export function SceneAuditTimeline() {
             unit="条"
             icon={<AlertCircle />}
             tone={
-              auditEvents.some((e) => e.severity === "critical") ? "error" : "running"
+              auditEvents.some((e) => e.severity === "critical") ? "error" : "default"
             }
           />
           <StatCard
@@ -507,16 +502,12 @@ export function SceneAuditTimeline() {
             value={auditEvents.filter((e) => e.severity === "warning").length}
             unit="条"
             icon={<AlertTriangle />}
-            tone={
-              auditEvents.some((e) => e.severity === "warning") ? "info" : "running"
-            }
           />
           <StatCard
             label="操作人"
             value={new Set(auditEvents.map((e) => e.actor)).size}
             unit="人"
             icon={<Activity />}
-            tone="info"
           />
         </>
       }
@@ -748,10 +739,9 @@ export function SceneAgentSpend() {
             value={spend}
             unit="¥"
             icon={<Coins />}
-            tone="info"
             trend={{ direction: "up", label: "+12%", intent: "negative" }}
           />
-          <StatCard label="月度预算" value={budget} unit="¥" icon={<Gauge />} tone="info" />
+          <StatCard label="月度预算" value={budget} unit="¥" icon={<Gauge />} />
           <StatCard
             label="预算剩余"
             value={Math.max(0, 100 - used)}
@@ -764,7 +754,6 @@ export function SceneAgentSpend() {
             value={providers.reduce((s, p) => s + p.tokens, 0)}
             unit="M"
             icon={<Activity />}
-            tone="info"
           />
         </>
       }

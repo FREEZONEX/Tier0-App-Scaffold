@@ -13,8 +13,9 @@ import { cn } from "@/lib/utils";
  * Headers stay compact (min-h-10, extra top padding), unfilled, and without a hairline —
  * depth comes from the workspace canvas (`--workspace`, sidebar gray
  * mixed 60% with white). Do not add extra header fills on nested/plain cards.
- * Problem KPIs use a light wash. Exception rows use a semantic left bar
- * (not a gray ring, and not an accent on the outer Card). Routine cards stay white.
+ * Problem KPIs use a light wash; one emphasis KPI may use pastel green.
+ * Exception rows use a semantic left bar (not a gray ring, and not an
+ * accent on the outer Card). Routine work cards stay white.
  */
 export interface CardProps
   extends Omit<HTMLAttributes<HTMLDivElement>, "title"> {

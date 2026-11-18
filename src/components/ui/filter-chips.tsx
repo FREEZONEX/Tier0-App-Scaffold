@@ -2,8 +2,9 @@ import { cn } from "@/lib/utils";
 
 /**
  * StatusFilterChips — the professional list-page filter row: one chip per
- * status with a live count, single-select. Feed counts from the loaded
- * dataset (or a server aggregate); never invent numbers.
+ * status with a live count, single-select. The active chip uses the pastel
+ * green KPI wash. Feed counts from the loaded dataset (or a server
+ * aggregate); never invent numbers.
  *
  * Example:
  *   <StatusFilterChips
@@ -54,8 +55,7 @@ export function StatusFilterChips({
               "transition-[color,background-color,border-color,box-shadow,transform] duration-[var(--motion-fast)] ease-[var(--motion-ease)]",
               "focus-visible:bg-muted focus-visible:text-foreground active:scale-[0.98] motion-reduce:transition-none",
               active
-                // Selection is neutral: a tinted fill and heavier text, no outline darker than the label. Lime is for the key CTA only.
-                ? "border-transparent bg-foreground/[0.08] font-semibold text-foreground"
+                ? "border-transparent bg-[color:var(--kpi-emphasis-bg)] font-semibold text-foreground"
                 : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >

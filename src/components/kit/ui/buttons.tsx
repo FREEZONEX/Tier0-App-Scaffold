@@ -94,7 +94,9 @@ const TEXT_TONE = {
  *
  * Do not use it as the default secondary control. Card headers, repeating
  * row actions ("处理"), banners, and "view ledger" jumps use
- * `Button variant="outline" size="sm"` instead.
+ * `Button variant="outline" size="sm"` instead. Opening a record from a
+ * list primary field uses `tone="default"` plus `text-foreground`, never
+ * brand green.
  */
 export interface TextButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   tone?: keyof typeof TEXT_TONE;

@@ -200,12 +200,15 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
     if (!area || !autoRows) return;
     const lineHeight = 22;
     const verticalPadding = 12;
-    const minHeight = (autoRows.minRows ?? rows) * lineHeight + verticalPadding;
-    const maxHeight = autoRows.maxRows ? autoRows.maxRows * lineHeight + verticalPadding : Infinity;
+    const minRows = autoRows.minRows ?? rows;
+    const lineMin = minRows * lineHeight + verticalPadding;
     area.style.removeProperty("height");
-    const next = Math.min(Math.max(area.scrollHeight + 2, minHeight), maxHeight);
+    const cssMin = Number.parseFloat(getComputedStyle(area).minHeight);
+    const minHeight = Math.max(lineMin, Number.isFinite(cssMin) ? cssMin : 0);
+    const maxHeight = autoRows.maxRows ? autoRows.maxRows * lineHeight + verticalPadding : Infinity;
+    const next = Math.min(Math.max(area.scrollHeight, minHeight), maxHeight);
     area.style.height = `${next}px`;
-    area.style.overflowY = area.scrollHeight + 2 > maxHeight ? "scroll" : "hidden";
+    area.style.overflowY = area.scrollHeight > maxHeight ? "scroll" : "hidden";
   }, [text, autoRows?.minRows, autoRows?.maxRows, rows]);
 
   return (

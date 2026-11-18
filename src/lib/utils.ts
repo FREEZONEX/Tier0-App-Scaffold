@@ -84,6 +84,17 @@ export class ApiRequestError extends Error {
   }
 }
 
+/** 403: the current visitor may not see this data. Render EmptyState, not Retry. */
+export function isForbiddenError(error: unknown): boolean {
+  if (error instanceof ApiRequestError) return error.status === 403;
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "status" in error &&
+    (error as { status: unknown }).status === 403
+  );
+}
+
 /**
  * The page has nothing to show for these: the platform runtime owns the
  * banner, and `resumed` makes the hooks load again.

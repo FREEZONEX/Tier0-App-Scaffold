@@ -10,6 +10,7 @@ import {
   Factory,
   Gauge,
   Plus,
+  ShieldOff,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -28,7 +29,7 @@ import { Segmented } from "@/components/kit/ui/segmented";
 import { ProgressBar } from "@/components/kit/ui/feedback";
 import { DualAxisChart } from "@/components/charts/board-charts";
 import { STAGGER_ITEM } from "@/lib/interaction";
-import { cn } from "@/lib/utils";
+import { ApiRequestError, cn } from "@/lib/utils";
 import type { RequestResult } from "@/lib/hooks";
 
 const OPS_TREND = [
@@ -241,20 +242,18 @@ export function SceneOpsMonitor() {
             value={output}
             unit="件"
             icon={<Factory />}
-            tone="running"
           />
           <StatCard
             label="运行线体"
             value={`${running.length}/${lines.length}`}
             icon={<CheckCircle2 />}
-            tone={running.length === lines.length ? "running" : "info"}
           />
           <StatCard
             label="未确认告警"
             value={alarms.length}
             unit="条"
             icon={<AlertTriangle />}
-            tone={alarms.length ? "error" : "running"}
+            tone={alarms.length ? "error" : "default"}
           />
         </>
       }
@@ -295,7 +294,7 @@ export function SceneOpsMonitor() {
                 ))}
               </ul>
             ) : (
-              <p className="caption py-6 text-center">告警均已确认</p>
+              <EmptyState size="sm" title="告警均已确认" />
             )}
           </Card>
           <Card
@@ -309,7 +308,7 @@ export function SceneOpsMonitor() {
             {acked.length ? (
               <Timeline items={acked} />
             ) : (
-              <p className="caption">确认的告警会出现在这里</p>
+              <EmptyState size="sm" title="确认的告警会出现在这里" />
             )}
           </Card>
         </>
@@ -447,10 +446,10 @@ export function SceneOpsMonitor() {
 }
 
 /* ------------------------------------------------------------------------ *
- * 加载 / 空态 / 错误 / 数据 — one AsyncView, four states.
+ * 加载 / 空态 / 错误 / 无权限 / 数据 — one AsyncView, five states.
  * ------------------------------------------------------------------------ */
 
-type DemoState = "loading" | "empty" | "error" | "data";
+type DemoState = "loading" | "empty" | "error" | "forbidden" | "data";
 const demoRows = [
   {
     id: "r1",
@@ -480,7 +479,12 @@ export function SceneEmptyContrast() {
   const result = useMemo<RequestResult<typeof demoRows>>(
     () => ({
       data: state === "data" ? demoRows : state === "empty" ? [] : null,
-      error: state === "error" ? new Error("库存服务暂时不可用（503）") : null,
+      error:
+        state === "error"
+          ? new Error("库存服务暂时不可用（503）")
+          : state === "forbidden"
+            ? new ApiRequestError(403, "/api/materials", "这份台账对当前账号不可用")
+            : null,
       isLoading: state === "loading",
       refresh: () => {
         setState("loading");
@@ -501,6 +505,7 @@ export function SceneEmptyContrast() {
               ["加载中", "首次请求在途；表格形骨架，避免数据到达时跳动"],
               ["空数据", "请求成功但没有记录；给出下一步动作"],
               ["加载失败", "请求失败且没有旧数据；显示原因与重新加载"],
+              ["无权限", "403：同一套 EmptyState，不提供重试"],
               ["有数据", "正常渲染；后台刷新不清空已显示的数据"],
             ].map(([k, v]) => (
               <div key={k}>
@@ -523,6 +528,7 @@ export function SceneEmptyContrast() {
               { value: "loading", label: "加载中" },
               { value: "empty", label: "空数据" },
               { value: "error", label: "失败" },
+              { value: "forbidden", label: "无权限" },
               { value: "data", label: "有数据" },
             ]}
           />
@@ -544,6 +550,13 @@ export function SceneEmptyContrast() {
                     新建物料
                   </Button>
                 }
+              />
+            }
+            forbidden={
+              <EmptyState
+                icon={<ShieldOff aria-hidden="true" />}
+                title="没有查看权限"
+                description="这份数据对当前账号不可用"
               />
             }
           >

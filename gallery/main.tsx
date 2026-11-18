@@ -60,6 +60,7 @@ const componentCategories = [
   "数据录入",
   "数据展示",
   "反馈",
+  "AI 对话",
   "高级组件",
   "重型组件",
 ];

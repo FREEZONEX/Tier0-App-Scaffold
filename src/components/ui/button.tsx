@@ -38,13 +38,13 @@ const buttonVariants = cva(
     variants: {
       variant: {
         highlight:
-          "bg-[color:var(--tier0-cta)] text-[color:var(--tier0-cta-foreground)] shadow-[var(--tier0-shadow-highlight-button)] hover:bg-[color:var(--tier0-cta-hover)] focus-visible:bg-[color:var(--tier0-cta-hover)] focus-visible:text-[color:var(--tier0-cta-foreground)] active:bg-[color:var(--tier0-cta-active)]",
+          "bg-[color:var(--tier0-cta)] text-[color:var(--tier0-cta-foreground)] hover:bg-[color:var(--tier0-cta-hover)] focus-visible:bg-[color:var(--tier0-cta-hover)] focus-visible:text-[color:var(--tier0-cta-foreground)] active:bg-[color:var(--tier0-cta-active)]",
         primary:
-          "bg-primary text-primary-foreground shadow-primary hover:bg-[color:var(--tier0-primary-hover)] focus-visible:bg-[color:var(--tier0-primary-hover)] focus-visible:text-primary-foreground active:brightness-95",
+          "bg-[color:var(--tier0-cta)] text-[color:var(--tier0-cta-foreground)] hover:bg-[color:var(--tier0-cta-hover)] focus-visible:bg-[color:var(--tier0-cta-hover)] focus-visible:text-[color:var(--tier0-cta-foreground)] active:bg-[color:var(--tier0-cta-active)]",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-[color-mix(in_srgb,var(--secondary),var(--foreground)_5%)] focus-visible:bg-[color-mix(in_srgb,var(--secondary),var(--foreground)_5%)] focus-visible:text-secondary-foreground",
         outline:
-          "border-border bg-card text-foreground shadow-xs hover:border-[color-mix(in_srgb,var(--border)_70%,var(--foreground))] hover:bg-muted focus-visible:border-border-strong aria-pressed:border-transparent aria-pressed:bg-muted aria-pressed:text-foreground aria-pressed:hover:bg-muted",
+          "border-border bg-card text-foreground hover:border-[color-mix(in_srgb,var(--border)_70%,var(--foreground))] hover:bg-muted focus-visible:border-border-strong aria-pressed:border-transparent aria-pressed:bg-muted aria-pressed:text-foreground aria-pressed:hover:bg-muted",
         ghost: "hover:bg-muted hover:text-foreground",
         danger:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:bg-destructive/20 focus-visible:text-destructive",

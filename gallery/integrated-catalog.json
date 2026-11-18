@@ -107,6 +107,51 @@
     ]
   },
   {
+    "name": "SceneAiChat",
+    "label": "工艺助手",
+    "category": "业务场景",
+    "layer": "business",
+    "detail": "现场问答：历史对话、工具调用、思考分析、指标卡与操作面板，流式回答可停。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "SceneAiChat",
+        "label": "工艺助手",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "SceneAiDock",
+    "label": "侧栏助手",
+    "category": "业务场景",
+    "layer": "business",
+    "detail": "报修草稿旁的可收起助手。写入草稿把建议段落追加进表单，撤回再拿掉。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "SceneAiDock",
+        "label": "侧栏助手",
+        "engine": "library"
+      }
+    ]
+  },
+  {
+    "name": "SceneAiLauncher",
+    "label": "角落助手",
+    "category": "业务场景",
+    "layer": "business",
+    "detail": "SOP 页角落的非模态助手：展开、收成底栏并提示新回复，标题栏可切换历史对话。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "SceneAiLauncher",
+        "label": "角落助手",
+        "engine": "library"
+      }
+    ]
+  },
+  {
     "name": "Button",
     "label": "按钮",
     "category": "通用",
@@ -1192,6 +1237,251 @@
         "engine": "library",
         "importPath": "@/components/kit/ui/feedback",
         "source": "src/components/kit/ui/feedback.tsx"
+      }
+    ]
+  },
+  {
+    "name": "ChatThread",
+    "label": "对话线程",
+    "category": "AI 对话",
+    "layer": "extension",
+    "detail": "滚动消息区：空态、贴底滚动，离开底部时出现「回到最新」。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "ChatThread",
+        "label": "对话线程",
+        "engine": "library",
+        "importPath": "@/components/ui/chat-thread",
+        "source": "src/components/ui/chat-thread.tsx"
+      }
+    ]
+  },
+  {
+    "name": "ChatMessage",
+    "label": "消息",
+    "category": "AI 对话",
+    "layer": "extension",
+    "detail": "一条用户或助手消息。用户气泡 muted 底，助手无底；来源摘录用描边芯片。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "ChatMessage",
+        "label": "消息",
+        "engine": "library",
+        "importPath": "@/components/ui/chat-message",
+        "source": "src/components/ui/chat-message.tsx"
+      }
+    ]
+  },
+  {
+    "name": "ChatComposer",
+    "label": "对话输入",
+    "category": "AI 对话",
+    "layer": "extension",
+    "detail": "Enter 发送、Shift+Enter 换行、忽略 IME；流式中发送钮换成停止。快捷问题用描边芯片。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "ChatComposer",
+        "label": "对话输入",
+        "engine": "library",
+        "importPath": "@/components/ui/chat-composer",
+        "source": "src/components/ui/chat-composer.tsx"
+      }
+    ]
+  },
+  {
+    "name": "StreamText",
+    "label": "流式文本",
+    "category": "AI 对话",
+    "layer": "extension",
+    "detail": "正在生成的 markdown-lite 正文和光标。父组件写入增量；图库可用模拟逐字。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "StreamText",
+        "label": "流式文本",
+        "engine": "library",
+        "importPath": "@/components/ui/stream-text",
+        "source": "src/components/ui/stream-text.tsx"
+      }
+    ]
+  },
+  {
+    "name": "ChatPanel",
+    "label": "整页对话",
+    "category": "AI 对话",
+    "layer": "extension",
+    "detail": "Frame 包住线程、快捷问题和输入。高度跟父级走，不用 h-svh。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "ChatPanel",
+        "label": "整页对话",
+        "engine": "library",
+        "importPath": "@/components/ui/chat-panel",
+        "source": "src/components/ui/chat-panel.tsx"
+      }
+    ]
+  },
+  {
+    "name": "ChatDock",
+    "label": "侧栏助手",
+    "category": "AI 对话",
+    "layer": "extension",
+    "detail": "工作面右侧助手栏；窄屏改成抽屉。写入草稿由页面自己接。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "ChatDock",
+        "label": "侧栏助手",
+        "engine": "library",
+        "importPath": "@/components/ui/chat-dock",
+        "source": "src/components/ui/chat-dock.tsx"
+      }
+    ]
+  },
+  {
+    "name": "ChatLauncher",
+    "label": "角落助手",
+    "category": "AI 对话",
+    "layer": "extension",
+    "detail": "非模态角落窗口：展开、收成底栏、关掉。父级要 relative。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "ChatLauncher",
+        "label": "角落助手",
+        "engine": "library",
+        "importPath": "@/components/ui/chat-launcher",
+        "source": "src/components/ui/chat-launcher.tsx"
+      }
+    ]
+  },
+  {
+    "name": "ChatReasoning",
+    "label": "核对过程",
+    "category": "AI 对话",
+    "layer": "extension",
+    "detail": "核对过程：生成中展开步骤，完成后折叠。写业务核对内容，不要写 thinking。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "ChatReasoning",
+        "label": "核对过程",
+        "engine": "library",
+        "importPath": "@/components/ui/chat-reasoning",
+        "source": "src/components/ui/chat-reasoning.tsx"
+      }
+    ]
+  },
+  {
+    "name": "ChatCodeBlock",
+    "label": "代码块",
+    "category": "AI 对话",
+    "layer": "extension",
+    "detail": "文件名栏加复制。不带 Shiki 高亮。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "ChatCodeBlock",
+        "label": "代码块",
+        "engine": "library",
+        "importPath": "@/components/ui/chat-code-block",
+        "source": "src/components/ui/chat-code-block.tsx"
+      }
+    ]
+  },
+  {
+    "name": "ChatStatus",
+    "label": "生成状态",
+    "category": "AI 对话",
+    "layer": "extension",
+    "detail": "首字前的等待骨架，或本轮失败加描边重试。检索进度用 ChatRetrieval。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "ChatStatus",
+        "label": "生成状态",
+        "engine": "library",
+        "importPath": "@/components/ui/chat-status",
+        "source": "src/components/ui/chat-status.tsx"
+      },
+      {
+        "name": "ChatRetrieval",
+        "label": "检索进度",
+        "engine": "library",
+        "importPath": "@/components/ui/chat-status",
+        "source": "src/components/ui/chat-status.tsx"
+      }
+    ]
+  },
+  {
+    "name": "ChatHistory",
+    "label": "历史对话",
+    "category": "AI 对话",
+    "layer": "extension",
+    "detail": "标题栏打开过往会话：切换、删除需确认。新对话会把当前轮收进列表。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "ChatHistory",
+        "label": "历史对话",
+        "engine": "library",
+        "importPath": "@/components/ui/chat-history",
+        "source": "src/components/ui/chat-history.tsx"
+      }
+    ]
+  },
+  {
+    "name": "ChatToolCall",
+    "label": "工具调用",
+    "category": "AI 对话",
+    "layer": "extension",
+    "detail": "一条工具调用：业务标题、调用中/完成/失败，展开看参数和结果。多条收进 ChatToolGroup。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "ChatToolCall",
+        "label": "工具调用",
+        "engine": "library",
+        "importPath": "@/components/ui/chat-tool-call",
+        "source": "src/components/ui/chat-tool-call.tsx"
+      }
+    ]
+  },
+  {
+    "name": "ChatMetricCard",
+    "label": "对话指标",
+    "category": "AI 对话",
+    "layer": "extension",
+    "detail": "回复里的紧凑指标卡。白底，色只涂数字；不要用看板 StatCard。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "ChatMetricCard",
+        "label": "对话指标",
+        "engine": "library",
+        "importPath": "@/components/ui/chat-metric",
+        "source": "src/components/ui/chat-metric.tsx"
+      }
+    ]
+  },
+  {
+    "name": "ChatActionPanel",
+    "label": "对话操作",
+    "category": "AI 对话",
+    "layer": "extension",
+    "detail": "回复下的操作面板：预览、一个主按钮，不可逆动作先确认。",
+    "reason": "",
+    "samples": [
+      {
+        "name": "ChatActionPanel",
+        "label": "对话操作",
+        "engine": "library",
+        "importPath": "@/components/ui/chat-action-panel",
+        "source": "src/components/ui/chat-action-panel.tsx"
       }
     ]
   },

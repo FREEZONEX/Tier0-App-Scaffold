@@ -14,7 +14,6 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Dialog } from "@/components/overlays/dialog";
 import { Button } from "@/components/ui/button";
-import { TextButton } from "@/components/kit/ui/buttons";
 import { NumberInput } from "@/components/kit/ui/number-input";
 import { RadioGroup } from "@/components/kit/ui/radio";
 import { errorMessage } from "@/lib/component-kit/api-client";
@@ -115,14 +114,16 @@ function ExportBody({
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2">
         {onOpenLog ? (
-          <TextButton
+          <Button
+            size="sm"
+            variant="outline"
             onClick={() => {
               onClose();
               onOpenLog();
             }}
           >
             查看导出日志
-          </TextButton>
+          </Button>
         ) : (
           <span />
         )}

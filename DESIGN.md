@@ -1,7 +1,7 @@
 ---
 version: alpha
 name: Tier0-design-system
-description: "A readable enterprise product design system for Tier0: calm operational surfaces, near-black primary actions, muted-gray fills for selected navigation, signal green only for progress fills and highlight CTAs, and density chosen by layout (workspace / station / review / monitor). Management workspaces are product-focused; station, review, and monitor keep purpose-built density and chrome."
+description: "A readable enterprise product design system for Tier0: calm operational surfaces, signal-green primary actions, muted-gray fills for selected navigation, pastel green washes on one emphasis KPI per strip, and density chosen by layout (workspace / station / review / monitor). Management workspaces are product-focused; station, review, and monitor keep purpose-built density and chrome."
 
 colors:
   primary: "var(--tier0-primary)"
@@ -117,15 +117,19 @@ spacing:
 
 # The recipes below are implemented as scaffold primitives in
 # src/components/ui/ (Button variants, StatusBadge≈tag-status, Card≈panel,
-# PageHeader, StatusFilterChips, RiskBanner, EmptyState, StatCard) and
+# PageHeader, StatusFilterChips, RiskBanner, EmptyState, StatCard,
+# ChatThread / ChatMessage / ChatComposer / StreamText /
+# ChatPanel / ChatDock / ChatLauncher /
+# ChatHistorySelect / ChatToolCall / ChatMetricCard / ChatActionPanel) and
 # src/components/forms/FileUpload — compose
 # those instead of re-deriving styles from this file. Usage rules:
 # - identifiers (doc/lot/location codes) render in font-mono
-# - highlight lime is a fill / ring color only; text accents use brand (≥4.5:1)
+# - highlight lime is a fill / ring / primary-button color; text accents use brand (≥4.5:1)
 # - status = StatusBadge; card accent bar is for a single status object, not a list shell
-# - problem KPIs get a light semantic wash; exception rows use a left bar (red / amber / blue) without a nested ring
-# - routine cards stay white
-# - StatCard: large number, gray icon tile (white on problem washes), trend as Tag
+# - one emphasis KPI uses a pastel green wash; problem KPIs get a light semantic wash
+# - exception rows use a left bar (red / amber / blue) without a nested ring
+# - routine work cards stay white
+# - StatCard: large number, circular icon, optional spark ticks, trend as Tag
 # - Card headers stay compact, unfilled, no hairline; the pane right of the rail uses --workspace (sidebar gray mixed 60% with white)
 # - available where useful: .text-link (inline links), StatCard tone + trend props
 components:
@@ -137,8 +141,8 @@ components:
     minHeight: "var(--tier0-control-height-md)"
     padding: "0 var(--tier0-space-md)"
   button-primary:
-    backgroundColor: "{colors.primary}"
-    textColor: "{colors.on-primary}"
+    backgroundColor: "{colors.highlight-bg-primary}"
+    textColor: "{colors.highlight-foreground}"
     typography: "{typography.label}"
     rounded: "{rounded.md}"
     minHeight: "var(--tier0-control-height-md)"
@@ -242,14 +246,14 @@ Tier0 is precise, calm, technical enterprise software: readable through long
 shifts and on shared terminals without becoming a dark control-room theme.
 
 - Workspace: neutral canvas, raised white surfaces, compact information rhythm.
-- Primary actions: near-black (`Button` `primary`). Navigation selection:
-  `bg-muted text-foreground` with no border or shadow. Progress fills and
-  deliberate CTAs: signal green (`Button` `highlight` / highlight soft fills).
+- Primary actions: signal green (`Button` `primary` and `highlight` — CTA lime
+  fill with ink text). Navigation selection: `bg-muted text-foreground` with
+  no border or shadow. Progress fills and KPI sparks use the same lime family.
   Text and icon accents on the canvas: `--tier0-brand` / `text-brand` (≥4.5:1);
   never use `--tier0-highlight`, `--tier0-highlight-text`, or
   `--tier0-highlight-deep` for body or label text on white. Urgency: semantic
-  status colors. Being the most important action alone does not require a green
-  button.
+  status colors. One KPI per strip may use a pastel green wash
+  (`tone="running"`); do not flood every card.
 - Station: larger touch targets. Review: evidence-first. Monitor: fixed,
   distance-readable composition.
 - Hierarchy comes from typography, borders, restrained surface changes, and
@@ -325,13 +329,17 @@ canvas, unclear actions, filters/charts/forms in the title row).
 
 1. **Title row** — `PageHeader`: title + at most one primary action (and
    optional secondary outline). No filters, charts, forms, or data boards.
-2. **KPI row** — `StatCard` in `WorkbenchLayout` `metrics`. Four equal
-   white cards. The number is the largest type on the tile (32–36px,
-   tabular, neutral ink). The top-right icon is a 36px gray (`bg-muted`)
-   tile. Period deltas render as a Tag beside the number: semantic fill
-   (green / red / blue), no stroke, never gray. RiskBanner and exception
-   rows share `--state-*-wash`. Do not put filters on StatCards. Only add
-   a `trend` when the metric has a real delta.
+2. **KPI row** — `StatCard` in `WorkbenchLayout` `metrics`. Default cards
+   stay white. The number is the largest type on the tile (32–36px,
+   tabular, neutral ink). The top-right icon is a 36px circle (muted on
+   white cards, tinted on washes). One emphasis metric uses
+   `tone="running"` (pastel green `--kpi-emphasis-*` wash). Problem KPIs
+   (`error` / `paused`) use a light semantic wash. Optional `spark` ticks
+   at the footer use CTA lime. Period deltas render as a Tag beside the
+   number: semantic fill (green / red / blue), no stroke, never gray.
+   RiskBanner and exception rows share `--state-*-wash`. Do not put
+   filters on StatCards. Only add a `trend` / `spark` when the metric has
+   a real series.
 3. **Work surface** — one primary `Card` (queue, board, table) plus an
    optional aside, on `--workspace` (sidebar gray mixed 60% with white).
    Card/Frame headers are compact (`min-h-10`, a little extra top
@@ -346,8 +354,10 @@ Actions: one primary `Button` per band; row actions stay icon-only or a
 single **outline** control on the tile. Card header extras (维保中心 /
 全部模具) are outline `sm` buttons, not green underline `TextButton`s.
 `TextButton` is only for sparse chrome (toolbar 字段配置 / 排序 / 行高,
-in-form "delete field") and in-copy links. Status color lives on tags,
-chips, and chart series — not on whole KPI cards or the page canvas.
+in-form "delete field") and in-copy links. Empty, filter-miss and 403
+share `EmptyState` (nested cards use `size="sm"`; 403 has no Retry).
+Status color lives on tags, chips, chart series, and at most one
+emphasis KPI wash — not on the page canvas or every card.
 
 The shipped component families are a discoverable toolkit, not a mandatory
 screen recipe:

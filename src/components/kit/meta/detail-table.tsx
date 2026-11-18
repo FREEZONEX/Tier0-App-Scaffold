@@ -10,12 +10,13 @@
  *
  * Rows added here get a `__key`; strip it with `stripRowKeys()` before saving.
  */
-import { BriefcaseMedical, CirclePlus, CircleQuestionMark, PenLine, Trash2, X } from "lucide-react";
+import { BriefcaseMedical, CirclePlus, CircleQuestionMark, Copy, PenLine, Trash2, X } from "lucide-react";
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import { ConfirmDialog } from "@/components/overlays/confirm-dialog";
 import { Dialog } from "@/components/overlays/dialog";
 import { Button } from "@/components/ui/button";
-import { IconButton, TextButton } from "@/components/kit/ui/buttons";
+import { IconButton } from "@/components/kit/ui/buttons";
+import { RowActions } from "@/components/kit/meta/row-actions";
 import { DataGrid, type DataGridColumn } from "@/components/kit/ui/data-grid";
 import { Popover } from "@/components/kit/ui/popover";
 import { Select } from "@/components/kit/ui/select";
@@ -540,28 +541,12 @@ export function DetailTable({
         const actions: RowAction[] = rowActions
           ? rowActions(row, index)
           : [
-              ...(copyable ? [{ key: "copy", label: "复制", onClick: () => copyRow(index) }] : []),
+              ...(copyable ? [{ key: "copy", label: "复制", icon: <Copy />, onClick: () => copyRow(index) }] : []),
               ...((typeof deletable === "function" ? deletable(row, index) : deletable)
-                ? [{ key: "delete", label: "删除", danger: true, onClick: () => void removeRows([row]) }]
+                ? [{ key: "delete", label: "删除", icon: <Trash2 />, danger: true, onClick: () => void removeRows([row]) }]
                 : []),
             ];
-        return (
-          <span className="flex items-center gap-3" data-grid-no-row-click="">
-            {actions
-              .filter((action) => !action.hidden)
-              .map((action) => (
-                <TextButton
-                  key={action.key}
-                  tone={action.danger ? "danger" : action.tone ?? "primary"}
-                  disabled={action.disabled}
-                  title={action.disabled ? action.disabledReason : undefined}
-                  onClick={action.onClick}
-                >
-                  {action.label}
-                </TextButton>
-              ))}
-          </span>
-        );
+        return <RowActions actions={actions} />;
       },
     });
   }

@@ -6,11 +6,11 @@
  * saved at once), 字段名称, 字段类型 (colored tag), 是否必填, 提示说明, 创建时间, 创建人,
  * 更新时间, 更新人, 操作 (编辑 / 删除).
  */
-import { CirclePlus, Info, Search } from "lucide-react";
+import { CirclePlus, Info, PenLine, Search, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { TextButton } from "@/components/kit/ui/buttons";
 import { DataGrid, type DataGridColumn } from "@/components/kit/ui/data-grid";
+import { RowActions } from "@/components/kit/meta/row-actions";
 import { Input } from "@/components/kit/ui/input";
 import { Tag } from "@/components/kit/ui/tag";
 import { Tooltip } from "@/components/kit/ui/tooltip";
@@ -133,16 +133,16 @@ export function CustomFieldTable({ objectLabel, fields, limit, canManage, onCrea
     columns.push({
       key: "__actions",
       title: "操作",
-      width: 104,
+      width: 112,
       fixed: "right",
       ellipsis: false,
       render: (field) => (
-        <span className="inline-flex items-center gap-3">
-          <TextButton onClick={() => onEdit(field)}>编辑</TextButton>
-          <TextButton tone="danger" onClick={() => onDelete(field)}>
-            删除
-          </TextButton>
-        </span>
+        <RowActions
+          actions={[
+            { key: "edit", label: "编辑", icon: <PenLine />, onClick: () => onEdit(field) },
+            { key: "delete", label: "删除", icon: <Trash2 />, danger: true, onClick: () => onDelete(field) },
+          ]}
+        />
       ),
     });
   }

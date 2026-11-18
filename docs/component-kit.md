@@ -14,6 +14,7 @@
 | 选择与辅助面板 | 关联选择、人员选择、查询条件、视图编辑、打印、导入导出、移动记录卡片及其配置 |
 | 通用编辑器 | `components/editors`：自定义字段、表达式/变量、编码规则、打印模板；对象与属性目录由应用提供 |
 | 布局与图表 | `components/kit/shell/page-layout`、`components/ui/responsive-page`、`workbench-layout`、`operational-list`、`components/charts/board-charts` |
+| AI 对话 | `ChatPanel` / `ChatDock` / `ChatLauncher` 三种摆法；线程用 `ChatThread` / `ChatMessage` / `ChatComposer` / `StreamText`。核对过程 `ChatReasoning`、工具调用 `ChatToolCall` / `ChatToolGroup`、指标卡 `ChatMetricCard`、操作面板 `ChatActionPanel`、历史 `ChatHistorySelect`（标题栏下拉切换，不放产品名）、代码块 `ChatCodeBlock`、等待/失败 `ChatStatus`、检索进度 `ChatRetrieval`。侧栏撑满并可拖宽度，收起 / 展开走宽度过渡（不硬切）；角落窗口从右下角缩放淡入，收起是圆形 `ChatAvatar` 入口、最小化是带头像的条，不要用 `layout="size"` 把窗口压扁。标题栏「新对话」用 `MessageSquarePlus`，收起 / 回到最新只用图标；新对话与历史切换在线程里交叉淡入。助手头像 `ChatAvatar`（24px 圆形绿底白四芒星，与首行 `leading-6` 对齐，不要再套灰底方块）；思考指示 `ThinkingLoader`（affectUI）。传输层由应用 SSE 写入最后一条助手消息；图库三场景用模拟逐字。不含附件、语音、Shiki、模型对比 |
 
 可从 `@/components/kit` 导入公开能力；实际页面优先按文件导入。类型在 `@/lib/component-kit/types`。可视图库覆盖 56 个非业务组件分类（含原有能力，并非新增 56 个组件）。
 
@@ -150,7 +151,8 @@ const adapter: ComponentKitAdapter = {
 
 - 表单 `RadioGroup`（圆点 / 按钮组）：选中用品牌色填充或描边（`--tier0-brand` / `#467000`），保证文字对比度。
 - 打印模板卡片右侧选中圆：用 `--tier0-highlight-deep`（`#73B200`），与表单单选区分；卡片可取消选中，用 `aria-pressed` 而非 `radiogroup`。
-- 文字链与 `TextButton` 悬停只加下划线、不变字色。它们只用于工具栏表格设置（字段配置 / 排序 / 行高）和表单内稀疏操作；卡片表头次要入口、行内「处理」、横幅「查看台账」一律用描边按钮。
+- 文字链与 `TextButton` 悬停只加下划线、不变字色。它们只用于工具栏表格设置（字段配置 / 排序 / 行高）和表单内稀疏操作；卡片表头次要入口、行内「处理」、横幅「查看台账」、导入导出结果里的「查看日志」一律用描边按钮。列表主字段打开记录用 `TextButton tone="default"`（前景色，不是品牌绿）。视图列表、自定义字段、明细表、导入导出日志的操作列走 `RowActions`（优先图标）。
+- 主工作区空态用 `EmptyState`；卡片内 / 看板列用 `EmptyState size="sm"`。`AsyncView` 遇到 403 渲染无权限 EmptyState，不提供「重新加载」。
 
 ## 图标
 

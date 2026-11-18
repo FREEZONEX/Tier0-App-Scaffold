@@ -17,7 +17,10 @@ toolkit; choose compositions from the workflow rather than treating this list
 as a mandatory page recipe.
 
 - `ui`: `Button`, `StatusBadge`, `Card`, `PageHeader`,
-  `StatusFilterChips`, `RiskBanner`, `EmptyState`, `StatCard`.
+  `StatusFilterChips`, `RiskBanner`, `EmptyState`, `StatCard`,
+  `ChatThread` / `ChatMessage` / `ChatComposer` / `StreamText`,
+  plus `ChatPanel` / `ChatDock` / `ChatLauncher` for placement,
+  `ChatHistorySelect`, `ChatToolCall`, `ChatMetricCard`, `ChatActionPanel`.
 - `forms`: `FieldGroup`, `FormGrid`, `RecordSelect`, `FileUpload`,
   `LineItemSection`.
 - `overlays`: `Dialog`, `FormDialog`, `ConfirmDialog`, `Drawer`.
@@ -86,10 +89,9 @@ Management pages use `WorkbenchLayout`: title → KPI cards → primary work +
 optional aside. Do not flatten these into one undifferentiated canvas.
 
 - **KPI strip**: independent `StatCard`s (never a divider strip). Large
-  tabular number, 36px icon tile (white on problem washes). Add a trend
-  Tag (`↑2%` / `+18`)
+  tabular number, 36px gray icon tile. Add a trend Tag (`↑2%` / `+18`)
   only when the metric has a real delta — do not invent one. White card;
-  problem KPIs (`tone` error/paused) use a light wash, not a saturated fill.
+  do not wash the tile.
 - **Card chrome**: headers stay compact (`min-h-10`, extra top padding)
   and unfilled, with no hairline under the title. The pane to the right of the sidebar uses
   `--workspace` (sidebar gray mixed 60% with white).
@@ -161,7 +163,10 @@ Load local APIs with `requestJson()` (it applies `apiUrl()`); pass the loader
 `signal` through. Shared loads use stable primitive request keys with
 `useRequest()` / `usePolling()`; do not depend on a newly created loader
 function each render. Render request state through `AsyncView` so failures show
-an error and retry instead of indefinite loading.
+an error and retry instead of indefinite loading. A 403 with no cached data
+uses the same `EmptyState` shell as an empty list (no Retry — retrying will
+not grant access). Nested cards and board columns use
+`EmptyState size="sm"` so they do not add a second dashed ring.
 
 Keep live data current without routine Refresh buttons: `useRequest` revalidates
 on visible/reconnect; shared operational lists of App records refresh on
@@ -170,6 +175,44 @@ on visible/reconnect; shared operational lists of App records refresh on
 external systems). Call `refresh()` after a successful mutation and for error retry. Keep
 form drafts separate from fetched data so background updates cannot erase edits;
 immutable reads can disable `refetchOnWindowFocus` / `refetchOnReconnect`.
+
+## AI conversation
+
+When a generated app needs Q&A or streaming answers, compose
+`ChatThread` + `ChatMessage` + `ChatComposer` + `StreamText`. Place them with
+`ChatPanel` (full page), `ChatDock` (beside the work), or `ChatLauncher`
+(corner window). Do not `shadcn add` ReUI Pro chat pages — they overwrite
+Button and pull Next / Shiki / Motion.
+
+- Size the surface from the layout (`h-full` inside page-shell / dock), never
+  ReUI's `h-svh`. `ChatPanel` is one card — not Frame nested in FramePanel.
+  Inside a dock or launcher use `flush`. The dock rail fills the work
+  height (`border-l` only, no floating card) and the left edge is a
+  drag handle (arrow keys, double-click resets). Header chrome (new
+  chat is `MessageSquarePlus`, collapse, jump to latest, launcher min/close) is ghost
+  icons with `aria-label`, not labeled outline buttons.
+- User bubbles use `bg-muted` and 4px corners; assistant is unfilled transcript.
+  Highlight lime is not a bubble fill.
+- `ChatComposer` sends on Enter, inserts a newline on Shift+Enter, ignores IME
+  composition, and swaps Send for outline Stop while streaming.
+- The parent owns transport: append chunks onto the last assistant `text`.
+  Gallery demos may use `useSimulatedStream`. Live apps forward tokens through
+  an App route and `openEventStream` — never a browser LLM SDK.
+- Prompt chips and citations are compact outline chips, not green text links
+  or full-size form buttons.
+  Clickable citations use `onOpen`; folded working is `ChatReasoning`
+  (live steps while thinking, then collapse);
+  first-token wait / retry is `ChatStatus` (`ThinkingLoader`: affectUI
+  ray + shimmer); the AI mark is `ChatSpark` (Arc ai-spark mapped);
+  knowledge-base ticks are `ChatRetrieval`; copyable artifacts are
+  `ChatCodeBlock` (no Shiki). Tool traces are `ChatToolCall` /
+  `ChatToolGroup`; in-reply KPIs are `ChatMetricCard` (compact, pastel
+  green wash on default — not dashboard `StatCard`); operator commands are `ChatActionPanel`
+  (one primary, irreversible verbs through `ConfirmDialog`). Past threads
+  are `ChatHistorySelect` in the title slot (dropdown of past threads),
+  not a product name and not a recents chip list.
+- This slice does not ship attachments, voice, model A/B, connected SaaS
+  pickers, or a branching version tree.
 
 A failed request must reach `console.error`, never only an error state:
 `requestJson()` reports a non-2xx response with the server `cause` before it

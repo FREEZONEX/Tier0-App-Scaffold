@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import { FieldLabel } from "@/components/forms/field-label";
 import { Dialog } from "@/components/overlays/dialog";
 import { Button } from "@/components/ui/button";
-import { IconButton, TextButton } from "@/components/kit/ui/buttons";
+import { IconButton } from "@/components/kit/ui/buttons";
 import { RadioGroup } from "@/components/kit/ui/radio";
 import { Tooltip } from "@/components/kit/ui/tooltip";
 import { errorMessage } from "@/lib/component-kit/api-client";
@@ -181,7 +181,9 @@ function ImportBody({
         ) : null}
         <div className="flex flex-wrap items-center justify-between gap-2">
           <span className="flex flex-wrap items-center gap-4">
-            <TextButton
+            <Button
+              size="sm"
+              variant="outline"
               icon={<Download />}
               disabled={downloading || !result.logId}
               onClick={async () => {
@@ -196,16 +198,18 @@ function ImportBody({
               }}
             >
               下载结果文件
-            </TextButton>
+            </Button>
             {onOpenLog ? (
-              <TextButton
+              <Button
+                size="sm"
+                variant="outline"
                 onClick={() => {
                   onClose();
                   onOpenLog();
                 }}
               >
                 查看导入日志
-              </TextButton>
+              </Button>
             ) : null}
           </span>
           <span className="flex gap-2">
