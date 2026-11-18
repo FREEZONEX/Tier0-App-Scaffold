@@ -1,6 +1,8 @@
 import type { HTMLAttributes, ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
+import type { BackTarget } from "@/components/ui/back-button";
 import { PageHeader } from "@/components/ui/page-header";
+import { FOCUS_FILL } from "@/lib/interaction";
 import { cn } from "@/lib/utils";
 
 export interface PageContainerProps {
@@ -8,6 +10,8 @@ export interface PageContainerProps {
   title: ReactNode;
   /** Right side of the title row: page-level links such as 「移动端卡片」「自定义事件」. */
   extra?: ReactNode;
+  /** Parent level for pages below a navigation entry. */
+  back?: BackTarget;
   children?: ReactNode;
   /** Stretch to the viewport height so the last PageCard can fill it (list pages). */
   fill?: boolean;
@@ -15,7 +19,7 @@ export interface PageContainerProps {
 }
 
 /** PageContainer — standard workspace page frame: title row + content cards on the canvas. */
-export function PageContainer({ title, extra, children, fill = false, className }: PageContainerProps) {
+export function PageContainer({ title, extra, back, children, fill = false, className }: PageContainerProps) {
   return (
     <div
       className={cn(
@@ -27,7 +31,8 @@ export function PageContainer({ title, extra, children, fill = false, className 
       <PageHeader
         title={title}
         actions={extra}
-        className="min-h-9 items-center gap-y-1 px-1 [&_h1]:truncate"
+        back={back}
+        className="min-h-9 flex-row flex-nowrap items-center justify-between gap-3 px-1 [&>div:first-child]:min-w-0 [&>div:first-child]:flex-1 [&>div:last-child]:shrink-0 [&>div:last-child]:flex-nowrap [&_h1]:truncate"
       />
       {children}
     </div>
@@ -49,7 +54,7 @@ export function PageCard({ padding = "md", fill = false, className, children, ..
     <div
       {...rest}
       className={cn(
-        "min-w-0 rounded-xl border border-[#e8e8e8] bg-card shadow-card",
+        "min-w-0 rounded-[4px] border border-[#e8e8e8] bg-card shadow-card",
         CARD_PADDING[padding],
         fill && "flex flex-1 flex-col",
         className,
@@ -72,8 +77,10 @@ export interface PageHeaderLinkProps {
   className?: string;
 }
 
-const LINK_CLASS =
-  "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm text-sm text-text-secondary transition-colors hover:text-brand focus-visible:outline-2 focus-visible:outline-brand-border [&_svg]:size-4";
+const LINK_CLASS = cn(
+  "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[4px] text-sm text-text-secondary transition-[color,background-color,text-decoration-color] underline decoration-transparent underline-offset-4 hover:decoration-current focus-visible:decoration-current [&_svg]:size-4",
+  FOCUS_FILL,
+);
 
 /** PageHeaderLink — quiet text link in the page title row. */
 export function PageHeaderLink({ icon, children, to, href, newTab = false, onClick, className }: PageHeaderLinkProps) {

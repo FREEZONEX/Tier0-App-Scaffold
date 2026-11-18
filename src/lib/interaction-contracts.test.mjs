@@ -1,3 +1,4 @@
+import { guidanceIt } from "../../scripts/guidance-test.mjs";
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
@@ -134,7 +135,7 @@ describe("interaction contracts", () => {
     assert.equal(isOpaqueHighRiskAction(optimizeOpaque), true);
   });
 
-  it("requires high-risk generated actions to expose confirmation, details, or impact context", () => {
+  guidanceIt("requires high-risk generated actions to expose confirmation, details, or impact context", () => {
     const offenders = [];
 
     for (const root of UI_ROOTS) {

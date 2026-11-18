@@ -5,28 +5,39 @@ import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TagTone } from "@/components/kit/ui/types";
 
+/** Soft tones follow ReUI Badge *-light recipes (tint + deep ink; dark flips to bright ink). */
 const TONE_CLASS: Record<TagTone, string> = {
-  default: "state-idle",
-  processing: "state-info",
-  success: "state-running",
-  warning: "state-paused",
-  error: "state-error",
+  default:
+    "border-border bg-transparent text-foreground dark:bg-input/32",
+  processing:
+    "border-info/15 bg-info/10 text-info-foreground dark:border-info/25 dark:bg-info/15 dark:text-info-foreground",
+  success:
+    "border-success/15 bg-success/10 text-success-foreground dark:border-success/25 dark:bg-success/15 dark:text-success-foreground",
+  warning:
+    "border-warning/15 bg-warning/10 text-warning-foreground dark:border-warning/25 dark:bg-warning/15 dark:text-warning-foreground",
+  error:
+    "border-destructive/15 bg-destructive/10 text-destructive-foreground dark:border-destructive/25 dark:bg-destructive/15 dark:text-destructive-foreground",
 };
 
 const SOLID_TONE_CLASS: Record<TagTone, string> = {
-  default: "border-transparent bg-[#8c8c8c] text-white",
-  processing: "border-transparent bg-brand text-white",
-  success: "border-transparent bg-success text-white",
-  warning: "border-transparent bg-warning text-white",
-  error: "border-transparent bg-danger text-white",
+  default: "border-transparent bg-invert text-invert-foreground",
+  // Solid fills keep text ≥4.5:1: dark ink on bright green / yellow, white on deeper violet / red.
+  processing: "border-transparent bg-violet-600 text-white",
+  success: "border-transparent bg-success text-[#050b14]",
+  warning: "border-transparent bg-warning text-[#050b14]",
+  error: "border-transparent bg-red-600 text-white",
 };
 
+/** Identity colors (ReUI): tint + border use the hue; label stays on --foreground. */
 function customColorStyle(color: string, solid: boolean): CSSProperties {
-  if (solid) return { backgroundColor: color, borderColor: "transparent", color: "#fff" };
+  if (solid) {
+    return { backgroundColor: color, borderColor: "transparent", color: "#fff" };
+  }
   return {
-    color,
-    backgroundColor: `color-mix(in srgb, ${color} 9%, white)`,
-    borderColor: `color-mix(in srgb, ${color} 32%, white)`,
+    color: "var(--foreground)",
+    backgroundColor: `color-mix(in srgb, ${color} 14%, transparent)`,
+    borderColor: `color-mix(in srgb, ${color} 32%, transparent)`,
+    ["--tag-ink" as string]: color,
   };
 }
 
@@ -68,8 +79,11 @@ export function Tag({
       className={cn(
         "inline-flex max-w-full shrink-0 items-center gap-1 whitespace-nowrap border align-middle",
         size === "sm" ? "h-5 px-1.5 text-xs leading-[18px]" : "h-[22px] px-2 text-xs leading-5",
-        round ? "rounded-full" : "rounded-sm",
+        round ? "rounded-full" : "rounded-[4px]",
         !color && (solid ? SOLID_TONE_CLASS[tone] : TONE_CLASS[tone]),
+        color &&
+          !solid &&
+          "dark:[background-color:color-mix(in_srgb,var(--tag-ink)_18%,transparent)] dark:[border-color:color-mix(in_srgb,var(--tag-ink)_36%,transparent)]",
         !bordered && "border-transparent",
         className,
       )}
@@ -81,7 +95,7 @@ export function Tag({
           type="button"
           aria-label="移除"
           tabIndex={-1}
-          className="-mr-0.5 inline-flex size-3.5 shrink-0 items-center justify-center rounded-sm opacity-60 transition-opacity hover:opacity-100"
+          className="-mr-0.5 inline-flex size-3.5 shrink-0 items-center justify-center rounded-[4px] opacity-60 transition-opacity hover:opacity-100"
           onMouseDown={(event) => event.preventDefault()}
           onClick={(event) => {
             event.stopPropagation();
@@ -99,16 +113,22 @@ export interface StatusTagProps extends HTMLAttributes<HTMLSpanElement> {
   tone?: TagTone;
   /** Leading status dot. */
   dot?: boolean;
-  children: ReactNode;
+  children?: ReactNode;
 }
 
-/** StatusTag — lifecycle status label: light tint background, deep text. */
-export function StatusTag({ tone = "default", dot = false, className, children, ...rest }: StatusTagProps) {
+/** StatusTag — lifecycle status label: ReUI light tint + deep text. */
+export function StatusTag({
+  tone = "default",
+  dot = false,
+  className,
+  children,
+  ...rest
+}: StatusTagProps) {
   return (
     <span
       {...rest}
       className={cn(
-        "inline-flex h-[22px] max-w-full shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm border px-2 text-xs leading-5",
+        "inline-flex h-[22px] max-w-full shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[4px] border px-2 text-xs leading-5",
         TONE_CLASS[tone],
         className,
       )}
@@ -129,11 +149,12 @@ export interface ColorDotLabelProps extends Omit<HTMLAttributes<HTMLSpanElement>
   children: ReactNode;
 }
 
-/** ColorDotLabel — colored option text with a small leading dot. */
+/** ColorDotLabel — colored option text with a small leading dot.
+ * Text stays on `--foreground` by default so dark ink option colors stay readable. */
 export function ColorDotLabel({
   color,
   dot = true,
-  colorText = true,
+  colorText = false,
   className,
   children,
   ...rest
@@ -141,7 +162,7 @@ export function ColorDotLabel({
   return (
     <span
       {...rest}
-      className={cn("inline-flex min-w-0 max-w-full items-center gap-1.5", className)}
+      className={cn("inline-flex min-w-0 max-w-full items-center gap-1.5 text-foreground", className)}
       style={color && colorText ? { color, ...rest.style } : rest.style}
     >
       {color && dot ? (

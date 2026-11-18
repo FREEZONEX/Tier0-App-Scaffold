@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { cn } from "@/lib/utils";
-import type { ControlSize } from "@/components/kit/ui/control-styles";
+import { CONTROL_HEIGHT, type ControlSize } from "@/components/kit/ui/control-styles";
 import { useControllableState, useIsoLayoutEffect } from "@/components/kit/ui/floating";
 import type { OptionItem } from "@/components/kit/ui/types";
 
@@ -20,7 +20,7 @@ export interface SegmentedProps<V extends string | number = string | number> {
   "aria-label"?: string;
 }
 
-const ITEM_HEIGHT: Record<ControlSize, string> = { sm: "h-5 px-2 text-sm", md: "h-7 px-3 text-sm", lg: "h-9 px-3 text-base" };
+const ITEM_STYLE: Record<ControlSize, string> = { sm: "px-2 text-sm", md: "px-3 text-sm", lg: "px-3 text-base" };
 
 function normalize<V extends string | number>(option: OptionItem<V> | V): OptionItem<V> {
   return typeof option === "object" ? option : { value: option, label: String(option) };
@@ -54,6 +54,7 @@ export function Segmented<V extends string | number = string | number>({
     measure();
     const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
     observer?.observe(track);
+    track.querySelectorAll<HTMLElement>("[data-segment-index]").forEach(element => observer?.observe(element));
     return () => observer?.disconnect();
   }, [selectedIndex, items.length, size]);
 
@@ -72,17 +73,18 @@ export function Segmented<V extends string | number = string | number>({
       aria-label={ariaLabel}
       aria-disabled={disabled || undefined}
       className={cn(
-        "relative inline-flex max-w-full items-stretch gap-0.5 rounded-md border border-border bg-card p-0.5",
+        "relative inline-flex max-w-full items-stretch gap-0.5 rounded-[4px] border border-border bg-muted/60 p-0.5",
+        CONTROL_HEIGHT[size],
         block && "flex w-full",
-        disabled && "tier0-control-disabled",
+        disabled && "pointer-events-none opacity-50",
         className,
       )}
     >
       {thumb ? (
         <span
           aria-hidden="true"
-          className="absolute top-0.5 bottom-0.5 rounded-[4px] bg-brand-soft shadow-[0_1px_2px_0_rgb(0_0_0/0.08),0_1px_4px_-1px_rgb(0_0_0/0.06)] transition-[left,width] duration-200"
-          style={{ left: thumb.left, width: thumb.width }}
+          className="absolute top-0.5 bottom-0.5 rounded-[4px] bg-card shadow-sm ring-1 ring-border/60 transition-transform duration-[var(--motion-base)] ease-[var(--motion-spring)]"
+          style={{ left: 0, transform: `translateX(${thumb.left}px)`, width: thumb.width }}
         />
       ) : null}
       {items.map((item, index) => {
@@ -111,12 +113,12 @@ export function Segmented<V extends string | number = string | number>({
               trackRef.current?.querySelector<HTMLButtonElement>(`[data-segment-index="${next}"]`)?.focus();
             }}
             className={cn(
-              "relative z-10 inline-flex min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-[4px] transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
-              ITEM_HEIGHT[size],
+              "relative z-10 inline-flex min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-[4px] transition-colors outline-none focus-visible:bg-fill-hover focus-visible:text-foreground",
+              ITEM_STYLE[size],
               block && "flex-1",
-              isSelected ? "font-medium text-foreground" : "text-text-secondary hover:bg-brand-soft hover:text-foreground",
-              isDisabled && "cursor-not-allowed text-text-placeholder hover:bg-transparent hover:text-text-placeholder",
-              !thumb && isSelected && "bg-brand-soft shadow-sm",
+              isSelected ? "font-medium text-foreground" : "text-muted-foreground hover:text-foreground",
+              isDisabled && "pointer-events-none opacity-50",
+              !thumb && isSelected && "bg-card shadow-sm",
             )}
             onClick={() => choose(index)}
           >

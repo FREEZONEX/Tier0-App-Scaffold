@@ -18,6 +18,10 @@ const steps = [
     command: ["node", "scripts/gate-integrity.mjs"],
   },
   {
+    label: "Legacy database gate",
+    command: ["node", "scripts/legacy-db-gate.mjs"],
+  },
+  {
     label: "TypeScript",
     command: ["npm", "run", "typecheck"],
   },
@@ -38,7 +42,7 @@ const steps = [
       "--import",
       "tsx",
       "--test",
-      "src/lib/gateway.test.ts",
+      "src/lib/visitor.test.ts",
       "src/lib/permissions.test.mjs",
       "src/lib/app-chrome.test.mjs",
       "src/lib/app-id-contracts.test.mjs",
@@ -50,8 +54,7 @@ const steps = [
       "src/lib/interaction-contracts.test.mjs",
       "src/lib/table-contracts.test.mjs",
       "src/lib/copy-contracts.test.mjs",
-      "src/lib/db-contracts.test.mjs",
-      "src/lib/db-schema-contracts.test.mjs",
+      "src/lib/data-contracts.test.mjs",
       "src/lib/route-smoke-contracts.test.mjs",
       "src/lib/route-nesting-contracts.test.mjs",
       "src/lib/hooks-contracts.test.mjs",
@@ -60,7 +63,7 @@ const steps = [
       "src/lib/ui-primitives-contracts.test.mjs",
       "src/lib/responsive-contracts.test.mjs",
       "src/lib/scaffold-version-contracts.test.mjs",
-      "src/lib/template-state.test.mjs",
+      "src/lib/legacy-db-contracts.test.mjs",
     ],
   },
   {

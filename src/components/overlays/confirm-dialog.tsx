@@ -1,9 +1,10 @@
 "use client";
 
-import { AlertTriangle } from "lucide-react";
+import { useId } from "react";
 import { uiText } from "@/lib/app-chrome";
 import { Dialog } from "@/components/overlays/dialog";
 import { OverlayActionButton } from "@/components/overlays/overlay-frame";
+import { RiskBanner } from "@/components/ui/risk-banner";
 
 export interface ConfirmDialogProps {
   open: boolean;
@@ -34,13 +35,15 @@ export function ConfirmDialog({
   pending = false,
   onConfirm,
 }: ConfirmDialogProps) {
+  const descriptionId = useId();
+
   return (
     <Dialog
       open={open}
       onOpenChange={onOpenChange}
       title={title}
-      description={description}
       size="sm"
+      describedById={descriptionId}
       contentClassName="py-5"
       footer={
         <>
@@ -59,10 +62,11 @@ export function ConfirmDialog({
         </>
       }
     >
-      <div className="flex gap-3 rounded-sm border border-border bg-surface-inset p-4">
-        <AlertTriangle className="mt-0.5 size-5 shrink-0 text-state-paused-fg" />
-        <p className="text-sm leading-6 text-muted-foreground">{description}</p>
-      </div>
+      <RiskBanner severity={destructive ? "error" : "warning"}>
+        <p id={descriptionId} className="text-sm leading-6">
+          {description}
+        </p>
+      </RiskBanner>
     </Dialog>
   );
 }

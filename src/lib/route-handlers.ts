@@ -5,7 +5,14 @@
  * "translate HTTP ↔ service call" without re-implementing error mapping.
  *
  * Throw `HttpError` for client-facing failures; throw `ZodError` (i.e. let
- * `schema.parse(...)` propagate) for validation failures. Anything else is a 500.
+ * `schema.parse(...)` propagate) for validation failures. Data-layer
+ * `DataError`s (`@tier0/sdk-v2/data`) keep their mapped status and UNS error
+ * code (`DUPLICATE_KEY`, `VERSION_CONFLICT`, ...); a 429 / 503 that is safe
+ * to repeat (`retry.safe`, not `execution: "unknown"`) also sends
+ * `retry.afterMs` as `Retry-After`. Their `execution`, `retry.safe`,
+ * `details` (the UNS envelope `data`) and `cause` stay server-side: one App
+ * request may span several data calls, so a call that is safe to repeat
+ * does not make the whole request safe to resend. Anything else is a 500.
  *
  * Usage:
  *
@@ -18,7 +25,7 @@
  *         }),
  *         POST: withErrors(async ({ request }) => {
  *           const user = await requireAuth("warehouse_manager");
- *           const data = insertWorkOrderSchema.parse(await request.json());
+ *           const data = createWorkOrderInput.parse(await request.json());
  *           return Response.json(await createWorkOrder(data, user.id));
  *         }),
  *       },
@@ -64,9 +71,35 @@ export function withErrors<Args extends any[]>(
       if (e instanceof HttpError) {
         return Response.json({ error: e.message }, { status: e.status });
       }
-      // Backwards compatibility: services that still throw plain `{status, message}`.
+      // Plain `{status, message}` errors, including data-layer `DataError`s,
+      // which also carry the UNS error `code`, `requestId` and `retry`; only
+      // the first two and the wait are answered to the caller.
       if (isHttpErrorShape(e)) {
-        return Response.json({ error: e.message }, { status: e.status });
+        const { code, requestId, retry, execution } = e as {
+          code?: unknown;
+          requestId?: unknown;
+          retry?: { safe?: unknown; afterMs?: unknown };
+          execution?: unknown;
+        };
+        const afterMs = retry?.afterMs;
+        // Only a wait the platform marked safe; never for a write that may have landed.
+        const waits =
+          (e.status === 429 || e.status === 503) &&
+          retry?.safe === true &&
+          execution !== "unknown" &&
+          typeof afterMs === "number" &&
+          afterMs > 0;
+        return Response.json(
+          {
+            error: e.message,
+            ...(typeof code === "string" ? { code } : {}),
+            ...(typeof requestId === "string" ? { requestId } : {}),
+          },
+          {
+            status: e.status,
+            ...(waits ? { headers: { "Retry-After": String(Math.ceil(afterMs / 1000)) } } : {}),
+          },
+        );
       }
       if (e instanceof ZodError) {
         const first = e.issues[0];

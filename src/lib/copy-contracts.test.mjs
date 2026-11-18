@@ -1,3 +1,4 @@
+import { guidanceIt } from "../../scripts/guidance-test.mjs";
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
@@ -52,7 +53,7 @@ describe("copy contracts", () => {
     );
   });
 
-  it("keeps generated UI free of future-promise capability copy", () => {
+  guidanceIt("keeps generated UI free of future-promise capability copy", () => {
     const offenders = [];
 
     for (const root of UI_ROOTS) {

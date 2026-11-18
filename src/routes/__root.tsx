@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-router";
 import { Toaster } from "@/components/toaster";
 import { APP_LOCALE, APP_NAME } from "@/lib/app-chrome";
+import { useVisitorSync } from "@/lib/use-visitor";
 import "@fontsource/ibm-plex-sans/400.css";
 import "@fontsource/ibm-plex-sans/500.css";
 import "@fontsource/ibm-plex-sans/600.css";
@@ -43,12 +44,17 @@ export const Route = createRootRoute({
       { rel: "stylesheet", href: globalsCss },
       { rel: "icon", type: "image/svg+xml", href: "/builder-logo-dark.svg" },
     ],
+    // Page runtime served by the platform front door at the host root, never
+    // part of this build. Not async: App code finds it already installed.
+    scripts: [{ src: "/__tier0/runtime.js" }],
   }),
   component: RootDocument,
   notFoundComponent: NotFound,
 });
 
 function RootDocument() {
+  // Reload the visitor in route context when the server may see other roles.
+  useVisitorSync();
   return (
     <html lang={APP_LOCALE} className="h-full antialiased font-sans">
       <head>

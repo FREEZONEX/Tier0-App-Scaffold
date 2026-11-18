@@ -2,25 +2,41 @@
 
 /**
  * 排序: 「设置排序条件」, rows of drag handle +
- * 字段下拉 + A → Z / Z → A + ×, 「＋ 添加排序条件」; the toolbar button shows the
- * condition count. Complete conditions are reported on every change.
+ * 字段下拉 + 升序 / 降序 + ×, 「＋ 添加排序条件」. The toolbar button names the
+ * first rule (「排序：计划数量 降序」, 「+N」 for more; hover lists all), so the
+ * current order is readable without opening the panel. Complete conditions
+ * are reported on every change; a row without a field is kept only while the
+ * panel is open.
  *
  * `SortConditionList` is shared with the view editor's 默认排序 tab.
  */
-import { ArrowDownUp, GripVertical, Plus, X } from "lucide-react";
+import { ArrowDownUp, ArrowUp, ArrowDown, Plus, X } from "lucide-react";
 import { useRef, useState, type DragEvent } from "react";
 import { IconButton, TextButton } from "@/components/kit/ui/buttons";
 import { Popover } from "@/components/kit/ui/popover";
 import { Segmented } from "@/components/kit/ui/segmented";
 import { Select } from "@/components/kit/ui/select";
+import { Tooltip } from "@/components/kit/ui/tooltip";
 import { moveItem } from "@/lib/component-kit/list-columns";
 import type { FieldDef, SortSpec } from "@/lib/component-kit/types";
 import { cn } from "@/lib/utils";
+import { DragHandle, dragInsertionClass } from "@/components/kit/ui/drag-handle";
 
 interface DraftSort {
   key: string;
   field: string | null;
   direction: "asc" | "desc";
+}
+
+/** Direction names used by the panel, the toolbar summary and its tooltip. */
+export const SORT_DIRECTION_LABEL = { asc: "升序", desc: "降序" } as const;
+
+type SortField = Pick<FieldDef, "code" | "name">;
+
+/** 「计划数量 降序」; an unknown field falls back to its code so a rule is never blank. */
+export function describeSort(sort: SortSpec, fields: readonly SortField[]): string {
+  const name = fields.find((field) => field.code === sort.field)?.name || sort.field;
+  return `${name} ${SORT_DIRECTION_LABEL[sort.direction]}`;
 }
 
 function toDrafts(sorts: readonly SortSpec[]): DraftSort[] {
@@ -33,6 +49,40 @@ function toSorts(drafts: readonly DraftSort[]): SortSpec[] {
     .map((draft) => ({ field: draft.field, direction: draft.direction }));
 }
 
+function sortValueKey(sorts: readonly SortSpec[]): string {
+  return JSON.stringify(sorts.map(({ field, direction }) => ({ field, direction })));
+}
+
+/**
+ * Keep local drafts aligned with the parent `value`. Clearing every rule calls
+ * `onChange([])`, and the list controller restores the view's 默认排序 — often
+ * the same rules as before, so `valueKey` does not change. Incomplete rows
+ * (`field: null`) stay local until the user picks a field.
+ */
+export function reconcileSortDrafts(
+  value: readonly SortSpec[],
+  drafts: readonly DraftSort[],
+  previousValueKey: string,
+): { drafts: DraftSort[]; previousValueKey: string } {
+  const valueKey = sortValueKey(value);
+  const committedKey = sortValueKey(toSorts(drafts));
+  const hasIncomplete = drafts.some((draft) => !draft.field);
+
+  if (previousValueKey !== valueKey) {
+    return {
+      previousValueKey: valueKey,
+      // Keep the same array reference when only the key moved and commits match.
+      drafts: committedKey === valueKey ? (drafts as DraftSort[]) : toDrafts(value),
+    };
+  }
+
+  if (!hasIncomplete && committedKey !== valueKey) {
+    return { previousValueKey, drafts: toDrafts(value) };
+  }
+
+  return { previousValueKey, drafts: drafts as DraftSort[] };
+}
+
 export interface SortConditionListProps {
   /** Candidate fields (sortable columns). */
   fields: readonly Pick<FieldDef, "code" | "name">[];
@@ -43,7 +93,17 @@ export interface SortConditionListProps {
 
 export function SortConditionList({ fields, value, onChange, className }: SortConditionListProps) {
   const [drafts, setDrafts] = useState<DraftSort[]>(() => toDrafts(value));
+  const [previousValueKey, setPreviousValueKey] = useState(() => sortValueKey(value));
+  const reconciled = reconcileSortDrafts(value, drafts, previousValueKey);
+  if (
+    reconciled.previousValueKey !== previousValueKey ||
+    reconciled.drafts !== drafts
+  ) {
+    setPreviousValueKey(reconciled.previousValueKey);
+    if (reconciled.drafts !== drafts) setDrafts(reconciled.drafts);
+  }
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dropTarget, setDropTarget] = useState<{ index: number; edge: "before" | "after" } | null>(null);
   const seedRef = useRef(0);
 
   const commit = (next: DraftSort[]) => {
@@ -61,35 +121,58 @@ export function SortConditionList({ fields, value, onChange, className }: SortCo
           draggable
           onDragStart={(event: DragEvent<HTMLDivElement>) => {
             setDragIndex(index);
+            setDropTarget(null);
             event.dataTransfer.effectAllowed = "move";
             event.dataTransfer.setData("text/plain", String(index));
           }}
           onDragOver={(event) => {
-            if (dragIndex !== null) event.preventDefault();
+            if (dragIndex === null) return;
+            event.preventDefault();
+            const rect = event.currentTarget.getBoundingClientRect();
+            const edge = event.clientY < rect.top + rect.height / 2 ? "before" : "after";
+            setDropTarget((current) => current?.index === index && current.edge === edge ? current : { index, edge });
           }}
           onDrop={(event) => {
             event.preventDefault();
-            if (dragIndex !== null && dragIndex !== index) commit(moveItem(drafts, dragIndex, index));
+            if (dragIndex !== null && dropTarget) {
+              const next = [...drafts];
+              const [moved] = next.splice(dragIndex, 1);
+              let insertAt = dropTarget.index + (dropTarget.edge === "after" ? 1 : 0);
+              if (dragIndex < insertAt) insertAt -= 1;
+              next.splice(Math.max(0, Math.min(insertAt, next.length)), 0, moved);
+              commit(next);
+            }
             setDragIndex(null);
+            setDropTarget(null);
           }}
-          onDragEnd={() => setDragIndex(null)}
+          onDragEnd={() => {
+            setDragIndex(null);
+            setDropTarget(null);
+          }}
           className={cn(
-            "flex min-w-0 items-center gap-2 rounded-md bg-[#f5f7fa] px-2 py-1.5",
+            "relative flex min-w-0 flex-wrap items-center gap-2 rounded-[4px] bg-muted px-2 py-1.5",
             dragIndex === index && "opacity-40",
+            dropTarget?.index === index && dragInsertionClass(dropTarget.edge),
           )}
         >
-          <GripVertical className="size-3.5 shrink-0 cursor-grab text-text-placeholder" aria-hidden="true" />
+          <DragHandle />
           <Select<string>
             aria-label="排序字段"
-            className="min-w-0 flex-1"
+            className="min-w-[140px] flex-1"
             showSearch
             placeholder="请选择字段"
             value={draft.field}
-            options={fields.map((field) => ({
-              value: field.code,
-              label: field.name,
-              disabled: used.has(field.code) && field.code !== draft.field,
-            }))}
+            options={[
+              ...fields.map((field) => ({
+                value: field.code,
+                label: field.name,
+                disabled: used.has(field.code) && field.code !== draft.field,
+              })),
+              // A saved rule on a field that is no longer offered stays readable and removable.
+              ...(draft.field && !fields.some((field) => field.code === draft.field)
+                ? [{ value: draft.field, label: draft.field }]
+                : []),
+            ]}
             onChange={(next) => commit(drafts.map((item) => (item.key === draft.key ? { ...item, field: next } : item)))}
           />
           <Segmented<"asc" | "desc">
@@ -97,17 +180,33 @@ export function SortConditionList({ fields, value, onChange, className }: SortCo
             className="shrink-0"
             value={draft.direction}
             options={[
-              { value: "asc", label: "A → Z" },
-              { value: "desc", label: "Z → A" },
+              { value: "asc", label: SORT_DIRECTION_LABEL.asc },
+              { value: "desc", label: SORT_DIRECTION_LABEL.desc },
             ]}
             onChange={(next) => commit(drafts.map((item) => (item.key === draft.key ? { ...item, direction: next } : item)))}
           />
-          <IconButton
-            size="sm"
-            label="删除排序条件"
-            icon={<X />}
-            onClick={() => commit(drafts.filter((item) => item.key !== draft.key))}
-          />
+          <div className="flex shrink-0 items-center gap-0.5">
+            <IconButton
+              size="sm"
+              label="上移排序条件"
+              icon={<ArrowUp />}
+              disabled={index === 0}
+              onClick={() => commit(moveItem(drafts, index, index - 1))}
+            />
+            <IconButton
+              size="sm"
+              label="下移排序条件"
+              icon={<ArrowDown />}
+              disabled={index === drafts.length - 1}
+              onClick={() => commit(moveItem(drafts, index, index + 1))}
+            />
+            <IconButton
+              size="sm"
+              label="删除排序条件"
+              icon={<X />}
+              onClick={() => commit(drafts.filter((item) => item.key !== draft.key))}
+            />
+          </div>
         </div>
       ))}
       <div>
@@ -132,16 +231,41 @@ export interface SortPopoverProps {
   value: readonly SortSpec[];
   onChange: (sorts: SortSpec[]) => void;
   disabled?: boolean;
+  /** The rules are the view's 默认排序; the button adds 「（默认）」. */
+  isDefault?: boolean;
 }
 
-/** Toolbar「排序」 text button with count badge + popover. */
-export function SortPopover({ fields, value, onChange, disabled = false }: SortPopoverProps) {
+/** Toolbar「排序」 text button naming the active rules + popover. */
+export function SortPopover({ fields, value, onChange, disabled = false, isDefault = false }: SortPopoverProps) {
+  const rules = value.map((sort) => describeSort(sort, fields));
+  const trigger = (
+    <TextButton
+      tone="primary"
+      icon={<ArrowDownUp />}
+      disabled={disabled}
+      aria-label={rules.length ? `排序：${rules.join("，")}${isDefault ? "（默认）" : ""}` : "排序"}
+      className="max-w-[min(18rem,100%)]"
+    >
+      <span className="min-w-0 truncate">{rules.length > 0 ? `排序：${rules[0]}` : "排序"}</span>
+      {rules.length > 0 && isDefault ? <span className="shrink-0 text-muted-foreground">（默认）</span> : null}
+      {rules.length > 0 ? (
+        <>
+          {rules.length > 1 ? (
+            <span className="inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded-[4px] bg-muted px-1 text-[11px] leading-4 text-muted-foreground tabular-nums">
+              +{rules.length - 1}
+            </span>
+          ) : null}
+        </>
+      ) : null}
+    </TextButton>
+  );
   return (
     <Popover
       placement="bottom-start"
       aria-label="设置排序条件"
       disabled={disabled}
       className="w-[min(480px,calc(100vw-24px))] p-4"
+      anchorClassName="inline-flex min-w-0 max-w-full"
       content={
         <div className="flex flex-col gap-3">
           <span className="text-sm font-semibold text-foreground">设置排序条件</span>
@@ -149,14 +273,18 @@ export function SortPopover({ fields, value, onChange, disabled = false }: SortP
         </div>
       }
     >
-      <TextButton icon={<ArrowDownUp />} disabled={disabled}>
-        {value.length > 0 ? (
-          <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[11px] leading-4 text-white tabular-nums">
-            {value.length}
-          </span>
+      <Tooltip
+        title={rules.length ? (
+          <ol className="m-0 list-none p-0">
+            {rules.map((rule, index) => (
+              <li key={value[index].field}>{rules.length > 1 ? `${index + 1}. ` : ""}{rule}</li>
+            ))}
+          </ol>
         ) : null}
-        排序
-      </TextButton>
+        anchorClassName="inline-flex min-w-0 max-w-full"
+      >
+        {trigger}
+      </Tooltip>
     </Popover>
   );
 }

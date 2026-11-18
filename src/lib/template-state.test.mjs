@@ -3,17 +3,16 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, it } from "node:test";
 
-// TEMPLATE-STATE ASSERTIONS — the one contract file generated apps ADAPT.
+// TEMPLATE-STATE ASSERTIONS — scaffold CI only.
 //
-// This file asserts the scaffold's blank-template condition. When you build a
-// real application these assertions become wrong BY DESIGN: replace them with
-// assertions that describe the app you actually built (its navigation modules,
-// its home route), or empty the describe block if there is nothing worth
-// pinning. Every other test file is a locked invariant gate — see AGENTS.md
-// "Locked gates vs template-state tests" — enforced by
-// scripts/gate-integrity.mjs. This file is deliberately NOT hash-pinned.
+// This file asserts the scaffold's blank-template condition (no default
+// navigation, the pre-generation placeholder). A generated app is wrong for
+// these assertions BY DESIGN, so they never run in the App build: postbuild
+// (scripts/post-build-verify.mjs) does not include this file. Scaffold CI runs
+// it with `npm run test:template` (.github/workflows/scaffold-guidance.yml).
+// Generated apps leave this file alone.
 
-describe("template state (adapt when building the real app)", () => {
+describe("blank template state", () => {
   it("does not ship Overview as a required default workspace page", () => {
     const shellModules = readFileSync(
       join(process.cwd(), "src/components/shell-modules.ts"),

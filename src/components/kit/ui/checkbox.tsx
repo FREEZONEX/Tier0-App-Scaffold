@@ -33,20 +33,22 @@ export function CheckboxIndicator({
     <span
       aria-hidden="true"
       className={cn(
-        "pointer-events-none relative flex size-4 shrink-0 items-center justify-center rounded-[4px] border transition-[background-color,border-color] duration-150",
-        filled ? "border-brand bg-brand" : "border-border-strong bg-card",
-        disabled && (filled ? "border-border-strong bg-input-disabled" : "border-border-strong bg-input-disabled"),
+        "pointer-events-none relative flex size-4 shrink-0 items-center justify-center rounded-[4px] border border-input transition-[background-color,border-color,box-shadow] duration-[var(--motion-fast)] ease-[var(--motion-ease)]",
+        filled
+          ? "border-primary bg-primary text-primary-foreground"
+          : "bg-card",
+        disabled && "opacity-50",
         className,
       )}
     >
       {filled ? (
         <Check
-          className={cn("size-3", disabled ? "text-text-placeholder" : "text-white")}
+          className={cn("size-3 animate-in zoom-in-50 fade-in-0 duration-150", disabled ? "text-text-placeholder" : "text-primary-foreground")}
           strokeWidth={3.2}
         />
       ) : null}
       {indeterminate ? (
-        <span className={cn("size-2 rounded-[2px]", disabled ? "bg-text-placeholder" : "bg-brand")} />
+        <span className={cn("size-2 rounded-[2px] animate-in zoom-in-50 fade-in-0 duration-150", disabled ? "bg-text-placeholder" : "bg-brand")} />
       ) : null}
     </span>
   );
@@ -94,7 +96,8 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
           checked={isChecked}
           disabled={disabled}
           aria-checked={indeterminate ? "mixed" : isChecked}
-          className="peer absolute inset-0 z-10 m-0 size-full cursor-[inherit] opacity-0"
+          // On touch screens the invisible input extends to a 44px hit area around the 16px box.
+          className="peer absolute inset-0 z-10 m-0 size-full cursor-[inherit] opacity-0 pointer-coarse:inset-[-14px] pointer-coarse:size-auto"
           onChange={(event) => {
             setChecked(event.target.checked);
             onChange?.(event.target.checked, event);
@@ -105,7 +108,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
           indeterminate={indeterminate}
           disabled={disabled}
           className={cn(
-            "peer-focus-visible:shadow-[0_0_0_2px_rgb(5_145_255/0.25)]",
+            "peer-focus-visible:ring-2 peer-focus-visible:ring-ring/60",
             !disabled && !isChecked && !indeterminate && "group-hover:border-brand",
           )}
         />

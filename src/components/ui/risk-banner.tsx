@@ -32,7 +32,7 @@ export function RiskBanner({
     <div
       role="status"
       className={cn(
-        "flex items-center gap-3 rounded-md border px-3 py-2.5",
+        "flex items-center gap-3 rounded-[4px] border-0 px-3 py-2.5",
         tone,
         className,
       )}

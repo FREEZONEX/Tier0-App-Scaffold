@@ -10,15 +10,13 @@
  *
  * Rows added here get a `__key`; strip it with `stripRowKeys()` before saving.
  */
-import { BriefcaseMedical, CirclePlus, CircleQuestionMark, GripVertical, PenLine, Trash2, X } from "lucide-react";
+import { BriefcaseMedical, CirclePlus, CircleQuestionMark, PenLine, Trash2, X } from "lucide-react";
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import { ConfirmDialog } from "@/components/overlays/confirm-dialog";
 import { Dialog } from "@/components/overlays/dialog";
 import { Button } from "@/components/ui/button";
 import { IconButton, TextButton } from "@/components/kit/ui/buttons";
 import { DataGrid, type DataGridColumn } from "@/components/kit/ui/data-grid";
-import { resolveFieldIconKind } from "@/components/kit/ui/field-icons";
-import { FieldTypeIcon } from "@/components/kit/ui/field-type-icon";
 import { Popover } from "@/components/kit/ui/popover";
 import { Select } from "@/components/kit/ui/select";
 import { Tooltip } from "@/components/kit/ui/tooltip";
@@ -37,6 +35,7 @@ import { columnStatesFrom, defaultColumnWidth, type ColumnState } from "@/lib/co
 import type { FieldDef, QueryFilter, RefValue, RowHeight, SelectOption } from "@/lib/component-kit/types";
 import type { ListRow } from "@/lib/component-kit/use-list-controller";
 import { cn } from "@/lib/utils";
+import { DragHandle, dragInsertionClass } from "@/components/kit/ui/drag-handle";
 import { FieldConfigPopover } from "@/components/kit/meta/field-config-popover";
 import { FieldControl } from "@/components/kit/meta/field-control";
 import { FieldValue } from "@/components/kit/meta/field-value";
@@ -261,7 +260,7 @@ function BatchEditDialog({
       }
     >
       <div className="flex flex-col gap-4">
-        <p className="rounded-md bg-[#e7f9b9] px-3 py-2 text-sm text-[#050b14]">
+        <p className="rounded-[4px] bg-[#e7f9b9] px-3 py-2 text-sm text-[#050b14]">
           提示：批量修改仅作用于当前已勾选的 {count} 条明细，其他明细不受影响。
         </p>
         <div className="flex flex-col gap-1.5">
@@ -470,7 +469,6 @@ export function DetailTable({
         key: field.code,
         title: field.name,
         headerTip: field.widget?.tooltip || undefined,
-        headerIcon: <FieldTypeIcon kind={resolveFieldIconKind(field)} />,
         required: Boolean(field.widget?.required) && !readOnly,
         headerExtra:
           !readOnly && rows.length > 0 && fillable.has(field.code) ? (
@@ -601,10 +599,10 @@ export function DetailTable({
             </Button>
           ) : null}
           {columnSettings ? (
-            <span className="flex items-center gap-4 pl-1">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2" role="group" aria-label="表格设置">
               <FieldConfigPopover states={states} onChange={(next) => setColumnStates(next)} />
               <RowHeightMenu value={rowHeight} onChange={setRowHeight} />
-            </span>
+            </div>
           ) : null}
           {!readOnly && selectedRows.length > 0 ? (
             <span className="ml-auto text-sm text-text-secondary">
@@ -615,7 +613,7 @@ export function DetailTable({
       ) : null}
 
       {errorsList.length > 0 ? (
-        <div role="alert" className="rounded-md border border-[#ffccc7] bg-[#fff2f0] px-3 py-2 text-sm text-danger">
+        <div role="alert" className="rounded-[4px] border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive dark:border-destructive/25 dark:bg-destructive/15">
           {errorsList.slice(0, 3).map((error) => error.message).join("；")}
           {errorsList.length > 3 ? `；等 ${errorsList.length} 处需要修改` : ""}
         </div>
@@ -637,7 +635,7 @@ export function DetailTable({
         indexWidth={indexWidth}
         renderIndex={(row, index) => (
           <span className="inline-flex max-w-full items-center gap-1">
-            {canDrag ? <GripVertical className="size-3.5 shrink-0 cursor-grab text-text-placeholder" aria-hidden="true" /> : null}
+            {canDrag ? <DragHandle /> : null}
             {renderIndex ? (
               <span className="min-w-0 truncate tabular-nums">{renderIndex(row, index)}</span>
             ) : (
@@ -680,7 +678,7 @@ export function DetailTable({
                 },
                 className: cn(
                   dragIndex === index && "opacity-40",
-                  dropIndex === index && dragIndex !== null && dragIndex !== index && "[&>td]:border-t-2 [&>td]:border-t-brand",
+                  dropIndex === index && dragIndex !== null && dragIndex !== index && dragInsertionClass("before", true),
                 ),
               })
             : undefined

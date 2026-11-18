@@ -123,17 +123,17 @@ export function Tabs<K extends string = string>({
                   tabIndex={selected ? 0 : -1}
                   disabled={item.disabled}
                   className={cn(
-                    "relative inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap outline-none transition-colors duration-150 focus-visible:text-brand",
+                    "relative inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[4px] outline-none transition-colors focus-visible:bg-muted focus-visible:text-foreground",
                     type === "line"
-                      ? cn(LINE_SIZE[size], selected ? "font-medium text-brand" : "text-foreground hover:text-brand-hover")
+                      ? cn(LINE_SIZE[size], selected ? "font-medium text-foreground" : "text-muted-foreground hover:text-foreground")
                       : cn(
-                          "-mb-px rounded-t-md border px-4",
-                          size === "sm" ? "h-8 text-sm" : size === "lg" ? "h-10 text-base" : "h-9 text-sm",
+                          "-mb-px rounded-t-lg border px-4",
+                          size === "sm" ? "h-8 text-sm" : size === "lg" ? "h-10 text-sm" : "h-9 text-sm",
                           selected
-                            ? "border-border-secondary border-b-card bg-card font-medium text-brand"
-                            : "border-border-secondary bg-[#fafafa] text-foreground hover:text-brand-hover",
+                            ? "border-border border-b-popover bg-popover font-medium text-foreground"
+                            : "border-transparent bg-muted/50 text-muted-foreground hover:text-foreground",
                         ),
-                    item.disabled && "cursor-not-allowed text-text-placeholder hover:text-text-placeholder",
+                    item.disabled && "pointer-events-none opacity-50",
                   )}
                   onClick={() => select(index)}
                   onKeyDown={(event) => focusSibling(event, select, items.length, index)}
@@ -149,8 +149,12 @@ export function Tabs<K extends string = string>({
             {type === "line" && ink ? (
               <span
                 aria-hidden="true"
-                className="absolute bottom-0 h-0.5 rounded-full bg-brand transition-[left,width] duration-300"
-                style={{ left: ink.left, width: ink.width }}
+                className="absolute bottom-0 h-0.5 origin-left rounded-full bg-foreground transition-transform duration-[var(--motion-base)] ease-[var(--motion-spring)] motion-reduce:transition-none"
+                style={{
+                  left: 0,
+                  width: 1,
+                  transform: `translateX(${ink.left}px) scaleX(${ink.width})`,
+                }}
               />
             ) : null}
           </div>
@@ -180,7 +184,14 @@ export interface CapsuleGroupProps<K extends string | number = string> {
   "aria-label"?: string;
 }
 
-/** CapsuleGroup — pill filters with counts (「全部 45」「进行中 22」). */
+/**
+ * CapsuleGroup — single-choice scope / status switch with counts
+ * (「全部 45」「进行中 22」), drawn as a segmented control: a soft tray the
+ * height of the neighbouring buttons, with no outer or selected-item outline.
+ * The selected item is raised by its card fill and subtle shadow. It never uses the filled primary-button look, so a selected scope
+ * cannot be mistaken for an action such as 「创建」. Long labels wrap inside
+ * their item and the tray wraps onto more rows instead of overlapping.
+ */
 export function CapsuleGroup<K extends string | number = string>({
   items,
   value,
@@ -192,32 +203,47 @@ export function CapsuleGroup<K extends string | number = string>({
 }: CapsuleGroupProps<K>) {
   const [selected, setSelected] = useControllableState<K | undefined>(value, defaultValue ?? items[0]?.key);
   return (
-    <div role="tablist" aria-label={ariaLabel} className={cn("flex min-w-0 flex-wrap items-center gap-2", className)}>
+    <div
+      role="group"
+      aria-label={ariaLabel}
+      className={cn(
+        "inline-flex w-fit min-w-0 max-w-full flex-wrap items-stretch gap-0.5 rounded-[4px] bg-muted/60 p-0.5",
+        size === "sm" ? "min-h-[var(--tier0-control-height-sm)]" : "min-h-[var(--tier0-control-height-md)]",
+        className,
+      )}
+    >
       {items.map((item) => {
         const active = item.key === selected;
         return (
           <button
             type="button"
             key={String(item.key)}
-            role="tab"
-            aria-selected={active}
+            aria-pressed={active}
             disabled={item.disabled}
             className={cn(
-              "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand-border",
-              size === "sm" ? "h-7 px-3 text-sm" : "h-8 px-4 text-sm",
+              "inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-[3px] outline-none",
+              "transition-[color,background-color,box-shadow] duration-[var(--motion-fast)] ease-[var(--motion-ease)]",
+              "focus-visible:bg-fill-hover focus-visible:text-foreground motion-reduce:transition-none",
+              size === "sm" ? "px-2 py-0.5 text-xs" : "px-3 py-1 text-sm",
+              "pointer-coarse:min-h-10",
               active
-                ? "bg-brand-soft font-medium text-brand"
-                : "bg-[#f3f5f8] text-text-secondary hover:bg-[#e9edf2] hover:text-foreground",
-              item.disabled && "cursor-not-allowed opacity-50",
+                ? "bg-card font-medium text-foreground shadow-sm"
+                : "bg-transparent text-muted-foreground hover:bg-card/60 hover:text-foreground",
+              item.disabled && "pointer-events-none opacity-50",
             )}
             onClick={() => {
+              if (active) return;
               setSelected(item.key);
               onChange?.(item.key);
             }}
           >
             {item.icon ? <span className="flex shrink-0 [&>svg]:size-3.5">{item.icon}</span> : null}
-            <span>{item.label}</span>
-            {item.count !== undefined ? <span className="tabular-nums">{item.count}</span> : null}
+            <span className="min-w-0 break-words text-left">{item.label}</span>
+            {item.count !== undefined ? (
+              <span className={cn("shrink-0 text-xs font-normal tabular-nums", active ? "text-text-secondary" : "text-text-tertiary")}>
+                {item.count}
+              </span>
+            ) : null}
           </button>
         );
       })}
@@ -334,9 +360,11 @@ export function AnchorTabs({
               aria-selected={selected}
               tabIndex={selected ? 0 : -1}
               className={cn(
-                "relative inline-flex shrink-0 items-center whitespace-nowrap outline-none transition-colors duration-150 focus-visible:text-brand",
+                "relative inline-flex shrink-0 items-center whitespace-nowrap rounded-[4px] outline-none transition-colors duration-150 focus-visible:bg-muted focus-visible:text-foreground",
                 size === "sm" ? "py-2 text-sm" : "py-3 text-sm",
-                selected ? "font-medium text-brand" : "text-foreground hover:text-brand-hover",
+                selected
+                  ? "font-medium text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
               onClick={() => jump(item.key)}
               onKeyDown={(event) => focusSibling(event, (next) => {
@@ -351,8 +379,12 @@ export function AnchorTabs({
         {ink ? (
           <span
             aria-hidden="true"
-            className="absolute bottom-0 h-0.5 rounded-full bg-brand transition-[left,width] duration-300"
-            style={{ left: ink.left, width: ink.width }}
+            className="absolute bottom-0 h-0.5 origin-left rounded-full bg-foreground transition-transform duration-[var(--motion-base)] ease-[var(--motion-spring)] motion-reduce:transition-none"
+            style={{
+              left: 0,
+              width: 1,
+              transform: `translateX(${ink.left}px) scaleX(${ink.width})`,
+            }}
           />
         ) : null}
       </div>

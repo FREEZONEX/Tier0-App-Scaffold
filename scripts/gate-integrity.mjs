@@ -2,8 +2,9 @@
 //
 // The LOCKED_FILES below are invariant quality gates: contract tests and
 // verification scripts that encode platform rules. Generated apps must never
-// edit, weaken, or delete them; the one file agents ARE expected to adapt is
-// src/lib/template-state.test.mjs, which is deliberately not pinned here.
+// edit, weaken, or delete them. src/lib/template-state.test.mjs is not pinned:
+// it describes the blank template, runs only in scaffold CI, and is not part
+// of the App build.
 //
 // scripts/gate-integrity.json pins a sha256 per locked file. Any drift fails
 // the build. Template maintainers who intentionally change a locked gate
@@ -14,7 +15,8 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 const MANIFEST_PATH = "scripts/gate-integrity.json";
 
 const LOCKED_FILES = [
-  "src/lib/gateway.test.ts",
+  "scripts/guidance-test.mjs",
+  "src/lib/visitor.test.ts",
   "src/lib/permissions.test.mjs",
   "src/lib/app-chrome.test.mjs",
   "src/lib/app-id-contracts.test.mjs",
@@ -26,8 +28,8 @@ const LOCKED_FILES = [
   "src/lib/interaction-contracts.test.mjs",
   "src/lib/table-contracts.test.mjs",
   "src/lib/copy-contracts.test.mjs",
-  "src/lib/db-contracts.test.mjs",
-  "src/lib/db-schema-contracts.test.mjs",
+  "src/lib/data-contracts.test.mjs",
+  "scripts/collection-directory-contract.mjs",
   "src/lib/route-smoke-contracts.test.mjs",
   "src/lib/route-nesting-contracts.test.mjs",
   "src/lib/hooks-contracts.test.mjs",
@@ -36,14 +38,26 @@ const LOCKED_FILES = [
   "src/lib/ui-primitives-contracts.test.mjs",
   "src/lib/responsive-contracts.test.mjs",
   "src/lib/scaffold-version-contracts.test.mjs",
+  "src/lib/legacy-db-contracts.test.mjs",
   "scripts/ui-advisories.mjs",
   "scripts/route-smoke.mjs",
   "scripts/route-nesting.mjs",
   "scripts/responsive-contract.mjs",
   "scripts/post-build-verify.mjs",
-  "scripts/db-sync-guard.mjs",
   "scripts/gate-integrity.mjs",
   "scripts/scaffold-version.mjs",
+  "scripts/legacy-db-gate.mjs",
+  // The App's wiring of the data layer (@tier0/sdk-v2/data) is a platform contract, not app code.
+  "src/lib/data/index.ts",
+  "src/lib/data/query.ts",
+  "src/lib/data/changes.ts",
+  "src/routes/api/uns/subscribe.ts",
+  // Identity: who may call the App is a platform contract, not app code.
+  "src/start.ts",
+  "src/lib/auth.ts",
+  "src/lib/visitor.ts",
+  "src/lib/server-fn-policy.ts",
+  "src/routes/api/auth/me.ts",
 ];
 
 // Normalize line endings so pins hold across git autocrlf configurations.
@@ -96,9 +110,6 @@ if (problems.length > 0) {
   );
   console.error(
     "[gate-integrity] If a gate blocks a legitimate case: use its documented opt-out marker (EXTERNAL_CALLER, READ_ONLY_SURFACE), restructure the code to satisfy the rule, or stop and surface the conflict to the user.",
-  );
-  console.error(
-    "[gate-integrity] The only contract file meant to be adapted is src/lib/template-state.test.mjs.",
   );
   process.exit(1);
 }

@@ -46,7 +46,7 @@ describe("APP_ID runtime contract", () => {
     }
   });
 
-  it("keeps a single name for the identifier (no TIER0_APP_ID alias anywhere)", () => {
+  it("reads TIER0_APP_ID only through resolveAppId and the visitor test", () => {
     const roots = ["README.md", "AGENTS.md", ".env.example", "docs", "src", "scripts"];
     const offenders = [];
     const visit = (relativePath) => {
@@ -55,11 +55,11 @@ describe("APP_ID runtime contract", () => {
         for (const entry of readdirSync(fullPath)) visit(join(relativePath, entry));
         return;
       }
-      if (relativePath.endsWith("app-id-contracts.test.mjs")) return;
+      if (/app-id-contracts\.test\.mjs$|src\/lib\/app-id\.ts$|src\/lib\/visitor\.test\.ts$|docs\/platform-integration\.md$|^AGENTS\.md$/.test(relativePath)) return;
       if (/TIER0_APP_ID/.test(readFileSync(fullPath, "utf8"))) offenders.push(relativePath);
     };
     for (const root of roots) visit(root);
-    assert.deepEqual(offenders, [], "APP_ID is the only name for the platform App UUID; TIER0_APP_ID must not appear.");
+    assert.deepEqual(offenders, [], "Read the platform App ID through resolveAppId().");
   });
 
   it("states the platform ownership rule for generated apps", () => {

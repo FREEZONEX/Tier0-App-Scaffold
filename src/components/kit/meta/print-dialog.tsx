@@ -4,14 +4,15 @@ import { useKitApi, type KitApi } from "@/components/kit/provider";
 
 
 /**
- * PrintDialog — 选择打印模板 (151 / 152): template buttons (selected = blue),
- * 「请先配置打印模板」 when none, 取消 / 确认 → 「打印渲染中，请稍候」 →
- * POST /api/system/print/render → 打印预览 (CARD: 标题、二维码、字段网格、明细表;
- * LABEL: 标签 + 二维码) → 打印 = window.print(), printing only the preview pages.
+ * PrintDialog — 选择打印模板 (151 / 152): template cards with a lime radio
+ * circle (`--tier0-highlight-deep`) on the right. Cards are optional toggles
+ * (`aria-pressed`, not radiogroup) so the operator can clear the choice.
+ * Empty list → 「请先配置打印模板」; 取消 / 确认 → 「打印渲染中，请稍候」 →
+ * POST /api/system/print/render → 打印预览 → window.print().
  *
  * Row 打印 passes one id; 批量打印 passes up to 20 ids (one page per record).
  */
-import { ArrowLeft, Printer } from "lucide-react";
+import { ArrowLeft, FileText, Printer, Tag as TagIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
@@ -23,6 +24,7 @@ import { errorMessage } from "@/lib/component-kit/api-client";
 import { useRequest } from "@/lib/hooks";
 import type { PrintPage, PrintTemplate } from "@/lib/component-kit/types";
 import { cn } from "@/lib/utils";
+import { FOCUS_FILL } from "@/lib/interaction";
 import { resourcePath as apiUrl } from "@/lib/component-kit/api-client";
 
 export interface PrintDialogProps {
@@ -256,7 +258,7 @@ function PrintBody({
             打印
           </Button>
         </div>
-        <div className="min-w-0 flex-1 overflow-auto rounded-lg bg-[#eef0f3] p-4 sm:p-6">
+        <div className="min-w-0 flex-1 overflow-auto rounded-[4px] bg-muted p-4 sm:p-6">
           <PrintPages pages={pages} layout={previewTemplate.layout} />
         </div>
         {typeof document !== "undefined"
@@ -279,20 +281,44 @@ function PrintBody({
         empty={<Empty description="请先配置打印模板" />}
       >
         {() => (
-          <div className="flex min-h-32 flex-wrap content-start gap-3" role="radiogroup" aria-label="打印模板">
-            {available.map((item) => (
-              <Button
+          <div className="grid gap-2 sm:grid-cols-2" role="group" aria-label="打印模板">
+            {available.map((item) => {
+              const isSelected = selected === item.code;
+              return (
+              <button
+                type="button"
                 key={item.code}
-                role="radio"
-                aria-checked={selected === item.code}
-                variant={selected === item.code ? "primary" : "outline"}
+                aria-pressed={isSelected}
                 title={item.name}
-                className={cn("max-w-full", selected === item.code && "shadow-none")}
-                onClick={() => setSelected(item.code)}
+                className={cn(
+                  "flex min-w-0 items-center gap-3 rounded-[4px] border border-border bg-card px-3 py-3 text-left text-foreground transition-colors",
+                  FOCUS_FILL,
+                  "hover:border-border-strong",
+                  isSelected && "border-border-strong bg-muted",
+                )}
+                onClick={() => setSelected(isSelected ? null : item.code)}
               >
-                <span className="truncate">{item.name}</span>
-              </Button>
-            ))}
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-[4px] bg-muted text-muted-foreground">
+                  {item.layout === "LABEL" ? <TagIcon className="size-4" /> : <FileText className="size-4" />}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-medium">{item.name}</span>
+                  <span className="mt-0.5 block text-xs text-text-tertiary">{item.layout === "LABEL" ? "标签" : "单据"}</span>
+                </span>
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "flex size-4 shrink-0 items-center justify-center rounded-full border transition-colors",
+                    isSelected
+                      ? "border-[color:var(--tier0-highlight-deep)] bg-[color:var(--tier0-highlight-deep)]"
+                      : "border-border-strong bg-card",
+                  )}
+                >
+                  {isSelected ? <span className="size-1.5 rounded-full bg-card" /> : null}
+                </span>
+              </button>
+              );
+            })}
           </div>
         )}
       </AsyncView>
@@ -319,8 +345,9 @@ export function PrintDialog({ open, onOpenChange, objectCode, ids }: PrintDialog
         onOpenChange(next);
       }}
       title={preview ? "打印预览" : "选择打印模板"}
-      size={preview ? "full" : "md"}
-      contentClassName="flex flex-col"
+      size={preview ? "full" : "sm"}
+      className={preview ? undefined : "h-auto"}
+      contentClassName={preview ? "flex flex-col" : "!flex-none"}
     >
       {open ? (
         <PrintBody

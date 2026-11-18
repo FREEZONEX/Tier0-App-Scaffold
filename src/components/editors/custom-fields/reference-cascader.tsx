@@ -105,8 +105,8 @@ export function ReferenceCascader({
                       <button
                         type="button"
                         className={cn(
-                          "flex h-8 w-full items-center justify-between gap-1 rounded-sm px-3 text-left text-sm transition-colors hover:bg-fill-hover",
-                          (active || selected) && "bg-brand-soft font-medium text-brand hover:bg-brand-soft",
+                          "flex h-8 w-full items-center justify-between gap-1 rounded-[4px] px-3 text-left text-sm transition-colors hover:bg-fill-hover",
+                          (active || selected) && "bg-muted font-medium text-foreground hover:bg-muted",
                         )}
                         onMouseEnter={() => {
                           if (hasChildren) setActivePath([...activePath.slice(0, column.level), node.value]);

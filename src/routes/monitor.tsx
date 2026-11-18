@@ -17,15 +17,17 @@ import { createServerFn } from "@tanstack/react-start";
 import { MonitorLayout } from "@/components/layouts/MonitorLayout";
 import { RouteErrorBoundary } from "@/components/ui";
 import { getCurrentUser } from "@/lib/auth";
+import { withUserDisplay } from "@/services/user-display";
 import type { AppUser } from "@/lib/users";
 
-const fetchMonitorGatewayUser = createServerFn().handler(
-  async (): Promise<AppUser | null> => getCurrentUser(),
+// Public: it answers null without a visitor, and the route redirects to /login.
+const publicServerFnCurrentUser = createServerFn().handler(
+  async (): Promise<AppUser | null> => withUserDisplay(await getCurrentUser()),
 );
 
 export const Route = createFileRoute("/monitor")({
   beforeLoad: async ({ location }) => {
-    const user = await fetchMonitorGatewayUser();
+    const user = await publicServerFnCurrentUser();
     if (!user) {
       throw redirect({
         to: "/login",
@@ -54,7 +56,7 @@ function MonitorRouteLayout() {
 
 function MonitorPending() {
   return (
-    <div className="flex h-screen items-center justify-center bg-background p-10">
+    <div className="flex h-dvh items-center justify-center bg-background p-10">
       <div className="text-center">
         <div className="mx-auto size-8 animate-spin rounded-full border-2 border-muted border-t-highlight" />
         <p className="mt-3 text-xs text-muted-foreground">Loading&hellip;</p>

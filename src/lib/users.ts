@@ -17,4 +17,9 @@ export interface AppUser {
   /** All assigned roles. Effective permissions are the union across this set. */
   roles: string[];
   email?: string;
+  /**
+   * Platform avatar from the member lookup: a temporary image URL valid for
+   * 24h, or "" when the member has none. Display only; never persist it.
+   */
+  avatarUrl?: string;
 }

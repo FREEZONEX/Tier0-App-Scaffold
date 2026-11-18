@@ -1,0 +1,7 @@
+# Applied by the platform after its fixed source filter (.git, node_modules,
+# dist, .env* ...), in gitignore syntax. `!` cannot bring back what the fixed
+# rules excluded. List large local files the build does not need.
+coverage/
+playwright-report/
+test-results/
+*.log

@@ -14,13 +14,14 @@ import { useKitApi } from "@/components/kit/provider";
  * props: onCreate, rowActions, batchActions, onOpenRecord, cellRenderers…
  */
 import { CirclePlus, FileInput, FileOutput, Undo2 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { AsyncView } from "@/components/data/async-view";
 import { ConfirmDialog } from "@/components/overlays/confirm-dialog";
+import { Drawer } from "@/components/overlays/drawer";
 import { Button } from "@/components/ui/button";
 import { SplitButton, TextButton } from "@/components/kit/ui/buttons";
-import { PageCard, PageContainer } from "@/components/kit/shell/page-layout";
+import { PageContainer } from "@/components/kit/shell/page-layout";
 import { DataGrid, type DataGridColumn } from "@/components/kit/ui/data-grid";
 import { resolveFieldIconKind } from "@/components/kit/ui/field-icons";
 import { FieldTypeIcon } from "@/components/kit/ui/field-type-icon";
@@ -51,16 +52,21 @@ import { ImportDialog } from "@/components/kit/meta/import-dialog";
 import { PRINT_LIMIT, PrintDialog, printLimitMessage } from "@/components/kit/meta/print-dialog";
 import { RowActions } from "@/components/kit/meta/row-actions";
 import { RowHeightMenu } from "@/components/kit/meta/row-height-menu";
-import { SearchPanel } from "@/components/kit/meta/search-panel";
+import {
+  ListFilterButton,
+  ListFilterPanel,
+  ListSearchBox,
+  splitSearchConditions,
+} from "@/components/kit/meta/list-filter-bar";
 import { SortPopover } from "@/components/kit/meta/sort-popover";
 import type { BatchAction, MetaListApi, RowAction, TopTab } from "@/components/kit/meta/types";
-import { ViewEditorDrawer } from "@/components/kit/meta/view-editor-drawer";
-import { ViewListDrawer } from "@/components/kit/meta/view-list-drawer";
+import { ViewEditorContent } from "@/components/kit/meta/view-editor-drawer";
+import { ViewListContent } from "@/components/kit/meta/view-list-drawer";
 import { ViewTabs } from "@/components/kit/meta/view-tabs";
 
 export interface MetaListPageProps {
   objectCode: string;
-  /** Page title (卡片外左上). */
+  /** Page title above the list content. */
   title: ReactNode;
   /** Links on the right of the title row (移动端卡片、自定义事件…). */
   headerExtra?: ReactNode;
@@ -69,6 +75,10 @@ export interface MetaListPageProps {
   onCreate?: () => void;
   /** Extra toolbar buttons after 导出 (批量新增、默认单位…). */
   toolbarExtra?: ReactNode;
+  /** Quick filters, separate from creation and table settings. */
+  toolbarFilters?: ReactNode;
+  /** Short contextual note, presented below the controls. */
+  toolbarNote?: ReactNode;
   rowActions?: (row: ListRow) => RowAction[];
   /** Inline row actions before ⋯ (default 2); a function gives a per-row count (e.g. 已结束任务 3, others 2). */
   inlineActionCount?: number | ((row: ListRow) => number);
@@ -128,6 +138,8 @@ interface BodyProps extends MetaListPageProps {
   config: EffectivePageConfig;
   onSwitchView: (viewCode: string) => void;
   onReloadConfig: () => void;
+  /** View the user just picked whose config is still loading (selected right away, table busy). */
+  switchingView: string | null;
 }
 
 function MetaListBody({
@@ -135,9 +147,12 @@ function MetaListBody({
   config,
   onSwitchView,
   onReloadConfig,
+  switchingView,
   createLabel = "创建",
   onCreate,
   toolbarExtra,
+  toolbarFilters,
+  toolbarNote,
   rowActions,
   inlineActionCount = 2,
   actionColumnWidth,
@@ -212,10 +227,21 @@ function MetaListBody({
   const [logType, setLogType] = useState<"IMPORT" | "EXPORT" | null>(null);
   const [exportOpen, setExportOpen] = useState(false);
   const [printRows, setPrintRows] = useState<ListRow[] | null>(null);
-  const [viewListOpen, setViewListOpen] = useState(false);
-  const [viewEditor, setViewEditor] = useState<{ viewCode: string | null } | null>(null);
+  const [viewManager, setViewManager] = useState<
+    | { mode: "list" }
+    | { mode: "editor"; viewCode: string | null; returnToList: boolean }
+    | null
+  >(null);
   const [deletingView, setDeletingView] = useState<Pick<ViewDef, "code" | "name"> | null>(null);
   const [deletePending, setDeletePending] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const filterPanelId = `${useId().replaceAll(":", "")}-filters`;
+
+  const searchLayout = useMemo(() => splitSearchConditions(config.searchConditions), [config.searchConditions]);
+  const activeFilterCount = useMemo(() => {
+    const panelCodes = new Set(searchLayout.panel.map((field) => field.code));
+    return new Set(controller.appliedFilters.filter((filter) => panelCodes.has(filter.field)).map((filter) => filter.field)).size;
+  }, [controller.appliedFilters, searchLayout.panel]);
 
   const openPrint = useCallback((rows: ListRow[]) => {
     if (rows.length === 0) {
@@ -383,7 +409,7 @@ function MetaListBody({
       {topTabs?.length ? (
         <CapsuleGroup<string>
           aria-label="数据范围"
-          items={topTabs.map((tab) => ({ key: tab.key, label: tab.label }))}
+          items={topTabs.map((tab) => ({ key: tab.key, label: tab.label, count: tab.count }))}
           value={topTab}
           onChange={(key) => {
             setTopTab(key);
@@ -397,14 +423,15 @@ function MetaListBody({
       {hasViews ? (
         <ViewTabs
           views={config.views}
-          activeCode={config.activeView?.code}
+          activeCode={switchingView ?? config.activeView?.code}
+          pending={switchingView !== null}
           onSwitch={(code) => {
-            if (code !== config.activeView?.code) onSwitchView(code);
+            if (code !== (switchingView ?? config.activeView?.code)) onSwitchView(code);
           }}
-          onEdit={(code) => setViewEditor({ viewCode: code })}
+          onEdit={(code) => setViewManager({ mode: "editor", viewCode: code, returnToList: false })}
           onCopy={(code) => void copyView(code)}
           onDelete={(view) => setDeletingView(view)}
-          onOpenList={() => setViewListOpen(true)}
+          onOpenList={() => setViewManager({ mode: "list" })}
           manageable={canManageViews}
         />
       ) : null}
@@ -424,17 +451,6 @@ function MetaListBody({
           }}
         />
       ) : null}
-
-      <SearchPanel
-        conditions={config.searchConditions}
-        values={controller.draft}
-        onValueChange={controller.setDraftValue}
-        onSearch={controller.applySearch}
-        onReset={controller.resetSearch}
-        expanded={controller.expanded}
-        onExpandedChange={controller.setExpanded}
-        loading={query.isLoading && query.data !== null}
-      />
 
       {batchMode ? (
         <div className="flex min-h-8 min-w-0 flex-wrap items-center gap-2" role="toolbar" aria-label="批量操作">
@@ -467,32 +483,64 @@ function MetaListBody({
           </Button>
         </div>
       ) : (
-        <div className="flex min-h-8 min-w-0 flex-wrap items-center gap-x-2 gap-y-2" role="toolbar" aria-label="列表工具栏">
-          {canCreate ? (
-            <Button variant="primary" icon={<CirclePlus />} onClick={onCreate}>
-              {createLabel}
-            </Button>
+        <div className="flex min-h-8 min-w-0 flex-wrap items-center gap-x-4 gap-y-2" role="toolbar" aria-label="列表工具栏">
+          {searchLayout.keyword || searchLayout.panel.length ? (
+            <div className="flex min-w-0 flex-wrap items-center gap-2" role="group" aria-label="搜索与筛选">
+              {searchLayout.keyword ? (
+                <ListSearchBox
+                  field={searchLayout.keyword}
+                  value={controller.draft[searchLayout.keyword.code]}
+                  onChange={(value) => controller.setDraftValue(searchLayout.keyword!.code, value)}
+                  onSearch={controller.applySearch}
+                  className="w-full sm:w-56"
+                />
+              ) : null}
+              {searchLayout.panel.length ? (
+                <ListFilterButton
+                  open={filterOpen}
+                  activeCount={activeFilterCount}
+                  controls={filterPanelId}
+                  onToggle={() => setFilterOpen((open) => !open)}
+                />
+              ) : null}
+            </div>
           ) : null}
-          {canImport ? (
-            <SplitButton
-              icon={<FileInput />}
-              onClick={() => setImportOpen(true)}
-              menuItems={[{ key: "importLog", label: "导入日志", onClick: () => setLogType("IMPORT") }]}
-            >
-              导入
-            </SplitButton>
+          {canCreate || canImport || canExport || toolbarExtra ? (
+            <div className="flex min-w-0 flex-wrap items-center gap-2" role="group" aria-label="业务操作">
+              {canCreate ? (
+                <Button variant="primary" icon={<CirclePlus />} onClick={onCreate}>
+                  {createLabel}
+                </Button>
+              ) : null}
+              {canImport ? (
+                <SplitButton
+                  icon={<FileInput />}
+                  onClick={() => setImportOpen(true)}
+                  menuItems={[{ key: "importLog", label: "导入日志", onClick: () => setLogType("IMPORT") }]}
+                >
+                  导入
+                </SplitButton>
+              ) : null}
+              {canExport ? (
+                <SplitButton
+                  icon={<FileOutput />}
+                  onClick={() => setExportOpen(true)}
+                  menuItems={[{ key: "exportLog", label: "导出日志", onClick: () => setLogType("EXPORT") }]}
+                >
+                  导出
+                </SplitButton>
+              ) : null}
+              {toolbarExtra}
+            </div>
           ) : null}
-          {canExport ? (
-            <SplitButton
-              icon={<FileOutput />}
-              onClick={() => setExportOpen(true)}
-              menuItems={[{ key: "exportLog", label: "导出日志", onClick: () => setLogType("EXPORT") }]}
-            >
-              导出
-            </SplitButton>
+          {toolbarFilters ? (
+            <div className="flex min-w-0 flex-wrap items-center gap-2" role="group" aria-label="快捷筛选">
+              {toolbarFilters}
+            </div>
           ) : null}
-          {toolbarExtra}
-          <span className="flex flex-wrap items-center gap-x-4 gap-y-1 pl-1">
+          {/* Table settings sit apart on the right as plain text buttons: no tray, so they never
+              read as another tab group next to the scope / view switches. */}
+          <div className="flex min-h-8 min-w-0 flex-wrap items-center gap-x-4 gap-y-2 sm:ml-auto" role="group" aria-label="表格设置">
             <FieldConfigPopover
               states={controller.columnStates}
               primaryField={config.primaryField}
@@ -502,18 +550,34 @@ function MetaListBody({
               key={`${config.activeView?.code ?? ""}`}
               fields={sortFields}
               value={controller.sorts}
+              isDefault={controller.sortsAreDefault}
               onChange={(sorts) => void controller.saveSorts(sorts).catch(reportPrefsError)}
             />
             <RowHeightMenu value={controller.rowHeight} onChange={(next) => void controller.saveRowHeight(next).catch(reportPrefsError)} />
-          </span>
+          </div>
         </div>
       )}
+
+      {!batchMode && filterOpen && searchLayout.panel.length ? (
+        <ListFilterPanel
+          id={filterPanelId}
+          fields={searchLayout.panel}
+          values={controller.draft}
+          onValueChange={controller.setDraftValue}
+          onSearch={controller.applySearch}
+          onReset={controller.resetSearch}
+          onCollapse={() => setFilterOpen(false)}
+          loading={query.isLoading && query.data !== null}
+        />
+      ) : null}
+
+      {toolbarNote ? <div className="text-sm text-muted-foreground">{toolbarNote}</div> : null}
 
       <AsyncView result={query} isEmpty={() => false}>
         {(data) => (
           <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
             {query.error ? (
-              <div role="alert" className="rounded-md border border-danger/30 bg-danger-soft px-3 py-2 text-sm text-danger">
+              <div role="alert" className="rounded-[4px] border border-danger/30 bg-danger-soft px-3 py-2 text-sm text-danger">
                 刷新失败：{query.error.message}
               </div>
             ) : null}
@@ -523,7 +587,7 @@ function MetaListBody({
               rows={data.list}
               rowKey={(row) => String(row.id)}
               rowHeight={controller.rowHeight}
-              loading={query.isLoading}
+              loading={query.isLoading || switchingView !== null}
               indexOffset={(data.page.current - 1) * data.page.pageSize}
               fillViewport={{ bottomGap: 76, minHeight: 280 }}
               tree={
@@ -548,6 +612,7 @@ function MetaListBody({
             <Pagination
               className="mt-auto"
               total={data.total}
+              totalCapped={data.totalCapped}
               current={controller.page}
               pageSize={controller.pageSize}
               onChange={(page, pageSize) => {
@@ -605,31 +670,47 @@ function MetaListBody({
       ) : null}
       {hasViews ? (
         <>
-          <ViewListDrawer
-            open={viewListOpen}
-            onOpenChange={setViewListOpen}
-            objectCode={objectCode}
-            activeCode={config.activeView?.code}
-            onCreate={() => setViewEditor({ viewCode: null })}
-            onEdit={(code) => setViewEditor({ viewCode: code })}
-            onCopy={(code) => void copyView(code)}
-            onDelete={(view) => setDeletingView(view)}
-            onChanged={onReloadConfig}
-            refreshKey={config.views.map((view) => view.code).join(",")}
-          />
-          <ViewEditorDrawer
-            open={viewEditor !== null}
+          <Drawer
+            open={viewManager !== null}
             onOpenChange={(open) => {
-              if (!open) setViewEditor(null);
+              if (!open) setViewManager(null);
             }}
-            objectCode={objectCode}
-            viewCode={viewEditor?.viewCode ?? null}
-            onSaved={(view, created) => {
-              setViewEditor(null);
-              if (created) onSwitchView(view.code);
-              else onReloadConfig();
-            }}
-          />
+            title={
+              viewManager?.mode === "editor"
+                ? viewManager.viewCode === null
+                  ? "创建视图"
+                  : "编辑视图"
+                : "视图列表"
+            }
+            size="lg"
+            className={viewManager?.mode === "editor" ? "sm:max-w-[52rem]" : undefined}
+            contentClassName={viewManager?.mode === "editor" ? "flex flex-col p-0 sm:p-0" : undefined}
+          >
+            {viewManager?.mode === "list" ? (
+              <ViewListContent
+                objectCode={objectCode}
+                activeCode={config.activeView?.code}
+                onCreate={() => setViewManager({ mode: "editor", viewCode: null, returnToList: true })}
+                onEdit={(code) => setViewManager({ mode: "editor", viewCode: code, returnToList: true })}
+                onCopy={(code) => void copyView(code)}
+                onDelete={(view) => setDeletingView(view)}
+                onChanged={onReloadConfig}
+                refreshKey={config.views.map((view) => view.code).join(",")}
+              />
+            ) : viewManager?.mode === "editor" ? (
+              <ViewEditorContent
+                key={viewManager.viewCode ?? "__create"}
+                objectCode={objectCode}
+                viewCode={viewManager.viewCode}
+                onCancel={() => setViewManager(viewManager.returnToList ? { mode: "list" } : null)}
+                onSaved={(view, created) => {
+                  setViewManager(null);
+                  if (created) onSwitchView(view.code);
+                  else onReloadConfig();
+                }}
+              />
+            ) : null}
+          </Drawer>
           <ConfirmDialog
             open={deletingView !== null}
             onOpenChange={(open) => {
@@ -653,41 +734,68 @@ export function MetaListPage(props: MetaListPageProps) {
   const { objectCode, title, headerExtra, className } = props;
   const [viewCode, setViewCode] = useState<string | undefined>(undefined);
   const [configToken, setConfigToken] = useState(0);
+  /**
+   * A view switch in flight: the tab is selected at once and the table shows its busy
+   * state; the switch is saved (PUT active-view) only after that view's config loaded,
+   * and a failed load returns to the previous view with an error message.
+   */
+  const [switching, setSwitching] = useState<{ code: string; previous: string | undefined } | null>(null);
 
-  const config = useRequest(`meta-config:${objectCode}:${viewCode ?? ""}:${configToken}`, (signal) =>
-    api.getJson<EffectivePageConfig>(
-      apiUrl(`/api/meta/config/${objectCode}`) + (viewCode ? `?view=${encodeURIComponent(viewCode)}` : ""),
-      { signal },
-    ),
-  );
+  const config = useRequest(`meta-config:${objectCode}:${viewCode ?? ""}:${configToken}`, (signal) => {
+    const pendingSwitch = switching && switching.code === viewCode ? switching : null;
+    return api
+      .getJson<EffectivePageConfig>(
+        apiUrl(`/api/meta/config/${objectCode}`) + (viewCode ? `?view=${encodeURIComponent(viewCode)}` : ""),
+        { signal },
+      )
+      .then(
+        (data) => {
+          if (pendingSwitch) {
+            setSwitching((current) => (current === pendingSwitch ? null : current));
+            void api
+              .sendJson(apiUrl(`/api/meta/active-view/${objectCode}`), { method: "PUT", body: { viewCode: pendingSwitch.code } })
+              .catch((error: unknown) =>
+                toast.error("当前视图未能保存，下次打开仍显示原视图", { description: errorMessage(error, "") || undefined }),
+              );
+          }
+          return data;
+        },
+        (error: unknown) => {
+          if (pendingSwitch && !signal.aborted) {
+            setSwitching((current) => (current === pendingSwitch ? null : current));
+            setViewCode(pendingSwitch.previous);
+            toast.error("切换视图失败，已回到原视图", { description: errorMessage(error, "") || undefined });
+          }
+          throw error;
+        },
+      );
+  });
 
+  const loadedView = config.data?.activeView?.code;
   const switchView = useCallback(
     (code: string) => {
+      setSwitching({ code, previous: loadedView ?? viewCode });
       setViewCode(code);
-      void api.sendJson(apiUrl(`/api/meta/active-view/${objectCode}`), { method: "PUT", body: { viewCode: code } }).catch(
-        (error: unknown) => toast.error(errorMessage(error, "切换视图失败")),
-      );
     },
-    [api, objectCode],
+    [loadedView, viewCode],
   );
 
   const reloadConfig = useCallback(() => setConfigToken((token) => token + 1), []);
 
   return (
     <PageContainer title={title} extra={headerExtra} fill className={className}>
-      <PageCard fill>
-        <AsyncView result={config} isEmpty={() => false}>
-          {(data) => (
-            <MetaListBody
-              key={`${data.objectCode}:${data.activeView?.code ?? "default"}:${data.activeView?.updatedAt ?? ""}`}
-              {...props}
-              config={data}
-              onSwitchView={switchView}
-              onReloadConfig={reloadConfig}
-            />
-          )}
-        </AsyncView>
-      </PageCard>
+      <AsyncView result={config} isEmpty={() => false}>
+        {(data) => (
+          <MetaListBody
+            key={`${data.objectCode}:${data.activeView?.code ?? "default"}:${data.activeView?.updatedAt ?? ""}`}
+            {...props}
+            config={data}
+            onSwitchView={switchView}
+            onReloadConfig={reloadConfig}
+            switchingView={switching?.code ?? null}
+          />
+        )}
+      </AsyncView>
     </PageContainer>
   );
 }

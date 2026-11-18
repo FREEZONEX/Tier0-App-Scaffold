@@ -1,3 +1,4 @@
+import { guidanceIt } from "../../scripts/guidance-test.mjs";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -123,13 +124,13 @@ describe("navigation contracts", () => {
     assert.equal(isMenuHrefActive("/", "/material"), false);
   });
 
-  it("keeps Shell, not Link activeProps, responsible for the selected menu", () => {
+  guidanceIt("keeps Shell, not Link activeProps, responsible for the selected menu", () => {
     const shell = readFileSync(
       join(process.cwd(), "src/components/Shell.tsx"),
       "utf8",
     );
 
-    assert.match(shell, /const sidebarItemActive =[\s\S]*border-border bg-highlight-bg-accent/);
+    assert.match(shell, /const sidebarItemActive =\s*"bg-muted text-foreground"/);
     assert.match(shell, /function isMenuHrefActive/);
     assert.match(shell, /function getActiveModuleKey/);
     assert.match(shell, /function isModuleInActiveBranch/);
@@ -139,6 +140,30 @@ describe("navigation contracts", () => {
     assert.doesNotMatch(shell, /border-highlight-bg-primary.*sidebarItemActive/);
     assert.doesNotMatch(shell, /\bactiveProps\s*=/);
     assert.doesNotMatch(shell, /\binactiveProps\s*=/);
+  });
+
+  it("keeps every sidebar entry identifiable when collapsed", () => {
+    const shell = readFileSync(
+      join(process.cwd(), "src/components/Shell.tsx"),
+      "utf8",
+    );
+
+    assert.match(shell, /function resolveNavIcon\(/);
+    assert.match(shell, /resolveNavIconComponent\(icon, label\)/);
+    // The full lucide `icons` map adds ~480 kB to the app chunk; resolve names
+    // through the curated library instead.
+    assert.doesNotMatch(shell, /import\s*\{[^}]*\bicons\b[^}]*\}\s*from\s*"lucide-react"/);
+    const navIcons = readFileSync(
+      join(process.cwd(), "src/components/nav-icons.ts"),
+      "utf8",
+    );
+    assert.match(navIcons, /export const NAV_ICON_LIBRARY/);
+    assert.match(navIcons, /export function suggestNavIcon\(/);
+    assert.doesNotMatch(navIcons, /import\s*\{[^}]*\bicons\b[^}]*\}\s*from\s*"lucide-react"/);
+    assert.match(shell, /<NavIcon icon=\{mod\.icon\} label=\{mod\.label\}/);
+    assert.match(shell, /<NavIcon icon=\{child\.icon\} label=\{child\.label\}/);
+    assert.match(shell, /<Tooltip[^>]*disabled=\{!isCollapsed\}/);
+    assert.match(shell, /aria-label=\{isCollapsed \? mod\.label : undefined\}/);
   });
 
   it("rejects ambiguous sidebar module declarations", () => {

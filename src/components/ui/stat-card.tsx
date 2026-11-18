@@ -1,13 +1,15 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { FOCUS_FILL } from "@/lib/interaction";
+import { AnimatedNumber } from "@/components/ui/animated-number";
 
 /**
  * StatCard — dashboard summary tile. Value comes from real (seeded or live)
  * data, never an invented number.
  *
- * `tone` drives both the value color and the icon chip (`default` = neutral
- * grey; running/paused/error/info tint it). `trend` renders a semantic arrow +
- * delta. `footer` is free for a link or scope line. Use what the metric needs.
+ * `icon` is a muted lucide glyph (no colored chip, so a KPI row stays calm);
+ * `tone` is kept for API compatibility; primary metric values remain neutral. `trend` renders a semantic arrow +
+ * delta. Numeric `value`s roll to new readings on live refresh. `footer` is free for a link or scope line. Use what the metric needs.
  */
 export type StatTone = "default" | "running" | "paused" | "error" | "info";
 
@@ -29,30 +31,27 @@ export interface StatCardProps {
   value: ReactNode;
   /** Unit or short qualifier rendered after the value (e.g. "kg", "项"). */
   unit?: ReactNode;
+  /**
+   * Explicit display rule for a numeric `value` (currency, percent, fixed
+   * decimals). Omit it to show the value at its own precision — `0.04` stays
+   * `0.04`; the live-update roll never rounds the business number.
+   */
+  format?: Intl.NumberFormatOptions;
   icon?: ReactNode;
   /** Small line under the value: trend, scope, or a link to the module. */
   footer?: ReactNode;
   /** Movement vs a prior period, rendered as a semantic arrow + delta. */
   trend?: StatTrend;
   tone?: StatTone;
+  /**
+   * Optional. Prefer keeping StatCards read-only (KPI glance only) and put
+   * filters/actions in the toolbar below. When set, the card becomes a button.
+   */
+  onClick?: () => void;
+  /** Selected look when `onClick` is used. */
+  active?: boolean;
   className?: string;
 }
-
-const toneValueClass: Record<StatTone, string> = {
-  default: "text-foreground",
-  running: "text-[color:var(--state-running-fg)]",
-  paused: "text-[color:var(--state-paused-fg)]",
-  error: "text-[color:var(--state-error-fg)]",
-  info: "text-[color:var(--state-info-fg)]",
-};
-
-const toneChipClass: Record<StatTone, string> = {
-  default: "bg-surface-inset text-muted-foreground",
-  running: "bg-[color:var(--state-running-bg)] text-[color:var(--state-running-fg)]",
-  paused: "bg-[color:var(--state-paused-bg)] text-[color:var(--state-paused-fg)]",
-  error: "bg-[color:var(--state-error-bg)] text-[color:var(--state-error-fg)]",
-  info: "bg-[color:var(--state-info-bg)] text-[color:var(--state-info-fg)]",
-};
 
 const trendIntentClass = {
   positive: "text-[color:var(--tier0-success-color)]",
@@ -87,27 +86,24 @@ export function StatCard({
   label,
   value,
   unit,
+  format,
   icon,
   footer,
   trend,
   tone = "default",
+  onClick,
+  active = false,
   className,
 }: StatCardProps) {
-  return (
-    <div
-      className={cn(
-        "rounded-lg border border-border bg-card p-4 shadow-sm",
-        className,
-      )}
-    >
+  const interactive = typeof onClick === "function";
+  const body = (
+    <>
       <div className="flex items-center justify-between gap-2">
-        <p className="caption">{label}</p>
+        <p className="caption text-muted-foreground">{label}</p>
         {icon && (
           <span
-            className={cn(
-              "grid size-8 shrink-0 place-items-center rounded-md [&>svg]:size-4",
-              toneChipClass[tone],
-            )}
+            aria-hidden="true"
+            className="flex shrink-0 text-muted-foreground [&>svg]:size-[18px] [&>svg]:stroke-[1.75]"
           >
             {icon}
           </span>
@@ -118,11 +114,11 @@ export function StatCard({
           // Sized to read as a deliberate big-number KPI even when the card
           // carries nothing but a label + value (its most common generated
           // form) — a small number floating in a wide tile reads as hollow.
-          "mt-1 text-3xl font-semibold leading-9 tracking-tight tabular-nums",
-          toneValueClass[tone],
+          "mt-1 text-3xl font-semibold leading-9 tabular-nums",
+          "text-foreground",
         )}
       >
-        {value}
+        {typeof value === "number" ? <AnimatedNumber value={value} format={format} /> : value}
         {unit && (
           <span className="ml-1 text-base font-normal text-muted-foreground">
             {unit}
@@ -145,6 +141,43 @@ export function StatCard({
           {footer && <div className="caption">{footer}</div>}
         </div>
       )}
+    </>
+  );
+
+  const surface = cn(
+    "group relative rounded-[4px] border bg-card p-4 text-left shadow-sm",
+    "transition-[background-color,border-color,box-shadow,transform] duration-150 ease-out motion-reduce:transition-none",
+    "animate-[tier0-rise_260ms_var(--motion-spring)_both]",
+    interactive
+      ? cn(
+          "cursor-pointer",
+          FOCUS_FILL,
+          "hover:-translate-y-px hover:bg-[color:var(--tier0-fill-hover)] hover:shadow-card",
+          "active:translate-y-0 active:scale-[0.99]",
+          active ? "border-border bg-muted" : "border-border",
+        )
+      : // Read-only KPI — white card, no hover/selected affordance (filters live in the toolbar).
+        "border-border",
+    className,
+  );
+
+  if (interactive) {
+    return (
+      <button
+        type="button"
+        data-tone={tone}
+        aria-pressed={active}
+        className={surface}
+        onClick={onClick}
+      >
+        {body}
+      </button>
+    );
+  }
+
+  return (
+    <div data-tone={tone} className={surface}>
+      {body}
     </div>
   );
 }

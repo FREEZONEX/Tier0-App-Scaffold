@@ -1,7 +1,7 @@
 ---
 version: alpha
 name: Tier0-design-system
-description: "A readable enterprise product design system for Tier0: calm operational surfaces, neutral gray primary actions, softened signal green for active/selected/progress states, and layout density chosen by workflow context. Management workspaces should feel modern, clear, and product-focused; production execution, monitor, and safety-critical surfaces may feel more industrial when the environment calls for it."
+description: "A readable enterprise product design system for Tier0: calm operational surfaces, near-black primary actions, muted-gray fills for selected navigation, signal green only for progress fills and highlight CTAs, and density chosen by layout (workspace / station / review / monitor). Management workspaces are product-focused; station, review, and monitor keep purpose-built density and chrome."
 
 colors:
   primary: "var(--tier0-primary)"
@@ -121,7 +121,7 @@ spacing:
 # src/components/forms/FileUpload — compose
 # those instead of re-deriving styles from this file. Usage rules:
 # - identifiers (doc/lot/location codes) render in font-mono
-# - highlight lime is a fill color only; text accents use highlight-deep
+# - highlight lime is a fill / ring color only; text accents use brand (≥4.5:1)
 # - status = StatusBadge + optional card accent bar; never tint whole cards
 # - available where useful: .text-link (inline links), StatCard tone + trend props
 components:
@@ -214,8 +214,8 @@ components:
     rounded: "{rounded.sm}"
 
 layout:
-  workspace-container: "1440px centered"  # Shell caps content width; wide boards scroll internally
-  workspace-page-inset: "page-shell: 16px x / 20px y narrow, 24px sm, 32px lg"
+  workspace-container: "full available width"  # Forms/prose may opt into local width limits
+  workspace-page-inset: "page-shell: 16px x / 20px y narrow, 24px sm, 24px x / 32px y lg"
   table-actions-column: "table-col-fit"   # trailing action/badge columns shrink to content
 
 motion:
@@ -238,11 +238,14 @@ Tier0 is precise, calm, technical enterprise software: readable through long
 shifts and on shared terminals without becoming a dark control-room theme.
 
 - Workspace: neutral canvas, raised white surfaces, compact information rhythm.
-- Primary decisions: near-black; active/selected/progress emphasis: Tier0 signal
-  green; urgency: semantic status colors. Use `Button` variant `primary` for
-  standard submit and primary actions. Reserve `highlight` for a deliberately
-  emphasized workflow action; being the most important action alone does not
-  require a green button.
+- Primary actions: near-black (`Button` `primary`). Navigation selection:
+  `bg-muted text-foreground` with no border or shadow. Progress fills and
+  deliberate CTAs: signal green (`Button` `highlight` / highlight soft fills).
+  Text and icon accents on the canvas: `--tier0-brand` / `text-brand` (≥4.5:1);
+  never use `--tier0-highlight`, `--tier0-highlight-text`, or
+  `--tier0-highlight-deep` for body or label text on white. Urgency: semantic
+  status colors. Being the most important action alone does not require a green
+  button.
 - Station: larger touch targets. Review: evidence-first. Monitor: fixed,
   distance-readable composition.
 - Hierarchy comes from typography, borders, restrained surface changes, and
@@ -280,6 +283,13 @@ Use the asset dimensions, root/public copy, and registration workflow in
 
 ## Composition
 
+**Avoid unnecessary secondary labels and descriptions. Let the layout do the explaining.**
+
+Use grouping, alignment, spacing, and visual hierarchy before explanatory copy.
+Omit subtitles, helper paragraphs, and labels that repeat an already clear
+layout. Preserve necessary field/action labels, accessible names, and guidance
+about conditions, errors, or consequences.
+
 Choose layout and density from the workflow. Keep the persistent page body
 focused on current state, primary work, and useful decisions; secondary detail
 can live behind an explicit control or focused tab.
@@ -289,10 +299,26 @@ an explanation of the page or embedded cards, filters, charts, forms, or data
 boards. Wide content owns its scroll region, long values wrap or truncate
 intentionally, and interactive pages remain usable at 375px.
 
-Use `page-shell` on the root of every ordinary workspace page. `Shell` owns the
-centered 1440px maximum width; `page-shell` owns the responsive page inset, so
-do not repeat outer page padding. Station, review, and monitor layouts keep
-their own purpose-built spacing instead.
+Use `page-shell` on the root of every ordinary workspace page. `Shell` fills
+all available width beside the sidebar, with no global maximum or centered
+container. Production lists, ledgers, quality review, planning and operational
+boards use that width by default. `page-shell` owns the responsive page inset:
+16px horizontally on narrow screens and 24px on desktop; do not repeat outer
+page padding. Station, review, and monitor layouts keep their purpose-built spacing.
+
+Limit width locally when the content needs it: a simple form can use
+`w-full min-w-0 max-w-3xl`, and a long-text block `w-full min-w-0 max-w-prose`.
+These are opt-in examples, not limits on every form: multi-column forms and
+editable line-item tables may need the full width. Keep the page header and
+operational tables outside these local wrappers; use `mx-auto` only when that
+specific content benefits from centering. Keep search controls and status/action
+columns bounded; let business content columns use the remaining space. Wide
+tables and boards retain their own horizontal scroll region.
+
+List pages place tabs, filters, toolbars, tables, and pagination directly on
+the page canvas. Do not add an outer decorative card around `MetaListPage`;
+use its page inset and internal spacing. Cards remain available for distinct
+content groups in other compositions.
 
 The shipped component families are a discoverable toolkit, not a mandatory
 screen recipe:
@@ -318,6 +344,10 @@ background blobs, glass effects, and heavy shadows. Import shared motion through
 
 ## Review
 
+Remove secondary copy whose absence does not reduce understanding or correct
+use. Apply the global interface constraint in [AGENTS.md](AGENTS.md#global-interface-constraint)
+to every surface, including cards, forms, dialogs, and empty states.
+
 Check semantic-token use, control affordance, status readability, density,
 responsive overflow, text fitting, page-header discipline, and consistency with
 the chosen app chrome. Prefer improving primitives or base fallbacks over adding
@@ -328,8 +358,31 @@ fill every pixel of a wide toolbar looks unresolved and drags its placeholder fa
 from the results it filters; give it a ceiling — `max-w-xs` is a good default —
 and let the empty space carry the layout. The build catches known unbounded
 control-growth patterns; it does not verify rendered mobile usability. See the
-static-check and viewport-review boundaries in [AGENTS.md](AGENTS.md).
+static-check and viewport-review boundaries in [docs/ui-rules.md](docs/ui-rules.md#responsive-layout).
 
 ## 通用组件扩充
 
 组件类型与主题独立管理。新增组件沿用本文件及 `src/styles/globals.css` 的主题；启用状态输入框使用白底，浅灰填充保留给禁用状态，不用灰底表示普通可操作控件。参见 [通用组件接入](docs/component-kit.md)。
+
+## 本地组件体验评审补充（2026-11-03）
+
+- 标题、大号指标及关键内容文字使用中性色；颜色仅用于状态标签、必要的小字及图标。
+- 门户和预览画布使用白色或中性灰，禁用灰绿色底色与灰绿色正文。
+- 卡片选中状态不得增加描边或边框强调；键盘 focus-visible 指示仍保留。
+- 删除重复标题、解释设计实现、无行动价值的说明文字。
+- 保持现有组件职责和接口，以参考库的对应组件逐项匹配，避免新增平行组件体系。
+- 完整改造后按 ui-skills 走查排版、间距、布局、点击目标、反馈、字号、信息层级及弹层尺寸；发现问题后修复并复查。
+
+## UI acceptance criteria
+
+Operator-facing principles, device baselines (phone, station touch console, desktop,
+wall screen) and the delivery checklist live in [docs/operator-ux.md](docs/operator-ux.md).
+
+- Body text, labels and enabled placeholders must have at least 4.5:1 contrast against their actual background in both themes. Test the composited color, including opacity. Enabled placeholders use `--tier0-text-placeholder` (`#6b6b6b` light / `#8b8b96` dark).
+- Links, text buttons, selected radios and upload accents use readable `--tier0-brand` (`#467000` light / `#73b200` dark). Do not use `#73b200` for text on light surfaces (2.6:1). Text-button hover adds underline only — no color shift.
+- Keyboard focus splits by control kind: buttons, tabs, chips, icon buttons and pagination use a light gray fill (`bg-muted`); text fields, selects, date pickers and checkboxes use `--ring` (`#B2ED1D`, both themes): border at 40% opacity and a 2px outer ring at 60%. Selected tabs use a 2px foreground underline.
+- On phones and touch screens (`max-width: 639px`, `pointer: coarse`) text steps up one size, inputs reach 16px and every control reaches a 44px touch target.
+- Light sidebar surface is soft gray (`--sidebar: oklch(0.985)`); hover/selection use muted fill (`--sidebar-selected`) with no border or shadow. Dark rail is charcoal `oklch(0.205)`. Keyboard focus on rail items uses the same muted fill, not a brand outline.
+- Same-row form controls and buttons use matching size tokens: sm 32px, md 36px, lg 40px.
+- Sorting supports selecting, changing direction, deleting and reordering using both pointer and keyboard. At 375px, field labels must retain a readable width.
+- Empty role sets hide the sidebar role line entirely; keep the account avatar and name, without `未分配角色`, `No role assigned`, or role-loading placeholders.

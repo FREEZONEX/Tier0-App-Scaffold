@@ -32,7 +32,7 @@ export const APP_NAME = "Manufacturing App";
  * `update_app_info` tool (`icon_path`). Do both together — see AGENTS.md
  * "Branding". The default below is a neutral placeholder.
  */
-export const APP_ICON = "/app-icon.svg";
+export const APP_ICON = "/app-icon.png";
 
 /**
  * Product locale. Set it together with APP_NAME — it drives `<html lang>`
@@ -47,17 +47,39 @@ const UI_COPY = {
     save: "Save",
     cancel: "Cancel",
     confirm: "Confirm",
-    loadError: "Couldn't load data",
-    retry: "Reload",
+    loadError: "This section couldn't be loaded",
+    loadErrorTransient: "Temporarily unavailable. Try again shortly",
+    errorDetails: "Details",
+    retry: "Retry",
     empty: "No data yet",
+    loading: "Loading…",
+    noRoles: "No role assigned",
+    expandSidebar: "Expand sidebar",
+    collapseSidebar: "Collapse sidebar",
+    openNavigation: "Open navigation",
+    closeNavigation: "Close navigation",
+    updatedAt: "Updated",
+    signedInAs: "Signed in",
+    offline: "Offline — changes can't be saved until the connection returns",
   },
   "zh-CN": {
     save: "保存",
     cancel: "取消",
     confirm: "确认",
-    loadError: "数据加载失败",
-    retry: "重新加载",
+    loadError: "这块内容暂时无法加载",
+    loadErrorTransient: "暂时无法加载，请稍后重试",
+    errorDetails: "查看详情",
+    retry: "重试",
     empty: "暂无数据",
+    loading: "加载中…",
+    noRoles: "未分配角色",
+    expandSidebar: "展开侧边栏",
+    collapseSidebar: "收起侧边栏",
+    openNavigation: "打开导航",
+    closeNavigation: "关闭导航",
+    updatedAt: "更新于",
+    signedInAs: "当前用户",
+    offline: "网络已断开，恢复连接前操作无法保存",
   },
 } as const;
 

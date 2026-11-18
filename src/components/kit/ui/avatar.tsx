@@ -1,55 +1,61 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const AVATAR_COLORS = ["#050b14", "#13a8a8", "#166534", "#fa8c16", "#722ed1", "#eb2f96", "#2f54eb", "#d4a106"];
-
-const AVATAR_SIZE = { xs: 20, sm: 24, md: 32, lg: 40 } as const;
-
-function colorFor(name: string): string {
-  let hash = 0;
-  for (const char of name) hash = (hash * 31 + (char.codePointAt(0) ?? 0)) % 9973;
-  return AVATAR_COLORS[hash % AVATAR_COLORS.length];
-}
+const AVATAR_SIZE = {
+  xs: { box: "size-5", icon: "size-3" },
+  sm: { box: "size-6", icon: "size-3.5" },
+  md: { box: "size-8", icon: "size-4.5" },
+  lg: { box: "size-10", icon: "size-5.5" },
+} as const;
 
 export interface AvatarProps {
-  /** Person name; the first character is shown. */
+  /** Person name, used as the image's alt text and tooltip. */
   name?: string | null;
-  /** Image URL (takes precedence over the initial). */
+  /**
+   * Image URL, e.g. a member's `avatarUrl` ("" when the member has none).
+   * The platform's User icon fallback is shown when it is empty or fails to load.
+   */
   src?: string | null;
-  size?: keyof typeof AVATAR_SIZE | number;
+  size?: keyof typeof AVATAR_SIZE;
   shape?: "circle" | "square";
-  /** Background color (default derived from the name). */
-  color?: string;
   title?: string;
   className?: string;
 }
 
-export function Avatar({ name, src, size = "md", shape = "circle", color, title, className }: AvatarProps) {
-  const pixels = typeof size === "number" ? size : AVATAR_SIZE[size];
+export function Avatar({ name, src, size = "md", shape = "circle", title, className }: AvatarProps) {
+  // Remember which URL failed, so a new URL (re-queried after expiry) is tried again.
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const trimmed = name?.trim() ?? "";
-  const initial = trimmed ? Array.from(trimmed)[0].toUpperCase() : "";
-  const background = src ? undefined : initial ? (color ?? colorFor(trimmed)) : "#bfbfbf";
+  const image = src && src !== failedSrc ? src : null;
 
   return (
     <span
       title={title ?? (trimmed || undefined)}
       aria-label={trimmed || undefined}
       className={cn(
-        "inline-flex shrink-0 select-none items-center justify-center overflow-hidden font-medium leading-none text-white",
-        shape === "circle" ? "rounded-full" : "rounded-md",
+        "inline-flex shrink-0 select-none items-center justify-center overflow-hidden",
+        AVATAR_SIZE[size].box,
+        shape === "circle" ? "rounded-full" : "rounded-sm",
+        !image && "bg-foreground text-background",
         className,
       )}
-      style={{ width: pixels, height: pixels, backgroundColor: background, fontSize: Math.max(10, Math.round(pixels * 0.45)) }}
     >
-      {src ? (
-        <img src={src} alt={trimmed} className="size-full object-cover" />
-      ) : initial ? (
-        initial
+      {image ? (
+        <img
+          src={image}
+          alt={trimmed}
+          className="size-full object-cover"
+          // A server-rendered image can fail before hydration attaches onError.
+          ref={(node) => {
+            if (node?.complete && node.naturalWidth === 0) setFailedSrc(image);
+          }}
+          onError={() => setFailedSrc(image)}
+        />
       ) : (
-        <User aria-hidden="true" style={{ width: pixels * 0.56, height: pixels * 0.56 }} />
+        <User aria-hidden="true" className={AVATAR_SIZE[size].icon} />
       )}
     </span>
   );
@@ -77,10 +83,10 @@ export function Badge({ count = 0, max = 99, dot = false, showZero = false, chil
     <span
       title={title ?? (dot ? undefined : text)}
       className={cn(
-        "inline-flex items-center justify-center whitespace-nowrap rounded-full font-medium tabular-nums text-white shadow-[0_0_0_1px_#fff]",
+        "inline-flex items-center justify-center whitespace-nowrap rounded-full font-medium tabular-nums text-white shadow-[0_0_0_1px_var(--card)]",
         dot ? "size-1.5" : "h-4 min-w-4 px-1 text-[11px] leading-4",
         children !== undefined && "absolute right-0 top-0 z-10 translate-x-1/2 -translate-y-1/2",
-        !color && "bg-danger",
+        !color && "bg-red-600",
         className,
       )}
       style={color ? { backgroundColor: color } : undefined}

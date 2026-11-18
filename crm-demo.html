@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tier0 CRM · 前端效果演示</title>
+  <style>
+    :root {
+      --primary: #050b14;
+      --highlight: #b2ed1d;
+      --highlight-deep: #73b200;
+      --highlight-soft: #e7f9b9;
+      --blue: #1d4ed8;
+      --blue-soft: #dbeafe;
+      --purple: #7c3aed;
+      --purple-soft: #f0e9fd;
+      --success: #166534;
+      --success-soft: #dcfce7;
+      --warning: #9a3412;
+      --warning-soft: #ffedd5;
+      --danger: #b91c1c;
+      --danger-soft: #fee2e2;
+      --muted: #878787;
+      --border: #dcdcdc;
+      --border-2: #e8e8e8;
+      --fill: #f4f4f5;
+      --bg: #ffffff;
+      --sidebar: #fafafa;
+      --radius: 4px;
+      --shadow: 0 1px 2px rgb(16 24 40 / 0.04), 0 10px 28px -14px rgb(16 24 40 / 0.12);
+      --font: "SF Pro Text", "PingFang SC", "Helvetica Neue", system-ui, sans-serif;
+      --mono: "IBM Plex Mono", ui-monospace, monospace;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      font-family: var(--font);
+      color: var(--primary);
+      background: var(--bg);
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    .app { display: flex; min-height: 100%; }
+
+    /* —— Sidebar —— */
+    .sidebar {
+      width: 232px;
+      flex-shrink: 0;
+      border-right: 1px solid var(--border);
+      background: var(--sidebar);
+      display: flex;
+      flex-direction: column;
+    }
+    .brand {
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 14px;
+    }
+    .brand-mark {
+      width: 28px; height: 28px; border-radius: var(--radius);
+      background: var(--primary); color: var(--highlight);
+      display: grid; place-items: center; flex-shrink: 0;
+    }
+    .brand strong { display: block; font-size: 14px; line-height: 1.2; }
+    .brand span { font-size: 12px; color: var(--muted); }
+    .nav { flex: 1; overflow: auto; padding: 8px 8px 16px; display: flex; flex-direction: column; gap: 18px; }
+    .nav-group-title {
+      margin: 0 0 6px;
+      padding: 0 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .nav-item {
+      width: 100%;
+      height: 36px;
+      border: 0;
+      border-radius: var(--radius);
+      background: transparent;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 10px;
+      color: #3f3f46;
+      transition: background-color .15s, color .15s;
+      text-align: left;
+    }
+    .nav-item:hover { background: #eeeeef; color: var(--primary); }
+    .nav-item[aria-current="page"] {
+      background: #eeeeef;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .nav-item svg { opacity: .7; flex-shrink: 0; }
+    .nav-item small {
+      margin-left: auto;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 400;
+    }
+    .sidebar-foot {
+      border-top: 1px solid var(--border-2);
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .avatar {
+      width: 32px; height: 32px; border-radius: var(--radius);
+      background: var(--fill); display: grid; place-items: center;
+      font-weight: 600; font-size: 12px;
+    }
+
+    /* —— Main —— */
+    .main { flex: 1; min-width: 0; display: flex; flex-direction: column; background: var(--bg); }
+    .topbar {
+      height: 56px;
+      border-bottom: 1px solid var(--border-2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 20px;
+    }
+    .topbar h1 { margin: 0; font-size: 16px; font-weight: 600; }
+    .topbar-actions { display: flex; align-items: center; gap: 8px; }
+    .content { flex: 1; overflow: auto; padding: 20px; }
+    .stack { display: flex; flex-direction: column; gap: 16px; max-width: 1200px; }
+
+    /* —— Metrics —— */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #fff;
+    }
+    .metric {
+      padding: 14px 16px;
+      border-right: 1px solid var(--border-2);
+    }
+    .metric:last-child { border-right: 0; }
+    .metric .label { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+    .metric .value { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; tabular-nums; }
+    .metric .hint { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    /* —— Card / table —— */
+    .card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: #fff;
+      box-shadow: 0 1px 2px rgb(16 24 40 / 0.04);
+      overflow: hidden;
+    }
+    .card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 20px 0;
+    }
+    .card-head h2 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-body { padding: 16px 20px 20px; }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .search {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 36px;
+      width: 100%;
+      max-width: 260px;
+      padding: 0 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+    .search:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px rgb(5 11 20 / 0.08); }
+    .search input {
+      border: 0; outline: 0; width: 100%; min-width: 0; background: transparent;
+    }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip {
+      height: 28px;
+      padding: 0 10px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .chip[aria-pressed="true"] {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .table-wrap { overflow-x: auto; border: 1px solid var(--border-2); border-radius: var(--radius); }
+    table { width: 100%; border-collapse: collapse; min-width: 720px; }
+    th, td {
+      text-align: left;
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--border-2);
+      vertical-align: middle;
+    }
+    th {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      background: #fafafa;
+      white-space: nowrap;
+    }
+    tr:last-child td { border-bottom: 0; }
+    tr[data-clickable] { cursor: pointer; }
+    tr[data-clickable]:hover td { background: #fafafa; }
+    .mono { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+    .row-actions { display: flex; gap: 4px; justify-content: flex-end; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 22px;
+      padding: 0 8px;
+      border-radius: var(--radius);
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .badge::before {
+      content: "";
+      width: 6px; height: 6px; border-radius: 50%;
+      background: currentColor;
+    }
+    .badge-success { background: var(--success-soft); color: var(--success); }
+    .badge-info { background: var(--blue-soft); color: var(--blue); }
+    .badge-warning { background: var(--warning-soft); color: var(--warning); }
+    .badge-danger { background: var(--danger-soft); color: var(--danger); }
+    .badge-purple { background: var(--purple-soft); color: var(--purple); }
+    .badge-muted { background: var(--fill); color: #52525b; }
+
+    /* —— Buttons —— */
+    .btn {
+      height: 36px;
+      padding: 0 14px;
+      border-radius: var(--radius);
+      border: 1px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-weight: 500;
+      transition: background-color .15s, border-color .15s, color .15s, transform .1s;
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: #1c1f1e; }
+    .btn-outline { background: #fff; border-color: var(--border); color: var(--primary); }
+    .btn-outline:hover { background: var(--fill); }
+    .btn-ghost { background: transparent; color: var(--muted); padding: 0 8px; }
+    .btn-ghost:hover { background: var(--fill); color: var(--primary); }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-sm { height: 28px; padding: 0 10px; font-size: 12px; }
+    .btn-icon {
+      width: 28px; height: 28px; padding: 0;
+      border: 0; border-radius: var(--radius); background: transparent; color: var(--muted);
+    }
+    .btn-icon:hover { background: var(--fill); color: var(--primary); }
+
+    /* —— Overlay —— */
+    .overlay {
+      position: fixed; inset: 0; z-index: 50;
+      background: rgb(5 11 20 / 0.35);
+      backdrop-filter: blur(2px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .overlay.open { display: flex; }
+    .dialog {
+      width: min(480px, 100%);
+      max-height: calc(100dvh - 32px);
+      overflow: auto;
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid rgb(5 11 20 / 0.08);
+      display: flex;
+      flex-direction: column;
+      animation: pop .18s cubic-bezier(.22,1,.36,1);
+    }
+    .dialog.wide { width: min(640px, 100%); }
+    @keyframes pop {
+      from { opacity: 0; transform: translateY(6px) scale(.98); }
+      to { opacity: 1; transform: none; }
+    }
+    .dialog-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 20px 20px 0;
+    }
+    .dialog-head h3 { margin: 0; font-size: 18px; font-weight: 600; line-height: 1.3; }
+    .dialog-head p { margin: 6px 0 0; font-size: 13px; color: var(--muted); line-height: 1.45; }
+    .dialog-body { padding: 16px 20px 4px; display: flex; flex-direction: column; gap: 14px; }
+    .dialog-foot {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 16px 20px 20px;
+    }
+    .field { display: grid; gap: 6px; }
+    .field label { font-size: 13px; font-weight: 500; }
+    .field label .req { color: var(--danger); margin-left: 2px; }
+    .field input, .field select, .field textarea {
+      width: 100%;
+      height: 36px;
+      padding: 0 10px;
+      border: 1px solid #c2c2c4;
+      border-radius: var(--radius);
+      background: #fff;
+      outline: none;
+    }
+    .field textarea { height: auto; min-height: 80px; padding: 8px 10px; resize: vertical; }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgb(5 11 20 / 0.08);
+    }
+    .field-hint { font-size: 12px; color: var(--muted); }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 640px) {
+      .sidebar { display: none; }
+      .metrics { grid-template-columns: 1fr 1fr; }
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    /* —— Toast —— */
+    .toasts {
+      position: fixed; right: 16px; bottom: 16px; z-index: 60;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .toast {
+      min-width: 240px;
+      max-width: 360px;
+      padding: 12px 14px;
+      border-radius: var(--radius);
+      background: var(--primary);
+      color: #fff;
+      box-shadow: var(--shadow);
+      font-size: 13px;
+      animation: rise .2s ease;
+    }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    .empty {
+      padding: 40px 16px;
+      text-align: center;
+      color: var(--muted);
+    }
+    .split {
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) minmax(240px, .9fr);
+      gap: 16px;
+      align-items: start;
+    }
+    @media (max-width: 960px) { .split { grid-template-columns: 1fr; } }
+    .side-card .card-body { padding-top: 12px; }
+    .timeline { list-style: none; margin: 0; padding: 0; }
+    .timeline li {
+      position: relative;
+      padding: 0 0 14px 16px;
+      border-left: 1px solid var(--border-2);
+      margin-left: 4px;
+    }
+    .timeline li:last-child { padding-bottom: 0; }
+    .timeline li::before {
+      content: "";
+      position: absolute;
+      left: -5px; top: 4px;
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--highlight-deep);
+      border: 2px solid #fff;
+      box-shadow: 0 0 0 1px var(--border);
+    }
+    .timeline strong { display: block; font-size: 13px; font-weight: 500; }
+    .timeline time { font-size: 12px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" aria-label="应用导航">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
+        </div>
+        <div>
+          <strong>Tier0 CRM</strong>
+          <span>销售工作台演示</span>
+        </div>
+      </div>
+      <nav class="nav" id="nav"></nav>
+      <div class="sidebar-foot">
+        <div class="avatar">张</div>
+        <div style="min-width:0">
+          <div style="font-weight:600;font-size:13px">张明</div>
+          <div style="font-size:12px;color:var(--muted)">销售经理</div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <h1 id="pageTitle">客户</h1>
+        <div class="topbar-actions" id="pageActions"></div>
+      </header>
+      <div class="content">
+        <div class="stack" id="pageRoot"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay" role="presentation">
+    <div class="dialog" id="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"></div>
+  </div>
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
+  <script>
+    const NAV = [
+      {
+        title: "客户管理",
+        items: [
+          { id: "customers", label: "客户", icon: "users" },
+          { id: "contacts", label: "联系人", icon: "contact" },
+        ],
+      },
+      {
+        title: "销售",
+        items: [
+          { id: "deals", label: "商机", icon: "deal" },
+          { id: "activities", label: "跟进", icon: "activity" },
+        ],
+      },
+      {
+        title: "系统",
+        items: [{ id: "settings", label: "偏好设置", icon: "settings" }],
+      },
+    ];
+
+    const ICONS = {
+      users: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+      contact: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+      deal: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+      activity: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>',
+      settings: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg>',
+      plus: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>',
+      search: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>',
+      x: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+      edit: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+      trash: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>',
+    };
+
+    const uid = () => Math.random().toString(36).slice(2, 9);
+    const money = (n) => "¥" + Number(n).toLocaleString("zh-CN");
+
+    const state = {
+      page: "customers",
+      query: "",
+      filter: "all",
+      selectedCustomerId: null,
+      customers: [
+        { id: "c1", name: "星河智造", industry: "离散制造", owner: "张明", stage: "签约", value: 860000, city: "苏州", updated: "今天 09:20" },
+        { id: "c2", name: "蓝湾电子", industry: "电子", owner: "李婷", stage: "跟进", value: 420000, city: "深圳", updated: "昨天 16:08" },
+        { id: "c3", name: "北辰能源", industry: "能源", owner: "张明", stage: "线索", value: 150000, city: "天津", updated: "周一 11:42" },
+        { id: "c4", name: "云桥物流", industry: "物流", owner: "王珊", stage: "签约", value: 310000, city: "杭州", updated: "上周" },
+      ],
+      contacts: [
+        { id: "p1", name: "陈浩", title: "采购总监", customerId: "c1", phone: "138****1024", email: "chenhao@xinghe.cn" },
+        { id: "p2", name: "周敏", title: "IT 经理", customerId: "c2", phone: "139****7788", email: "zhoumin@lanwan.com" },
+        { id: "p3", name: "刘洋", title: "工厂长", customerId: "c1", phone: "137****3311", email: "liuyang@xinghe.cn" },
+        { id: "p4", name: "赵雪", title: "运营负责人", customerId: "c4", phone: "136****9090", email: "zhao@yunqiao.cn" },
+      ],
+      deals: [
+        { id: "d1", name: "MES 一期", customerId: "c1", amount: 520000, stage: "商务谈判", owner: "张明", close: "2026-12-15" },
+        { id: "d2", name: "WMS 升级", customerId: "c2", amount: 280000, stage: "方案确认", owner: "李婷", close: "2026-11-30" },
+        { id: "d3", name: "能源看板", customerId: "c3", amount: 96000, stage: "需求调研", owner: "张明", close: "2027-01-20" },
+        { id: "d4", name: "运单中台", customerId: "c4", amount: 175000, stage: "赢单", owner: "王珊", close: "2026-10-08" },
+      ],
+      activities: [
+        { id: "a1", type: "拜访", customerId: "c1", content: "现场确认产线数据采集点位", at: "今天 10:15", owner: "张明" },
+        { id: "a2", type: "电话", customerId: "c2", content: "跟进报价反馈，对方要求拆分模块", at: "昨天 15:40", owner: "李婷" },
+        { id: "a3", type: "邮件", customerId: "c3", content: "发送需求调研问卷", at: "周一 09:05", owner: "张明" },
+        { id: "a4", type: "演示", customerId: "c1", content: "工单与库存联调演示", at: "上周五 14:00", owner: "张明" },
+      ],
+      settings: { notifyDeal: true, notifyFollow: true, locale: "zh-CN" },
+    };
+
+    const customerName = (id) => state.customers.find((c) => c.id === id)?.name || "—";
+
+    function toast(msg) {
+      const el = document.createElement("div");
+      el.className = "toast";
+      el.textContent = msg;
+      document.getElementById("toasts").appendChild(el);
+      setTimeout(() => el.remove(), 2400);
+    }
+
+    function badge(stage) {
+      const map = {
+        线索: "badge-muted",
+        跟进: "badge-info",
+        签约: "badge-success",
+        需求调研: "badge-muted",
+        方案确认: "badge-info",
+        商务谈判: "badge-purple",
+        赢单: "badge-success",
+        输单: "badge-danger",
+        拜访: "badge-success",
+        电话: "badge-info",
+        邮件: "badge-muted",
+        演示: "badge-purple",
+      };
+      return `<span class="badge ${map[stage] || "badge-muted"}">${stage}</span>`;
+    }
+
+    function renderNav() {
+      const nav = document.getElementById("nav");
+      nav.innerHTML = NAV.map((g) => `
+        <div>
+          <p class="nav-group-title">${g.title}</p>
+          ${g.items.map((item) => {
+            const count =
+              item.id === "customers" ? state.customers.length :
+              item.id === "contacts" ? state.contacts.length :
+              item.id === "deals" ? state.deals.length :
+              item.id === "activities" ? state.activities.length : null;
+            return `
+              <button type="button" class="nav-item" data-page="${item.id}" aria-current="${state.page === item.id ? "page" : undefined}">
+                ${ICONS[item.icon] || ""}
+                <span>${item.label}</span>
+                ${count != null ? `<small>${count}</small>` : ""}
+              </button>`;
+          }).join("")}
+        </div>`).join("");
+      nav.querySelectorAll("[data-page]").forEach((btn) => {
+        btn.onclick = () => {
+          state.page = btn.dataset.page;
+          state.query = "";
+          state.filter = "all";
+          render();
+        };
+      });
+    }
+
+    function closeDialog() {
+      document.getElementById("overlay").classList.remove("open");
+      document.getElementById("dialog").innerHTML = "";
+    }
+
+    function openDialog({ title, description = "", body, footer, wide = false }) {
+      const overlay = document.getElementById("overlay");
+      const dialog = document.getElementById("dialog");
+      dialog.className = "dialog" + (wide ? " wide" : "");
+      dialog.innerHTML = `
+        <div class="dialog-head">
+          <div>
+            <h3 id="dialogTitle">${title}</h3>
+            ${description ? `<p>${description}</p>` : ""}
+          </div>
+          <button type="button" class="btn-icon" id="dialogClose" aria-label="关闭">${ICONS.x}</button>
+        </div>
+        <div class="dialog-body">${body}</div>
+        <div class="dialog-foot">${footer}</div>`;
+      overlay.classList.add("open");
+      document.getElementById("dialogClose").onclick = closeDialog;
+      overlay.onclick = (e) => { if (e.target === overlay) closeDialog(); };
+      const first = dialog.querySelector("input,select,textarea,button.btn-primary,button.btn-danger");
+      first?.focus();
+    }
+
+    function confirmDelete({ title, description, onConfirm }) {
+      openDialog({
+        title,
+        description,
+        body: `<div style="padding:12px 14px;border:1px solid var(--danger-soft);background:var(--danger-soft);border-radius:var(--radius);color:var(--danger);font-size:13px">此操作不可撤销，请确认影响范围。</div>`,
+        footer: `
+          <button type="button" class="btn btn-outline" id="cancelBtn">取消</button>
+          <button type="button" class="btn btn-danger" id="okBtn">删除</button>`,
+      });
+      document.getElementById("cancelBtn").onclick = closeDialog;
+      document.getElementById("okBtn").onclick = () => { onConfirm(); closeDialog(); };
+    }
+
+    /* —— Customers —— */
+    function customerForm(existing) {
+      const isEdit = Boolean(existing);
+      openDialog({
+        title: isEdit ? "编辑客户" : "新建客户",
+        description: isEdit ? "修改后会立即反映在列表与侧栏。" : "创建客户档案，便于关联联系人与商机。",
+        body: `
+          <div class="field">
+            <label for="f-name">客户名称<span class="req">*</span></label>
+            <input id="f-name" value="${existing?.name || ""}" placeholder="例如：星河智造" />
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="f-industry">行业</label>
+              <select id="f-industry">
+                ${["离散制造","电子","能源","物流","其他"].map((v) =>
+                  `<option ${existing?.industry === v ? "selected" : ""}>${v}</option>`).join("")}
+              </select>
+            </div>
+            <div class="field">
+              <label for="f-city">城市</label>
+              <input id="f-city" value="${existing?.city || ""}" placeholder="城市" />
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="f-stage">阶段</label>
+              <select id="f-stage">
+                ${["线索","跟进","签约"].map((v) =>
+                  `<option ${existing?.stage === v ? "selected" : ""}>${v}</option>`).join("")}
+              </select>
+            </div>
+            <div class="field">
+              <label for="f-value">预估价值</label>
+              <input id="f-value" type="number" min="0" step="1000" value="${existing?.value ?? 100000}" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="f-owner">负责人</label>
+            <select id="f-owner">
+              ${["张明","李婷","王珊"].map((v) =>
+                `<option ${existing?.owner === v ? "selected" : ""}>${v}</option>`).join("")}
+            </select>
+          </div>`,
+        footer: `
+          <button type="button" class="btn btn-outline" id="cancelBtn">取消</button>
+          <button type="button" class="btn btn-primary" id="saveBtn">${isEdit ? "保存" : "创建"}</button>`,
+      });
+      document.getElementById("cancelBtn").onclick = closeDialog;
+      document.getElementById("saveBtn").onclick = () => {
+        const name = document.getElementById("f-name").value.trim();
+        if (!name) return toast("请填写客户名称");
+        const payload = {
+          name,
+          industry: document.getElementById("f-industry").value,
+          city: document.getElementById("f-city").value.trim() || "—",
+          stage: document.getElementById("f-stage").value,
+          value: Number(document.getElementById("f-value").value) || 0,
+          owner: document.getElementById("f-owner").value,
+          updated: "刚刚",
+        };
+        if (isEdit) {
+          Object.assign(existing, payload);
+          toast(`已更新「${name}」`);
+        } else {
+          const row = { id: uid(), ...payload };
+          state.customers.unshift(row);
+          state.selectedCustomerId = row.id;
+          toast(`已创建客户「${name}」`);
+        }
+        closeDialog();
+        render();
+      };
+    }
+
+    function renderCustomers() {
+      const q = state.query.trim().toLowerCase();
+      let rows = state.customers.filter((c) =>
+        `${c.name} ${c.industry} ${c.owner} ${c.city}`.toLowerCase().includes(q)
+      );
+      if (state.filter !== "all") rows = rows.filter((c) => c.stage === state.filter);
+      const selected = state.customers.find((c) => c.id === state.selectedCustomerId) || rows[0];
+      state.selectedCustomerId = selected?.id || null;
+
+      const signed = state.customers.filter((c) => c.stage === "签约").length;
+      const pipeline = state.customers.reduce((s, c) => s + c.value, 0);
+
+      document.getElementById("pageTitle").textContent = "客户";
+      document.getElementById("pageActions").innerHTML = `
+        <button type="button" class="btn btn-primary" id="createCustomer">${ICONS.plus} 新建客户</button>`;
+      document.getElementById("createCustomer").onclick = () => customerForm(null);
+
+      document.getElementById("pageRoot").innerHTML = `
+        <div class="metrics">
+          <div class="metric"><div class="label">客户总数</div><div class="value">${state.customers.length}</div><div class="hint">档案</div></div>
+          <div class="metric"><div class="label">已签约</div><div class="value">${signed}</div><div class="hint">客户</div></div>
+          <div class="metric"><div class="label">管道金额</div><div class="value" style="font-size:18px">${money(pipeline)}</div><div class="hint">预估</div></div>
+          <div class="metric"><div class="label">本周跟进</div><div class="value">${state.activities.length}</div><div class="hint">条</div></div>
+        </div>
+        <div class="split">
+          <section class="card">
+            <div class="card-head"><h2>客户列表</h2></div>
+            <div class="card-body">
+              <div class="toolbar">
+                <label class="search">${ICONS.search}<input id="q" placeholder="搜索客户、行业、负责人" value="${state.query}" /></label>
+                <div class="chips" id="filters">
+                  ${["all","线索","跟进","签约"].map((f) =>
+                    `<button type="button" class="chip" data-f="${f}" aria-pressed="${state.filter === f}">${f === "all" ? "全部" : f}</button>`
+                  ).join("")}
+                </div>
+              </div>
+              <div class="table-wrap">
+                ${rows.length ? `
+                <table>
+                  <thead><tr><th>客户</th><th>阶段</th><th>负责人</th><th>预估价值</th><th></th></tr></thead>
+                  <tbody>
+                    ${rows.map((c) => `
+                      <tr data-clickable data-id="${c.id}" style="${c.id === selected?.id ? "background:#fafafa" : ""}">
+                        <td>
+                          <div style="font-weight:600">${c.name}</div>
+                          <div class="mono">${c.industry} · ${c.city}</div>
+                        </td>
+                        <td>${badge(c.stage)}</td>
+                        <td>${c.owner}</td>
+                        <td class="mono">${money(c.value)}</td>
+                        <td>
+                          <div class="row-actions">
+                            <button type="button" class="btn-icon" data-edit="${c.id}" title="编辑">${ICONS.edit}</button>
+                            <button type="button" class="btn-icon" data-del="${c.id}" title="删除">${ICONS.trash}</button>
+                          </div>
+                        </td>
+                      </tr>`).join("")}
+                  </tbody>
+                </table>` : `<div class="empty">没有匹配的客户</div>`}
+              </div>
+            </div>
+          </section>
+          <aside class="card side-card">
+            <div class="card-head"><h2>客户详情</h2></div>
+            <div class="card-body" id="customerDetail"></div>
+          </aside>
+        </div>`;
+
+      document.getElementById("q").oninput = (e) => { state.query = e.target.value; renderCustomers(); };
+      document.querySelectorAll("#filters .chip").forEach((chip) => {
+        chip.onclick = () => { state.filter = chip.dataset.f; renderCustomers(); };
+      });
+      document.querySelectorAll("tr[data-id]").forEach((tr) => {
+        tr.onclick = (e) => {
+          if (e.target.closest("[data-edit],[data-del]")) return;
+          state.selectedCustomerId = tr.dataset.id;
+          renderCustomers();
+        };
+      });
+      document.querySelectorAll("[data-edit]").forEach((btn) => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          customerForm(state.customers.find((c) => c.id === btn.dataset.edit));
+        };
+      });
+      document.querySelectorAll("[data-del]").forEach((btn) => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const row = state.customers.find((c) => c.id === btn.dataset.del);
+          confirmDelete({
+            title: `删除客户「${row.name}」？`,
+            description: "相关联系人与商机仍会保留名称快照，但客户档案将被移除。",
+            onConfirm: () => {
+              state.customers = state.customers.filter((c) => c.id !== row.id);
+              if (state.selectedCustomerId === row.id) state.selectedCustomerId = null;
+              toast(`已删除「${row.name}」`);
+              render();
+            },
+          });
+        };
+      });
+
+      const detail = document.getElementById("customerDetail");
+      if (!selected) {
+        detail.innerHTML = `<div class="empty">选择左侧客户查看详情</div>`;
+        return;
+      }
+      const contacts = state.contacts.filter((p) => p.customerId === selected.id);
+      const deals = state.deals.filter((d) => d.customerId === selected.id);
+      const acts = state.activities.filter((a) => a.customerId === selected.id);
+      detail.innerHTML = `
+        <div style="margin-bottom:12px">
+          <div style="font-size:18px;font-weight:600">${selected.name}</div>
+          <div style="margin-top:6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            ${badge(selected.stage)}
+            <span class="mono">${selected.industry} · ${selected.city}</span>
+          </div>
+        </div>
+        <div style="display:grid;gap:8px;font-size:13px;margin-bottom:16px">
+          <div><span style="color:var(--muted)">负责人</span> · ${selected.owner}</div>
+          <div><span style="color:var(--muted)">预估价值</span> · ${money(selected.value)}</div>
+          <div><span style="color:var(--muted)">更新</span> · ${selected.updated}</div>
+        </div>
+        <div style="font-weight:600;margin-bottom:8px">联系人 · ${contacts.length}</div>
+        <div style="display:grid;gap:8px;margin-bottom:16px">
+          ${contacts.length ? contacts.map((p) => `
+            <div style="padding:10px 12px;border:1px solid var(--border-2);border-radius:var(--radius);background:#fafafa">
+              <div style="font-weight:500">${p.name} <span class="mono">· ${p.title}</span></div>
+              <div class="mono">${p.phone}</div>
+            </div>`).join("") : `<div class="mono">暂无联系人</div>`}
+        </div>
+        <div style="font-weight:600;margin-bottom:8px">商机 · ${deals.length}</div>
+        <div style="display:grid;gap:8px;margin-bottom:16px">
+          ${deals.length ? deals.map((d) => `
+            <div style="padding:10px 12px;border:1px solid var(--border-2);border-radius:var(--radius)">
+              <div style="display:flex;justify-content:space-between;gap:8px">
+                <strong>${d.name}</strong>
+                <span class="mono">${money(d.amount)}</span>
+              </div>
+              <div style="margin-top:6px">${badge(d.stage)}</div>
+            </div>`).join("") : `<div class="mono">暂无商机</div>`}
+        </div>
+        <div style="font-weight:600;margin-bottom:8px">最近跟进</div>
+        <ul class="timeline">
+          ${acts.slice(0, 4).map((a) => `
+            <li><strong>${a.type} · ${a.content}</strong><time>${a.at} · ${a.owner}</time></li>
+          `).join("") || "<li><strong>暂无跟进</strong></li>"}
+        </ul>
+        <div style="margin-top:16px;display:flex;gap:8px">
+          <button type="button" class="btn btn-outline btn-sm" id="editSelected">编辑</button>
+          <button type="button" class="btn btn-outline btn-sm" id="addFollow">写跟进</button>
+        </div>`;
+      document.getElementById("editSelected").onclick = () => customerForm(selected);
+      document.getElementById("addFollow").onclick = () => activityForm({ customerId: selected.id });
+    }
+
+    /* —— Contacts —— */
+    function contactForm(existing) {
+      openDialog({
+        title: existing ? "编辑联系人" : "新建联系人",
+        body: `
+          <div class="field"><label>姓名<span class="req">*</span></label><input id="f-name" value="${existing?.name || ""}" /></div>
+          <div class="field"><label>职务</label><input id="f-title" value="${existing?.title || ""}" /></div>
+          <div class="field"><label>所属客户</label>
+            <select id="f-customer">${state.customers.map((c) =>
+              `<option value="${c.id}" ${existing?.customerId === c.id ? "selected" : ""}>${c.name}</option>`).join("")}</select>
+          </div>
+          <div class="grid-2">
+            <div class="field"><label>手机</label><input id="f-phone" value="${existing?.phone || ""}" /></div>
+            <div class="field"><label>邮箱</label><input id="f-email" value="${existing?.email || ""}" /></div>
+          </div>`,
+        footer: `<button type="button" class="btn btn-outline" id="cancelBtn">取消</button>
+                 <button type="button" class="btn btn-primary" id="saveBtn">保存</button>`,
+      });
+      document.getElementById("cancelBtn").onclick = closeDialog;
+      document.getElementById("saveBtn").onclick = () => {
+        const name = document.getElementById("f-name").value.trim();
+        if (!name) return toast("请填写姓名");
+        const payload = {
+          name,
+          title: document.getElementById("f-title").value.trim() || "—",
+          customerId: document.getElementById("f-customer").value,
+          phone: document.getElementById("f-phone").value.trim() || "—",
+          email: document.getElementById("f-email").value.trim() || "—",
+        };
+        if (existing) Object.assign(existing, payload);
+        else state.contacts.unshift({ id: uid(), ...payload });
+        toast(existing ? "联系人已更新" : "联系人已创建");
+        closeDialog();
+        render();
+      };
+    }
+
+    function renderContacts() {
+      const q = state.query.trim().toLowerCase();
+      const rows = state.contacts.filter((p) =>
+        `${p.name} ${p.title} ${customerName(p.customerId)}`.toLowerCase().includes(q)
+      );
+      document.getElementById("pageTitle").textContent = "联系人";
+      document.getElementById("pageActions").innerHTML =
+        `<button type="button" class="btn btn-primary" id="create">${ICONS.plus} 新建联系人</button>`;
+      document.getElementById("create").onclick = () => contactForm(null);
+      document.getElementById("pageRoot").innerHTML = `
+        <section class="card">
+          <div class="card-head"><h2>联系人</h2></div>
+          <div class="card-body">
+            <div class="toolbar">
+              <label class="search">${ICONS.search}<input id="q" placeholder="搜索姓名、职务、客户" value="${state.query}" /></label>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>姓名</th><th>职务</th><th>客户</th><th>手机</th><th></th></tr></thead>
+                <tbody>
+                  ${rows.map((p) => `
+                    <tr>
+                      <td style="font-weight:600">${p.name}</td>
+                      <td>${p.title}</td>
+                      <td>${customerName(p.customerId)}</td>
+                      <td class="mono">${p.phone}</td>
+                      <td><div class="row-actions">
+                        <button type="button" class="btn-icon" data-edit="${p.id}">${ICONS.edit}</button>
+                        <button type="button" class="btn-icon" data-del="${p.id}">${ICONS.trash}</button>
+                      </div></td>
+                    </tr>`).join("") || `<tr><td colspan="5"><div class="empty">暂无联系人</div></td></tr>`}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>`;
+      document.getElementById("q").oninput = (e) => { state.query = e.target.value; renderContacts(); };
+      document.querySelectorAll("[data-edit]").forEach((b) => {
+        b.onclick = () => contactForm(state.contacts.find((p) => p.id === b.dataset.edit));
+      });
+      document.querySelectorAll("[data-del]").forEach((b) => {
+        b.onclick = () => {
+          const row = state.contacts.find((p) => p.id === b.dataset.del);
+          confirmDelete({
+            title: `删除联系人「${row.name}」？`,
+            description: "仅移除联系人记录。",
+            onConfirm: () => {
+              state.contacts = state.contacts.filter((p) => p.id !== row.id);
+              toast("已删除联系人");
+              render();
+            },
+          });
+        };
+      });
+    }
+
+    /* —— Deals —— */
+    function dealForm(existing) {
+      openDialog({
+        title: existing ? "编辑商机" : "新建商机",
+        body: `
+          <div class="field"><label>商机名称<span class="req">*</span></label><input id="f-name" value="${existing?.name || ""}" /></div>
+          <div class="field"><label>客户</label>
+            <select id="f-customer">${state.customers.map((c) =>
+              `<option value="${c.id}" ${existing?.customerId === c.id ? "selected" : ""}>${c.name}</option>`).join("")}</select>
+          </div>
+          <div class="grid-2">
+            <div class="field"><label>金额</label><input id="f-amount" type="number" min="0" value="${existing?.amount ?? 100000}" /></div>
+            <div class="field"><label>预计成交</label><input id="f-close" type="date" value="${existing?.close || "2026-12-31"}" /></div>
+          </div>
+          <div class="grid-2">
+            <div class="field"><label>阶段</label>
+              <select id="f-stage">${["需求调研","方案确认","商务谈判","赢单","输单"].map((s) =>
+                `<option ${existing?.stage === s ? "selected" : ""}>${s}</option>`).join("")}</select>
+            </div>
+            <div class="field"><label>负责人</label>
+              <select id="f-owner">${["张明","李婷","王珊"].map((s) =>
+                `<option ${existing?.owner === s ? "selected" : ""}>${s}</option>`).join("")}</select>
+            </div>
+          </div>`,
+        footer: `<button type="button" class="btn btn-outline" id="cancelBtn">取消</button>
+                 <button type="button" class="btn btn-primary" id="saveBtn">保存</button>`,
+      });
+      document.getElementById("cancelBtn").onclick = closeDialog;
+      document.getElementById("saveBtn").onclick = () => {
+        const name = document.getElementById("f-name").value.trim();
+        if (!name) return toast("请填写商机名称");
+        const payload = {
+          name,
+          customerId: document.getElementById("f-customer").value,
+          amount: Number(document.getElementById("f-amount").value) || 0,
+          close: document.getElementById("f-close").value,
+          stage: document.getElementById("f-stage").value,
+          owner: document.getElementById("f-owner").value,
+        };
+        if (existing) Object.assign(existing, payload);
+        else state.deals.unshift({ id: uid(), ...payload });
+        toast(existing ? "商机已更新" : "商机已创建");
+        closeDialog();
+        render();
+      };
+    }
+
+    function renderDeals() {
+      const q = state.query.trim().toLowerCase();
+      let rows = state.deals.filter((d) =>
+        `${d.name} ${customerName(d.customerId)} ${d.owner}`.toLowerCase().includes(q)
+      );
+      if (state.filter !== "all") rows = rows.filter((d) => d.stage === state.filter);
+      const openAmt = state.deals.filter((d) => d.stage !== "赢单" && d.stage !== "输单")
+        .reduce((s, d) => s + d.amount, 0);
+      document.getElementById("pageTitle").textContent = "商机";
+      document.getElementById("pageActions").innerHTML =
+        `<button type="button" class="btn btn-primary" id="create">${ICONS.plus} 新建商机</button>`;
+      document.getElementById("create").onclick = () => dealForm(null);
+      document.getElementById("pageRoot").innerHTML = `
+        <div class="metrics">
+          <div class="metric"><div class="label">商机数</div><div class="value">${state.deals.length}</div></div>
+          <div class="metric"><div class="label">在谈金额</div><div class="value" style="font-size:18px">${money(openAmt)}</div></div>
+          <div class="metric"><div class="label">赢单</div><div class="value">${state.deals.filter((d)=>d.stage==="赢单").length}</div></div>
+          <div class="metric"><div class="label">输单</div><div class="value">${state.deals.filter((d)=>d.stage==="输单").length}</div></div>
+        </div>
+        <section class="card">
+          <div class="card-head"><h2>商机管道</h2></div>
+          <div class="card-body">
+            <div class="toolbar">
+              <label class="search">${ICONS.search}<input id="q" value="${state.query}" placeholder="搜索商机" /></label>
+              <div class="chips" id="filters">
+                ${["all","需求调研","方案确认","商务谈判","赢单","输单"].map((f) =>
+                  `<button type="button" class="chip" data-f="${f}" aria-pressed="${state.filter===f}">${f==="all"?"全部":f}</button>`).join("")}
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>商机</th><th>客户</th><th>阶段</th><th>金额</th><th>预计成交</th><th></th></tr></thead>
+                <tbody>
+                  ${rows.map((d) => `
+                    <tr>
+                      <td style="font-weight:600">${d.name}<div class="mono">${d.owner}</div></td>
+                      <td>${customerName(d.customerId)}</td>
+                      <td>${badge(d.stage)}</td>
+                      <td class="mono">${money(d.amount)}</td>
+                      <td class="mono">${d.close}</td>
+                      <td><div class="row-actions">
+                        <button type="button" class="btn-icon" data-edit="${d.id}">${ICONS.edit}</button>
+                        <button type="button" class="btn-icon" data-del="${d.id}">${ICONS.trash}</button>
+                      </div></td>
+                    </tr>`).join("")}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>`;
+      document.getElementById("q").oninput = (e) => { state.query = e.target.value; renderDeals(); };
+      document.querySelectorAll("#filters .chip").forEach((c) => {
+        c.onclick = () => { state.filter = c.dataset.f; renderDeals(); };
+      });
+      document.querySelectorAll("[data-edit]").forEach((b) => {
+        b.onclick = () => dealForm(state.deals.find((d) => d.id === b.dataset.edit));
+      });
+      document.querySelectorAll("[data-del]").forEach((b) => {
+        b.onclick = () => {
+          const row = state.deals.find((d) => d.id === b.dataset.del);
+          confirmDelete({
+            title: `删除商机「${row.name}」？`,
+            description: "管道金额会同步减少。",
+            onConfirm: () => {
+              state.deals = state.deals.filter((d) => d.id !== row.id);
+              toast("已删除商机");
+              render();
+            },
+          });
+        };
+      });
+    }
+
+    /* —— Activities —— */
+    function activityForm(preset = {}) {
+      openDialog({
+        title: "写跟进",
+        description: "跟进会显示在客户详情时间线。",
+        body: `
+          <div class="field"><label>类型</label>
+            <select id="f-type">${["拜访","电话","邮件","演示"].map((t) =>
+              `<option ${preset.type===t?"selected":""}>${t}</option>`).join("")}</select>
+          </div>
+          <div class="field"><label>客户</label>
+            <select id="f-customer">${state.customers.map((c) =>
+              `<option value="${c.id}" ${preset.customerId===c.id?"selected":""}>${c.name}</option>`).join("")}</select>
+          </div>
+          <div class="field"><label>内容<span class="req">*</span></label>
+            <textarea id="f-content" placeholder="记录关键结论与下一步">${preset.content || ""}</textarea>
+          </div>`,
+        footer: `<button type="button" class="btn btn-outline" id="cancelBtn">取消</button>
+                 <button type="button" class="btn btn-primary" id="saveBtn">保存跟进</button>`,
+      });
+      document.getElementById("cancelBtn").onclick = closeDialog;
+      document.getElementById("saveBtn").onclick = () => {
+        const content = document.getElementById("f-content").value.trim();
+        if (!content) return toast("请填写跟进内容");
+        state.activities.unshift({
+          id: uid(),
+          type: document.getElementById("f-type").value,
+          customerId: document.getElementById("f-customer").value,
+          content,
+          at: "刚刚",
+          owner: "张明",
+        });
+        toast("跟进已保存");
+        closeDialog();
+        render();
+      };
+    }
+
+    function renderActivities() {
+      document.getElementById("pageTitle").textContent = "跟进";
+      document.getElementById("pageActions").innerHTML =
+        `<button type="button" class="btn btn-primary" id="create">${ICONS.plus} 写跟进</button>`;
+      document.getElementById("create").onclick = () => activityForm();
+      document.getElementById("pageRoot").innerHTML = `
+        <section class="card">
+          <div class="card-head"><h2>跟进动态</h2></div>
+          <div class="card-body">
+            <ul class="timeline" style="border:0;margin-left:0">
+              ${state.activities.map((a) => `
+                <li style="margin-left:8px">
+                  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:4px">
+                    ${badge(a.type)}
+                    <strong style="font-size:14px">${customerName(a.customerId)}</strong>
+                  </div>
+                  <div>${a.content}</div>
+                  <time>${a.at} · ${a.owner}</time>
+                </li>`).join("")}
+            </ul>
+          </div>
+        </section>`;
+    }
+
+    function renderSettings() {
+      document.getElementById("pageTitle").textContent = "偏好设置";
+      document.getElementById("pageActions").innerHTML = "";
+      document.getElementById("pageRoot").innerHTML = `
+        <section class="card" style="max-width:560px">
+          <div class="card-head"><h2>通知与语言</h2></div>
+          <div class="card-body" style="display:grid;gap:14px">
+            <label style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+              <span>商机阶段变更通知</span>
+              <input type="checkbox" id="s1" ${state.settings.notifyDeal ? "checked" : ""} />
+            </label>
+            <label style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+              <span>跟进提醒</span>
+              <input type="checkbox" id="s2" ${state.settings.notifyFollow ? "checked" : ""} />
+            </label>
+            <div class="field">
+              <label>界面语言</label>
+              <select id="s3">
+                <option value="zh-CN" ${state.settings.locale==="zh-CN"?"selected":""}>简体中文</option>
+                <option value="en" ${state.settings.locale==="en"?"selected":""}>English</option>
+              </select>
+            </div>
+            <div><button type="button" class="btn btn-primary" id="saveSettings">保存设置</button></div>
+          </div>
+        </section>`;
+      document.getElementById("saveSettings").onclick = () => {
+        state.settings.notifyDeal = document.getElementById("s1").checked;
+        state.settings.notifyFollow = document.getElementById("s2").checked;
+        state.settings.locale = document.getElementById("s3").value;
+        toast("设置已保存");
+      };
+    }
+
+    function render() {
+      renderNav();
+      if (state.page === "customers") renderCustomers();
+      else if (state.page === "contacts") renderContacts();
+      else if (state.page === "deals") renderDeals();
+      else if (state.page === "activities") renderActivities();
+      else renderSettings();
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && document.getElementById("overlay").classList.contains("open")) {
+        closeDialog();
+      }
+    });
+
+    render();
+  </script>
+</body>
+</html>

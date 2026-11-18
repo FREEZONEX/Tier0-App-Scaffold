@@ -142,7 +142,7 @@ export interface ReferenceSpec {
 }
 
 export interface FieldDef {
-  /** Field code from the dictionary (Drizzle property name). Custom fields use `${objectCode}${timestamp}`. */
+  /** Field code from the dictionary (stored document field name). Custom fields use `${objectCode}${timestamp}`. */
   code: string;
   name: string;
   type: FieldType;
@@ -279,6 +279,8 @@ export interface QueryRequest {
 export interface QueryResult<Row = Record<string, unknown>> {
   list: Row[];
   total: number;
+  /** `total` is a lower bound: counting stopped at its cap (shown as "10000+"). */
+  totalCapped?: boolean;
   page: { current: number; pageSize: number };
   groups?: GroupCount[];
 }

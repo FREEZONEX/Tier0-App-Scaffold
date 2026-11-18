@@ -3,10 +3,13 @@
 import { useState, type ReactNode } from "react";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { FOCUS_FILL } from "@/lib/interaction";
 import { Select } from "@/components/kit/ui/select";
 
 export interface PaginationProps {
   total: number;
+  /** `total` is a lower bound (a capped count): shown as 「共 N+ 条」. */
+  totalCapped?: boolean;
   /** 1-based page number. */
   current: number;
   pageSize: number;
@@ -37,6 +40,7 @@ function pageTokens(current: number, totalPages: number): PageToken[] {
 
 export function Pagination({
   total,
+  totalCapped = false,
   current,
   pageSize,
   onChange,
@@ -70,10 +74,14 @@ export function Pagination({
 
   const itemClass = (active: boolean) =>
     cn(
-      "inline-flex shrink-0 items-center justify-center rounded-md tabular-nums transition-colors duration-150",
-      small ? "h-6 min-w-6 px-1 text-sm" : "h-8 min-w-8 px-1.5 text-sm",
-      active ? "bg-brand-soft font-medium text-brand" : "text-foreground hover:bg-fill-hover",
-      disabled && "cursor-not-allowed text-text-placeholder hover:bg-transparent",
+      "inline-flex shrink-0 items-center justify-center rounded-[4px] tabular-nums transition-colors",
+      FOCUS_FILL,
+      small ? "h-7 min-w-7 px-1 text-xs" : "h-8 min-w-8 px-1.5 text-sm",
+      "pointer-coarse:h-11 pointer-coarse:min-w-11",
+      active
+        ? "bg-primary font-medium text-primary-foreground"
+        : "text-foreground hover:bg-muted",
+      disabled && "pointer-events-none opacity-50",
     );
 
   const rangeStart = total === 0 ? 0 : (page - 1) * pageSize + 1;
@@ -86,7 +94,7 @@ export function Pagination({
     >
       {showTotal ? (
         <span className="mr-2 whitespace-nowrap text-text-secondary">
-          {typeof showTotal === "function" ? showTotal(total, [rangeStart, rangeEnd]) : `共 ${total} 条`}
+          {typeof showTotal === "function" ? showTotal(total, [rangeStart, rangeEnd]) : `共 ${total}${totalCapped ? "+" : ""} 条`}
         </span>
       ) : null}
 
@@ -175,7 +183,7 @@ export function Pagination({
             disabled={disabled}
             value={jumpText}
             className={cn(
-              "rounded-md border border-border-strong bg-card text-center tabular-nums text-foreground outline-none transition-[border-color,box-shadow] hover:border-brand-hover focus:border-brand focus:shadow-[0_0_0_2px_rgb(115_178_0/0.15)]",
+              "rounded-[4px] border border-border-strong bg-card text-center tabular-nums text-foreground outline-none transition-[border-color,box-shadow] hover:border-border-strong focus:border-ring/40 focus:ring-2 focus:ring-ring/60",
               small ? "h-6 w-11 text-sm" : "h-8 w-12 text-sm",
             )}
             onChange={(event) => setJumpText(event.target.value.replace(/\D/g, ""))}

@@ -65,7 +65,9 @@ export function Tooltip({
       <span
         ref={anchorRef}
         aria-describedby={visible ? tooltipId : undefined}
-        className={cn("inline-flex max-w-full", anchorClassName)}
+        /* w-fit + self-start: hug the trigger; avoid flex parents stretching
+           the anchor to full row width (tooltip would center far from the cursor). */
+        className={cn("inline-flex w-fit max-w-full self-start", anchorClassName)}
         onMouseEnter={hover.onEnter}
         onMouseLeave={hover.onLeave}
         onFocus={hover.onEnter}
@@ -83,7 +85,7 @@ export function Tooltip({
         id={tooltipId}
         role="tooltip"
         className={cn(
-          "pointer-events-none max-w-[min(320px,calc(100vw-16px))] break-words rounded-md bg-[rgb(0_0_0/0.85)] px-2 py-1.5 text-xs leading-5 text-white shadow-popup",
+          "pointer-events-none max-w-[min(320px,calc(100vw-16px))] break-words rounded-[4px] bg-[rgb(5_11_20/0.92)] px-2.5 py-1.5 text-xs leading-5 text-white shadow-popup animate-[tier0-fade_120ms_ease-out]",
           className,
         )}
       >

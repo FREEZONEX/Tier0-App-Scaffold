@@ -126,6 +126,7 @@ function parseUpdateCall(expr) {
  *
  * 两种合法形态：显式渲染 `<Outlet />`，或整个路由不声明 `component`
  * （TanStack 在无 component 时自动使用 Outlet）。
+ * 同时记录是否声明 `server`：只有 server handlers、没有 component 的是纯接口路由。
  */
 export function inspectRouteModule(source) {
   const sf = ts.createSourceFile(
@@ -138,6 +139,7 @@ export function inspectRouteModule(source) {
 
   let hasOutlet = false;
   let hasComponent = false;
+  let hasServer = false;
 
   const visit = (node) => {
     if (ts.isJsxSelfClosingElement(node) || ts.isJsxOpeningElement(node)) {
@@ -154,6 +156,7 @@ export function inspectRouteModule(source) {
         for (const prop of arg.properties) {
           const name = prop.name && ts.isIdentifier(prop.name) ? prop.name.text : null;
           if (name === "component") hasComponent = true;
+          if (name === "server") hasServer = true;
         }
       }
     }
@@ -161,7 +164,7 @@ export function inspectRouteModule(source) {
   };
   visit(sf);
 
-  return { hasOutlet, hasComponent };
+  return { hasOutlet, hasComponent, hasServer };
 }
 
 function isRouteFactory(expr) {
@@ -181,6 +184,8 @@ function isRouteFactory(expr) {
  * 规则 B：父路由未声明 component（纯布局）且拥有子路由时，必须存在 index 子路由，
  *         否则父路径本身只渲染一个空出口，列表页无处安放。
  *         父路由自带 component（内容 + Outlet 的主从布局）不受此规则约束。
+ *         纯接口子树（父路由只有 server handlers，动态子路由也都没有 component）
+ *         不渲染页面，也不受此规则约束；子路由里有页面时父路径仍会渲染空出口，照常报错。
  */
 export function analyzeRouteNesting({ routes, readModule }) {
   const childrenOf = new Map();
@@ -198,9 +203,15 @@ export function analyzeRouteNesting({ routes, readModule }) {
 
     const source = readModule(parent.module);
     if (source === null) continue; // 解析不到源文件时不臆断
-    const { hasOutlet, hasComponent } = inspectRouteModule(source);
+    const { hasOutlet, hasComponent, hasServer } = inspectRouteModule(source);
 
     const dynamicChildren = children.filter(isDynamicRoute);
+    const isApiOnlySubtree =
+      hasServer &&
+      dynamicChildren.every((child) => {
+        const childSource = child.module ? readModule(child.module) : null;
+        return childSource !== null && !inspectRouteModule(childSource).hasComponent;
+      });
 
     if (hasComponent && !hasOutlet) {
       violations.push({
@@ -217,7 +228,7 @@ export function analyzeRouteNesting({ routes, readModule }) {
       continue;
     }
 
-    if (!hasComponent && dynamicChildren.length > 0) {
+    if (!hasComponent && !isApiOnlySubtree && dynamicChildren.length > 0) {
       const hasIndex = children.some(isIndexRoute);
       if (!hasIndex) {
         violations.push({

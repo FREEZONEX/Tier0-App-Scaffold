@@ -220,7 +220,7 @@ function EditorForm({
       <div className="flex min-h-0 min-w-0 flex-1 flex-col sm:flex-row">
         <nav
           aria-label="视图设置"
-          className="scrollbar-none flex shrink-0 overflow-x-auto border-b border-border-secondary bg-[#fafbfc] sm:w-36 sm:flex-col sm:overflow-visible sm:border-r sm:border-b-0 sm:py-2"
+          className="scrollbar-none flex shrink-0 overflow-x-auto border-b border-border-secondary bg-muted sm:w-36 sm:flex-col sm:overflow-visible sm:border-r sm:border-b-0 sm:py-2"
         >
           {TABS.map((item) => (
             <button
@@ -228,10 +228,11 @@ function EditorForm({
               key={item.key}
               aria-current={tab === item.key ? "page" : undefined}
               className={cn(
-                "relative flex shrink-0 items-center gap-2 px-4 py-3 text-sm transition-colors [&_svg]:size-4",
+                "relative flex shrink-0 items-center gap-2 px-4 py-3 text-sm outline-none transition-colors focus-visible:bg-fill-hover [&_svg]:size-4",
                 tab === item.key
-                  ? "bg-brand-soft font-medium text-brand sm:after:absolute sm:after:inset-y-2 sm:after:right-0 sm:after:w-0.5 sm:after:bg-brand"
-                  : "text-foreground hover:text-brand",
+                  ? // Desktop: indicator on the right edge; phone horizontal tabs keep a bottom rule.
+                    "bg-card font-medium text-foreground after:absolute after:bg-foreground after:inset-x-4 after:bottom-0 after:h-0.5 sm:after:inset-x-auto sm:after:inset-y-2 sm:after:right-0 sm:after:h-auto sm:after:w-0.5"
+                  : "text-foreground hover:bg-fill-hover",
               )}
               onClick={() => setTab(item.key)}
             >
@@ -278,8 +279,8 @@ function EditorForm({
                         aria-checked={draft.icon === icon}
                         aria-label={`图标 ${icon}`}
                         className={cn(
-                          "flex size-8 items-center justify-center rounded-md border transition-colors",
-                          draft.icon === icon ? "border-brand bg-brand-soft" : "border-transparent hover:bg-fill-hover",
+                          "flex size-8 items-center justify-center rounded-[4px] border transition-colors",
+                          draft.icon === icon ? "border-transparent bg-muted" : "border-transparent hover:bg-fill-hover",
                         )}
                         onClick={() => patch({ icon })}
                       >
@@ -305,6 +306,7 @@ function EditorForm({
                     aria-label="行高"
                     optionType="button"
                     buttonStyle="solid"
+                    selectedTone="neutral"
                     value={draft.rowHeight}
                     options={ROW_HEIGHT_OPTIONS.map((option) => ({ value: option.value, label: option.label }))}
                     onChange={(next) => patch({ rowHeight: next as RowHeight })}
@@ -351,7 +353,7 @@ function EditorForm({
                 {options.columnCandidates.map((field) => {
                   const on = draft.visibleFields === null || draft.visibleFields.includes(field.code);
                   return (
-                    <li key={field.code} className="flex min-w-0 items-center gap-2 rounded-md px-1 py-1.5 hover:bg-fill-hover">
+                    <li key={field.code} className="flex min-w-0 items-center gap-2 rounded-[4px] px-1 py-1.5 hover:bg-fill-hover">
                       <Switch size="sm" aria-label={`${field.name}可见`} checked={on} onChange={(next) => setPermission(field.code, next)} />
                       <FieldTypeIcon kind={resolveFieldIconKind(field)} />
                       <span className="truncate text-sm">{field.name}</span>
@@ -426,11 +428,11 @@ function EditorForm({
           ) : null}
         </div>
       </div>
-      <div className="flex shrink-0 justify-end gap-2 border-t border-border-secondary px-4 py-3 sm:px-6">
+      <div className="flex shrink-0 justify-end gap-2 px-4 py-3 sm:px-6">
         <Button variant="outline" onClick={onCancel} disabled={saving}>
           取消
         </Button>
-        <Button variant="primary" loading={saving} onClick={() => void save()}>
+        <Button variant="outline" loading={saving} onClick={() => void save()}>
           确定
         </Button>
       </div>
@@ -438,7 +440,7 @@ function EditorForm({
   );
 }
 
-function ViewEditorBody({ objectCode, viewCode, onCancel, onSaved }: { objectCode: string; viewCode: string | null; onCancel: () => void; onSaved: ViewEditorDrawerProps["onSaved"] }) {
+export function ViewEditorContent({ objectCode, viewCode, onCancel, onSaved }: { objectCode: string; viewCode: string | null; onCancel: () => void; onSaved: ViewEditorDrawerProps["onSaved"] }) {
   const api = useKitApi();
   const options = useRequest(`meta-view-options:${objectCode}`, (signal) =>
     api.getJson<ViewEditorOptions>(apiUrl(`/api/meta/view-options/${objectCode}`), { signal }),
@@ -482,7 +484,7 @@ export function ViewEditorDrawer({ open, onOpenChange, objectCode, viewCode, onS
       contentClassName="flex flex-col p-0 sm:p-0"
     >
       {open ? (
-        <ViewEditorBody
+        <ViewEditorContent
           key={viewCode ?? "__create"}
           objectCode={objectCode}
           viewCode={viewCode}

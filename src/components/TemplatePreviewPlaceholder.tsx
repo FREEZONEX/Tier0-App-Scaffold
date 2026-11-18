@@ -18,7 +18,7 @@ export function TemplatePreviewPlaceholder() {
       className="template-preview-placeholder template-preview-cover pointer-events-none fixed inset-0 z-50 hidden min-h-svh items-center justify-center overflow-hidden p-6 text-foreground sm:p-12"
       aria-label="Start building to see your Tier0 app here."
     >
-      <div className="template-preview-cover__window flex h-[min(76vh,640px)] w-full max-w-[880px] flex-col overflow-hidden rounded-xl bg-background">
+      <div className="template-preview-cover__window flex h-[min(76vh,640px)] w-full max-w-[880px] flex-col overflow-hidden rounded-[4px] bg-background">
         {/* Title bar */}
         <div className="template-preview-cover__bar flex h-10 shrink-0 items-center gap-2 border-b border-foreground/5 px-4">
           <span className="size-3 rounded-full bg-[#ff5f57]" />
@@ -191,11 +191,11 @@ function Scene() {
       {/* Right: command palette with dropdown */}
       <Card className="left-[62%] top-[48%] w-[32%] rotate-[6deg]">
         <div className="p-2.5">
-          <div className="flex h-7 items-center gap-2 rounded-md border border-[var(--tier0-border)] bg-[var(--tier0-bg-secondary)] px-2">
+          <div className="flex h-7 items-center gap-2 rounded-[4px] border border-[var(--tier0-border)] bg-[var(--tier0-bg-secondary)] px-2">
             <span className="size-2.5 rounded-full border border-[var(--tier0-text-tertiary)]" />
             <Line w="60%" strong tight />
           </div>
-          <div className="mt-2 inline-flex h-5 items-center gap-1 rounded-sm border border-[var(--tier0-border)] px-1.5">
+          <div className="mt-2 inline-flex h-5 items-center gap-1 rounded-[4px] border border-[var(--tier0-border)] px-1.5">
             <span className="text-[9px] leading-none text-[var(--tier0-text-tertiary)]">+</span>
             <Line w={44} tight />
           </div>
@@ -214,7 +214,7 @@ function Scene() {
       <Card className="left-[74%] top-[10%] w-[22%] rotate-[3deg]">
         <div className="p-3">
           <Line w="50%" />
-          <div className="mt-1.5 h-4 w-[45%] rounded-sm bg-[var(--tier0-text-color)]/12" />
+          <div className="mt-1.5 h-4 w-[45%] rounded-[4px] bg-[var(--tier0-text-color)]/12" />
           <Spark />
         </div>
       </Card>
@@ -226,7 +226,7 @@ function Card({ className, tall, children }: { className: string; tall?: boolean
   return (
     <div
       className={
-        "template-preview-scene__card absolute overflow-hidden rounded-lg border border-[var(--tier0-border)] bg-white " +
+        "template-preview-scene__card absolute overflow-hidden rounded-[4px] border border-[var(--tier0-border)] bg-white " +
         (tall ? "aspect-[16/10] " : "") +
         className
       }
@@ -261,9 +261,9 @@ function Chip({ w, accent }: { w: number; accent?: boolean }) {
   return (
     <span
       className={
-        "h-4 rounded-sm border " +
+        "h-4 rounded-[4px] border " +
         (accent
-          ? "border-[var(--tier0-highlight-deep)]/40 bg-[var(--tier0-highlight-bg-accent)]"
+          ? "border-transparent bg-[var(--tier0-row-selected)]"
           : "border-[var(--tier0-border-secondary)] bg-[var(--tier0-bg-tertiary)]")
       }
       style={{ width: w }}
@@ -275,14 +275,14 @@ function Field({ half }: { half?: boolean }) {
   return (
     <div className={"mb-2 " + (half ? "flex-1" : "")}>
       <Line w="40%" tight />
-      <div className="mt-1 h-6 rounded-md border border-[var(--tier0-input-border)]/60 bg-[var(--tier0-input-bg)]" />
+      <div className="mt-1 h-6 rounded-[4px] border border-[var(--tier0-input-border)]/60 bg-[var(--tier0-input-bg)]" />
     </div>
   );
 }
 
 function Table() {
   return (
-    <div className="mt-1 overflow-hidden rounded-md border border-[var(--tier0-border-secondary)]">
+    <div className="mt-1 overflow-hidden rounded-[4px] border border-[var(--tier0-border-secondary)]">
       <div className="flex gap-3 border-b border-[var(--tier0-border-secondary)] bg-[var(--tier0-bg-tertiary)] px-2 py-1.5">
         <Line w="18%" strong tight />
         <Line w="26%" strong tight />
@@ -293,7 +293,7 @@ function Table() {
         <div key={i} className="flex items-center gap-3 border-b border-[var(--tier0-border-secondary)] px-2 py-1.5 last:border-b-0">
           <Line w="18%" tight />
           <Line w="26%" tight />
-          <span className={"h-3.5 w-[14%] rounded-full " + (i % 2 ? "bg-[var(--tier0-highlight-bg-accent)]" : "bg-[var(--tier0-bg-accent)]")} />
+          <span className={"h-3.5 w-[14%] rounded-full " + (i % 2 ? "bg-[var(--tier0-row-selected)]" : "bg-[var(--tier0-bg-accent)]")} />
           <Line w="20%" tight />
         </div>
       ))}
@@ -304,7 +304,7 @@ function Table() {
 function Row({ accent }: { accent?: boolean }) {
   return (
     <div className="flex items-center gap-2 px-1 py-1">
-      <span className={"size-2.5 rounded-sm border " + (accent ? "border-[var(--tier0-highlight-deep)]/60" : "border-[var(--tier0-text-tertiary)]/60")} />
+      <span className={"size-2.5 rounded-[4px] border " + (accent ? "border-[var(--tier0-highlight-deep)]/60" : "border-[var(--tier0-text-tertiary)]/60")} />
       <Line w={accent ? 64 : 56} tight />
     </div>
   );
@@ -326,8 +326,8 @@ function Spark() {
       />
       <path
         d="M0 22 C12 20, 18 12, 28 14 S44 24, 54 16 S70 4, 82 8 S94 14, 100 6 V28 H0 Z"
-        fill="var(--tier0-highlight-bg-accent)"
-        opacity="0.5"
+        fill="var(--tier0-row-selected)"
+        opacity="0.7"
       />
     </svg>
   );

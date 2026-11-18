@@ -1,10 +1,26 @@
+import { TaskWorkspace } from './scenarios/task-workspace';
+import { AdvancedFilterDemo, KeywordSearchDemo } from './scenarios/list-search-demos';
 import { ViewEditorExample } from './scenarios/view-editor';
 import { AnchorNavigationExample, DropdownLayoutExample } from './scenarios/layout-controls';
+import {
+  SceneEmptyContrast,
+  SceneOpsMonitor,
+} from './scenarios/business-scenes';
+import {
+  SceneAgentSpend,
+  SceneAuditTimeline,
+  SceneWorkflowHub,
+} from './scenarios/template-scenes';
+import { SceneShell } from './scenarios/scene-shell';
 import { SESSION_EXPIRED_EVENT } from '@/lib/component-kit/api-client';
 import { ComponentKitProvider } from '@/components/kit/provider';
 import { adapter } from './fixtures';
 import {createRootRoute,createRouter,createMemoryHistory,RouterProvider} from '@tanstack/react-router';import {emptyDraft} from '@/components/editors/custom-fields/field-type-meta';
-import React,{useState,useRef}from'react';import{createRoot}from'react-dom/client';import{Plus,Settings,Search,Download}from'lucide-react';import{registry}from'./registry';import{Sample}from'./samples';import{options,fields,rows,sections,views,org,images}from'./fixtures';import{columnStatesFrom}from'@/lib/component-kit/list-columns';import{Button}from'@/components/ui/button';import{Toaster}from'@/components/toaster';import'./preview.css';
+import React,{useState,useRef}from'react';import{createRoot}from'react-dom/client';import{Plus,Settings,Search,Download,PenLine,Trash2}from'lucide-react';import{registry}from'./registry';import{Sample}from'./samples';import{options,fields,rows,sections,views,org,images}from'./fixtures';import{columnStatesFrom}from'@/lib/component-kit/list-columns';import{Button}from'@/components/ui/button';import{Toaster}from'@/components/toaster';import'./preview.css';
+(() => {
+  const theme = new URLSearchParams(location.search).get('theme');
+  document.documentElement.classList.toggle('dark', theme === 'dark');
+})();
 const sample=new URLSearchParams(location.search).get('sample')||'Input';const variants=new Set(["Shell", "ImpactPreviewDialog", "RecommendationAction", "ClientOnly", "AsyncView", "DataTable", "TableViewport", "TableCellText", "TableStatusCell", "RequiredMark", "FieldLabel", "FileUpload", "FieldGroup", "FormGrid", "LineItemSection", "RecordSelect", "MonitorLayout", "ReviewLayout", "StationLayout", "ConfirmDialog", "Dialog", "DialogActions", "Drawer", "FormDialog", "OverlayPortal", "OverlayHeader", "OverlayFooter", "OverlayActionButton", "Toaster", "Button", "Card", "EmptyState", "StatusFilterChips", "PageHeader", "RiskBanner", "StatCard", "StatusBadge"]);
 class Boundary extends React.Component<any,any>{state={e:null};static getDerivedStateFromError(e:any){return{e}}componentDidCatch(e:any){(window as any).__demoError=String(e);parent.postMessage({type:'sample-error',name:sample,error:String(e)},'*')}render(){return this.state.e?<div className="demo-error">此样例仍需适配，请重置样例重试。<br/>{String(this.state.e)}</div>:this.props.children}}
 function SegmentedDemo(){
@@ -26,19 +42,19 @@ function FormDemo(){
    {saved&&<p role="status">示例已保存（当前预览内）。</p>}
  </form>;
 }
-function Demo({name}:{name:string}){const [v,S]=useState<any>('a'),[value,V]=useState<any>(rows[0]),[list,L]=useState<any[]>(rows),[open,O]=useState(true),[checked,C]=useState(true),[many,M]=useState<any[]>(['a']),[states,CS]=useState<any[]>(columnStatesFrom(fields)),[filters,F]=useState<any[]>([{field:'name',operator:'LIKE',value:'支架'}]),[sorts,SS]=useState<any[]>([{field:'code',direction:'ASC'}]),[msg,MSG]=useState(''),[wall,W]=useState({year:2026,month:9,day:18,hour:9,minute:30,second:0});const ref=useRef<HTMLDivElement>(null),floatRef=useRef<HTMLDivElement>(null);const hit=()=>MSG('已操作 · 仅演示');const done=async()=>{hit();};const Comp=registry[name];const form=<registry.MetaForm sections={sections} value={value} onChange={V}/>;const common:any={open,onOpenChange:O,onClose:()=>O(false),onCancel:()=>O(false),onSubmit:done,onSave:done,onSaved:hit,onCreated:hit,onConfirm:hit,onChange:S,onClick:hit,title:'示例：物料与生产',objectCode:'product',objectName:'物料',mode:'create',value:v,items:[],rows:list,fields,record:rows[0],row:rows[0],canManage:true,disabled:false};const field=(i=0)=><registry.FieldControl field={fields[i]} value={value[fields[i].code]} onChange={(x:any)=>V({...value,[fields[i].code]:x})}/>;let body:any;
+function Demo({name}:{name:string}){const [v,S]=useState<any>('a'),[value,V]=useState<any>(rows[0]),[list,L]=useState<any[]>(rows),[open,O]=useState(true),[checked,C]=useState(true),[many,M]=useState<any[]>(['a']),[states,CS]=useState<any[]>(columnStatesFrom(fields)),[filters,F]=useState<any[]>([{field:'name',operator:'LIKE',value:'支架'}]),[sorts,SS]=useState<any[]>([{field:'code',direction:'asc'}]),[msg,MSG]=useState(''),[wall,W]=useState({year:2026,month:9,day:18,hour:9,minute:30,second:0});const ref=useRef<HTMLDivElement>(null),floatRef=useRef<HTMLDivElement>(null);const hit=()=>MSG('已操作 · 仅演示');const done=async()=>{hit();};const Comp=registry[name];const form=<registry.MetaForm sections={sections} value={value} onChange={V}/>;const common:any={open,onOpenChange:O,onClose:()=>O(false),onCancel:()=>O(false),onSubmit:done,onSave:done,onSaved:hit,onCreated:hit,onConfirm:hit,onChange:S,onClick:hit,title:'示例：物料与生产',objectCode:'product',objectName:'物料',mode:'create',value:v,items:[],rows:list,fields,record:rows[0],row:rows[0],canManage:true,disabled:false};const field=(i=0)=><registry.FieldControl field={fields[i]} value={value[fields[i].code]} onChange={(x:any)=>V({...value,[fields[i].code]:x})}/>;let body:any;
 if(variants.has(name))return <Sample name={name}/>;
 switch(name){
-case'Input':body=<><Comp placeholder="请输入物料名称" allowClear prefix={<Search size={16}/>}/><Comp defaultValue="MAT-1001" status="error"/><Comp value="禁用状态" disabled/></>;break;
+case'Input':body=<><Comp aria-label="物料名称" placeholder="请输入物料名称" allowClear prefix={<Search size={16}/>}/><Comp aria-label="物料编码" defaultValue="MAT-1001" status="error"/><Comp aria-label="备注" value="禁用状态" disabled/></>;break;
 case'TextArea':body=<Comp placeholder="填写生产备注" maxLength={200} showCount autoSize/>;break;
 case'NumberInput':body=<><Comp defaultValue={1250.5} thousandSeparator precision={2} suffix="元"/><Comp defaultValue={10} min={0} max={100} step={5}/></>;break;
 case'NumberRangeInput':body=<Comp defaultValue={[10,100]}/>;break;
-case'Select':body=<><Comp options={options} defaultValue="a" allowClear showSearch/><Comp multiple options={options} defaultValue={['a','b']}/></>;break;
+case'Select':body=<><Comp aria-label="生产车间" options={options} defaultValue="a" allowClear showSearch/><Comp aria-label="协作车间" multiple options={options} defaultValue={['a','b']}/></>;break;
 case'Checkbox':body=<><Comp checked={checked} onChange={C}>启用质量检查</Comp><Comp indeterminate>部分选中</Comp><Comp disabled checked>禁用</Comp></>;break;
 case'CheckboxIndicator':body=<div className="demo-row"><Comp checked/><Comp indeterminate/><Comp checked={false}/></div>;break;
 case'Segmented':body=<SegmentedDemo/>;break;
 case'CheckboxGroup':case'RadioGroup':body=<Comp options={options} defaultValue={name==='CheckboxGroup'?['a']:'a'}/>;break;
-case'Switch':body=<div className="demo-row"><Comp checked={checked} onChange={C} checkedChildren="开" unCheckedChildren="关"/><Comp disabled/><Comp loading/></div>;break;
+case'Switch':body=<div className="demo-row"><Comp aria-label="自动报工" checked={checked} onChange={C} checkedChildren="开" unCheckedChildren="关"/><Comp aria-label="夜班提醒" disabled/><Comp aria-label="同步设备" loading/></div>;break;
 case'DatePicker':body=<><Comp defaultValue="2026-09-18"/><Comp precision="DATETIME_SECOND" defaultValue="2026-09-18 09:30:00"/></>;break;
 case'DateRangePicker':body=<Comp defaultValue={['2026-09-18','2026-09-25']}/>;break;
 case'CalendarPanel':body=<Comp viewYear={wall.year} viewMonth={wall.month} onViewChange={(year:number,month:number)=>W({...wall,year,month})} today={wall} selected={wall} onPick={W}/>;break;
@@ -62,7 +78,7 @@ case'ProgressRing':body=<div className="demo-row"><Comp percent={68}/><Comp perc
 case'Popover':body=<Comp content={<div className="p-4">查看、编辑或停用当前物料。<Button onClick={hit}>编辑</Button></div>}><Button>点击打开气泡</Button></Comp>;break;
 case'DropdownMenu':body=<DropdownLayoutExample/>;break;
 case'Tooltip':body=<Comp title="保存后对所有新记录生效"><Button>悬停查看说明</Button></Comp>;break;
-case'FloatingLayer':body=<><Button onClick={()=>O(!open)}>开关浮层</Button><Comp open={open} layerId="demo-layer" floatingRef={floatRef} placement="bottom-start" style={{position:'absolute',top:90,left:28}}><div className="rounded-md border bg-white p-4 shadow-lg">浮层内容</div></Comp></>;break;
+case'FloatingLayer':body=<><Button onClick={()=>O(!open)}>开关浮层</Button><Comp open={open} layerId="demo-layer" floatingRef={floatRef} placement="bottom-start" style={{position:'absolute',top:90,left:28}}><div className="rounded-md border border-border bg-card p-4 shadow-lg">浮层内容</div></Comp></>;break;
 case'Tabs':body=<Comp items={[{key:'a',label:'基本信息',children:'物料 MAT-1001 · 精密铝合金支架'},{key:'b',label:'生产记录',children:'本月完成 120 件'},{key:'c',label:'操作日志',children:'张明创建了当前记录'}]}/>;break;
 case'CapsuleGroup':body=<Comp items={[{key:'a',label:'全部',count:32},{key:'b',label:'执行中',count:12},{key:'c',label:'已完成',count:20}]}/>;break;
 case'AnchorTabs':body=<AnchorNavigationExample/>;break;
@@ -92,8 +108,8 @@ case'ViewScopeSelect':body=<Comp value={typeof v==='object'?v:{all:true}} onChan
 case'ViewListDrawer':body=<Comp {...common} activeCode="all" onCreate={hit} onEdit={hit} onCopy={hit} onDelete={hit} onChanged={hit}/>;break;
 case'ViewEditorDrawer':body=<ViewEditorExample/>;break;
 case'FormDrawer':case'FullscreenModal':body=<><Button onClick={()=>O(true)}>打开表单</Button><Comp {...common} anchors={[{key:'base',label:'基本信息'}]} footer={<Button onClick={done}>保存演示</Button>}>{form}</Comp></>;break;
-case'MetaListPage':body=<Comp objectCode="product" title="物料档案" onCreate={hit} onOpenRecord={hit} importable exportable rowActions={()=>[{key:'edit',label:'编辑',onClick:hit}]} />;break;
-case'ReferenceInput':case'PersonInput':case'ReferenceSelect':body=<Comp {...common} value={typeof v==='object'?v:{id:'demo-1',name:'精密铝合金支架',code:'MAT-1001'}}/>;break;
+case'MetaListPage':body=<Comp objectCode="product" title="物料档案" onCreate={hit} onOpenRecord={hit} importable exportable topTabs={[{key:'all',label:'全部',count:3},{key:'mine',label:'我负责的',count:2,scope:'MINE'},{key:'cancelled',label:'已取消',count:1,scope:'CANCELLED'}]} rowActions={()=>[{key:'edit',label:'编辑',icon:<PenLine/>,onClick:hit},{key:'delete',label:'删除',icon:<Trash2/>,danger:true,onClick:hit}]} />;break;
+case'ReferenceInput':case'PersonInput':case'ReferenceSelect':body=<Comp {...common} aria-label={name==='PersonInput'?'负责人':'关联物料'} value={typeof v==='object'?v:{id:'demo-1',name:'精密铝合金支架',code:'MAT-1001'}}/>;break;
 case'ReferencePicker':case'PersonPicker':body=<Comp {...common} value={null} multiple/>;break;
 case'ImportDialog':body=<Comp {...common}/>;break;
 case'ExportDialog':body=<Comp {...common} request={{page:{current:1,pageSize:10}}} fieldCodes={fields.map(f=>f.code)} total={126} selectedIds={['demo-1']}/>;break;
@@ -102,10 +118,19 @@ case'PrintDialog':body=<Comp {...common} ids={['demo-1']}/>;break;
 case'MobileCard':body=<Comp config={{titleFields:['code','name'],indicatorField:'qty',displayFields:['status'],components:[]}} fields={fields} record={rows[0]} actions={<Button onClick={hit}>查看详情</Button>}/>;break;
 case'MobileCardConfigDialog':body=<Comp {...common} cardKey="report"/>;break;
 case'SessionExpiredDialog':body=<><Button onClick={()=>window.dispatchEvent(new CustomEvent(SESSION_EXPIRED_EVENT))}>显示会话过期提示</Button><Comp/></>;break;
-case'PageContainer':case'PageCard':case'ResponsivePage':case'WorkbenchLayout':case'PageToolbar':body=<Comp title="物料档案"><Button>新增物料</Button>{form}</Comp>;break;
+case'WorkbenchLayout':body=<Comp header={<registry.PageHeader title="物料工作台" actions={<Button>新增物料</Button>}/>} metrics={<><registry.StatCard label="在库物料" value={1284} unit="项"/><registry.StatCard label="待检批次" value={12} unit="批" tone="info"/><registry.StatCard label="临期" value={5} unit="批" tone="paused"/><registry.StatCard label="冻结" value={2} unit="批" tone="error"/></>} aside={<registry.Card title="需要关注"><p className="caption">2 个批次临近有效期</p></registry.Card>}><registry.Card title="物料列表">{form}</registry.Card></Comp>;break;
+case'PageContainer':case'PageCard':case'ResponsivePage':case'PageToolbar':body=<Comp title="物料档案"><Button>新增物料</Button>{form}</Comp>;break;
 case'PageHeaderLink':body=<Comp to="/" onClick={(e:any)=>{e.preventDefault();hit()}}>返回物料档案</Comp>;break;
 
 case'RouteError':body=<Comp error={new Error('示例加载错误')} reset={hit}/>;break;
+case'KeywordSearch':body=<KeywordSearchDemo/>;break;
+case'AdvancedFilter':body=<AdvancedFilterDemo/>;break;
+case'SceneTaskOps':body=<SceneShell active="SceneTaskOps"><TaskWorkspace/></SceneShell>;break;
+case'SceneOpsMonitor':body=<SceneShell active="SceneOpsMonitor"><SceneOpsMonitor/></SceneShell>;break;
+case'SceneEmptyContrast':body=<SceneShell active="SceneEmptyContrast"><SceneEmptyContrast/></SceneShell>;break;
+case'SceneWorkflowHub':body=<SceneShell active="SceneWorkflowHub"><SceneWorkflowHub/></SceneShell>;break;
+case'SceneAuditTimeline':body=<SceneShell active="SceneAuditTimeline"><SceneAuditTimeline/></SceneShell>;break;
+case'SceneAgentSpend':body=<SceneShell active="SceneAgentSpend"><SceneAgentSpend/></SceneShell>;break;
 default:body=<GenericDemo name={name} common={common} value={value} V={V} list={list} L={L} hit={hit}/>;
 }
 return <><div className="sample-body"><div className="demo-stack">{body}</div>{msg&&<p className="demo-status">{msg}</p>}</div><Toaster/></>;
@@ -131,7 +156,7 @@ case'VariablePicker':p.groups=[{key:'fields',label:'对象字段',variables:[{la
 case'OptionListEditor':p.type='SINGLE_SELECT';p.options=selected.length?selected:[{key:'1',value:'1',label:'普通',color:'#050b14',isDefault:true},{key:'2',value:'2',label:'加急',color:'#b91c1c'}];break;
 case'CustomFieldTable':p.objectLabel='物料';p.limit=80;p.fields=[{objectCode:'product',fieldCode:'custom1',name:'检验等级',type:'TEXT',widget:{required:true},sortOrder:0,createdByName:'张明',createdAt:'2026-09-18T09:00:00Z'}];break;
 
-case'ReferenceCascader':p.nodes=[{code:'product',name:'物料',label:'物料',children:[{code:'name',name:'物料名称',label:'物料名称',children:[]}]}];break;
+case'ReferenceCascader':p.nodes=[{value:'product',label:'物料',type:'SINGLE_REFERENCE',objectCode:'product',children:[{value:'name',label:'物料名称',type:'TEXT',objectCode:'product',children:[]}]}];break;
 case'FieldOrderPicker':p.candidates=fields.map(f=>({code:f.code,name:f.name}));p.value=selected;p.label='选择打印字段';break;
 case'PrintTemplatePreview':p.name='标准物料卡';p.layout='CARD';p.showQrCode=true;p.headerFields=fields.slice(0,2).map(f=>({code:f.code,name:f.name}));p.detailFields=fields.map(f=>({code:f.code,name:f.name}));break;
 
@@ -149,7 +174,8 @@ case'PrintTemplatePreview':p.name='标准物料卡';p.layout='CARD';p.showQrCode
 
 
 
-case'DualAxisChart':p.points=[{key:'1',label:'周一',bar:80,line:2},{key:'2',label:'周二',bar:120,line:1},{key:'3',label:'周三',bar:98,line:3},{key:'4',label:'周四',bar:140,line:2},{key:'5',label:'周五',bar:160,line:1}];p.bar={name:'产量',unit:'件',color:'#050b14',format:String};p.line={name:'不良率',unit:'%',color:'#f59e0b',format:String};return <div style={{height:340}}><Comp {...p}/></div>;
+case'DualAxisChart':p.surface='card';p.points=[{key:'1',label:'周一',bar:80,line:2},{key:'2',label:'周二',bar:120,line:1},{key:'3',label:'周三',bar:98,line:3},{key:'4',label:'周四',bar:140,line:2},{key:'5',label:'周五',bar:160,line:1}];p.bar={name:'产量',unit:'件',color:'#b2ed1d',format:String,integer:true};p.line={name:'不良率',unit:'%',color:'#1d4ed8',format:String,tickSuffix:'%'};return <div className="rounded-[4px] border border-border bg-card p-4 shadow-card" style={{height:360}}><Comp {...p}/></div>;
+case'StackedUsageChart':p.title='AI Credits Usage';p.series=[{key:'a',name:'App Builder',color:'#73b200'},{key:'b',name:'UNS Agent',color:'#1d4ed8'},{key:'c',name:'Anchor',color:'#7c3aed'}];p.points=[{key:'1',label:'Oct 12',values:{a:18,b:9,c:6}},{key:'2',label:'Oct 17',values:{a:22,b:11,c:7}},{key:'3',label:'Oct 22',values:{a:26,b:13,c:8}},{key:'4',label:'Oct 27',values:{a:29.4,b:14.7,c:8.9}},{key:'5',label:'Nov 1',values:{a:31,b:15,c:9}},{key:'6',label:'Nov 6',values:{a:34,b:16,c:10}},{key:'7',label:'Nov 11',values:{a:36,b:17,c:11}}];return <div className="w-full max-w-xl rounded-[4px] border border-border bg-card p-4 shadow-card"><Comp {...p}/></div>;
 
 case'ProgressRingChain':p.items=[{id:'1',name:'下料',percent:100},{id:'2',name:'装配',percent:68},{id:'3',name:'检验',percent:30}];p.tasks=p.items.map((x:any)=>({...x,processName:x.name,progress:x.percent}));p.ringSize=64;p.availableWidth=600;break;
 

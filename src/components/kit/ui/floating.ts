@@ -235,10 +235,9 @@ export function useFloatingPosition({
   }, [anchorRef, floatingRef, placement, offset, sameWidth, viewportPadding, zIndex]);
 
   useIsoLayoutEffect(() => {
-    if (!open) {
-      setPosition({ style: { ...HIDDEN_STYLE, zIndex }, placement });
-      return;
-    }
+    // Closing keeps the last position so FloatingLayer can play its exit
+    // animation in place; reopening re-measures here before paint.
+    if (!open) return;
     update();
 
     function schedule(event?: Event) {

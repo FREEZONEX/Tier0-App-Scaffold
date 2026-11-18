@@ -1,25 +1,30 @@
 /**
- * TanStack Start global request middleware — Gateway auth + CSRF guard.
+ * TanStack Start global middleware: visitor and CSRF guard.
  *
- * Deployed Tier0 requests carry the user's complete app role assignment in
- * `X-Tier0-Business-Roles`; downstream permission checks compute the union
- * across all roles. The App does not maintain a second session cookie.
+ * The front door sets `X-Tier0-Visitor` on every request, after stripping any
+ * `X-Tier0-*` the client sent. A missing or invalid header is always a 401; no
+ * other identity header is read anywhere, and the App has no session cookie.
  *
- * Preview remains a single-role developer "view as" context. Legacy role
- * headers remain single-role and must match PERMISSION_MATRIX because the
- * Tier0 gateway does not strip/re-inject those headers.
+ * - Pages and API routes need a verified employee visitor.
+ * - Server functions all arrive on one path, so they are checked per function:
+ *   `requireEmployeeFn` demands an employee unless the function opted out
+ *   (`src/lib/server-fn-policy.ts`).
+ *
+ * Every request, public paths included, hands its abort signal to the data
+ * layer (`runWithAbortSignal`): when the caller goes away, its data calls still
+ * queued are dropped and those in flight are cancelled. Data calls are always
+ * the App's own; what the visitor may see is decided by the App's services.
  */
 
 import { createMiddleware, createStart } from "@tanstack/react-start";
-import {
-  getGatewayRuntime,
-  getTrustedGatewayRoles,
-  parseGatewayUser,
-} from "@/lib/gateway";
-import { PERMISSION_MATRIX } from "@/lib/permissions";
+import { runWithAbortSignal } from "@tier0/sdk-v2/data";
+import { requireAuth } from "@/lib/auth";
+import { isPublicServerFn } from "@/lib/server-fn-policy";
+import { readVisitor } from "@/lib/visitor";
 
 // Exact path or proper child segment. This avoids `/login-attempts` matching
-// the public `/login` prefix.
+// the public `/login` prefix. `/_server` and `/_serverFn` pass here because
+// `requireEmployeeFn` decides per function.
 const PUBLIC_PATHS = [
   "/login",
   "/api/health",
@@ -56,8 +61,8 @@ function jsonError(status: number, error: string): Response {
   });
 }
 
-const authBridge = createMiddleware().server(
-  async ({ request, pathname, next }) => {
+export const authBridge = createMiddleware().server(({ request, pathname, next }) =>
+  runWithAbortSignal(request.signal, async () => {
     if (MUTATING.has(request.method) && !isSameOrigin(request)) {
       return jsonError(403, "Cross-origin request blocked");
     }
@@ -66,48 +71,27 @@ const authBridge = createMiddleware().server(
       return next();
     }
 
-    const validRoles = Object.keys(PERMISSION_MATRIX);
-    const gatewayUser = parseGatewayUser(request.headers);
-    const runtime = getGatewayRuntime(request.headers);
-    const trustedRoles = getTrustedGatewayRoles(request.headers);
-
-    if (gatewayUser && trustedRoles !== undefined) {
-      // The Tier0 gateway strips and re-injects these headers after validating
-      // project membership and app role bindings. Unknown roles are therefore
-      // trusted identities but contribute zero permissions until configured.
-      // A deployed empty list is also authoritative and must stay zero-access.
-      return next();
+    let visitor;
+    try {
+      visitor = readVisitor(request.headers);
+    } catch {
+      return jsonError(503, "Visitor identity is not configured");
     }
-
-    if (gatewayUser?.role) {
-      if (!validRoles.includes(gatewayUser.role)) {
-        if (validRoles.length === 0) {
-          return jsonError(503, "No roles configured for this app");
-        }
-        return jsonError(
-          403,
-          `Platform role is not recognized by this app: ${gatewayUser.role}`,
-        );
-      }
-
-      return next();
+    if (!visitor) {
+      return jsonError(401, "Platform authentication required");
     }
+    return next();
+  }),
+);
 
-    if (gatewayUser && runtime === "preview") {
-      // Preview before role registration: the platform sends no role headers
-      // and the request enters with zero roles. Nothing is granted implicitly;
-      // can() stays false for every action until business roles are defined.
-      return next();
-    }
-
-    if (gatewayUser) {
-      return jsonError(403, "Gateway role context missing");
-    }
-
-    return jsonError(401, "Platform authentication required");
+export const requireEmployeeFn = createMiddleware({ type: "function" }).server(
+  async ({ serverFnMeta, next }) => {
+    if (!isPublicServerFn(serverFnMeta.name)) await requireAuth();
+    return next();
   },
 );
 
 export const startInstance = createStart(() => ({
   requestMiddleware: [authBridge],
+  functionMiddleware: [requireEmployeeFn],
 }));

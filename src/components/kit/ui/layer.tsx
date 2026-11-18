@@ -9,6 +9,8 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
+import { EXIT_POP_FAST } from "@/lib/interaction";
+import { EXIT_MS, usePresence } from "@/lib/presence";
 import {
   LayerPathContext,
   placementOriginClass,
@@ -49,8 +51,9 @@ export function FloatingLayer({
 }: FloatingLayerProps) {
   const parentPath = useLayerPath();
   const path = useMemo(() => [...parentPath, layerId], [parentPath, layerId]);
+  const presence = usePresence(open, EXIT_MS.fast);
 
-  if (!open || typeof document === "undefined") return null;
+  if (!presence.mounted || typeof document === "undefined") return null;
 
   return createPortal(
     <LayerPathContext.Provider value={path}>
@@ -68,11 +71,14 @@ export function FloatingLayer({
         }}
         ref={floatingRef}
         data-tier0-layer-path={path.join(" ")}
+        data-state={presence.state}
+        aria-hidden={open ? undefined : true}
         style={style}
         className={cn(
           animate && "animate-tier0-pop",
           placementOriginClass(placement),
           className,
+          animate && EXIT_POP_FAST,
         )}
       >
         {children}

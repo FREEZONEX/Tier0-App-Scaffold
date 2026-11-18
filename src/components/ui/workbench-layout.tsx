@@ -7,9 +7,14 @@ import { ResponsivePage } from "@/components/ui/responsive-page";
  * It keeps KPIs as a compact summary and gives the real work most of the page:
  * a primary queue/table plus an optional secondary risk or decision surface.
  *
- * Put PageHeader in `header`, StatCards in `metrics`, and the primary work
- * surface in `children`. At wide breakpoints the optional `aside` becomes a
- * restrained 2:1 column; on smaller screens every region stacks naturally.
+ * Put PageHeader in `header`, separate StatCards in `metrics`, and the primary
+ * work surface in `children`. Never collapse metrics into a divider strip —
+ * KPIs stay as read-only cards with entrance motion. Filters and actions belong
+ * in the toolbar / buttons under the metrics, not on the StatCards.
+ *
+ * At wide breakpoints the optional `aside` becomes a restrained 2:1 column
+ * that stays in view while the main queue scrolls; on smaller screens every
+ * region stacks naturally.
  */
 export interface WorkbenchLayoutProps
   extends Omit<HTMLAttributes<HTMLDivElement>, "children"> {
@@ -19,6 +24,14 @@ export interface WorkbenchLayoutProps
   below?: ReactNode;
   children: ReactNode;
 }
+
+/** Sequenced entry for direct metric children (first eight). */
+const METRIC_STAGGER = [
+  "[&>*]:animate-[tier0-rise_260ms_var(--motion-spring)_both]",
+  "[&>*:nth-child(2)]:[animation-delay:40ms] [&>*:nth-child(3)]:[animation-delay:80ms]",
+  "[&>*:nth-child(4)]:[animation-delay:120ms] [&>*:nth-child(5)]:[animation-delay:160ms]",
+  "[&>*:nth-child(6)]:[animation-delay:200ms] [&>*:nth-child(n+7)]:[animation-delay:240ms]",
+].join(" ");
 
 export function WorkbenchLayout({
   header,
@@ -37,7 +50,12 @@ export function WorkbenchLayout({
       {header}
 
       {metrics && (
-        <section className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 lg:grid-cols-4">
+        <section
+          className={cn(
+            "grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 lg:grid-cols-4",
+            METRIC_STAGGER,
+          )}
+        >
           {metrics}
         </section>
       )}
@@ -46,11 +64,13 @@ export function WorkbenchLayout({
         className={cn(
           "grid min-w-0 items-start gap-4",
           aside &&
-            "xl:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]",
+            "lg:grid-cols-[minmax(0,2fr)_minmax(16rem,1fr)]",
         )}
       >
         <section className="min-w-0">{children}</section>
-        {aside && <aside className="min-w-0">{aside}</aside>}
+        {aside && (
+          <aside className="min-w-0 space-y-4 lg:sticky lg:top-4">{aside}</aside>
+        )}
       </div>
 
       {below}

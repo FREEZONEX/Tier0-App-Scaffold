@@ -1,3 +1,4 @@
+import { guidanceIt } from "../../scripts/guidance-test.mjs";
 import assert from "node:assert/strict";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
@@ -89,7 +90,7 @@ describe("write-path reachability contracts", () => {
     );
   });
 
-  it("requires every mutation API route to be reachable from the UI", () => {
+  guidanceIt("requires every mutation API route to be reachable from the UI", () => {
     const apiRootPath = join(process.cwd(), API_ROOT);
     if (!existsSync(apiRootPath) || !statSync(apiRootPath).isDirectory()) {
       return;

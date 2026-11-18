@@ -1,3 +1,4 @@
+import { guidanceIt } from "../../scripts/guidance-test.mjs";
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
@@ -46,7 +47,7 @@ function findBareRequiredStarSpans(source) {
 }
 
 describe("form contracts", () => {
-  it("provides a centralized required field marker", () => {
+  guidanceIt("provides a centralized required field marker", () => {
     const fieldLabel = readFileSync(
       join(process.cwd(), "src/components/forms/field-label.tsx"),
       "utf8",
@@ -63,7 +64,7 @@ describe("form contracts", () => {
     assert.match(globals, /color: var\(--destructive\) !important/);
   });
 
-  it("provides safe form layout primitives for generated enterprise forms", () => {
+  guidanceIt("provides safe form layout primitives for generated enterprise forms", () => {
     const formLayout = readFileSync(
       join(process.cwd(), "src/components/forms/form-layout.tsx"),
       "utf8",
@@ -146,7 +147,7 @@ describe("form contracts", () => {
     assert.deepEqual(findIdOnlyOptions(formatted), []);
   });
 
-  it("keeps generated record options from exposing only IDs", () => {
+  guidanceIt("keeps generated record options from exposing only IDs", () => {
     const offenders = [];
 
     for (const root of UI_ROOTS) {
@@ -174,7 +175,7 @@ describe("form contracts", () => {
     );
   });
 
-  it("keeps generated UI from hand-writing required asterisks", () => {
+  guidanceIt("keeps generated UI from hand-writing required asterisks", () => {
     const offenders = [];
 
     for (const root of UI_ROOTS) {

@@ -15,6 +15,8 @@ export interface RadioGroupProps<V extends string | number = string | number> {
   optionType?: "default" | "button";
   /** Button style: outline (blue border + text) or solid (blue fill). */
   buttonStyle?: "outline" | "solid";
+  /** Selected button tone. Use neutral for settings such as row density. */
+  selectedTone?: "brand" | "neutral";
   size?: ControlSize;
   disabled?: boolean;
   direction?: "horizontal" | "vertical";
@@ -32,6 +34,7 @@ export function RadioGroup<V extends string | number = string | number>({
   onChange,
   optionType = "default",
   buttonStyle = "outline",
+  selectedTone = "brand",
   size = "md",
   disabled = false,
   direction = "horizontal",
@@ -75,12 +78,16 @@ export function RadioGroup<V extends string | number = string | number>({
                   (size === "lg" ? "rounded-r-lg" : size === "sm" ? "rounded-r-sm" : "rounded-r-md"),
                 isSelected
                   ? buttonStyle === "solid"
-                    ? "z-10 border-brand bg-brand text-white hover:border-brand-hover hover:bg-brand-hover"
-                    : "z-10 border-brand bg-card text-brand hover:border-brand-hover hover:text-brand-hover"
-                  : "border-border-strong bg-card text-foreground hover:text-brand",
-                isDisabled && "cursor-not-allowed border-border-strong bg-input-disabled text-text-placeholder hover:text-text-placeholder",
+                    ? selectedTone === "neutral"
+                      ? "z-10 border-foreground bg-foreground text-background"
+                      : "z-10 border-brand bg-brand text-white hover:border-brand-hover hover:bg-brand-hover"
+                    : selectedTone === "neutral"
+                      ? "z-10 border-foreground bg-card text-foreground"
+                      : "z-10 border-brand bg-card text-brand"
+                  : "border-border-strong bg-card text-foreground hover:bg-muted",
+                isDisabled && "cursor-not-allowed border-border-strong bg-input-disabled text-text-placeholder hover:bg-input-disabled hover:text-text-placeholder",
                 !isDisabled && "cursor-pointer",
-                "has-[:focus-visible]:shadow-[0_0_0_2px_rgb(5_145_255/0.2)]",
+                "has-[:focus-visible]:bg-muted has-[:focus-visible]:text-foreground",
               )}
             >
               <input
@@ -134,14 +141,14 @@ export function RadioGroup<V extends string | number = string | number>({
               <span
                 aria-hidden="true"
                 className={cn(
-                  "flex size-4 items-center justify-center rounded-full border transition-colors duration-150 peer-focus-visible:shadow-[0_0_0_2px_rgb(5_145_255/0.25)]",
+                  "flex size-4 items-center justify-center rounded-full border transition-colors duration-150 peer-focus-visible:ring-2 peer-focus-visible:ring-ring/60",
                   isSelected ? "border-brand bg-brand" : "border-border-strong bg-card",
                   !isDisabled && !isSelected && "group-hover:border-brand",
                   isDisabled && "border-border-strong bg-input-disabled",
                 )}
               >
                 {isSelected ? (
-                  <span className={cn("size-1.5 rounded-full", isDisabled ? "bg-text-placeholder" : "bg-white")} />
+                  <span className={cn("size-1.5 rounded-full animate-in zoom-in-0 duration-150", isDisabled ? "bg-text-placeholder" : "bg-white")} />
                 ) : null}
               </span>
             </span>

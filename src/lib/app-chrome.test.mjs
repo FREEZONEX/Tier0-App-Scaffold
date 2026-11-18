@@ -1,3 +1,4 @@
+import { guidanceIt } from "../../scripts/guidance-test.mjs";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
@@ -16,26 +17,23 @@ const TEMPLATE_ROUTE_FILES = [
   "src/routes/api/auth/me.ts",
   "src/routes/api/health.ts",
   "src/routes/api/manifest.ts",
+  "src/routes/api/uns/subscribe.ts",
   "src/routes/login.tsx",
   "src/routes/monitor.tsx",
   "src/routes/review.tsx",
   "src/routes/station.tsx",
 ];
-const TEMPLATE_SERVICE_FILES = [
-  "src/services/bootstrap.ts",
-  "src/services/db-results.ts",
-  "src/services/seed-utils.ts",
-];
+const TEMPLATE_SERVICE_FILES = [];
 const TEMPLATE_STATE_FINGERPRINTS = {
   "roles.json": "b2d07f68818cfc353b2f98543a018fa6ef6157026f910ad359eb7370a4b25172",
   "src/components/Shell.tsx":
-    "5ce22ba85648db3de66b6b84e1cce88af97d0b146abe22242022999b2cdd30fd",
+    "122f791632f53096105c2232d9564bfbd3fc6bcca9927f118c73de6db2d7e658",
   "src/components/shell-modules.ts":
-    "f4723dafb7d19601437521226a7f58ccce27ac31245d07165d28bbfa6ff9a850",
-  "src/db/schema.ts":
-    "3967e92af2f0b5858b7aca04a9c69e7dd8f760974ae5fd9b4c57c3b7bc107cf9",
+    "f81c73629fcee120ba91736570913a1c9355ac086e1f2ee0e140f1c38a7ffa23",
+  "src/data/collections.ts":
+    "fd8a2b2dd01cb35048f883252a125757da0b304c82736dfb8ee9372486d45ca7",
   "src/lib/app-chrome.ts":
-    "e772ac721e016dcd98a848ea0159ed924c56df75677f3b0016d52210a4008ff8",
+    "c081f1960d7b3ca231a029d779b09b219a73770751fa0a13a18f806fec431397",
   "src/lib/permissions.ts":
     "aa704dc9ccd483bc0ace463303c1434726cbff48477cb88db7219fbc77051a6f",
   "src/lib/role-metadata.ts":
@@ -162,7 +160,7 @@ describe("app chrome policy", () => {
     assert.equal(height, 512, "public/app-icon.png must be 512 px high.");
   }
 
-  it("keeps workspace as the primary app chrome", () => {
+  guidanceIt("keeps workspace as the primary app chrome", () => {
     const policy = readFileSync(
       join(process.cwd(), "src/lib/app-chrome.ts"),
       "utf8",
@@ -174,18 +172,21 @@ describe("app chrome policy", () => {
     assert.match(policy, /prefix: "\/monitor"/);
   });
 
-  it("keeps the workspace content container (layout incident guard)", () => {
+  guidanceIt("keeps operational workspace content fluid by default", () => {
     const shell = readFileSync(
       join(process.cwd(), "src/components/Shell.tsx"),
       "utf8",
     );
 
-    // Wide-monitor guard: without the centered container, tables and cards
-    // stretch edge-to-edge with hollow gaps between sparse columns.
-    assert.match(shell, /max-w-\[1440px\]/);
+    // Readability limits belong to local form/prose blocks, not the Shell.
+    const contentClass = shell.match(/<div className="([^"]+)">\{children\}<\/div>/)?.[1];
+    assert.ok(contentClass, "workspace content wrapper must be present");
+    assert.match(contentClass, /\bw-full\b/);
+    assert.match(contentClass, /\bmin-w-0\b/);
+    assert.doesNotMatch(contentClass, /max-w-|mx-auto|\bcontainer\b/);
   });
 
-  it("keeps responsive page-shell padding available to generated workspace pages", () => {
+  guidanceIt("keeps responsive page-shell padding available to generated workspace pages", () => {
     const styles = readFileSync(
       join(process.cwd(), "src/styles/globals.css"),
       "utf8",
@@ -203,7 +204,7 @@ describe("app chrome policy", () => {
     );
     assert.match(
       styles,
-      /@media\s*\(min-width:\s*1024px\)\s*\{\s*\.page-shell\s*\{[^}]*padding:\s*var\(--tier0-space-xxl\);/s,
+      /@media\s*\(min-width:\s*1024px\)\s*\{\s*\.page-shell\s*\{[^}]*padding:\s*var\(--tier0-space-xxl\)\s+var\(--tier0-space-xl\);/s,
     );
     assert.match(agents, /className="page-shell/);
   });
@@ -218,7 +219,7 @@ describe("app chrome policy", () => {
     assert.doesNotMatch(shell, /NO_SIDEBAR_ROUTE_PREFIXES/);
   });
 
-  it("keeps the sidebar brand icon free of a highlight border", () => {
+  guidanceIt("keeps the sidebar brand icon free of a highlight border", () => {
     const shell = readFileSync(
       join(process.cwd(), "src/components/Shell.tsx"),
       "utf8",

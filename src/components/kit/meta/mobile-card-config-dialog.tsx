@@ -4,7 +4,7 @@ import { useKitApi } from "@/components/kit/provider";
 
 
 /** Configure generic record cards using application-supplied fields and options. */
-import { GripVertical, Search, Trash2 } from "lucide-react";
+import { Search, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AsyncView } from "@/components/data/async-view";
@@ -21,6 +21,7 @@ import { useRequest } from "@/lib/hooks";
 import { moveItem } from "@/lib/component-kit/list-columns";
 import type { FieldDef, MobileCardEntry, MobileCardKey } from "@/lib/component-kit/types";
 import { cn } from "@/lib/utils";
+import { DragHandle, dragInsertionClass } from "@/components/kit/ui/drag-handle";
 import { resourcePath as apiUrl } from "@/lib/component-kit/api-client";
 import { MobileCard } from "@/components/kit/meta/mobile-card";
 
@@ -66,6 +67,7 @@ function ConfigForm({
   const [keyword, setKeyword] = useState("");
   const [tab, setTab] = useState<ListTab>("fields");
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dropIndex, setDropIndex] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<{ title?: string; indicator?: string; display?: string }>({});
 
@@ -177,7 +179,7 @@ function ConfigForm({
             <div className="min-w-0 flex-1">
               <div
                 className={cn(
-                  "flex min-w-0 flex-col overflow-hidden rounded-md border sm:flex-row",
+                  "flex min-w-0 flex-col overflow-hidden rounded-[4px] border sm:flex-row",
                   errors.display ? "border-danger" : "border-border-strong",
                 )}
               >
@@ -187,7 +189,7 @@ function ConfigForm({
                   </div>
                   {/* 只有一个页签时列表里已有「全选」，这里不再重复。 */}
                   {options.components.length ? (
-                    <div className="border-y border-border-secondary bg-[#fafbfc] px-3 py-2">
+                    <div className="border-y border-border-secondary bg-muted px-3 py-2">
                       <Checkbox
                         checked={everything}
                         indeterminate={anything && !everything}
@@ -274,29 +276,42 @@ function ConfigForm({
                           draggable={item.kind === "field" && !fixed}
                           onDragStart={(event) => {
                             setDragIndex(index);
+                            setDropIndex(null);
                             event.dataTransfer.effectAllowed = "move";
                             event.dataTransfer.setData("text/plain", item.key);
                           }}
                           onDragOver={(event) => {
-                            if (dragIndex !== null && item.kind === "field") event.preventDefault();
+                            if (dragIndex !== null && item.kind === "field") {
+                              event.preventDefault();
+                              setDropIndex(index);
+                            }
                           }}
                           onDrop={(event) => {
                             event.preventDefault();
-                            if (dragIndex === null || item.kind !== "field" || dragIndex >= displayFields.length) return;
+                            if (dragIndex === null || item.kind !== "field" || dragIndex >= displayFields.length) {
+                              setDragIndex(null);
+                              setDropIndex(null);
+                              return;
+                            }
                             // Locked fields (配置中标记为必需的字段) stay first.
                             const lockedCount = displayFields.filter((code) => locked.has(code)).length;
                             const target = Math.min(Math.max(index, lockedCount), displayFields.length - 1);
                             setDisplayFields((current) => moveItem(current, dragIndex, target));
                             setDragIndex(null);
+                            setDropIndex(null);
                           }}
-                          onDragEnd={() => setDragIndex(null)}
+                          onDragEnd={() => {
+                            setDragIndex(null);
+                            setDropIndex(null);
+                          }}
                           className={cn(
-                            "flex min-w-0 items-center gap-2 rounded-md border border-dashed border-border-strong bg-card px-2 py-1.5 text-sm",
-                            fixed && "bg-[#f5f5f5] text-text-tertiary",
+                            "relative flex min-w-0 items-center gap-2 rounded-[4px] border border-dashed border-border-strong bg-card px-2 py-1.5 text-sm",
+                            fixed && "bg-muted text-text-tertiary",
                             dragIndex === index && "opacity-40",
+                            dropIndex === index && dragIndex !== null && dragIndex !== index && dragInsertionClass("before"),
                           )}
                         >
-                          <GripVertical className={cn("size-3.5 shrink-0 text-text-placeholder", !fixed && item.kind === "field" && "cursor-grab")} aria-hidden="true" />
+                          <DragHandle disabled={fixed || item.kind !== "field"} />
                           <span className="min-w-0 flex-1 truncate">{item.label}</span>
                           {!fixed ? (
                             <IconButton
@@ -320,7 +335,7 @@ function ConfigForm({
             </div>
           </div>
         </div>
-        <aside className="flex min-w-0 flex-col gap-3 rounded-lg bg-[#f2f4f7] p-4 lg:w-80 lg:shrink-0">
+        <aside className="flex min-w-0 flex-col gap-3 rounded-[4px] bg-muted p-4 lg:w-80 lg:shrink-0">
           <span className="text-sm text-foreground">模板效果预览</span>
           <MobileCard
             config={{ titleFields, indicatorField, displayFields, components }}

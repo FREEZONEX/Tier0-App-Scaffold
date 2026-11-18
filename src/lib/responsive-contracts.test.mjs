@@ -1,3 +1,4 @@
+import { guidanceIt } from "../../scripts/guidance-test.mjs";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -10,7 +11,7 @@ import {
 const rules = (source) => analyzeSource(source).map((v) => v.rule);
 
 describe("responsive contracts", () => {
-  it("keeps the scaffold itself usable at the narrow viewport", () => {
+  guidanceIt("keeps the scaffold itself usable at the narrow viewport", () => {
     assert.deepEqual(analyzeRepoResponsive(), []);
   });
 

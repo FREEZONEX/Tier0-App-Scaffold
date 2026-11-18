@@ -223,7 +223,7 @@ export function FilePreview({ file, onClose }: FilePreviewProps) {
       </div>
       <div className="min-h-0 flex-1 px-4 pb-4">
         {objectUrl ? (
-          <iframe title={file.name} src={objectUrl} className="size-full rounded-lg border-0 bg-white" />
+          <iframe title={file.name} src={objectUrl} className="size-full rounded-[4px] border-0 bg-white" />
         ) : null}
       </div>
     </div>,

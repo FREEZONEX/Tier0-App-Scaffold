@@ -161,7 +161,10 @@ function countMatches(root, filePattern, regex) {
     if (!filePattern.test(file)) {
       continue;
     }
-    count += readFileSync(file, "utf8").match(regex)?.length ?? 0;
+    const source = readFileSync(file, "utf8")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^\s*\/\/.*$/gm, "");
+    count += source.match(regex)?.length ?? 0;
   }
   return count;
 }
@@ -174,11 +177,11 @@ const writeHandlers = countMatches(
   /\.ts$/,
   /\b(?:POST|PUT|PATCH|DELETE):/g,
 );
-const seedCallbacks = countMatches("src/services", /\.ts$/, /\bseed:\s/g);
-const enumStates = countMatches("src/db", /schema\.ts$/, /pgEnum\(/g);
+const seededCollections = countMatches("src/data", /collections\.ts$/, /\bseed\s*:/g);
+const enumStates = countMatches("src/data", /collections\.ts$/, /\bz\.enum\(/g);
 
 console.log(
-  `[advisory] delivery: ${pageCount} page routes, ${writeHandlers} write handlers, ${seedCallbacks} bootstrap seed callbacks, ${enumStates} status enums`,
+  `[advisory] delivery: ${pageCount} page routes, ${writeHandlers} write handlers, ${seededCollections} seeded collections, ${enumStates} status enums`,
 );
 
 if (advisories.length > 0) {

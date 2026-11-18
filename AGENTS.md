@@ -1,17 +1,41 @@
 # Tier0 Industrial App Scaffold
 
 This repository is a TanStack Start 1.x application scaffold (Vite 8,
-TanStack Router, React 19, Drizzle, Zod, and TailwindCSS 4). It is not Next.js:
+TanStack Router, React 19, Zod, TailwindCSS 4, and Tier0 UNS collections as
+the only data store). It is not Next.js:
 do not use `next/*`, App Router conventions, `next/headers`, or Next metadata.
 Do not re-initialize the project.
 
 Build a usable industrial application, not a demo. Prefer a small number of
 complete workflows over a wide read-only shell.
 
+This file holds the rules that always apply. Task references live in `docs/`;
+read the named file **before** that kind of work:
+
+| Before you… | Read |
+|---|---|
+| declare/change collections, write services that touch records, add live updates, evolve a schema | `docs/app-data.md` |
+| build or rework routes, pages, forms, dialogs, data loading, responsive layouts | `docs/ui-rules.md`, `docs/component-kit.md`, `docs/operator-ux.md` |
+| register or change roles | `docs/role-registration.md` |
+| use the Tier0 SDK, notifications, MQTT, files, env vars, scaffold version | `docs/platform-integration.md` |
+| add AI features (LLM calls, chat, agent tools) | `docs/platform-integration.md` ("Calling the workspace LLM") |
+
+## Global Interface Constraint
+
+**Avoid unnecessary secondary labels and descriptions. Let the layout do the explaining.**
+
+Apply this throughout design, development, prototyping, and UI review. Use
+grouping, alignment, spacing, and visual hierarchy to communicate relationships
+before adding explanatory copy. Omit redundant subtitles, helper paragraphs,
+and labels that repeat an already clear layout. Retain necessary field/action
+labels, accessible names, and information needed to understand conditions,
+errors, or consequences. Before delivery, remove secondary copy whose absence
+does not reduce understanding or correct use.
+
 ## Delivery Floor: Complete the Legal Lifecycle
 
 Infer each business object's lifecycle from the domain. Do not mechanically add
-CRUD to every database table: a valid termination, correction, or operational
+CRUD to every collection: a valid termination, correction, or operational
 command is often safer than direct update/delete.
 
 | Object kind | Expected first-slice lifecycle |
@@ -35,7 +59,8 @@ is incomplete.
   `apiUrl()`. External-only handlers carry an `EXTERNAL_CALLER` comment naming
   the caller.
 - Seed data starts the experience; it does not replace operations. Use coherent,
-  populated records across relevant lifecycle states.
+  populated records across relevant lifecycle states (declared once as
+  collection `seed`, see App Data).
 - Avoid placeholder modules and copy such as “Coming soon”, “Demo mode”, or
   “can be added later”.
 - Dangerous or irreversible operations show impact, ask for confirmation, and
@@ -43,19 +68,40 @@ is incomplete.
 
 ## Managed Preview Workflow
 
-Dependencies are installed automatically by `preview_start`. Do not run
-`npm install` manually or start a dev server yourself; both race the managed
-preview environment.
+The platform runs the preview (install + dev server) and shows its status in
+the Builder. Do not run `npm install` manually or start a dev server yourself;
+both race the managed preview. Your only preview tool is `preview_restart`: it
+reruns install + dev and returns as soon as the restart is triggered, with no
+URL and no logs. Code edits hot-reload in the running preview.
 
-1. Use `preview_start` after a meaningful implementation slice.
-2. On failure, inspect `preview_logs`, fix the cause, then use `preview_restart`.
-3. When a local preview URL is returned, run
-   `npm run smoke:routes -- <local-url>`; it automatically checks every sidebar
-   target. Add changed key routes that are intentionally outside the sidebar.
-4. Tell the user the preview is ready; never paste the container-local URL.
+Facts inside the sandbox:
 
-After adding a dependency, restart the managed preview. If the same error
-recurs three times, stop patching and report the blocker.
+- Status: `/dev/shm/.tier0/preview/state.json` — `state` goes
+  `installing` → `starting` → `ready` or `failed` (`error` says why); `port` is
+  the dev-server port on `127.0.0.1` (default 5173).
+- Log: `/dev/shm/.tier0/preview/preview.log` (previous run in `preview.log.1`);
+  a ready server logs `[tier0-preview] ready on port <PORT>`.
+
+1. After adding a dependency, or when the preview failed or is not running,
+   call `preview_restart`.
+2. Wait for a final state:
+   ```sh
+   S=/dev/shm/.tier0/preview/state.json
+   for i in $(seq 150); do grep -Eq '"state": *"(ready|failed)"' "$S" && break; sleep 2; done; cat "$S"
+   ```
+3. On `failed`, read `tail -n 100 /dev/shm/.tier0/preview/preview.log`, fix the
+   cause, then `preview_restart` again.
+4. When `ready`, run the route smoke against the sandbox port:
+   ```sh
+   npm run smoke:routes -- "http://127.0.0.1:$(node -p 'require("/dev/shm/.tier0/preview/state.json").port || 5173')"
+   ```
+   It checks `/` and every sidebar target and exits non-zero on failure.
+   Append changed key routes that are intentionally outside the sidebar as
+   extra arguments (`... /station/receiving`).
+5. Tell the user the preview is ready in the Builder; never paste the
+   container-local URL.
+
+If the same error recurs three times, stop patching and report the blocker.
 
 ## Sources of Truth
 
@@ -65,8 +111,7 @@ recurs three times, stop patching and report the blocker.
 - `DESIGN.md` and `src/styles/globals.css`: visual tokens and product feel.
 - Component types/JSDoc under `src/components/**`: point-of-use composition
   guidance.
-- `docs/platform-integration.md` and `docs/role-registration.md`: platform
-  runtime and role contracts.
+- `docs/*.md`: the task references listed above.
 
 Platform-injected Builder guidance may own orchestration, UI generation,
 responsive review, locale/copy, industrial patterns, and Tier0 SDK workflows.
@@ -77,35 +122,40 @@ placeholder; do not vendor Skills here.
 
 ```text
 src/
-  start.ts                     gateway auth + CSRF middleware (do not modify)
+  start.ts                     visitor header + CSRF middleware (do not modify)
   router.tsx                   router factory (do not modify)
   routes/
     __root.tsx                 root document + Toaster
     _app.tsx                   sidebar workspace layout
     _app.index.tsx             pre-generation Preview placeholder; replace or redirect
-    station.tsx                scan/tap/confirm layout
-    review.tsx                 evidence/decision layout
-    monitor.tsx                passive fixed-board layout
+    station.tsx / review.tsx / monitor.tsx   task-first / evidence / passive-board layouts
     login.tsx                  hidden platform-auth error bridge
     api/**                     thin HTTP wrappers
-  services/**                  domain logic, state machines, transactions
-  db/                          Drizzle client, schema, optional bulk seed
-  components/
-    ui/                        visual primitives
-    forms/                     safe form composition
-    overlays/                  dialogs, drawers, confirmation
-    data/                      async and table helpers
-    actions/                   transparent recommendation/impact actions
-    layouts/                   route-group shells
+    api/uns/subscribe.ts       record change stream for useRecordChanges (do not modify)
+    api/ai/chat.ts             example AI chat reply stream for useChat (POST)
+  services/**                  domain logic, state machines, data access
+  services/ai/provider.ts      tier0Model(): the workspace LLM (default | fast), server only
+  services/ai/chat.ts          example agent loop with per-user tools
+  data/collections.ts          collection declarations + seed (source of truth)
+  data/seed-utils.ts           seed date/reference helpers
+  components/{ui,forms,overlays,data,actions,layouts,kit}   shipped primitives
+  components/ai/chat-panel.tsx ChatPanel (useChat); mounted nowhere by default
   lib/                         auth, permissions, routing and runtime helpers
+  lib/data/                    App instance of the @tier0/sdk-v2/data client (locked)
+  lib/record-changes.ts        useRecordChanges(): live record changes in the browser
+  lib/change-visibility.ts     which record changes a user hears about (adapt to the App's roles)
 server.mjs                     production entry (do not modify)
 artifact.toml                  platform build/run contract
 ```
 
 Do not modify generated `src/routeTree.gen.ts`. Preserve `src/start.ts`,
-`src/router.tsx`, `src/db/index.ts`, Gateway/auth helpers, health/manifest/auth
-routes, the root document structure, production entry, and existing Vite SSR
-policy unless the user explicitly asks for platform/runtime work.
+`src/router.tsx`, `src/lib/data/**`, Gateway/auth helpers, the health,
+manifest, auth and `api/uns/subscribe` routes, the root document structure,
+production entry, and existing Vite SSR policy unless the user explicitly asks
+for platform/runtime work.
+
+Write temporary source copies, backups, and reports to `.tier0-output/` at the
+workspace root. It is not committed and is left out of source downloads.
 
 ## Architecture and Domain Rules
 
@@ -113,75 +163,104 @@ Use three layers:
 
 1. `src/routes/api/**`: authenticate, parse with Zod, call a service, return a
    response through `withErrors`.
-2. `src/services/**`: business invariants, lifecycle transitions,
-   transactions, and audit side effects.
-3. `src/db/**`: schema, inferred types, and database client.
+2. `src/services/**`: business invariants, lifecycle transitions, data
+   access through `@/lib/data`, and audit side effects.
+3. `src/data/collections.ts`: collection declarations (Zod schemas, indexes,
+   seed) and the types derived from them.
 
 Hard invariants:
 
-- Import `db` only from `src/services/**` and `src/db/seed.ts`; ESLint enforces
-  the boundary.
+- Import `@/lib/data` (and values from `@tier0/sdk-v2/data`) only from
+  `src/services/**`; the data client is server-only and must not reach the
+  browser bundle. ESLint and the locked `src/lib/data-contracts.test.mjs` flag
+  accidental violations (static guard rails, not a security boundary). Any
+  file may import declarations from `@/data/collections` and from
+  `@tier0/sdk-v2/data/define`, and types from `@tier0/sdk-v2/data`.
 - Keep `Request`, `Response`, and `Headers` out of services. Services return
   typed values and throw `HttpError` for caller-facing failures.
-- Put every multi-step write in `db.transaction(async (tx) => ...)`, and use
-  `tx` throughout the transaction.
 - Define lifecycle transitions once in the owning service. Reject illegal
   transitions with a conflict/error instead of silently rewriting state.
-- Use explicit Drizzle queries such as
-  `select().from(table).where(...).limit(1)`, not relational
-  `db.query.*.findFirst()` / `tx.query.*.findFirst()`.
-- Normalize genuine raw-SQL results with `rowsOf()` before array operations.
-- Derive validation/types from the Drizzle schema with
-  `createInsertSchema`, `createUpdateSchema`, `$inferSelect`, and
-  `$inferInsert` rather than duplicating shapes by hand.
-- Tables that represent mutable business records include `...timestamps`.
+- Never fetch Tier0 UNS paths yourself and never put a platform credential in the
+  browser; the data layer is the only UNS client.
+- App server code calls the LLM only through `@/services/ai/provider` and
+  never reads, writes or logs any LLM key: the platform's egress adds the
+  workspace key on the way out, so App code never holds an LLM key.
 
-### First-Load Database Safety
+## App Data
 
-Call and await `bootstrapModule(...)` at each service entrypoint before querying
-its module tables. The helper shares in-flight/completed work and clears its
-cache on failure so a later call can retry. Do not permanently cache the first
-returned Promise in a module-level constant or start bootstrap at import time.
+Business data lives in Tier0 UNS collections owned by this App. There is no
+SQL database, ORM, connection string, migration or `db:push` step. Preview and
+the deployed App use the **same** collections and the same records. The full
+API, limits, examples, error codes and tier0 MCP operations are in
+`docs/app-data.md`; read it before data work. Rules that always hold:
 
-- Bootstrap tables and indexes before seed callbacks; keep foreign-key order
-  explicit. The schema itself is platform-provisioned; never create it.
-- Use `create ... if not exists` and idempotent typed Drizzle seed writes.
-- Seed dates use `seedDate()` / `seedTimestamp()` from
-  `@/services/seed-utils`.
-- Parent/child seeds use declared IDs or `requireSeedRef()` /
-  `requireSeedValue()`; never pass a missing required foreign key that Drizzle
-  can turn into SQL `default`.
-- Use raw SQL only for schema/bootstrap setup and read-only helpers, not seed
-  inserts/updates/deletes.
-- Runtime startup must not depend on a prior `db:push` or execution of
-  `src/db/seed.ts`. The latter is for explicit bulk/reset fixtures and uses
-  relative imports only.
-- Declare every table and enum in `src/db/schema.ts` through
-  `appSchema.table(...)` / `appSchema.enum(...)`, never bare `pgTable` /
-  `pgEnum` and never in another file. The platform deploys with
-  `drizzle-kit push --force` scoped to `DB_SCHEMA`; a declaration outside
-  `appSchema` is invisible to it and every table in the schema gets dropped.
-- `bootstrapModule(...)` entries pass the declared table object (`table:
-  workOrders`), so a runtime table always has a declaration push can see.
-- Locally sync with `npm run db:push`; it refuses DROP/TRUNCATE plans unless
-  `DB_SYNC_ALLOW_DESTRUCTIVE=1`.
+- Declare every collection (`directoryPath`, Zod storage schema, indexes, `seed`) in
+  `src/data/collections.ts` and list it in `collections`. Storage schemas use
+  the supported Zod subset only; `npm run build` fails with the replacement
+  for anything else. Never declare `_id` / `_meta`.
+- Before declarations, inspect and reuse existing business directories. Each
+  collection needs its own `directoryPath` from the workspace root. Industrial
+  data follows the known ISA-95 equipment hierarchy (Enterprise → Site → Area
+  → Work Center → Work Unit); shared data belongs at a suitable common ancestor.
+  Use only real, meaningful levels; do not force five levels, invent facilities,
+  or collect unrelated data under a default root-level App directory. App or
+  business-module directories are valid below the known scope, for example
+  Factory → Line → MES → Work orders. Non-industrial data
+  uses its business hierarchy. See `docs/app-data.md` for path limits and examples.
+  New collections without a path fail; an existing alias stays in place even
+  when its declaration changes. Do not move data or change access to tidy folders.
+- Seed: fixed `_id`s, coherent across lifecycle states, written **once** when a
+  collection is created; editing `seed` never reseeds. Never insert baseline
+  data from services.
+- Model documents, not tables: embed what changes with the record and reference
+  shared entities by ID. Keep a display snapshot when the business needs the
+  historical value; a scoped `$lookup` can supply current related values.
+  Use one collection per business object kind.
+- Read efficiently: push filtering, joins and statistics into the database;
+  combine independent, single-page reads with `data.queryBatch`. Resolve
+  dependencies first, then batch the next reads; a screen may need several
+  requests. Use `get(ids)` for records by ID (`missing` = 404, never "forbidden"),
+  bound visible lists and consume every page when a complete aggregate is
+  required. A batch item is one page, not the whole result. Show capped counts
+  as "10000+". Never call the data layer once per record or `map` item.
+- Consistency: put the expected state in the filter for transitions
+  (`findOneAndUpdate`, `null` → 409); send `_meta.revision` as
+  `expectedRevision` for edits; use one `data.transact` for cross-document
+  invariants. Never rerun a partially committed `updateMany` / `deleteMany`;
+  continue from `resumeAfter`.
+- Do not pass idempotency keys or wrap data calls in retry loops; let
+  `DataError` reach `withErrors` and branch on `code` / `reason`, never on
+  message text.
+- Do not ensure collections manually, touch data at import time, or pass a
+  request's abort signal yourself (`src/start.ts` does); work that must outlive
+  the request runs inside `runDetached(...)` from `@/lib/data`.
+- Data rules by role are the App's: every data call is the App's own, and the
+  platform does not narrow it by user. Services take the current user
+  (`requireAuth()`) and filter queries, refuse writes and trim fields by
+  `can(user.roles, action)`.
+- Live updates: pages subscribe with `useRecordChanges([alias...], reload)`
+  (aliases, not declarations); an event only means "reload through the App's
+  API". Which changes a user hears about is `canSeeChange(user, change)` in
+  `src/lib/change-visibility.ts`: keep it in line with the services' role
+  rules. Do not poll App records and never subscribe from services.
+- Schema changes only widen automatically. Never `deleteMany` or recreate a
+  collection to "reset" a schema. `schema:replace`, `archive` and `restore`
+  are worker operations through the tier0 MCP, never runtime code.
+
+An imported or older App's own SQL database is App-owned persistence: rewrite
+its callers to collections and remove the driver, ORM and connection settings
+instead of connecting to the old database or asking for its configuration.
+`npm run build` fails while `src/` or `server.mjs` still reads `DATABASE_URL*`,
+`DIRECT_DATABASE_URL`, `DB_SCHEMA`, `PG*` or `POSTGRES_*` from the environment,
+or `package.json` still depends on a database driver or ORM. Only a database the user explicitly keeps as an
+external system of record is declared in `package.json`
+`tier0ExternalDatabases` (`package`, optional `env`, `reason`).
 
 ## Routing and Server Boundaries
 
-TanStack Router uses file names as route structure:
-
-| File | URL / purpose |
-|---|---|
-| `routes/_app.index.tsx` | `/`, sidebar workspace index |
-| `routes/_app.settings.tsx` | `/settings`, standalone page with no child routes |
-| `routes/_app.work-orders.tsx` | parent of the two rows below; renders `<Outlet />` only |
-| `routes/_app.work-orders.index.tsx` | `/work-orders`, the default list |
-| `routes/_app.work-orders.$id.tsx` | `/work-orders/:id`, nested detail |
-| `routes/_app.reports_.$id.tsx` | `/reports/:id`, detail that opts OUT of nesting |
-| `routes/station.receiving.tsx` | `/station/receiving` |
-| `routes/review.exceptions.tsx` | `/review/exceptions` |
-| `routes/monitor.line-status.tsx` | `/monitor/line-status` |
-| `routes/api/work-orders.ts` | `/api/work-orders` |
+TanStack Router uses file names as route structure: `_app.work-orders.index.tsx`
+→ `/work-orders`, `routes/station.receiving.tsx` → `/station/receiving`,
+`routes/api/work-orders.ts` → `/api/work-orders`.
 
 Choose one coherent app chrome. Use `_app` for management/planning/admin work;
 `station` for task-first execution; `review` for evidence/decisions; `monitor`
@@ -189,223 +268,232 @@ for passive boards. A custom prefixed layout is acceptable when none fits.
 Do not add an empty pathless layout that conflicts with `/`.
 
 **A resource with a detail page must use one of exactly two shapes.** The `.`
-separator nests routes, so `_app.work-orders.$id.tsx` is a child of
-`_app.work-orders.tsx` and renders through the parent's `<Outlet />`. A parent
-that draws its own list markup without an outlet still type-checks, lints and
-builds — the detail page simply never renders, and nobody finds out until they
-click a row.
+separator nests routes, so a detail page under a parent that renders no
+`<Outlet />` never renders, although it type-checks, lints and builds.
 
-- **Nested**: parent renders `<Outlet />` only, the list lives in a sibling
-  `.index.tsx`, the detail in `.$param.tsx`. A parent may also render its own
-  content *plus* `<Outlet />` when a master-detail layout is intended.
+- **Nested**: parent `_app.work-orders.tsx` renders `<Outlet />` only, the list
+  lives in a sibling `.index.tsx`, the detail in `.$param.tsx`. A parent may
+  also render its own content *plus* `<Outlet />` when a master-detail layout
+  is intended.
 - **Non-nested**: append `_` to the parent segment (`_app.reports_.$id.tsx`) so
   the detail page renders standalone and the list route stays a plain page.
 
-`npm run build` fails on any other shape, naming the offending resource; the
-check lives in `src/lib/route-nesting-contracts.test.mjs` and is a locked gate.
-
-`Route.useParams()` and `Route.useSearch()` are synchronous. Define
-`validateSearch` when reading query strings.
+`npm run build` fails on any other shape (locked
+`src/lib/route-nesting-contracts.test.mjs`). An API-only subtree (parent and
+dynamic children declare `server` handlers and no `component`) renders no page,
+so `api/orders.ts` + `api/orders.$id.ts` needs no index route. `Route.useParams()` and
+`Route.useSearch()` are synchronous; define `validateSearch` when reading query
+strings.
 
 TanStack Start does not use React Server Components. Components and route files
 enter the client bundle; server-only APIs belong inside API handlers,
 middleware, or `createServerFn().handler(...)`. Never import or call
 `@tanstack/react-start/server` APIs from client render code or effects.
-`Headers` is iterable rather than enumerable: inspect it with `.get()` or
-`Object.fromEntries(headers.entries())`, not `JSON.stringify(headers)`.
+Inspect `Headers` with `.get()` or `Object.fromEntries(headers.entries())`,
+not `JSON.stringify(headers)`.
 
-## Gateway Authentication and Roles
+## Visitor Identity and Roles
 
-The platform Gateway owns login and injects identity. The App does not manage
-passwords, users, cookies, local sessions, login/register APIs, or logout.
+The platform front door owns login and sets the visitor in `X-Tier0-Visitor`
+on every request, after stripping any `X-Tier0-*` the client sent. The App
+does not manage passwords, users, cookies, local sessions, login/register
+APIs, or logout, and reads no other identity header.
 
-- Deployed roles come from the complete comma-separated
-  `X-Tier0-Business-Roles` set. Effective permissions are the union of all
-  assigned roles.
-- `X-Tier0-Active-Role` / `user.primaryRole` is display metadata only; never
-  choose one “highest” role for authorization.
-- Preview uses `X-Tier0-Preview-Role`; a preview request without a selected
-  role enters with zero roles and zero permissions.
-- Unknown trusted roles contribute zero permissions; explicit empty deployed
-  roles remain zero-access. Forgeable unknown legacy roles fail closed.
+- `src/start.ts` reads the header on every request; a missing or invalid one
+  is a 401.
+- The App uses the visitor and its roles to apply its own data rules: what
+  the current user may see or change is decided in the App's services, not
+  by the platform.
+- `app_roles` in the header is the complete role set. Effective permissions are
+  the union of all roles. The active role / `user.primaryRole` is display
+  metadata only; never choose one "highest" role for authorization.
+- In Preview the set holds the roles selected for "view as", and the App's
+  own role rules apply to them. No selected role means zero roles and zero
+  permissions. Unknown roles contribute zero permissions.
+- Server functions require an employee by default. One that truly needs no
+  visitor is named `publicServerFn<Name>`; do not add one without a reason the
+  user agreed to. Only employee visitors are supported; there is no
+  machine identity or webhook authentication exception.
+- Server code uses `requireAuth()` / `requireRole(...)`; client code uses
+  `useVisitor()` from `@/lib/use-visitor`. The header has no name or email.
+- `useVisitor()` reads the `user` the layout put in route context, the one the
+  Shell shows; gate UI on it and keep no other copy of the roles. Roles can
+  change while a page is open: a write the App refused with 401/403
+  (`requestJson`) and a reconnect of the change stream (`useRecordChanges`)
+  reload it, so the role line and every gate follow the server together. Do
+  not poll for roles. It returns `{ visitor }` only (no `isLoading` / `error`;
+  `null` outside the layouts), and `src/routes/__root.tsx` must keep
+  `useVisitorSync()` or nothing reloads.
+- `npm run dev` sets a local visitor for `PREVIEW_USER_ID` (roles from
+  `PREVIEW_USER_ROLE`) in `vite.config.ts`.
 
-Register roles in one pass:
-
-The scaffold ships with no roles: `PERMISSION_MATRIX`, `ROLE_METADATA`, and
-`roles.json` start empty, and no role name is reserved — define `admin` only
-if the business genuinely needs a role by that name. Default the first version
-to no more than three roles chosen for materially different permission scopes.
-Do not create one role per page, action, or job title.
+The scaffold ships with no roles (`PERMISSION_MATRIX`, `ROLE_METADATA` and
+`roles.json` start empty; no role name is reserved, define `admin` only if the
+business needs it). Default the first version to no more than three roles with
+materially different permission scopes; never one role per page, action, or job
+title. This is generation guidance, not a build limit: define more roles when
+the business needs distinct permission scopes. Register roles in one pass:
 
 1. Define actions and `PERMISSION_MATRIX` in `src/lib/permissions.ts`.
 2. Mirror every matrix role in `src/lib/role-metadata.ts` and `roles.json` —
-   every role, no exceptions. `role_key` values use ASCII snake_case.
+   every role, no exceptions. Each `roles.json` entry has `role_key` (ASCII
+   snake_case) and a non-empty `name` — `name`, not `display_name`; the
+   platform rejects the whole file otherwise.
 3. Guard APIs with `requireAuth(...)` and UI actions with
    `can(user.roles, action)`; both use permission-union semantics.
 4. Verify each role's reachable navigation and actions.
 
 Role display belongs to the global `Shell` user block only. Do not add page-body copy explaining what Admin, Operator, Member, or another role can do;
 show permission differences through real visibility and access behavior.
-Do not modify `src/start.ts`, `src/lib/{gateway,auth}.ts`, or
-`src/routes/api/auth/**`.
+Do not modify `src/start.ts`, `src/lib/{visitor,auth,server-fn-policy}.ts`,
+or `src/routes/api/auth/**`.
 
 ## UI and Client Runtime
 
-Use `DESIGN.md`, existing tokens, and the shipped primitives as a neutral
-toolkit; choose compositions from the workflow rather than treating this list
-as a mandatory page recipe.
+Use `DESIGN.md`, existing tokens and the shipped primitives
+(`src/components/{ui,forms,overlays,data,actions}`, kit in
+`src/components/kit`); details and rationale are in `docs/ui-rules.md` and
+`docs/component-kit.md`.
 
-- `ui`: `Button`, `StatusBadge`, `Card`, `PageHeader`,
-  `StatusFilterChips`, `RiskBanner`, `EmptyState`, `StatCard`.
-- `forms`: `FieldGroup`, `FormGrid`, `RecordSelect`, `FileUpload`,
-  `LineItemSection`.
-- `overlays`: `Dialog`, `FormDialog`, `ConfirmDialog`, `Drawer`.
-- `data`: `AsyncView`, `DataTable`, `TableViewport`, table cell helpers.
-- `actions`: `RecommendationAction` and `ImpactPreviewDialog` for transparent
-  automatic/recommended/bulk changes.
+- Prefer scaffold-built components for new or changed controls; inspect their
+  props and examples before writing a replacement. For option filters use kit
+  `Select`, for supplied record options use `RecordSelect`, and for action
+  menus use `DropdownMenu`. These are the scaffold's components, not the
+  browser's native widgets. See `docs/component-kit.md` → 选择与操作菜单 for
+  selection guidance and examples. This is non-blocking guidance: preserve
+  hidden native form controls and allow explicit user or workflow exceptions;
+  do not add component-use gates or bulk-migrate existing pages.
+- List-type pages default to `MetaListPage` (`@/components/kit/meta/meta-list-page`)
+  with an application-scoped provider and real data adapter; extend its hooks
+  instead of rebuilding the list shell. Render list content directly on the page
+  canvas; do not wrap it in a decorative `Card` / `PageCard`. Keep the single
+  `page-shell` inset. Use another composition only when the
+  user asks or the workflow does not fit, and record why.
+- Wrap every ordinary `_app` workspace page in
+  `<div className="page-shell ...">`; no second outer `px-*` / `py-*` layer.
+  Station, review and monitor layouts own their spacing.
+- Required fields use `FieldGroup required` / `FieldLabel required` (one red
+  asterisk, right of the title); keep forms controlled and stable.
+- Never call browser-native `alert()`, `confirm()` or `prompt()` (also via
+  `window` / `globalThis` / `self`). Use `toast()`, `Dialog`, `ConfirmDialog`
+  (named object and consequence, `destructive`, `pending`) and `FormDialog`.
+- Load local APIs with `requestJson()` (applies `apiUrl()`) through
+  `useRequest()` / `usePolling()` with stable keys and `AsyncView`. Refresh App
+  records with `useRecordChanges`, not routine Refresh buttons or polling.
+- A failed request must reach `console.error`; never catch and drop a
+  `requestJson()` error. Route `errorComponent`s render `RouteErrorBoundary`
+  and nothing else. `src/router.tsx` already sets it as
+  `defaultErrorComponent`, so new pages need no `errorComponent` of their own.
+- Do not add a page-introduction subtitle that explains navigation or repeats
+  the title. Shell `defaultModules` starts empty; declare real routes through
+  `defineNavigationModules`, one unique href per clickable leaf. Assign every
+  group and leaf a business-appropriate icon imported from `lucide-react`.
+- Interactive pages remain usable at 375px without page-level overflow; wide
+  tables own their horizontal scroll region and search/filter controls have a
+  bounded width. Check affected pages at a real 375px viewport when browser
+  tooling is available, and report when it could not be run.
+- Use `ClientOnly` for Recharts, dnd-kit, motion layout and browser-only
+  render paths. Keep `.tsx` modules component-only; use TailwindCSS 4 through
+  `src/styles/globals.css`, no `tailwind.config.js` or second design system.
+- Never import `gallery/fixtures.ts` into an app; enabled inputs use white
+  surfaces, gray fill only for disabled controls.
 
-List-type pages (master data, ledgers, documents, tasks, and searchable record
-collections) default to `MetaListPage` from
-`@/components/kit/meta/meta-list-page`. Configure the object metadata and extend
-its `onCreate`, `onOpenRecord`, `rowActions`, `batchActions`, `cellRenderers`,
-`headerExtra`, and `toolbarExtra` hooks rather than rebuilding the query,
-view, column, sorting, and pagination shell. Follow
-[docs/component-kit.md](docs/component-kit.md#列表类型页面默认使用-metalistpage)
-for the application-scoped provider, real data adapter, and permission contract.
-`DataGrid` / `DataTable` are lower-level tables; `DetailTable` is for editable
-line items, not the default list-page foundation. Enable only capabilities the
-business needs and the application actually implements.
+## Tier0 SDK and Platform
 
-Use a different composition when the user explicitly requests it or a concrete
-workflow does not fit a metadata list (for example a chart-first report,
-Kanban/Gantt board, scan-first station, or embedded detail table). Record that
-reason in implementation notes; do not invent a new list shell for cosmetic
-variation. A narrow repair to an existing working page does not by itself
-require migrating the whole page.
+Read `node_modules/@tier0/sdk-v2/skills/tier0-sdk-v2/SKILL.md` before SDK
+work, then follow its nested domain Skill for the operation. The installed
+package's types and Skills describe this version; an SDK repository update
+alone neither upgrades the App nor refreshes platform-managed Skills.
 
-Wrap every ordinary `_app` workspace page in
-`<div className="page-shell ...">`. The shared class provides responsive page
-padding (compact on phones, wider on desktop) and keeps direct children
-shrinkable; keep page-specific vertical rhythm such as `space-y-6` on the same
-element. Do not add a second outer `px-*` / `py-*` layer. Station, review, and
-monitor layouts own their spacing separately and do not use `page-shell`.
+Use the installed `@tier0/sdk-v2` (`0.15.0` from npm, pinned exactly in `package.json`;
+never change that dependency) for platform info (`tier0.system.info()`),
+workspace members (`tier0.members.listWorkspace`), App-scoped member pickers
+(`tier0.members.listApp({ appId: resolveAppId() })`), notifications, files and
+MQTT (`Tier0MQClient`, server only). Load it lazily inside the
+server action through `@/lib/tier0` (`loadTier0Sdk()`, `loadTier0Mq()`); never
+top-level import or invoke it on SSR startup paths, and keep `vite.config.ts`
+`ssr.external: ["@tier0/sdk-v2", "mqtt"]`. App records use `@/lib/data`, not
+`tier0.uns`. The platform injects `TIER0_RUNTIME` (`preview` in Builder
+preview, `deployed` online) and the SDK sends the matching `scope`, so preview
+lists the draft roles' members and the live App its published roles'. Never
+pass `scope` by hand, set `TIER0_RUNTIME` in `artifact.toml` or `.env`, or block
+on the response's `published` flag; the hosted key's response has no email
+(`email` is empty, show `userName`). Members carry `avatarUrl`, a 24h temporary
+image URL (`""` without an avatar): show it with the kit `Avatar` (`src`), which
+falls back to a User icon; store only `userId`, never the URL.
+Notification channels, MQTT and credential handling:
+`docs/platform-integration.md`.
+MQTT runs on the App's server only; pages never connect to the broker. When a
+page needs live messages, one server-side subscription per process forwards
+what the current user may see through an App route as server-sent events
+(example in `docs/platform-integration.md`, "Forwarding MQTT messages to the
+browser"). The App's key may publish and subscribe only in the App's own
+namespace `apps/<TIER0_APP_ID>/<preview|deployed>/…`: build every topic with
+`appTopic(suffix)` from the same module (`const { Tier0MQClient, appTopic } =
+await loadTier0Mq()`, e.g. `appTopic("alarms/#")`), never a hand-written app
+id, runtime segment or topic outside it (the broker refuses those). Preview
+and the deployed App use separate segments and never see each other's
+messages. Outside Preview and deployments `appTopic` throws.
+Preview member queries use draft roles automatically through the SDK and the
+platform-injected `TIER0_RUNTIME`; publishing is not a prerequisite. Do not
+block assignment on `published`, hard-code members, set runtime variables in
+App code, or replace App membership with the whole Workspace. Diagnose an
+unexpected empty list using the installed SDK, preview runtime and role bindings.
+- **Not supported for the App in Preview and deployments**, so do not use or
+  recommend them: `tier0.system.whoami`, `tier0.notifications.get`,
+  `tier0.mqttAuth` and `tier0.agent`. `tier0.source` and `tier0.stream`
+  management is refused for the App's key (403).
 
-Required fields use `FieldGroup required` or `FieldLabel required` with plain
-title text. Show exactly one red asterisk to the right of the title, never
-below the control. Do not hand-write stars, reverse label direction, or put
-controls inside `FieldLabel`. Keep `required` / `aria-required` and validation
-on the control separately; the marker is visual only.
-
-Keep forms controlled and stable: do not key fields from their current value or
-declare field components inside a form render. Validate inputs and show
-success/error through `toast()`.
-
-Never call the browser-native `alert()`, `confirm()`, or `prompt()` APIs,
-including through `window`, `globalThis`, or `self`. They expose the Preview
-host, block the page, and cannot follow the app's theme, locale, or mobile
-layout. Use the application primitives instead:
-
-- Use `toast()` for success, failure, and other information that does not need
-  acknowledgement. Use `Dialog` when acknowledgement is part of the workflow.
-- Use `ConfirmDialog` for risky or irreversible actions. Name the affected
-  object and consequence, use a concrete action label such as Delete or
-  Deactivate, set `destructive` when appropriate, and wire `pending` so a
-  submission cannot be repeated. Cancelling before submission must not mutate
-  data. `pending` disables footer actions, but does not block Esc, backdrop or
-  header-close dismissal. Choose the in-flight close policy for the workflow:
-  guard `onOpenChange(false)` while pending if dismissal must wait; if dismissal
-  is allowed, retain operation state and report the eventual result. Closing
-  does not abort an already-submitted request. Handle async errors in the caller.
-- Use `FormDialog` for requested input, with controlled fields, validation, and
-  an explicit submit label.
-
-Load local APIs with `requestJson()` (it applies `apiUrl()`); pass the loader
-`signal` through. Shared loads use stable primitive request keys with
-`useRequest()` / `usePolling()`; do not depend on a newly created loader
-function each render. Render request state through `AsyncView` so failures show
-an error and retry instead of indefinite loading.
-
-Keep live data current without routine Refresh buttons: `useRequest` revalidates
-on visible/reconnect; use `{ refetchInterval: 15000 }` for shared operational
-lists. Call `refresh()` after a successful mutation and for error retry. Keep
-form drafts separate from fetched data so background updates cannot erase edits;
-immutable reads can disable `refetchOnWindowFocus` / `refetchOnReconnect`.
-
-A failed request must reach `console.error`, never only an error state:
-`requestJson()` reports a non-2xx response with the server `cause` before it
-throws (a 5xx is also sent to the Builder preview as a `network` error, which
-shows its blocking error card), and the hooks report any other loader failure. The Builder preview
-console only sees `console.error`; a silently caught fetch looks like an empty
-page while the real cause stays in the server log. Do not wrap `requestJson()`
-in a `catch` that drops the error.
-
-Route `errorComponent`s render `RouteErrorBoundary` and nothing else. It shows
-no visible error UI: the Builder preview intercepts the failure through the
-preview bridge and shows its own error card with Retry and Agent fix. Do not
-add a page-level "failed to load" headline, message, or Retry button.
-
-Do not add a page-introduction subtitle that explains navigation or repeats the title.
-Put actionable rules and risk beside the affected record/control. Role
-summaries stay out of page content. Shell `defaultModules` starts empty; declare
-real workspace routes through `defineNavigationModules`, using one unique href
-per clickable leaf. Do not create an Overview module unless the product needs one.
-
-Wide tables own their horizontal scroll region. Interactive pages remain usable
-at 375px without page-level overflow; station controls are touch-friendly and
-monitor boards fit their intended viewport. `npm run build` checks known source
-patterns through the locked `src/lib/responsive-contracts.test.mjs` gate; it
-does not measure rendered layout or prove 375px usability. Inspect affected
-pages at a real 375px viewport when browser tooling is available, and report
-when that check could not be run. The static checks cover these patterns:
-
-- A search or filter control declares a **bounded** width. `flex-1` alone lets it
-  swallow the whole toolbar on a wide screen and squeeze its siblings on a narrow
-  one, so pair it with a ceiling — `w-full max-w-xs`, or `min-w-0 flex-1 max-w-sm`
-  when it must share a row. This applies to `input`, `select` and `textarea`;
-  `flex-1` on layout containers is unaffected.
-- A minimum width above 375px belongs **inside** a horizontal scroll region.
-  Copy `TableViewport`: `overflow-x-auto` on the outer element, `min-w-[720px]`
-  on the inner one, so the sideways scroll stays local instead of moving the page. Use `ClientOnly` for Recharts,
-dnd-kit, motion layout, or browser-only render paths. Recharts also needs a
-non-zero container and `ResponsiveContainer`.
-
-Keep `.tsx` component modules component-only for Fast Refresh; put runtime
-constants/helpers in sibling `.ts` files. Import motion from `@/lib/motion`.
-Use TailwindCSS 4 through `src/styles/globals.css`; do not add
-`tailwind.config.js`, PostCSS wiring, or a second design system.
-
-## Tier0 SDK
-
-Use the installed `@tier0/sdk` when requirements involve Tier0 OpenAPI, UNS,
-Flow, files, MQTT/MQ/WebSocket, or device commands. Call lazy helpers from
-`@/lib/tier0` inside the concrete server action; do not top-level import or
-invoke SDK submodules on SSR startup paths. Keep `vite.config.ts`
-`ssr.external: ["pg", "@tier0/sdk", "mqtt"]`.
-
-The SDK baseline is `^0.5.4` (locked to `0.5.4`). For notifications, omitted
-`channels` means Web & Desktop plus Mobile; use `[]` for inbox only, `['web']`
-or `['mobile']` for explicit scope. There is no `desktop` channel. When
-upgrading an existing app, change calls that relied on omitted channels for
-silent delivery to `channels: []`. See `docs/platform-integration.md` for
-notification migration, MQTT broker handling, and API-key compatibility diagnostics.
-For MQTT authentication failures, check the installed SDK and injected key type
-before changing credentials; do not hard-code username/clientId to bypass SDK
-identity derivation.
-
-The platform injects SDK hosts, keys, and connection details. Do not add them
-to `.env.example`, business tables, or user-facing settings unless the user
-explicitly requests an operator-managed credential console. Keep human app
-names separate from `APP_ID`/manifest runtime identifiers.
-
-When the app must identify itself to the platform (notification `sender.id`
-and similar), use `resolveAppId()` from `@/lib/app-id` — the platform-injected
-`APP_ID`, i.e. the agent-platform App UUID — read at runtime. Never hard-code
-its value at generation time: an imported copy of the app gets a new UUID and
-a hard-coded value keeps pointing at the source app, so the notification's
-name, icon and Open button silently break.
-
-Do not use the sandbox file system for application-generated or user-uploaded
-data. Use the platform File Storage API instead.
+- The platform provides the SDK's hosts and the App's identity
+  (`TIER0_API_HOST`, `TIER0_MQTT_HOST`, `TIER0_MQTT_PORT`, `TIER0_WORKSPACE_ID`, `TIER0_APP_ID`,
+  `TIER0_RUNTIME`, `VITE_BASE_PATH`); see `docs/platform-integration.md`. Do not add them to
+  `.env.example`, collections or user-facing settings. Apps have no database
+  connection variables.
+- For AI features the platform also provides `TIER0_LLM_BASE_URL` (the
+  workspace token gateway, OpenAI-compatible) and `TIER0_LLM_API_KEY` (a
+  placeholder, not a secret: the platform's egress replaces it with the
+  workspace key). Only `@/services/ai/provider` uses them; do not add them to
+  `.env.example`, collections or user-facing settings, and never configure a
+  real LLM key or another gateway in App code.
+- **In Preview and deployments the App's key is in the App's process
+  environment** as `TIER0_API_KEY` (a secret: Preview runs with the App's
+  preview key, deployments with the deployed one), and the SDK uses it by
+  itself. Never read, copy, log or return it from App code, put it into
+  `.env.example`, collections, pages or user-facing settings, or generate or
+  hard-code a key.
+- Scripts and App code call the platform through the SDK, never with a
+  hand-written `fetch` / `curl` to `TIER0_API_HOST`.
+- Every App has the same fixed platform capabilities: members, notifications
+  (send), files, Stream requests and Stream messages, and the workspace LLM
+  (see AI Features), bounded by the workspace plan. Nothing is configured or
+  approved per App and there is no permission request to file from code.
+- Data: the App accesses its own collections and external collections granted
+  to it. For task-required access to existing collections, built-in Builder uses its
+  injected management identity and the installed SDK grant workflow. Verify the
+  real target App and collection in the same workspace; use only required access.
+  Read the current policy, apply incremental `changes` with `expectedRevision`,
+  preserve other grants and disabled status, then verify the committed receipt,
+  policy readback and effective access with the App identity. A revision conflict
+  requires rereading; an unknown write outcome requires reconciliation before retry.
+  Do not request an Owner/Admin role or repeat confirmation solely because this is
+  Builder; clarify ambiguous targets or access outside the requested task.
+  Backend authorization still applies. Never use an App runtime key to manage
+  grants or bypass a 403 by changing credentials or copying collections.
+  A grant or its removal applies from the next request, without republishing.
+- Real-time data in the browser: use `useRecordChanges`; any other stream of
+  the App's own routes uses `openEventStream` from `@tier0/sdk-v2/event-stream`,
+  never a hand-written `EventSource`. It closes the connection while the page
+  is hidden and resumes from the last event id when the page is visible again,
+  and it comes back after the App sleeps (`EventSource` never retries a 503). A hand-written WebSocket does not come back
+  after a node agent restart either; reconnect it yourself.
+  The one exception is an AI chat reply: a POST to the App's own route
+  answered with a UI message stream, read with `useChat` from `@ai-sdk/react`
+  (see AI Features). It is not resumed after a reload or a dropped
+  connection; the user sends the turn again.
+- `GET /api/health` stays free of dependencies (contract in `artifact.toml`).
+- `.tier0ignore` (gitignore syntax) keeps local files out of the published source.
+- Do not use the sandbox file system for application-generated or uploaded
+  data; use the platform File Storage API.
 
 ## App Identity and Product Copy
 
@@ -415,84 +503,114 @@ explicit locale unless bilingual output is requested.
 
 `APP_ID` is a platform-owned runtime identifier: the agent-platform App UUID,
 injected into Preview and deployed runs. Never hard-code, rename, or surface
-it as the app's name or business identity.
-Without injection it resolves to `local-app` (`src/lib/app-id.ts`) — a
-local-development placeholder only. The full contract lives in
-`docs/platform-integration.md`.
+it as the app's name or business identity; read it at runtime with
+`resolveAppId()` from `@/lib/app-id` (e.g. notification `sender.id`). Without
+injection it resolves to `local-app` — a local-development placeholder only.
 
-On first generation and every rebrand, complete all four steps below before
-reporting App Identity finished. Platform-registered image assets must have a
-stable source copy at the project root so Download Source Code and Download
-Snapshot retain the same files; never register a temporary or workspace-external
-file as the only copy.
+On first generation and every rebrand, complete all steps before reporting App
+Identity finished; registered images keep a stable source copy at the project
+root, never a temporary or workspace-external file:
 
-1. Create a domain-specific app icon following `DESIGN.md` → App Icons and export the final asset as
-   root `icon.png` (512×512, ≤2 MB). This matches the platform import/export
-   package name. Coded artwork is allowed: SVG,
+1. Create a domain-specific icon following `DESIGN.md` → App Icons, exported
+   as root `icon.png` (512×512, ≤2 MB). Coded artwork is allowed: SVG,
    Canvas, Node, HTML/browser rendering, or another deterministic drawing path
-   may be used to produce the PNG. Use a rounded-square tile, a vivid tonal
-   gradient, and a centered white or lightly tinted business symbol with subtle
-   highlights and shallow layered depth. Keep generous padding and a clear
-   silhouette at 32px; omit text and fine detail. Do not leave the scaffold
-   placeholder unchanged.
+   may produce the PNG. Do not leave the scaffold placeholder unchanged.
 2. Copy that exact file byte-for-byte to `public/app-icon.png` (also 512×512,
-   ≤2 MB), then set `APP_ICON = "/app-icon.png"` in `src/lib/app-chrome.ts`.
-   The public copy is the runtime asset; root `icon.png` is the durable
-   registration/export source. Never generate the two copies independently.
-3. Sync the root source with `update_app_info({ icon_path: "icon.png" })`,
-   including name/description when changed. If either root persistence or the
-   public copy fails, do not register the icon or report App Identity complete.
-4. When registering a designed/generated cover with `cover_path`, first save
-   the final file as root `cover.png` (PNG, ≤8 MB), matching the platform
-   package name, then call `update_app_info({ cover_path: "cover.png" })`.
-   This rule applies on first generation and every cover change; do not
-   register a temporary path or a second independently generated image. If
-   both icon and cover change, persist both root files before one
-   `update_app_info` call.
+   ≤2 MB) and set `APP_ICON = "/app-icon.png"` in `src/lib/app-chrome.ts`.
+   Never generate the two copies independently.
+3. Sync with `update_app_info({ icon_path: "icon.png" })`, including
+   name/description when changed. If either copy failed, do not register the
+   icon or report App Identity complete.
+4. A designed cover is saved as root `cover.png` (PNG, ≤8 MB) before
+   `update_app_info({ cover_path: "cover.png" })`. When icon and cover both
+   change, persist both files before one `update_app_info` call.
 
 Page titles name the work. Visible copy describes business data, state, action,
 or consequence—not design-system commentary or implementation notes. Remove
 scaffold/default branding from the finished app.
+
+## App Stream requests and messages
+
+`client.streams.requests` (invoke a Stream's request code) and
+`client.streams.messages` (live Stream business messages) are fixed
+capabilities of every App, used from the App's server only through
+`createClient()` with the App's key; pages call the App's own routes. The
+workspace plan must include Stream; a request code must be granted to this
+App in the Stream request grants; a message topic must be declared by a
+published Stream manifest (subscribe to what a Stream publishes, publish to
+what an active Stream subscribes to). There is no per-App topic list. When a
+call is refused for one of these, tell the user what is missing; do not work
+around it: no retired Control APIs, interpreter selectors, second control
+credential, browser-side platform call or synthesized identity. Persisted
+business data stays in `@/lib/data` (with `useRecordChanges` for live
+updates). Usage: `docs/platform-integration.md`, "App Stream requests and
+messages".
+
+## AI Features
+
+Add AI only when the user asks for it. The scaffold ships the pieces and mounts
+none of them: `tier0Model()` in `src/services/ai/provider.ts`, an example agent
+loop with tools in `src/services/ai/chat.ts`, the route
+`src/routes/api/ai/chat.ts` and `ChatPanel` in `src/components/ai`. Adapt them
+in place instead of adding a second AI stack. Details:
+`docs/platform-integration.md`, "Calling the workspace LLM".
+
+- Call the LLM on the App's server only (API routes, services, server
+  functions). Pages use `useChat` with
+  `new DefaultChatTransport({ api: apiUrl("/api/ai/chat") })` or call another
+  App route; the browser never reaches the gateway.
+- Name models only by alias; the gateway maps it to a real model. There are
+  two: `tier0Model()` (`default`) for chat and agent loops with tools, and
+  `tier0Model("fast")` for high-volume simple calls (classify, extract,
+  summarize, rewrite, batch jobs, short answers). When unsure, use `default`.
+  Any other alias throws. Never pass a string model id (`model: "..."`): the
+  AI SDK resolves a bare string through its own global gateway, not the
+  workspace. Do not add another provider package, base URL or key.
+- Tools run as the App, with the App's data access; the platform does not
+  narrow it by user. Build the tool set per request from `requireAuth()` and
+  include a tool only when `can(user.roles, action)` allows it; filter and trim
+  what a tool returns the same way, and send writes through the same service,
+  validation and audit path as the UI.
+- Never put the App's key, another secret or data the visitor may not see into
+  instructions, messages or tool output.
+- Pass the request's `signal` as the model call's `abortSignal` (the data
+  layer gets it from `src/start.ts`, the model call does not) and bound the
+  loop with `stopWhen: isStepCount(n)`.
+- The installed AI SDK is v7 (`ai`, `@ai-sdk/react`,
+  `@ai-sdk/openai-compatible`, runtime dependencies). Read
+  `node_modules/ai/docs` and the package types before AI work; v4–v6 examples
+  (`system:`, `maxSteps`, `toDataStreamResponse`,
+  `result.toUIMessageStreamResponse()`) are outdated.
 
 ## Build, Gates, and Deployment
 
 Run `npm run build` for completion. Its postbuild verifies the client/SSR
 bundle, gate integrity, TypeScript, ESLint, contracts, runtime safety, and
 first-load behavior. UI advisories are review prompts rather than failures.
+
+Generation guidance (role count, page copy, lifecycle/caller heuristics,
+component choices, visual recipes and static layout heuristics) is non-blocking.
+Review findings against the requested workflow; do not add fake actions,
+confirmation copy or marker comments just to silence an advisory. Equivalent
+implementations and intentional read-only pages are valid. A malformed or
+missing scaffold version marker also warns in App builds. Authentication,
+permission registration, data contracts, server boundaries, route correctness
+and actual runtime failures remain hard checks. Scaffold CI separately runs
+`SCAFFOLD_GUIDANCE_STRICT=1` to test the template's own defaults.
 Do not bypass completion with `vite build` alone.
 
-Contract files have two classes:
-
-- `src/lib/template-state.test.mjs` describes the blank template and is the only
-  contract test generated apps may adapt.
-- Every other test under `src/lib/`, plus gate/verify/audit scripts and
-  `scripts/gate-integrity.json`, is locked. Do not edit, weaken, or delete it.
-  Use documented opt-outs such as `EXTERNAL_CALLER` / `READ_ONLY_SURFACE`, or
-  report a genuine conflict.
-
-`artifact.toml` `args` are literal POSIX argv. Shell semantics use an explicit
-`["sh", "-c", "..."]`; plain commands use token arrays. Leave build/run args
-unchanged unless the task is deployment work.
-
-Environment contracts are documented in `docs/platform-integration.md`.
-Important names are `DATABASE_URL`, `DIRECT_DATABASE_URL`, `DB_SCHEMA`,
-`DB_SYNC_ALLOW_DESTRUCTIVE`, `APP_ID`, and `VITE_BASE_PATH`
-(`NEXT_PUBLIC_BASE_PATH` is legacy only).
-
-## Scaffold Version
-
-`package.json.tier0Scaffold` (`{ "version": <positive integer>, "ref":
-"<scaffold commit sha>" }`) records which Tier0-App-Scaffold version this app
-was generated from. The platform reads it when the app is imported and prompts
-alignment when it is missing or differs from the current scaffold; nothing at
-runtime depends on it, and `npm run build` only warns when it is missing or
-malformed.
-
-- Never edit `tier0Scaffold` by hand, and never remove it. It is not an app
-  setting, and changing the number does not align anything.
-- The align-platform-app Skill writes the version and ref it was pinned to
-  after a successful alignment; that is the only path that updates the field
-  inside an app.
+- `src/lib/template-state.test.mjs` describes the blank template. Only scaffold
+  CI runs it (`npm run test:template`); it is not part of the App build, so
+  adding business navigation or pages never needs it changed.
+- Every other test under `src/lib/`, the data-layer wiring `src/lib/data/**`,
+  gate/verify/audit scripts and `scripts/gate-integrity.json` are locked. Do
+  not edit, weaken, or delete them. Use documented opt-outs such as
+  `EXTERNAL_CALLER` / `READ_ONLY_SURFACE`, or report a genuine conflict.
+- `artifact.toml` `args` are literal POSIX argv (shell semantics need an
+  explicit `["sh", "-c", "..."]`). Leave build/run args unchanged unless the
+  task is deployment work.
+- `package.json.tier0Scaffold` records the scaffold version; never edit or
+  remove it by hand (only the align-platform-app Skill updates it).
 
 ## Completion Check
 
@@ -500,21 +618,12 @@ malformed.
   blanket CRUD or read-only listing.
 - Every exposed action is reachable, permissioned, validated, persisted, and
   reports success/error; dangerous actions confirm impact.
-- Service boundaries, transactions, state transitions, audit effects, and
-  first-load bootstrap invariants hold.
+- Service boundaries, state transitions, consistency patterns (conditional
+  updates, `expectedRevision`, `data.transact`) and audit effects hold; every
+  collection is declared, listed and seeded in `src/data/collections.ts`.
 - Role matrix, metadata, `roles.json`, navigation, UI actions, and API guards
   agree; multiple roles grant the permission union.
 - Loading, error/retry, empty, and populated states are visible and usable.
 - App identity, locale, platform metadata, navigation, responsive behavior,
   and visible copy form one coherent product.
 - `npm run build` and route smoke pass before completion is reported.
-
-## Generic component kit
-
-Before generating forms, tables or reusable editors, consult
-[docs/component-kit.md](docs/component-kit.md) and reuse `src/components/kit`.
-Keep business objects, services and roles in the application. Data-backed kit
-components require an application-scoped `ComponentKitProvider`; logical resource
-paths do not imply backend endpoints exist. Never import `gallery/fixtures.ts`
-into an app. Preserve existing auth/permission guards and the scaffold theme;
-enabled inputs use white surfaces, with gray fill reserved for disabled controls.

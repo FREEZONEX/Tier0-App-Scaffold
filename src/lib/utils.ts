@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { sendPreviewError } from "@/lib/preview-bridge";
+import { readPlatformError, reportAuthError, type PlatformError } from "@tier0/sdk-v2/page-runtime";
+import { reloadVisitor } from "@/lib/use-visitor";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -69,16 +70,56 @@ export class ApiRequestError extends Error {
   readonly status: number;
   readonly path: string;
   readonly detail: string;
+  /** Platform error code (`sbx_sleeping`, `grant_expired`, ...); absent on the App's own answers. */
+  readonly code?: string;
   /** Already written to console.error; hooks must not log it again. */
   readonly reported = true;
 
-  constructor(status: number, path: string, detail: string) {
+  constructor(status: number, path: string, detail: string, code?: string) {
     super(`HTTP ${status} ${path}${detail ? `: ${detail}` : ""}`);
     this.name = "ApiRequestError";
     this.status = status;
     this.path = path;
     this.detail = detail;
+    this.code = code;
   }
+}
+
+/**
+ * The page has nothing to show for these: the platform runtime owns the
+ * banner, and `resumed` makes the hooks load again.
+ */
+export function isAppWaiting(error: unknown): boolean {
+  const code = (error as { code?: unknown } | null)?.code;
+  return code === "sbx_sleeping" || code === "sbx_starting";
+}
+
+/** A node agent restart or a dropped instance: a read may go again, once. */
+const TRANSIENT_CODES = new Set(["node_restarting", "upstream_error"]);
+const TRANSIENT_RETRY_MAX_MS = 5_000;
+const TRANSIENT_RETRY_DEFAULT_MS = 1_000;
+
+/** The platform reported a transient failure: trying again later can succeed. */
+export function isTransientFailure(error: unknown): error is { code: string } {
+  const code = (error as { code?: unknown } | null)?.code;
+  return typeof code === "string" && TRANSIENT_CODES.has(code);
+}
+
+function transientWait(failure: PlatformError | undefined, method: string): number | undefined {
+  if (!isTransientFailure(failure) || (method !== "GET" && method !== "HEAD")) return undefined;
+  return Math.min(failure.retryAfterMs ?? TRANSIENT_RETRY_DEFAULT_MS, TRANSIENT_RETRY_MAX_MS);
+}
+
+function wait(ms: number, signal: AbortSignal | null | undefined): Promise<void> {
+  return new Promise((resolve) => {
+    const done = () => {
+      clearTimeout(timer);
+      signal?.removeEventListener("abort", done);
+      resolve();
+    };
+    const timer = setTimeout(done, ms);
+    signal?.addEventListener("abort", done);
+  });
 }
 
 function extractApiErrorDetail(body: string): string {
@@ -105,11 +146,11 @@ function extractApiErrorDetail(body: string): string {
  * Fetch a local API route and parse its JSON body.
  *
  * A non-2xx response is **reported and then thrown** as `ApiRequestError`:
- *   - every failure is written to `console.error` (the preview console relays
- *     it), and
- *   - a 5xx is also sent over the preview bridge as a `network` error, so the
- *     Builder shows its blocking error card with the server cause and an
- *     "Ask Agent to Fix" action instead of a page that just says "Load failed".
+ *   - App failures are written to `console.error` (the preview console relays
+ *     them), and
+ *   - the caller handles the error locally, e.g. with `AsyncView` or a form.
+ * A failed API request does not mean the page failed to render. Only the route
+ * error boundary reports a rendering failure through the preview bridge.
  *
  * Never swallow it silently: a quiet failure looks like an empty page while
  * the real cause (e.g. a failed query) stays hidden in the server log. Pass
@@ -120,21 +161,30 @@ export async function requestJson<T>(
   path: string,
   init: RequestInit = {},
 ): Promise<T> {
-  const res = await fetch(apiUrl(path), { cache: "no-store", ...init });
+  const method = (init.method ?? "GET").toUpperCase();
+  let res = await fetch(apiUrl(path), { cache: "no-store", ...init });
+  let failure = res.ok ? undefined : await readPlatformError(res);
+  const retryAfter = transientWait(failure, method);
+  if (retryAfter !== undefined) {
+    await wait(retryAfter, init.signal);
+    res = await fetch(apiUrl(path), { cache: "no-store", ...init });
+    failure = res.ok ? undefined : await readPlatformError(res);
+  }
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     const error = new ApiRequestError(
       res.status,
       path,
       extractApiErrorDetail(body),
+      failure?.code,
     );
-    console.error("[api]", error.message);
-    // Server-side failure: surface it to the Builder preview card. 4xx are
-    // client-facing outcomes (validation, missing record) the page handles
-    // itself; only the browser can post to the parent window.
-    if (res.status >= 500 && typeof window !== "undefined") {
-      sendPreviewError(error.message, "network");
+    // A platform authorization failure goes to the runtime; its `resumed` reloads the visitor.
+    const platformAuthFailure = reportAuthError(failure?.code);
+    // A write the App refused: the visitor's roles may have changed since the page loaded.
+    if (!platformAuthFailure && (res.status === 401 || res.status === 403) && method !== "GET" && method !== "HEAD") {
+      reloadVisitor();
     }
+    if (!isAppWaiting(error)) console.error("[api]", error.message);
     throw error;
   }
   return (await res.json()) as T;

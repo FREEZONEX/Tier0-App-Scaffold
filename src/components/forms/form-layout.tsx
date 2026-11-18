@@ -103,7 +103,7 @@ export function LineItemSection({
       {...props}
       data-line-item-section="true"
       className={cn(
-        "min-w-0 overflow-hidden rounded-md border border-border bg-card",
+        "min-w-0 overflow-hidden rounded-[4px] border border-border bg-card",
         className,
       )}
     >
