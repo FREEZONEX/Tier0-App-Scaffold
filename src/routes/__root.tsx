@@ -6,7 +6,8 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { Toaster } from "@/components/toaster";
-import { APP_LOCALE, APP_NAME } from "@/lib/app-chrome";
+import { APP_DEFAULT_LOCALE, APP_NAME } from "@/lib/app-chrome";
+import { LocaleProvider } from "@/lib/locale";
 import { useVisitorSync } from "@/lib/use-visitor";
 import "@fontsource/ibm-plex-sans/400.css";
 import "@fontsource/ibm-plex-sans/500.css";
@@ -56,13 +57,17 @@ function RootDocument() {
   // Reload the visitor in route context when the server may see other roles.
   useVisitorSync();
   return (
-    <html lang={APP_LOCALE} className="h-full antialiased font-sans">
+    // `lang` is the first-screen language; LocaleProvider updates the DOM
+    // attribute itself when the platform's language arrives.
+    <html lang={APP_DEFAULT_LOCALE} className="h-full antialiased font-sans">
       <head>
         <HeadContent />
       </head>
       <body className="min-h-full font-sans">
-        <Outlet />
-        <Toaster />
+        <LocaleProvider>
+          <Outlet />
+          <Toaster />
+        </LocaleProvider>
         <Scripts />
       </body>
     </html>

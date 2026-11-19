@@ -22,7 +22,8 @@ import { Tooltip } from "@/components/kit/ui/tooltip";
 import { OfflineBanner } from "@/components/ui/offline-banner";
 import { cn } from "@/lib/utils";
 import type { AppUser } from "@/lib/users";
-import { APP_ICON, APP_NAME, filterSidebarModules, uiText } from "@/lib/app-chrome";
+import { APP_ICON, APP_NAME, filterSidebarModules } from "@/lib/app-chrome";
+import { useUiText } from "@/lib/locale";
 import { resolveNavIconComponent } from "./nav-icons";
 import { getRoleMetadata } from "@/lib/role-metadata";
 import {
@@ -203,6 +204,7 @@ export function Shell({
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   });
+  const uiText = useUiText();
   validateNavigationModules(modules);
   const sidebarModules = filterVisibleModules(
     filterSidebarModules(modules),

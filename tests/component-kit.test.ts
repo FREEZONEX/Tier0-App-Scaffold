@@ -10,6 +10,7 @@ import { formatNumber, parseNumberText, isTypingNumber } from '../src/components
 import { fileExtension, isPdfFile } from '../src/components/kit/ui/file-utils';
 import { validateCodeRuleDraft } from '../src/components/editors/code-rules/code-rule-model';
 import { Avatar } from '../src/components/kit/ui/avatar';
+import { UiText } from '../src/lib/locale';
 
 const field: FieldDef = { code: 'name', name: '名称', type: 'TEXT', widget: {required: true} };
 const sections: SectionDef[] = [{key:'base',label:'基本信息',type:'form',zone:'FORM_HEADER',items:[field]}];
@@ -201,9 +202,15 @@ test('Avatar renders the image, else the User icon fallback, with tokens only', 
   for (const html of [image, render({ name: 'mercy', src: '' })]) assert.doesNotMatch(html, /style=|#[0-9a-f]{3,6}\b/i);
 });
 
-/** uiText as renderToString escapes it. */
-async function copy(key: Parameters<typeof import('../src/lib/app-chrome').uiText>[0]) {
- const { uiText } = await import('../src/lib/app-chrome');
+/** The shared UI labels in APP_DEFAULT_LOCALE, the language of server rendering. */
+async function firstScreenUiText() {
+ const { APP_DEFAULT_LOCALE, UI_COPY, translate } = await import('../src/lib/app-chrome');
+ return { uiText: (key: import('../src/lib/app-chrome').UiTextKey) => translate(UI_COPY, APP_DEFAULT_LOCALE, key) };
+}
+
+/** A first-screen UI label as renderToString escapes it. */
+async function copy(key: import('../src/lib/app-chrome').UiTextKey) {
+ const { uiText } = await firstScreenUiText();
  return uiText(key).replace(/&/g, '&amp;').replace(/'/g, '&#x27;').replace(/"/g, '&quot;');
 }
 
@@ -215,7 +222,7 @@ async function renderFailure(error: Error, extra: {data?: unknown; isLoading?: b
  return {html: renderToString(createElement(AsyncView<unknown>, props)), view: AsyncView<unknown>(props), calls};
 }
 
-/** Expands hook-free function components and returns the first element matching `match`. */
+/** Expands hook-free function components (not the `UiText` label leaves) and returns the first element matching `match`. */
 function findElement(node: unknown, match: (props: Record<string, unknown>) => boolean): {props: Record<string, unknown>} | null {
  if (Array.isArray(node)) {
   for (const child of node) { const hit = findElement(child, match); if (hit) return hit; }
@@ -224,7 +231,7 @@ function findElement(node: unknown, match: (props: Record<string, unknown>) => b
  if (!node || typeof node !== 'object' || !('props' in node)) return null;
  const element = node as {type: unknown; props: Record<string, unknown>};
  if (match(element.props)) return element;
- if (typeof element.type === 'function') return findElement((element.type as (props: unknown) => unknown)(element.props), match);
+ if (typeof element.type === 'function' && element.type !== UiText) return findElement((element.type as (props: unknown) => unknown)(element.props), match);
  return findElement(element.props.children, match);
 }
 
@@ -260,8 +267,7 @@ test('AsyncView names only transient platform codes, never guesses from text or 
 });
 
 test('AsyncView Retry calls refresh and shows the retry in flight', async () => {
- const { uiText } = await import('../src/lib/app-chrome');
- const isRetry = (props: Record<string, unknown>) => props.children === uiText('retry') && typeof props.onClick === 'function';
+ const isRetry = (props: Record<string, unknown>) => (props.children as {type?: unknown; props?: {id?: string}} | undefined)?.type === UiText && (props.children as {props: {id: string}}).props.id === 'retry' && typeof props.onClick === 'function';
  const idle = await renderFailure(new Error('HTTP 500 /api/orders'));
  const retry = findElement(idle.view, isRetry);
  assert.ok(retry, 'Retry button is rendered');
@@ -274,7 +280,7 @@ test('AsyncView Retry calls refresh and shows the retry in flight', async () => 
 });
 
 test('AsyncView never shows a failed load as empty or loaded', async () => {
- const { uiText } = await import('../src/lib/app-chrome');
+ const { uiText } = await firstScreenUiText();
  for (const extra of [{data: []}, {empty: 'NOTHING-HERE'}, {isLoading: true}]) {
   const error = new Error('HTTP 500 /api/orders');
   const { html } = await renderFailure(error, extra.data ? {} : extra);

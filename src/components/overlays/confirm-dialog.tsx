@@ -1,7 +1,7 @@
 "use client";
 
 import { useId } from "react";
-import { uiText } from "@/lib/app-chrome";
+import { useUiText } from "@/lib/locale";
 import { Dialog } from "@/components/overlays/dialog";
 import { OverlayActionButton } from "@/components/overlays/overlay-frame";
 import { RiskBanner } from "@/components/ui/risk-banner";
@@ -29,13 +29,14 @@ export function ConfirmDialog({
   onOpenChange,
   title,
   description,
-  confirmLabel = uiText("confirm"),
-  cancelLabel = uiText("cancel"),
+  confirmLabel,
+  cancelLabel,
   destructive = false,
   pending = false,
   onConfirm,
 }: ConfirmDialogProps) {
   const descriptionId = useId();
+  const uiText = useUiText();
 
   return (
     <Dialog
@@ -48,12 +49,12 @@ export function ConfirmDialog({
       footer={
         <>
           <OverlayActionButton
-            action={{ label: cancelLabel, variant: "outline", disabled: pending }}
+            action={{ label: cancelLabel ?? uiText("cancel"), variant: "outline", disabled: pending }}
             onDefaultClick={() => onOpenChange(false)}
           />
           <OverlayActionButton
             action={{
-              label: confirmLabel,
+              label: confirmLabel ?? uiText("confirm"),
               variant: destructive ? "destructive" : "primary",
               loading: pending,
             }}

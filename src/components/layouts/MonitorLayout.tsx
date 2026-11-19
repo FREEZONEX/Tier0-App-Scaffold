@@ -4,7 +4,8 @@ import { type ReactNode } from "react";
 import { Activity } from "lucide-react";
 import type { AppUser } from "@/lib/users";
 import { OfflineBanner } from "@/components/ui/offline-banner";
-import { APP_NAME, uiText } from "@/lib/app-chrome";
+import { APP_NAME } from "@/lib/app-chrome";
+import { useUiText } from "@/lib/locale";
 
 function formatClock(value: Date | string | number): string | null {
   const date = value instanceof Date ? value : new Date(value);
@@ -37,6 +38,7 @@ export function MonitorLayout({
   updatedAt?: Date | string | number | null;
   children: ReactNode;
 }) {
+  const uiText = useUiText();
   const clock = updatedAt === undefined || updatedAt === null ? null : formatClock(updatedAt);
   return (
     <div className="monitor-frame flex h-dvh flex-col overflow-hidden bg-background text-foreground">

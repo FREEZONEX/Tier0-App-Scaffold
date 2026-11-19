@@ -4,7 +4,8 @@ import { type ReactNode } from "react";
 import { ClipboardCheck, ShieldCheck } from "lucide-react";
 import type { AppUser } from "@/lib/users";
 import { OfflineBanner } from "@/components/ui/offline-banner";
-import { APP_NAME, uiText } from "@/lib/app-chrome";
+import { APP_NAME } from "@/lib/app-chrome";
+import { useUiText } from "@/lib/locale";
 import { getRoleMetadata } from "@/lib/role-metadata";
 
 /**
@@ -54,6 +55,7 @@ export function ReviewLayout({
 }
 
 function UserBadge({ user, icon }: { user?: AppUser | null; icon: ReactNode }) {
+  const uiText = useUiText();
   const roles = (user?.roles ?? []).map((role) => getRoleMetadata(role).label).join(" · ");
   return (
     <div
