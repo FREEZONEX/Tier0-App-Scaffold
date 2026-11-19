@@ -1381,7 +1381,7 @@ body {
 
 /* Enabled surfaces remain white. Gray is reserved for disabled controls; enabled text entry is white. */
 select:not(:disabled),[role="listbox"]:not([aria-disabled="true"]),[role="menu"]:not([aria-disabled="true"]),[role="combobox"]:not(input):not([aria-disabled="true"]){background-color:var(--card)!important}
-button:disabled,input:disabled:not([data-bare-control]),textarea:disabled,select:disabled,[role="button"][aria-disabled="true"],.tier0-control-disabled{background-color:var(--tier0-disabled-bg)!important;color:var(--tier0-disabled-text)!important;border-color:var(--tier0-disabled-border)!important;opacity:1!important;box-shadow:none!important;cursor:not-allowed}
+button:disabled:not([data-bare-control]),input:disabled:not([data-bare-control]),textarea:disabled,select:disabled,[role="button"][aria-disabled="true"],.tier0-control-disabled{background-color:var(--tier0-disabled-bg)!important;color:var(--tier0-disabled-text)!important;border-color:var(--tier0-disabled-border)!important;opacity:1!important;box-shadow:none!important;cursor:not-allowed}
 .tier0-text-field:not(.tier0-control-disabled){background-color:var(--tier0-input-bg)}
 .tier0-text-field:focus-within:not(.tier0-control-disabled){background-color:var(--card)}
 

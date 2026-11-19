@@ -199,8 +199,10 @@ Button and pull Next / Shiki / Motion.
   Gallery demos may use `useSimulatedStream`. Live apps forward tokens through
   an App route and `openEventStream` — never a browser LLM SDK.
 - Prompt chips and citations are compact outline chips, not green text links
-  or full-size form buttons.
-  Clickable citations use `onOpen`; folded working is `ChatReasoning`
+  or full-size form buttons. Citation chips sit under a 「来源」 label;
+  clickable ones (`onOpen`) show an open affordance (`ArrowUpRight` +
+  `打开…` title), not a bare tag.
+  Folded working is `ChatReasoning`
   (live steps while thinking, then collapse);
   first-token wait / retry is `ChatStatus` (`ThinkingLoader`: affectUI
   ray + shimmer); the AI mark is `ChatSpark` (Arc ai-spark mapped);

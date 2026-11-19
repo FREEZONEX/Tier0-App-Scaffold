@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { Minus, X } from "lucide-react";
+import { Tooltip } from "@/components/kit/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { ChatAvatar } from "@/components/ui/chat-avatar";
 import { ChatSpark } from "@/components/ui/chat-spark";
@@ -23,9 +24,9 @@ export interface ChatLauncherProps {
   mode: ChatLauncherMode;
   onModeChange: (mode: ChatLauncherMode) => void;
   title?: ReactNode;
-  /** Minimized bar copy when `title` is not a string. */
+  /** @deprecated Unused: closed / minimized both render the avatar FAB. */
   barLabel?: string;
-  /** Unread / new-reply mark on the minimized bar and launcher. */
+  /** Unread / new-reply mark on the avatar FAB. */
   unread?: boolean;
   /** Header actions before minimize/close, typically ChatNewButton. */
   actions?: ReactNode;
@@ -47,72 +48,39 @@ function LauncherFab({
   onOpen: () => void;
 }) {
   return (
-    <button
-      type="button"
-      aria-label="打开助手"
-      title="打开助手"
-      onClick={onOpen}
-      className={cn(
-        "relative size-12 rounded-full",
-        "transition-transform duration-[var(--motion-fast)] ease-[var(--motion-spring)]",
-        "hover:scale-[1.04] active:scale-[0.97]",
-        "outline-none focus-visible:ring-2 focus-visible:ring-foreground/25",
-      )}
-    >
-      <ChatAvatar size={48} />
-      {unread ? (
-        <span
-          className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-destructive ring-2 ring-background"
-          aria-hidden
-        />
-      ) : null}
-    </button>
-  );
-}
-
-function LauncherChip({
-  label,
-  unread,
-  onOpen,
-}: {
-  label: string;
-  unread: boolean;
-  onOpen: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={`展开对话：${label}`}
-      title={`展开对话：${label}`}
-      onClick={onOpen}
-      className={cn(
-        "flex h-12 w-max max-w-full items-center gap-2 rounded-[4px] border border-border bg-card py-1 pr-3.5 pl-1.5 text-left",
-        "transition-colors duration-[var(--motion-fast)] ease-[var(--motion-ease)]",
-        "hover:bg-muted",
-        "outline-none focus-visible:bg-muted",
-      )}
-    >
-      <ChatAvatar size={36} />
-      <span className="min-w-0 truncate text-sm font-medium">{label}</span>
-      {unread ? (
-        <span className="shrink-0 rounded-[4px] bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
-          新回复
-        </span>
-      ) : null}
-    </button>
+    <Tooltip title="AI 助手" placement="left" anchorClassName="inline-flex">
+      <button
+        type="button"
+        aria-label="打开 AI 助手"
+        onClick={onOpen}
+        className={cn(
+          "relative size-12 rounded-full",
+          "transition-transform duration-[var(--motion-fast)] ease-[var(--motion-spring)]",
+          "hover:scale-[1.04] active:scale-[0.97]",
+          "outline-none focus-visible:ring-2 focus-visible:ring-foreground/25",
+        )}
+      >
+        <ChatAvatar size={48} />
+        {unread ? (
+          <span
+            className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-destructive ring-2 ring-background"
+            aria-hidden
+          />
+        ) : null}
+      </button>
+    </Tooltip>
   );
 }
 
 /**
  * ChatLauncher — corner popup. The window and the FAB are two layers:
- * the panel scales from bottom-right; the circular ChatAvatar (or the
- * minimized chip) crossfades in the same corner. No layout-size morph.
+ * the panel scales from bottom-right; closed / minimized are the same
+ * circular ChatAvatar with an 「AI 助手」 hover tip. No layout-size morph.
  */
 export function ChatLauncher({
   mode,
   onModeChange,
   title = "助手",
-  barLabel,
   unread = false,
   actions,
   busy = false,
@@ -124,7 +92,6 @@ export function ChatLauncher({
   const panelVariants = reduceMotion ? fadeOnlyVariants : cornerPanelVariants;
   const fabVariants = reduceMotion ? fadeOnlyVariants : cornerFabVariants;
   const popTransition = reduceMotion ? fadeSwap : cornerPop;
-  const chipLabel = barLabel ?? (typeof title === "string" ? title : "助手");
   const open = () => onModeChange("open");
 
   return (
@@ -187,19 +154,15 @@ export function ChatLauncher({
       <AnimatePresence initial={false}>
         {mode !== "open" ? (
           <motion.div
-            key={mode}
-            className={cn(ANCHOR, "z-10 max-w-[calc(100%-2rem)]")}
+            key="fab"
+            className={cn(ANCHOR, "z-10")}
             variants={fabVariants}
             initial="hidden"
             animate="visible"
             exit="hidden"
             transition={popTransition}
           >
-            {mode === "minimized" ? (
-              <LauncherChip label={chipLabel} unread={unread} onOpen={open} />
-            ) : (
-              <LauncherFab unread={unread} onOpen={open} />
-            )}
+            <LauncherFab unread={unread} onOpen={open} />
           </motion.div>
         ) : null}
       </AnimatePresence>

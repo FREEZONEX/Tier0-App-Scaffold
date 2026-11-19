@@ -84,6 +84,16 @@ export function Pagination({
       disabled && "pointer-events-none opacity-50",
     );
 
+  /** Prev/next stay chromeless when they cannot move; only the glyph greys out. */
+  const arrowClass = cn(
+    "inline-flex shrink-0 items-center justify-center rounded-[4px] bg-transparent outline-none transition-colors",
+    small ? "h-7 w-7" : "h-8 w-8",
+    "pointer-coarse:h-11 pointer-coarse:w-11",
+    "enabled:text-foreground enabled:hover:bg-muted enabled:focus-visible:bg-muted",
+    "disabled:cursor-not-allowed disabled:bg-transparent disabled:text-text-placeholder",
+    "disabled:hover:bg-transparent disabled:focus-visible:bg-transparent disabled:focus-visible:text-text-placeholder",
+  );
+
   const rangeStart = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const rangeEnd = Math.min(total, page * pageSize);
 
@@ -100,10 +110,11 @@ export function Pagination({
 
       <button
         type="button"
+        data-bare-control=""
         aria-label="上一页"
         title="上一页"
         disabled={disabled || page <= 1}
-        className={cn(itemClass(false), "disabled:cursor-not-allowed disabled:text-text-placeholder disabled:hover:bg-transparent")}
+        className={arrowClass}
         onClick={() => go(page - 1)}
       >
         <ChevronLeft className="size-4" />
@@ -149,10 +160,11 @@ export function Pagination({
 
       <button
         type="button"
+        data-bare-control=""
         aria-label="下一页"
         title="下一页"
         disabled={disabled || page >= totalPages}
-        className={cn(itemClass(false), "disabled:cursor-not-allowed disabled:text-text-placeholder disabled:hover:bg-transparent")}
+        className={arrowClass}
         onClick={() => go(page + 1)}
       >
         <ChevronRight className="size-4" />

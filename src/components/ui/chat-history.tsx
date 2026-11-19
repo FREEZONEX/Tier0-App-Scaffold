@@ -39,7 +39,7 @@ function ChatHistoryRow({
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <li className="group relative min-w-0">
+    <li className="group/hist relative min-w-0">
       <button
         type="button"
         aria-current={active ? "true" : undefined}
@@ -61,7 +61,7 @@ function ChatHistoryRow({
         <div
           className={cn(
             "absolute top-1 right-1 z-10",
-            "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 pointer-coarse:opacity-100",
+            "opacity-0 group-hover/hist:opacity-100 group-focus-within/hist:opacity-100 pointer-coarse:opacity-100",
             menuOpen && "opacity-100",
           )}
         >
@@ -120,7 +120,12 @@ export function ChatHistoryList({
   }
 
   return (
-    <ul data-slot="chat-history-list" className={cn("flex flex-col gap-0.5", className)}>
+    <ul
+      data-slot="chat-history-list"
+      tabIndex={0}
+      aria-label="历史对话列表"
+      className={cn("flex flex-col gap-0.5 outline-none", className)}
+    >
       {items.map((item) => (
         <ChatHistoryRow
           key={item.id}

@@ -59,7 +59,7 @@ export interface ChatDockProps {
 /**
  * ChatDock — ReUI ai-chat-2 / ai-chat-12: assistant beside the page.
  * Desktop keeps a full-height right rail with a drag handle; below md it
- * becomes a Drawer.
+ * becomes a Drawer. Collapsing the rail leaves 「打开助手」 on the main pane.
  */
 export function ChatDock({
   open,
@@ -159,20 +159,35 @@ export function ChatDock({
       data-slot="chat-dock"
       className={cn("flex h-full min-h-0 min-w-0 flex-1", className)}
     >
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <div className="flex justify-end px-3 py-2 md:hidden">
+      <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
+        {open ? (
+          <div className="flex justify-end px-3 py-2 md:hidden">
+            <Button
+              type="button"
+              size="icon-sm"
+              variant="ghost"
+              className="text-muted-foreground hover:text-foreground"
+              aria-label="收起助手"
+              title="收起助手"
+              onClick={() => onOpenChange(false)}
+            >
+              <PanelRightClose aria-hidden />
+            </Button>
+          </div>
+        ) : (
           <Button
             type="button"
-            size="icon-sm"
-            variant="ghost"
-            className="text-muted-foreground hover:text-foreground"
-            aria-label={open ? "收起助手" : "打开助手"}
-            title={open ? "收起助手" : "打开助手"}
-            onClick={() => onOpenChange(!open)}
+            size="sm"
+            variant="outline"
+            className="absolute top-2 right-2 z-10"
+            aria-label="打开助手"
+            title="打开助手"
+            onClick={() => onOpenChange(true)}
           >
-            {open ? <PanelRightClose aria-hidden /> : <PanelRightOpen aria-hidden />}
+            <PanelRightOpen aria-hidden />
+            打开助手
           </Button>
-        </div>
+        )}
         {children}
       </div>
       <aside

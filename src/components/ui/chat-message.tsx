@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { ArrowUpRight } from "lucide-react";
 import { Avatar } from "@/components/kit/ui/avatar";
 import { ChatAvatar } from "@/components/ui/chat-avatar";
 import { StreamText } from "@/components/ui/stream-text";
@@ -29,12 +30,16 @@ export interface ChatMessageProps {
 }
 
 const citationClass =
-  "inline-flex h-6 max-w-full items-center truncate rounded-[4px] border border-border bg-card px-2 text-xs leading-5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60";
+  "inline-flex h-6 max-w-full items-center gap-1 rounded-[4px] border border-border bg-card py-0 pl-2 text-xs leading-5 text-muted-foreground";
+const citationInteractiveClass =
+  "pr-1.5 transition-colors hover:border-border-strong hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:bg-muted focus-visible:text-foreground";
+const citationStaticClass = "pr-2";
 
 /**
  * ChatMessage — one turn. Adapted from shadcnuikit Bubble/Message:
  * 4px corners, user on a muted fill (not highlight lime), assistant as
- * unfilled transcript. Citations are chips, not form buttons.
+ * unfilled transcript. Citations sit under 「来源」; openable chips get
+ * ArrowUpRight, not a bare tag.
  */
 export function ChatMessage({
   role,
@@ -88,23 +93,31 @@ export function ChatMessage({
             )}
             {extra ? <div className="mt-2 flex flex-col gap-2">{extra}</div> : null}
             {citations && citations.length > 0 && !streaming ? (
-              <ul className="mt-2 flex flex-wrap gap-1.5">
-                {citations.map((cite) => (
-                  <li key={cite.id} className="min-w-0">
-                    {cite.onOpen ? (
-                      <button
-                        type="button"
-                        className={citationClass}
-                        onClick={cite.onOpen}
-                      >
-                        {cite.label}
-                      </button>
-                    ) : (
-                      <span className={citationClass}>{cite.label}</span>
-                    )}
-                  </li>
-                ))}
-              </ul>
+              <div className="mt-2 flex min-w-0 flex-col gap-1">
+                <p className="text-xs leading-4 text-muted-foreground">来源</p>
+                <ul className="flex flex-wrap gap-1.5">
+                  {citations.map((cite) => (
+                    <li key={cite.id} className="min-w-0">
+                      {cite.onOpen ? (
+                        <button
+                          type="button"
+                          className={cn(citationClass, citationInteractiveClass)}
+                          aria-label={`打开来源 ${cite.label}`}
+                          title={`打开 ${cite.label}`}
+                          onClick={cite.onOpen}
+                        >
+                          <span className="min-w-0 truncate">{cite.label}</span>
+                          <ArrowUpRight className="size-3 shrink-0" aria-hidden />
+                        </button>
+                      ) : (
+                        <span className={cn(citationClass, citationStaticClass)}>
+                          <span className="min-w-0 truncate">{cite.label}</span>
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ) : null}
             {actions && !streaming ? (
               <div className="mt-2 flex flex-wrap gap-1.5">{actions}</div>

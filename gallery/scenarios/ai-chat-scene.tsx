@@ -843,24 +843,7 @@ export function SceneAiDock() {
       }
     >
       <div className="page-shell flex h-full min-h-0 flex-col gap-4">
-        <PageHeader
-          title="报修草稿"
-          actions={
-            !open ? (
-              <Button
-                type="button"
-                size="icon-sm"
-                variant="ghost"
-                className="hidden text-muted-foreground hover:text-foreground md:inline-flex"
-                aria-label="打开助手"
-                title="打开助手"
-                onClick={() => setOpen(true)}
-              >
-                <PanelRightOpen aria-hidden />
-              </Button>
-            ) : null
-          }
-        />
+        <PageHeader title="报修草稿" />
         <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-auto">
           <FieldGroup label="故障说明" required htmlFor="repair-draft">
             <TextArea
@@ -886,8 +869,8 @@ export function SceneAiDock() {
 
 /**
  * 角落助手 — ReUI ai-chat-13 launcher. The window scales from the
- * bottom-right ChatAvatar FAB; minimize to an avatar chip that flags
- * 新回复; keep a deletable recent-question list.
+ * bottom-right ChatAvatar FAB (hover: AI 助手); unread is a dot on
+ * the circle; keep a deletable recent-question list.
  */
 export function SceneAiLauncher() {
   const chat = useIndustrialChat();
