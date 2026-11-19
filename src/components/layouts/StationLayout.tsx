@@ -5,7 +5,8 @@ import { Activity } from "lucide-react";
 import type { AppUser } from "@/lib/users";
 import { OfflineBanner } from "@/components/ui/offline-banner";
 import { BackButton, type BackTarget } from "@/components/ui/back-button";
-import { APP_ICON, APP_NAME, uiText } from "@/lib/app-chrome";
+import { APP_ICON, APP_NAME } from "@/lib/app-chrome";
+import { useUiText } from "@/lib/locale";
 import { getRoleMetadata } from "@/lib/role-metadata";
 
 /**
@@ -65,6 +66,7 @@ export function StationLayout({
 }
 
 function UserBadge({ user, icon }: { user?: AppUser | null; icon: ReactNode }) {
+  const uiText = useUiText();
   const roles = (user?.roles ?? []).map((role) => getRoleMetadata(role).label).join(" · ");
   return (
     <div

@@ -24,7 +24,7 @@
     "src/lib/responsive-contracts.test.mjs": "3c25b1b39b0b7b3dfc9e016ec23ccc77f6e64712674827138e85e12864e918fd",
     "src/lib/scaffold-version-contracts.test.mjs": "bc55cae66807157cf08ce9d71bb3cd4a17dfa87d982299d4dfab95294e1dab17",
     "src/lib/legacy-db-contracts.test.mjs": "f9859195be635b229a10c68024f5746979c198ad9457f0fb1f88835d8e681c04",
-    "scripts/ui-advisories.mjs": "06250a83a8f946400a124a9a26f7967912d5b649a8230a663516cbde9212797f",
+    "scripts/ui-advisories.mjs": "c02d2e4db79d4b77ef8a38219d127a7b9c2247e808cc6edcda6e3a9bf64c738e",
     "scripts/route-smoke.mjs": "da51585d9a8e9db9dc04e5d039f168539bfa89bd7dd51794437a4b62e016507b",
     "scripts/route-nesting.mjs": "3b6b33dda03adcd2083e7f5cbfab02e4fdae98c1991451d7d7d1360dfc42677d",
     "scripts/responsive-contract.mjs": "dcde5d6bf6da9e383dd388f9640a3a751e84ed5e95a2f49e4fa45c5c40cad584",

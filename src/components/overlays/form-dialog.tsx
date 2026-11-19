@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, type FormEvent, type ReactNode } from "react";
-import { uiText } from "@/lib/app-chrome";
+import { useUiText } from "@/lib/locale";
 import { Dialog, type DialogProps } from "@/components/overlays/dialog";
 import { OverlayActionButton } from "@/components/overlays/overlay-frame";
 
@@ -23,8 +23,8 @@ export interface FormDialogProps
 
 export function FormDialog({
   children,
-  submitLabel = uiText("save"),
-  cancelLabel = uiText("cancel"),
+  submitLabel,
+  cancelLabel,
   pending = false,
   submitVariant = "primary",
   onSubmit,
@@ -32,6 +32,7 @@ export function FormDialog({
   ...dialogProps
 }: FormDialogProps) {
   const formId = useId();
+  const uiText = useUiText();
 
   return (
     <Dialog
@@ -40,12 +41,12 @@ export function FormDialog({
       footer={
         <>
           <OverlayActionButton
-            action={{ label: cancelLabel, variant: "outline", disabled: pending }}
+            action={{ label: cancelLabel ?? uiText("cancel"), variant: "outline", disabled: pending }}
             onDefaultClick={() => onOpenChange(false)}
           />
           <OverlayActionButton
             action={{
-              label: submitLabel,
+              label: submitLabel ?? uiText("save"),
               type: "submit",
               form: formId,
               variant: submitVariant,

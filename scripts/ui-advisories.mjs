@@ -54,8 +54,8 @@ if (existsSync(PAGE_ROOT) && statSync(PAGE_ROOT).isDirectory()) {
   }
 
   // One product language: a page whose copy is CJK must not leak English UI
-  // verbs from hand-written controls (the shared dialogs localize via
-  // APP_LOCALE; this catches hand-rolled leftovers). Conservative word list to
+  // verbs from hand-written controls (copy comes from `useCopy` /
+  // `useUiText`; this catches hand-rolled leftovers). Conservative word list to
   // avoid flagging codes, units, or brand names.
   const ENGLISH_UI_WORDS = />\s*(Cancel|Save|Confirm|Submit|Search|Loading\.{0,3})\s*</;
   for (const file of walkFiles(PAGE_ROOT)) {
@@ -66,7 +66,7 @@ if (existsSync(PAGE_ROOT) && statSync(PAGE_ROOT).isDirectory()) {
     const match = source.match(ENGLISH_UI_WORDS);
     if (match) {
       advisories.push(
-        `${name}: mixed-language control copy ("${match[1]}") in a Chinese-copy page - product copy uses one language; use the app locale (shared dialogs localize via APP_LOCALE).`,
+        `${name}: mixed-language control copy ("${match[1]}") in a Chinese-copy page - product copy uses one language; write it in a defineCopy table and read it with useCopy (docs/ui-rules.md → Product copy and language).`,
       );
     }
   }

@@ -497,9 +497,33 @@ unexpected empty list using the installed SDK, preview runtime and role bindings
 
 ## App Identity and Product Copy
 
-Set `APP_NAME` and `APP_LOCALE` once in `src/lib/app-chrome.ts`; update used
-layout shells and platform App Info in the same closeout. Product UI uses one
-explicit locale unless bilingual output is requested.
+Set `APP_NAME` once in `src/lib/app-chrome.ts`; update used layout shells and
+platform App Info in the same closeout.
+
+The App follows the platform language. In `src/lib/app-chrome.ts`,
+`APP_SUPPORTED_LOCALES` lists the languages every copy table covers (default
+`en`, `zh-CN`), `APP_DEFAULT_LOCALE` is the product language (first screen,
+top-level visits, unsupported platform languages), and
+`APP_FOLLOW_PLATFORM_LANGUAGE` turns following on or off. Set
+`APP_DEFAULT_LOCALE` to the product language; keep the supported list unless
+the product asks for other languages. Rules (details: `docs/ui-rules.md` →
+Product copy and language):
+
+- Every visible UI string comes from a `defineCopy` table through
+  `useCopy(copy)` → `t(key, params?)`, written in every supported locale;
+  shared labels use `useUiText()`. No string literals in JSX, `aria-label`,
+  `placeholder`, `title` or toasts.
+- Keep a message for later (field validation errors, inline notices) as
+  `CopyMessage` (`{ key, params }`) and translate it while rendering, never
+  the translated string.
+- Format dates and numbers while rendering with `useLocale()`; never cache the
+  formatted text.
+- Never reload, remount, re-key, `router.invalidate()` or re-navigate to
+  change language; unsaved input must survive a switch. `LocaleProvider` in
+  `__root.tsx` owns the language; do not add another.
+- Business data (record values, names users typed) is shown as stored, not
+  translated. `APP_NAME`, navigation labels and role labels stay in
+  `APP_DEFAULT_LOCALE`.
 
 `APP_ID` is a platform-owned runtime identifier: the agent-platform App UUID,
 injected into Preview and deployed runs. Never hard-code, rename, or surface

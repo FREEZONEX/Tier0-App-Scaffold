@@ -202,6 +202,65 @@ summaries stay out of page content. Shell `defaultModules` starts empty; declare
 real workspace routes through `defineNavigationModules`, using one unique href
 per clickable leaf. Do not create an Overview module unless the product needs one.
 
+## Product copy and language
+
+The App shows its UI in the platform's language when the platform embeds it
+(Builder preview, Launchpad, template preview), and in `APP_DEFAULT_LOCALE`
+everywhere else. The page runtime sends the platform language; the App only
+maps it (`resolveAppLocale`: same tag ignoring case, else the same primary
+language such as `zh-tw` → `zh-CN`, else the default).
+
+Write each page's copy as one table next to the page and read it while
+rendering:
+
+```tsx
+import { defineCopy, type CopyMessage } from "@/lib/app-chrome";
+import { useCopy, useLocale } from "@/lib/locale";
+
+const copy = defineCopy({
+  en: { title: "Work orders", name: "Name", nameMin: "At least {count} characters", create: "Create" },
+  "zh-CN": { title: "工单", name: "名称", nameMin: "至少 {count} 个字符", create: "创建" },
+});
+type CopyKey = keyof (typeof copy)["en"];
+
+function NewOrder() {
+  const t = useCopy(copy);
+  const locale = useLocale();
+  const [name, setName] = useState("");
+  const [error, setError] = useState<CopyMessage<CopyKey> | null>(null);
+  const submit = () => {
+    if (name.trim().length < 2) return setError({ key: "nameMin", params: { count: 2 } });
+    // …
+  };
+  return (
+    <FieldGroup
+      label={t("name")}
+      required
+      error={error ? t(error.key, error.params) : undefined}
+      helperText={new Date(dueAt).toLocaleDateString(locale)}
+    >
+      <Input value={name} onChange={(value) => setName(value)} placeholder={t("name")} />
+    </FieldGroup>
+  );
+}
+```
+
+- `defineCopy` makes TypeScript report a key missing from any locale. Adding a
+  language: add it to `APP_SUPPORTED_LOCALES`, then fill its column in
+  `UI_COPY` and in every `defineCopy` table the type check lists.
+- Shared primitives (`FormDialog`, `ConfirmDialog`, `AsyncView`, layouts) already
+  localize their default labels; pass your own label from `t(...)` when the
+  action needs a specific verb.
+- A switch re-renders text in place: typed input, focus, scroll position and
+  the URL stay. Keep that true: no `key` derived from the locale, no reload,
+  no remounting providers, no `router.invalidate()` or navigation, and no
+  translated strings in state (store `CopyMessage`). A toast already on screen
+  keeps the language it was shown in.
+- Do not read the platform language yourself or keep the locale in storage;
+  `LocaleProvider` owns it. `getPlatformLanguage()` from
+  `@tier0/sdk-v2/page-runtime` stays the platform's raw tag (`zh-cn`) for the
+  rare case that needs it.
+
 ## Business tables
 
 Hand-written `DataTable` / `<table>` cells keep header and body alignment the

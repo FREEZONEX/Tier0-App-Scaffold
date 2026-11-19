@@ -35,14 +35,81 @@ export const APP_NAME = "Manufacturing App";
 export const APP_ICON = "/app-icon.png";
 
 /**
- * Product locale. Set it together with APP_NAME — it drives `<html lang>`
- * (native date inputs localize from it: zh-CN renders 年/月/日) and the
- * default labels of shared dialogs. Generated apps set this to the app's
- * product language.
+ * Product languages. Set them together with APP_NAME — the current one drives
+ * `<html lang>` (native date inputs localize from it: zh-CN renders 年/月/日)
+ * and every string the app shows through `useCopy` / `useUiText`
+ * (`@/lib/locale`).
+ *
+ * - APP_SUPPORTED_LOCALES: the languages every copy table is written in.
+ *   Adding one means adding its column to UI_COPY and to every `defineCopy`
+ *   table; TypeScript reports the tables that miss it.
+ * - APP_DEFAULT_LOCALE: the product language. The first screen renders in it,
+ *   and it stays when the App is opened outside the platform, when the
+ *   platform has not sent a language, or when the platform language is not
+ *   supported.
+ * - APP_FOLLOW_PLATFORM_LANGUAGE: switch to the platform's language when the
+ *   App runs embedded in the platform. false keeps APP_DEFAULT_LOCALE.
  */
-export const APP_LOCALE: "en" | "zh-CN" = "en";
+export const APP_SUPPORTED_LOCALES = ["en", "zh-CN"] as const;
+export type AppLocale = (typeof APP_SUPPORTED_LOCALES)[number];
+export const APP_DEFAULT_LOCALE: AppLocale = "en";
+export const APP_FOLLOW_PLATFORM_LANGUAGE: boolean = true;
 
-const UI_COPY = {
+/**
+ * The App locale for a platform language tag (`zh-cn`, `en`, `ja`, …): the
+ * supported locale with the same tag ignoring case, else the first one with
+ * the same primary language (`zh-tw` → `zh-CN`), else APP_DEFAULT_LOCALE.
+ */
+export function resolveAppLocale(platformLanguage: string | undefined): AppLocale {
+  if (!APP_FOLLOW_PLATFORM_LANGUAGE || !platformLanguage) return APP_DEFAULT_LOCALE;
+  const wanted = platformLanguage.toLowerCase();
+  const primary = wanted.split("-")[0];
+  return (
+    APP_SUPPORTED_LOCALES.find((locale) => locale.toLowerCase() === wanted) ??
+    APP_SUPPORTED_LOCALES.find((locale) => locale.toLowerCase().split("-")[0] === primary) ??
+    APP_DEFAULT_LOCALE
+  );
+}
+
+/** Values for `{name}` placeholders in a copy string. */
+export type CopyParams = Readonly<Record<string, string | number>>;
+
+/** One string per key in every supported locale. */
+export type Copy<K extends string> = {
+  readonly [L in AppLocale]: { readonly [Key in K]: string };
+};
+
+/**
+ * A message to show later in whatever language is current then, such as a
+ * validation error kept in state: store the key and its params, never the
+ * translated string, so switching language re-translates it.
+ */
+export type CopyMessage<K extends string> = { key: K; params?: CopyParams };
+
+/**
+ * Declares a copy table. Every locale must have exactly the same keys;
+ * TypeScript reports a key missing from one of them.
+ */
+export function defineCopy<K extends string>(copy: Copy<K>): Copy<K> {
+  return copy;
+}
+
+/** The string for `key` in `locale`, with `{name}` placeholders filled from `params`. */
+export function translate<K extends string>(
+  copy: Copy<K>,
+  locale: AppLocale,
+  key: K,
+  params?: CopyParams,
+): string {
+  const text = copy[locale][key];
+  if (!params) return text;
+  return text.replace(/\{(\w+)\}/g, (placeholder, name: string) =>
+    Object.hasOwn(params, name) ? String(params[name]) : placeholder,
+  );
+}
+
+/** Default labels of the shared UI primitives; read them with `useUiText()`. */
+export const UI_COPY = defineCopy({
   en: {
     save: "Save",
     cancel: "Cancel",
@@ -81,12 +148,9 @@ const UI_COPY = {
     signedInAs: "当前用户",
     offline: "网络已断开，恢复连接前操作无法保存",
   },
-} as const;
+});
 
-/** Locale-aware default labels for shared UI primitives. */
-export function uiText(key: keyof (typeof UI_COPY)["en"]): string {
-  return UI_COPY[APP_LOCALE][key];
-}
+export type UiTextKey = keyof (typeof UI_COPY)["en"];
 
 // Register every non-workspace route family here so navigation, default entry
 // routes, and sidebar modules all follow the same app chrome policy.

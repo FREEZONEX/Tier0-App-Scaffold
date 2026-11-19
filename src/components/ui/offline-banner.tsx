@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { WifiOff } from "lucide-react";
-import { uiText } from "@/lib/app-chrome";
+import { useUiText } from "@/lib/locale";
 
 function subscribe(listener: () => void) {
   window.addEventListener("online", listener);
@@ -25,6 +25,7 @@ const serverOnline = () => true;
  */
 export function OfflineBanner() {
   const online = useSyncExternalStore(subscribe, isOnline, serverOnline);
+  const uiText = useUiText();
   if (online) return null;
   return (
     <div

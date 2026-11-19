@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { AlertCircle, ChevronDown } from "lucide-react";
 
-import { uiText } from "@/lib/app-chrome";
+import { UiText } from "@/lib/locale";
 import type { RequestResult } from "@/lib/hooks";
 import { Button, EmptyState } from "@/components/ui";
 import { cn, isTransientFailure } from "@/lib/utils";
@@ -47,7 +47,7 @@ export function AsyncView<T>({
   className,
 }: AsyncViewProps<T>) {
   const { data, error, isLoading, refresh } = result;
-  const emptyView = empty ?? <EmptyState title={uiText("empty")} />;
+  const emptyView = empty ?? <EmptyState title={<UiText id="empty" />} />;
 
   if (error && data == null) {
     return (
@@ -141,7 +141,7 @@ function LoadFailure({
     <>
       <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
       <span className="min-w-0 flex-auto text-secondary-foreground">
-        {uiText(isTransientFailure(error) ? "loadErrorTransient" : "loadError")}
+        <UiText id={isTransientFailure(error) ? "loadErrorTransient" : "loadError"} />
       </span>
     </>
   );
@@ -160,7 +160,7 @@ function LoadFailure({
           <summary className="flex min-h-8 cursor-pointer list-none flex-wrap items-center gap-x-2 [&::-webkit-details-marker]:hidden">
             {summary}
             <span className="inline-flex items-center gap-1 hover:text-foreground">
-              {uiText("errorDetails")}
+              <UiText id="errorDetails" />
               <ChevronDown className="size-3.5 transition-transform group-open:rotate-180" aria-hidden="true" />
             </span>
           </summary>
@@ -170,7 +170,7 @@ function LoadFailure({
         <div className="flex min-h-8 min-w-0 flex-auto items-center gap-x-2">{summary}</div>
       )}
       <Button variant="outline" size="sm" loading={retrying} onClick={onRetry}>
-        {uiText("retry")}
+        <UiText id="retry" />
       </Button>
     </div>
   );
