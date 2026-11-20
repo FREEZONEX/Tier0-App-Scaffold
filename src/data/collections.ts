@@ -19,6 +19,12 @@
  * `z.enum([...])`, `z.array(...)`, nested objects and `.optional()`. No
  * `.nullable()`, `.default()`, string formats or length limits — keep those
  * in API input schemas. `npm run build` rejects anything UNS cannot store.
+ *
+ * Omit indexes unless required: business uniqueness, TTL, an operation's
+ * contract, or a concrete query/scale or explain result. Filtering/sorting
+ * alone is not a reason. Inspect existing indexes and quota first, reuse
+ * coverage, and state the purpose beside each index. Removing a declaration
+ * does not drop a stored index; see docs/app-data.md → Indexes.
  */
 import type { CollectionDefinition } from "@tier0/sdk-v2/data/define";
 
@@ -43,7 +49,8 @@ import type { CollectionDefinition } from "@tier0/sdk-v2/data/define";
 //     notes: z.string().optional(),                          // optional = may be absent
 //     scheduledAt: z.string(),                               // ISO instant from toISOString()
 //   }),
-//   indexes: [{ path: "code", unique: true }, { path: "status" }],
+//   // Only if the business requires unique work-order codes; no default status index.
+//   indexes: [{ path: "code", unique: true }],
 //   seed: [
 //     {
 //       _id: "wo-001",

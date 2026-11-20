@@ -66,7 +66,8 @@ export const workOrders = defineCollection({
     notes: z.string().optional(),
     dueAt: z.string(),                        // ISO instant from toISOString()
   }),
-  indexes: [{ path: "code", unique: true }, { path: "status" }],
+  // This workflow requires unique order codes. Filtering status alone needs no default index.
+  indexes: [{ path: "code", unique: true }],
   seed: [
     { _id: "wo-001", code: "WO-001", status: "RELEASED", targetQty: 50,
       line: { id: "line-1", name: "Line 1" }, items: [], dueAt: seedTimestamp(2) },
@@ -97,9 +98,10 @@ the exception: Unix milliseconds, see TTL below). Record IDs (`_id`)
 and `_meta` (`revision`, `createdAt`, `updatedAt` in Unix ms) are system
 fields: never declare them. Objects nest at most 8 levels, 128 properties per
 object, 100 enum values per field; `.describe()` text is at most 2048 UTF-8
-bytes (about 680 CJK characters). An App declares at most 64 collections, and
-a collection `description` is at most 512 characters. Descriptions are stored
-when a collection or field is first created; changing one later takes
+bytes (about 680 CJK characters). Collection counts must fit the installed SDK
+and deployed service limits; a collection `description` is at most 512
+characters. Descriptions are stored when a collection or field is first
+created; changing one later takes
 `schema:replace` (see Schema evolution).
 
 API input schemas derive from the declaration and add input rules:
@@ -110,11 +112,51 @@ export const createWorkOrderInput = workOrders.schema
   .extend({ code: z.string().trim().min(1).max(32) });
 ```
 
-Indexes: `{ path }` or compound `{ paths }` (≤3 distinct paths), `unique: true`
-for business keys, `kind: "gin"` for one array/object field; at most 16 per
-collection. Paths follow object properties only: `items.sku` (a field inside
-array items) cannot be indexed — index `items` with `kind: "gin"` or keep the
-value in a top-level field. Index the fields lists filter and sort on.
+### Indexes
+
+Omit `indexes` (or use `[]`) until there is a concrete need. Do not create one
+for every filter, sort, status, date or reference field. A small list with
+several filters does not by itself justify several indexes. Keep indexes for
+explicit business uniqueness, intentional TTL or an operation's contract
+(such as a required lookup key). For performance, identify the actual query
+and expected data scale or use `records:explain` before adding an index.
+Write that reason beside the declaration; do not add generic "for performance"
+comments to justify speculative indexes.
+
+Before adding indexes, read the intended App's current context and index
+status. Reuse existing coverage and built-in ID access (`get(ids)` / `_id`)
+where appropriate. Compare field order, kind, uniqueness and TTL; a compound
+index's leading fields may cover a query, but do not automatically remove a
+prefix index without checking the query plan. A longer compound unique index
+does not enforce uniqueness of its prefix. A pending or failed index is not
+proof that a constraint is ready. Preserve necessary unique and TTL behavior.
+
+Review the proposed additions against actual App and Workspace limits using
+the deployed contract, available usage information and an ensure `dryRun`.
+Do not infer Workspace usage from this App's declarations or context: archived
+collections and other Apps may still consume quota. Missing usage or limits
+are **unverified**, not zero or unlimited. On a quota rejection, inspect the
+reported resource/limit and reduce unnecessary additions; do not retry the
+same request or change aliases to bypass it.
+
+Syntax: `{ path }` or compound `{ paths }` (≤3 distinct paths), `unique: true`
+for explicit business keys, `kind: "gin"` for one array/object field; at most
+16 per collection. Paths follow object properties only: `items.sku` (a field inside
+array items) cannot be indexed. If the query needs it, consider indexing
+`items` with `kind: "gin"` or modeling the queried value in a top-level field;
+neither is a reason to add an index without evaluating the query.
+
+Ensure takes the union of old and new index declarations. Removing an index
+from code does not drop it, and archive is not an index-cleanup operation.
+For an authorized cleanup, align declarations in every still-running Preview
+and deployed version first so an older version cannot add the index back.
+Inspect the current schema and revision, preserve unrelated fields and
+constraints, and use `schema:replace` with `dryRun` and `expectedRevision`
+before applying the reviewed change. Read back index status and available
+usage afterward; do not claim quota was released from a code diff alone.
+Never delete business records or recreate collections to free index quota.
+
+### TTL and seed
 
 TTL: records that should disappear on their own (login codes, short-lived
 reservations, transient sensor alerts) get one TTL index instead of a cleanup
@@ -496,7 +538,7 @@ code to catch mistakes).
 | Preview a declaration change | `npm run data:schema` (includes every `directoryPath`), then `POST /uns/app/collections/ensure` with that body plus `"dryRun": true`; verify planned collection scopes before first creation |
 | Narrow a schema | `npm run data:schema -- <alias>` for the target, then `POST /uns/app/collections/schema:replace` with `{ alias, recordSchema, indexes, expectedRevision, dryRun: true }`; repeat with `dryRun: false` |
 | Change descriptions of existing fields or the collection | Same as narrowing: `schema:replace` with the `npm run data:schema -- <alias>` body (status `widened`) |
-| Retire / bring back a collection | `POST /uns/app/collections/archive` or `restore` with `{ alias }`; at most 2000 records each (archive tombstones them, restore brings that batch back) |
+| Retire / bring back a collection | `POST /uns/app/collections/archive` or `restore` with `{ alias }`; follow the deployed lifecycle contract and limits. Archiving can retain indexes and does not establish that quota was released. |
 | One-off data fix or backfill | `POST /uns/collections/{collectionId}/records:updateMany` (collection ID from the context) |
 
 `expectedRevision` is the collection `revision` from `/uns/app/context` or an
@@ -521,9 +563,9 @@ to list new operations in `tier0_search`.
 | `REFERENCED` (409, replace) | A topic field still uses the path; remove that use first. |
 | `TEMPORARILY_UNAVAILABLE` | Retry the same request later. |
 | `APP_GRANT_REVOKED` (403) | A workspace admin removed this App's access (ensure, replace, archive); ensure does not re-grant. Ask the admin. |
-| `APP_QUOTA_EXCEEDED` (409) | `data.resource` says which per-App limit of 64 was hit: `collections` (active) → archive unused ones; `indexes` → drop indexes from the declaration and `schema:replace`; `archivedCollections` (archive) → restore one or ask an admin to clean up. |
-| `INDEX_QUOTA_EXCEEDED` (409) | The workspace holds 200 indexes that physically exist (archiving keeps unique indexes); drop unused indexes. |
-| `COLLECTION_TOO_LARGE` (409, archive / restore) | More than 2000 records (`data.maxRecords`). Do not archive large collections; stop using them in code. |
+| `APP_QUOTA_EXCEEDED` (409) | Inspect `data.resource` (`collections`, `indexes` or `archivedCollections`) and the returned limit/current/requested details. Stop adding resources; for indexes follow the reviewed cleanup procedure above. Do not assume one fixed limit for all resources/environments or that archive releases Workspace index quota. |
+| `INDEX_QUOTA_EXCEEDED` (409) | Workspace index quota was exceeded; inspect the returned limit and usage, including retained or not-ready indexes. Reduce unnecessary additions; cleanup requires version alignment, explicit replacement and readback. Do not retry unchanged. |
+| `COLLECTION_TOO_LARGE` (409, archive / restore) | The deployed operation's record limit was exceeded (`data.maxRecords`). Follow that environment's lifecycle contract; do not delete records to bypass it. |
 | `DUPLICATE_KEY` (409, restore) | A restored record collides with an active record on a unique index; nothing was restored. Fix the active record first. |
 | `NOT_FOUND` (404) | The alias is not one of this App's collections. |
 | `data.reason` on record calls | `COLLECTION_NOT_GRANTED` (403): the grant does not cover the collection or operation; `COLLECTION_NOT_FOUND` (403/404): archived or deleted — the App's data layer re-ensures on both; `APP_PERMISSION_MISSING` (403, `data.missingPermission`): the key lacks e.g. `uns.delete`. Judge by these codes, never by message text. |
