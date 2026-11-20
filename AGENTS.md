@@ -216,6 +216,19 @@ API, limits, examples, error codes and tier0 MCP operations are in
   shared entities by ID. Keep a display snapshot when the business needs the
   historical value; a scoped `$lookup` can supply current related values.
   Use one collection per business object kind.
+- Start with no optional query indexes; do not index every filter, sort,
+  status or reference field by default. Keep indexes required for business
+  uniqueness, TTL or an operation's contract. Add performance indexes only
+  for a concrete query and expected scale or `records:explain` evidence;
+  explain the purpose beside each declaration. Inspect existing indexes,
+  readiness, compound-prefix coverage and actual quota before adding more.
+  Treat uniqueness and TTL separately from query coverage; unavailable usage
+  is unverified, not zero. See `docs/app-data.md` → Indexes.
+- Ensure adds indexes but never drops them. Removing declarations or archiving
+  collections does not prove quota was released. Align Preview and deployed
+  declarations before an authorized `schema:replace` (`dryRun` and
+  `expectedRevision`), then read back index status. Do not retry quota failures
+  unchanged, rename aliases or recreate collections to evade the limit.
 - Read efficiently: push filtering, joins and statistics into the database;
   combine independent, single-page reads with `data.queryBatch`. Resolve
   dependencies first, then batch the next reads; a screen may need several

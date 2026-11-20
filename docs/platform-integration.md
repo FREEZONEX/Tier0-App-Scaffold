@@ -827,8 +827,12 @@ App means it sends too many requests (merge page reads with
 `uns.delete` on the App key; `COLLECTION_NOT_GRANTED` / `COLLECTION_NOT_FOUND`
 explain the grant or the missing collection when recovery cannot help.
 `APP_QUOTA_EXCEEDED` explains the limit named by `data.resource`
-(`collections`, `indexes` or `archivedCollections`, 64 each per App);
-`COLLECTION_TOO_LARGE` (archive / restore over 2000 records) and
+(`collections`, `indexes` or `archivedCollections`); use the returned limit
+and usage details, not a fixed quota copied from another environment.
+`INDEX_QUOTA_EXCEEDED` is the Workspace index limit, which can include
+retained and not-ready indexes. Removing declarations or archiving collections
+does not prove quota was released; follow `docs/app-data.md` → Indexes.
+`COLLECTION_TOO_LARGE` (the deployed archive / restore record limit) and
 `DUPLICATE_KEY` (a unique index, also from a restore that collides with an
 active record) carry their own hints. Structured details stay in
 `DataError.details`. Validation failures against the declaration are
