@@ -296,7 +296,8 @@ duplicating.
   match, and it works on fields declared as strings only — on an array or
   number field it fails with `INVALID_REQUEST`. It cannot use an index: on
   large collections it can hit the query time limit (`QUERY_TIMEOUT`),
-  so combine it with an indexed condition. `$in` takes at most 200 values.
+  so combine it with an equality or range condition on another field (the
+  platform indexes those from real queries). `$in` takes at most 200 values.
   Sort by at most 4 fields.
 - `find()` returns a cursor that pages 200 at a time; always give list reads a
   `limit`. For numbered list pages (MetaListPage `meta/query`) convert the
