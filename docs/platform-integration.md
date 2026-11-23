@@ -805,7 +805,7 @@ so one call being safe to repeat does not make the request safe to resend.
 |---|---|
 | 400 / 403 / 404 / 409 / 413 / 422 / 429 | same (except the platform states below) |
 | 401 (credential rejected) | 502 — a platform credential problem, not the user's session |
-| `APP_NOT_READY`, `DEPENDENCY_UNAVAILABLE`, `CREDENTIAL_CHANGED`, `OUTCOME_UNKNOWN`, `TEMPORARILY_UNAVAILABLE` | 503 — a platform state, not a denied action or a conflict |
+| `APP_NOT_READY`, `DEPENDENCY_UNAVAILABLE`, `CREDENTIAL_CHANGED`, `OUTCOME_UNKNOWN`, `TEMPORARILY_UNAVAILABLE`, `INDEX_PREPARING` | 503 — a platform state, not a denied action or a conflict |
 | 502 / 503 / 504 with the UNS envelope (`QUERY_TIMEOUT` is 504) | 503 |
 | 502 / 503 / 504 without the envelope (ingress or load balancer during a rollout) | 503 `HTTP_502` / `HTTP_503` / `HTTP_504` |
 | timeout / network failure | 503 `DATA_TIMEOUT` / `DATA_UNREACHABLE`; the message never contains the gateway address |
@@ -820,14 +820,18 @@ never resent. `OVERLOADED` (429) is the workspace's data concurrency share
 being full; the data layer waited and resent, and a 429 that still reaches the
 App means it sends too many requests (merge page reads with
 `data.queryBatch`). `QUERY_TIMEOUT` is not resent: narrow the query as
-`repair` suggests.
+`repair` suggests. `INDEX_PREPARING` (503, `execution: "notStarted"`,
+`retry.safe`) means a `$lookup` target's join index is being built by the
+platform; its `retry.afterMs` (about 30 s) is over the 5 s the data layer
+waits, so it reaches the App and `withErrors` answers 503 with
+`Retry-After`. It needs no index declaration.
 
 `DataError.reason` carries `data.reason`. `APP_PERMISSION_MISSING` with
 `data.missingPermission: "uns.delete"` explains that deletes need
 `uns.delete` on the App key; `COLLECTION_NOT_GRANTED` / `COLLECTION_NOT_FOUND`
 explain the grant or the missing collection when recovery cannot help.
 `APP_QUOTA_EXCEEDED` explains the limit named by `data.resource`
-(`collections`, `indexes` or `archivedCollections`, 64 each per App);
+(`collections` or `archivedCollections`, 64 each per App);
 `COLLECTION_TOO_LARGE` (archive / restore over 2000 records) and
 `DUPLICATE_KEY` (a unique index, also from a restore that collides with an
 active record) carry their own hints. Structured details stay in

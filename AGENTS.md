@@ -165,8 +165,8 @@ Use three layers:
    response through `withErrors`.
 2. `src/services/**`: business invariants, lifecycle transitions, data
    access through `@/lib/data`, and audit side effects.
-3. `src/data/collections.ts`: collection declarations (Zod schemas, indexes,
-   seed) and the types derived from them.
+3. `src/data/collections.ts`: collection declarations (Zod schemas, unique
+   and TTL indexes, seed) and the types derived from them.
 
 Hard invariants:
 
@@ -198,6 +198,11 @@ API, limits, examples, error codes and tier0 MCP operations are in
   `src/data/collections.ts` and list it in `collections`. Storage schemas use
   the supported Zod subset only; `npm run build` fails with the replacement
   for anything else. Never declare `_id` / `_meta`.
+- `indexes` holds only unique business keys and TTL. The platform creates,
+  rebuilds and drops query indexes from real filters, sorts and `$lookup`
+  joins: never declare plain or `gin` indexes for lists, and never add one
+  before a `$lookup`. Slow queries show up as `slowShapes` in
+  `/uns/app/context`.
 - Before declarations, inspect and reuse existing business directories. Each
   collection needs its own `directoryPath` from the workspace root. Industrial
   data follows the known ISA-95 equipment hierarchy (Enterprise → Site → Area

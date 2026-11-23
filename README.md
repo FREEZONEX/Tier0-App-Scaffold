@@ -157,7 +157,7 @@ src/
     client-only.tsx           <- Hydration boundary for SSR-incompatible libraries
     <domain>/                 <- App-local components generated per business need
   data/
-    collections.ts            <- Collection declarations (Zod schema, indexes, seed): the data source of truth
+    collections.ts            <- Collection declarations (Zod schema, unique/TTL indexes, seed): the data source of truth
     seed-utils.ts             <- seedDate() / seedTimestamp() / requireSeedRef() for seed documents
   lib/                        <- Cross-cutting utilities, not domain logic
     auth.ts                   <- getCurrentUser() / requireAuth() (do not modify)
@@ -326,7 +326,8 @@ experience.
 ## Add an API Endpoint
 
 **Step 1: Declare the data** in `src/data/collections.ts` with
-`defineCollection(...)` (directoryPath, schema, indexes, seed) and list it in `collections`.
+`defineCollection(...)` (directoryPath, schema, unique/TTL indexes, seed) and list it in `collections`.
+Query indexes are managed by the platform; do not declare them.
 Choose each path from the actual business scope as described in `docs/app-data.md`;
 reuse known ISA-95 directories for industrial data. An App/module directory such
 as MES may follow the known factory/line scope; do not default to a root App container.

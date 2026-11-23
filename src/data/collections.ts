@@ -19,6 +19,10 @@
  * `z.enum([...])`, `z.array(...)`, nested objects and `.optional()`. No
  * `.nullable()`, `.default()`, string formats or length limits — keep those
  * in API input schemas. `npm run build` rejects anything UNS cannot store.
+ *
+ * `indexes` declares business rules only: unique keys and at most one TTL.
+ * The platform builds query indexes (filters, sorts, `$lookup` join keys)
+ * from real traffic; do not declare them.
  */
 import type { CollectionDefinition } from "@tier0/sdk-v2/data/define";
 
@@ -43,7 +47,7 @@ import type { CollectionDefinition } from "@tier0/sdk-v2/data/define";
 //     notes: z.string().optional(),                          // optional = may be absent
 //     scheduledAt: z.string(),                               // ISO instant from toISOString()
 //   }),
-//   indexes: [{ path: "code", unique: true }, { path: "status" }],
+//   indexes: [{ path: "code", unique: true }], // unique keys and TTL only
 //   seed: [
 //     {
 //       _id: "wo-001",
