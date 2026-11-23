@@ -827,7 +827,7 @@ App means it sends too many requests (merge page reads with
 `uns.delete` on the App key; `COLLECTION_NOT_GRANTED` / `COLLECTION_NOT_FOUND`
 explain the grant or the missing collection when recovery cannot help.
 `APP_QUOTA_EXCEEDED` explains the limit named by `data.resource`
-(`collections`, `indexes` or `archivedCollections`, 64 each per App);
+(`collections` or `archivedCollections`, 64 each per App);
 `COLLECTION_TOO_LARGE` (archive / restore over 2000 records) and
 `DUPLICATE_KEY` (a unique index, also from a restore that collides with an
 active record) carry their own hints. Structured details stay in

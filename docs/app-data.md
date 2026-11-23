@@ -66,7 +66,7 @@ export const workOrders = defineCollection({
     notes: z.string().optional(),
     dueAt: z.string(),                        // ISO instant from toISOString()
   }),
-  indexes: [{ path: "code", unique: true }, { path: "status" }],
+  indexes: [{ path: "code", unique: true }],  // business keys and TTL only
   seed: [
     { _id: "wo-001", code: "WO-001", status: "RELEASED", targetQty: 50,
       line: { id: "line-1", name: "Line 1" }, items: [], dueAt: seedTimestamp(2) },
@@ -110,11 +110,16 @@ export const createWorkOrderInput = workOrders.schema
   .extend({ code: z.string().trim().min(1).max(32) });
 ```
 
-Indexes: `{ path }` or compound `{ paths }` (≤3 distinct paths), `unique: true`
-for business keys, `kind: "gin"` for one array/object field; at most 16 per
-collection. Paths follow object properties only: `items.sku` (a field inside
-array items) cannot be indexed — index `items` with `kind: "gin"` or keep the
-value in a top-level field. Index the fields lists filter and sort on.
+Indexes declare business rules only: unique keys and TTL. A unique key is
+`{ path, unique: true }` or compound `{ paths, unique: true }` (≤3 distinct
+paths); paths follow object properties only, so `items.sku` (a field inside
+array items) cannot be a key — keep such a value in a top-level field.
+Do not declare indexes for queries. The platform watches the App's real
+filters, sorts and `$lookup` joins and creates, rebuilds and drops the query
+indexes itself; a plain `{ path }` or `kind: "gin"` entry is accepted only as a
+hint (older Apps keep working) and the platform manages it. A workspace holds
+at most 500 indexes in total (unique, TTL and the platform's query indexes);
+there is no per-collection or per-App index limit.
 
 TTL: records that should disappear on their own (login codes, short-lived
 reservations, transient sensor alerts) get one TTL index instead of a cleanup
@@ -142,7 +147,8 @@ Never insert baseline data from services (on startup, or when a list is empty).
 - Reference shared entities by ID. Store a display snapshot
   (`customer: { id, name }`) when the business needs the historical value.
   A scoped `$lookup` can read current related values. Keep authorization
-  filters in the query, use an indexed join key and project only needed fields.
+  filters in the query, join on the related record's `_id` or business key and
+  project only needed fields; the join needs no index declaration.
   List pages may use scoped joins within the pipeline's row and byte budgets;
   do not replace a database join with one network request per record.
 - One collection per business object kind, not per screen.
@@ -309,8 +315,12 @@ duplicating.
   `$project`, `$set`, `$unwind`, `$skip`, `$limit`, `$count` and `$lookup`. Write
   `$lookup` with `from` set to a declared collection (or its alias):
   `{ $lookup: { from: customers, localField: "customer.id", foreignField: "_id", as: "customer" } }`;
-  the data layer turns it into the collection ID. The `$exists`, `$distinct` and
-  `$frequencies` stages are not executed for records; use `countBy`,
+  the data layer turns it into the collection ID. Do not declare an index for
+  `foreignField`: the platform indexes a join key the first time a join needs
+  it. Joins into small collections run at once; a large one may answer the
+  retryable `INDEX_PREPARING` until that index is ready — let the user retry
+  shortly instead of changing `indexes` or replacing the join. The `$exists`,
+  `$distinct` and `$frequencies` stages are not executed for records; use `countBy`,
   `countDocuments`, `distinct` or `$group`.
 - Writes are validated against the declaration before they are sent: unknown
   fields, wrong types and undeclared update paths fail with 400. Reads are
@@ -473,12 +483,12 @@ version's writes stay valid. Plan each change by its row:
 
 | Change | How |
 |---|---|
-| Add an optional field (any depth, also inside array items), add an enum value, make a field optional, `int` → `number`, widen or remove `min`/`max`, add an index | Edit `collections.ts`; ensure applies it on next access. |
+| Add an optional field (any depth, also inside array items), add an enum value, make a field optional, `int` → `number`, widen or remove `min`/`max`, add a unique key or a TTL index | Edit `collections.ts`; ensure applies it on next access. |
 | Change a `.describe()` text or the collection `description` | Edit `collections.ts`, then `schema:replace` through the tier0 MCP with `npm run data:schema -- <alias>` (`dryRun` first: expect `widened`; `narrowed` means storage holds more than this declaration, e.g. fields of another version — merge them into the body or stop). ensure keeps stored annotations and reports `ANNOTATION_NOT_APPLIED`; new fields and new collections take their descriptions on creation. |
 | Add a field every record must have | Add it `.optional()`, write it everywhere, backfill old records, then make it required with `schema:replace` once the deployed App writes it. |
 | Remove or rename a field | Stop using the old field in code (it may stay in storage); a new name is a new optional field. Backfill once through the tier0 MCP (`records:updateMany` with `$rename` / `$set`). |
 | Change a field's type | Use a new field name, backfill, read the old field as fallback. ensure never converts types (`SCHEMA_CONFLICT`). |
-| Remove an enum value, make an optional field required, drop a field from storage, remove an index, tighten `min`/`max` | Only after the deployed App no longer writes the old shape: `schema:replace` through the tier0 MCP, `dryRun` first. |
+| Remove an enum value, make an optional field required, drop a field from storage, remove a unique key or the TTL index, tighten `min`/`max` | Only after the deployed App no longer writes the old shape: `schema:replace` through the tier0 MCP, `dryRun` first. |
 
 Never `deleteMany` or recreate a collection to "reset" a schema: it deletes the
 deployed App's data too. Changing `seed` does not reseed.
@@ -521,8 +531,9 @@ to list new operations in `tier0_search`.
 | `REFERENCED` (409, replace) | A topic field still uses the path; remove that use first. |
 | `TEMPORARILY_UNAVAILABLE` | Retry the same request later. |
 | `APP_GRANT_REVOKED` (403) | A workspace admin removed this App's access (ensure, replace, archive); ensure does not re-grant. Ask the admin. |
-| `APP_QUOTA_EXCEEDED` (409) | `data.resource` says which per-App limit of 64 was hit: `collections` (active) → archive unused ones; `indexes` → drop indexes from the declaration and `schema:replace`; `archivedCollections` (archive) → restore one or ask an admin to clean up. |
-| `INDEX_QUOTA_EXCEEDED` (409) | The workspace holds 200 indexes that physically exist (archiving keeps unique indexes); drop unused indexes. |
+| `APP_QUOTA_EXCEEDED` (409) | `data.resource` says which per-App limit of 64 was hit: `collections` (active) → archive unused ones; `archivedCollections` (archive) → restore one or ask an admin to clean up. |
+| `INDEX_QUOTA_EXCEEDED` (409) | Unique and TTL indexes alone fill the workspace's 500 (the platform gives up its own query indexes first; archiving keeps unique indexes). Drop unique keys or TTL indexes that are no longer needed with `schema:replace`. |
+| `INDEX_PREPARING` (retryable) | A `$lookup` into a large collection waits for the platform to index its join key. Retry shortly; do not add an index or rewrite the join. |
 | `COLLECTION_TOO_LARGE` (409, archive / restore) | More than 2000 records (`data.maxRecords`). Do not archive large collections; stop using them in code. |
 | `DUPLICATE_KEY` (409, restore) | A restored record collides with an active record on a unique index; nothing was restored. Fix the active record first. |
 | `NOT_FOUND` (404) | The alias is not one of this App's collections. |
