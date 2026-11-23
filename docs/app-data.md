@@ -117,9 +117,12 @@ array items) cannot be a key — keep such a value in a top-level field.
 Do not declare indexes for queries. The platform watches the App's real
 filters, sorts and `$lookup` joins and creates, rebuilds and drops the query
 indexes itself; a plain `{ path }` or `kind: "gin"` entry is accepted only as a
-hint (older Apps keep working) and the platform manages it. A workspace holds
+hint (older Apps keep working; `indexStatus` reports it `managedBy: "platform"`
+and `ready`, unique and TTL entries `managedBy: "app"`). A workspace holds
 at most 500 indexes in total (unique, TTL and the platform's query indexes);
-there is no per-collection or per-App index limit.
+there is no per-collection or per-App index limit. To see why a query is slow,
+read the collection's `slowShapes` in `/uns/app/context` (see Collections
+through the tier0 MCP) instead of adding indexes.
 
 TTL: records that should disappear on their own (login codes, short-lived
 reservations, transient sensor alerts) get one TTL index instead of a cleanup
@@ -317,12 +320,14 @@ duplicating.
   `$lookup` with `from` set to a declared collection (or its alias):
   `{ $lookup: { from: customers, localField: "customer.id", foreignField: "_id", as: "customer" } }`;
   the data layer turns it into the collection ID. Do not declare an index for
-  `foreignField`: the platform indexes a join key the first time a join needs
-  it. Joins into small collections run at once; a large one may answer the
-  retryable `INDEX_PREPARING` until that index is ready — let the user retry
-  shortly instead of changing `indexes` or replacing the join. The `$exists`,
-  `$distinct` and `$frequencies` stages are not executed for records; use `countBy`,
-  `countDocuments`, `distinct` or `$group`.
+  `foreignField`: the platform indexes a join key when joins need it, and a
+  join it will not index runs without one. While that index is queued or
+  building, a join into a large collection answers `INDEX_PREPARING` (503,
+  nothing ran, `retry.afterMs` about 30 s); the data layer does not wait that
+  long, so the App answers its caller 503 with `Retry-After`. Let the user
+  retry shortly instead of changing `indexes` or replacing the join. The
+  `$exists`, `$distinct` and `$frequencies` stages are not executed for
+  records; use `countBy`, `countDocuments`, `distinct` or `$group`.
 - Writes are validated against the declaration before they are sent: unknown
   fields, wrong types and undeclared update paths fail with 400. Reads are
   **not** strictly parsed: a record may hold fields written by another code
@@ -464,7 +469,9 @@ Runtime data failures are `DataError`s (`status`, `code`, `reason`,
 envelope `data`, `cause`); let them reach `withErrors`. The data layer has
 already resent the call when `retry.safe` allowed it (overload `OVERLOADED`
 429, `APP_NOT_READY`, temporary failures, a read whose answer did not arrive
-— not `QUERY_TIMEOUT`, which needs a narrower query), so do not
+— not `QUERY_TIMEOUT`, which needs a narrower query, and not
+`INDEX_PREPARING`, whose ~30 s wait is longer than the data layer waits;
+`withErrors` answers it 503 with `Retry-After`), so do not
 wrap data calls in retry loops of your own. Branch on `code` / `reason`, never
 on message text. `execution` says how far the request got: `notStarted` /
 `rolledBack` changed nothing, `unknown` (`outcomeUnknown: true`, writes only)
@@ -503,7 +510,7 @@ code to catch mistakes).
 
 | Need | Call (`/openapi/v2` prefix) |
 |---|---|
-| App ID, collections, grants, current schemas, revisions, index status, TTL and limits | `POST /uns/app/context` with `{}` (whoami does not return the App ID) |
+| App ID, collections, grants, current schemas, revisions, index status, TTL and limits; per collection the platform's query indexes (`autoIndexes`) and up to 5 slow query shapes (`slowShapes`, each with an `advice.code`: `notIndexable` means rewrite the query, `indexed` / `building` name the covering index in `indexId`) | `POST /uns/app/context` with `{}` (whoami does not return the App ID) |
 | Preview a declaration change | `npm run data:schema` (includes every `directoryPath`), then `POST /uns/app/collections/ensure` with that body plus `"dryRun": true`; verify planned collection scopes before first creation |
 | Narrow a schema | `npm run data:schema -- <alias>` for the target, then `POST /uns/app/collections/schema:replace` with `{ alias, recordSchema, indexes, expectedRevision, dryRun: true }`; repeat with `dryRun: false` |
 | Change descriptions of existing fields or the collection | Same as narrowing: `schema:replace` with the `npm run data:schema -- <alias>` body (status `widened`) |
@@ -534,7 +541,7 @@ to list new operations in `tier0_search`.
 | `APP_GRANT_REVOKED` (403) | A workspace admin removed this App's access (ensure, replace, archive); ensure does not re-grant. Ask the admin. |
 | `APP_QUOTA_EXCEEDED` (409) | `data.resource` says which per-App limit of 64 was hit: `collections` (active) → archive unused ones; `archivedCollections` (archive) → restore one or ask an admin to clean up. |
 | `INDEX_QUOTA_EXCEEDED` (409) | Unique and TTL indexes alone fill the workspace's 500 (the platform gives up its own query indexes first; archiving keeps unique indexes). Drop unique keys or TTL indexes that are no longer needed with `schema:replace`. |
-| `INDEX_PREPARING` (retryable) | A `$lookup` into a large collection waits for the platform to index its join key. Retry shortly; do not add an index or rewrite the join. |
+| `INDEX_PREPARING` (503, `retry.safe`) | A `$lookup` into a large collection waits for the platform to build its join index (`retry.afterMs` about 30 s, nothing ran). Retry after that; do not add an index or rewrite the join. |
 | `COLLECTION_TOO_LARGE` (409, archive / restore) | More than 2000 records (`data.maxRecords`). Do not archive large collections; stop using them in code. |
 | `DUPLICATE_KEY` (409, restore) | A restored record collides with an active record on a unique index; nothing was restored. Fix the active record first. |
 | `NOT_FOUND` (404) | The alias is not one of this App's collections. |

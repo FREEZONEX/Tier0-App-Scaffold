@@ -201,7 +201,8 @@ API, limits, examples, error codes and tier0 MCP operations are in
 - `indexes` holds only unique business keys and TTL. The platform creates,
   rebuilds and drops query indexes from real filters, sorts and `$lookup`
   joins: never declare plain or `gin` indexes for lists, and never add one
-  before a `$lookup`.
+  before a `$lookup`. Slow queries show up as `slowShapes` in
+  `/uns/app/context`.
 - Before declarations, inspect and reuse existing business directories. Each
   collection needs its own `directoryPath` from the workspace root. Industrial
   data follows the known ISA-95 equipment hierarchy (Enterprise → Site → Area
