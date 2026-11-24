@@ -2,7 +2,7 @@
 
 ## Tier0 SDK (`@tier0/sdk-v2`)
 
-The unified `@tier0/sdk-v2` is the npm release `0.15.0`, pinned exactly in
+The unified `@tier0/sdk-v2` is the npm release `0.19.0`, pinned exactly in
 `package.json`. It keeps the 0.10.1 data and platform contracts, accepts Stream
 request contracts that omit both `sideEffect` and `idempotency`, and accepts
 only employee visitors. The lockfile records its registry URL and
