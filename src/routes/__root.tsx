@@ -8,6 +8,7 @@ import {
 import { Toaster } from "@/components/toaster";
 import { APP_DEFAULT_LOCALE, APP_NAME } from "@/lib/app-chrome";
 import { LocaleProvider } from "@/lib/locale";
+import { PlatformTextSizeSync } from "@/lib/platform-text-size";
 import { useVisitorSync } from "@/lib/use-visitor";
 import "@fontsource/ibm-plex-sans/400.css";
 import "@fontsource/ibm-plex-sans/500.css";
@@ -64,6 +65,7 @@ function RootDocument() {
         <HeadContent />
       </head>
       <body className="min-h-full font-sans">
+        <PlatformTextSizeSync />
         <LocaleProvider>
           <Outlet />
           <Toaster />

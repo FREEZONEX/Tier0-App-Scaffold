@@ -78,7 +78,7 @@ export function MobileCard({ config, fields, record, statusFields = [], actions,
                 })}
               </div>
             ) : null}
-            {titleText ? <h3 className="line-clamp-2 break-all text-[15px] font-semibold leading-6 text-foreground">{titleText}</h3> : null}
+            {titleText ? <h3 className="line-clamp-2 break-all text-[length:calc(15px_+_var(--tier0-platform-text-offset))] font-semibold leading-6 text-foreground">{titleText}</h3> : null}
           </div>
           {indicator ? (
             <div className="flex shrink-0 flex-col items-end text-right">

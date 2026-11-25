@@ -15,7 +15,7 @@ export function Toaster() {
         className: "tier0-toast",
         style: {
           fontFamily: "var(--font-app-sans)",
-          fontSize: "13px",
+          fontSize: "calc(13px + var(--tier0-platform-text-offset))",
           border: "1px solid var(--tier0-border)",
           borderRadius: "var(--tier0-radius-md)",
           boxShadow: "var(--shadow-overlay)",
