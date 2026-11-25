@@ -94,7 +94,7 @@ export function ListFilterButton({
     >
       筛选
       {activeCount > 0 ? (
-        <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[11px] leading-4 text-primary-foreground tabular-nums">
+        <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[length:calc(11px_+_var(--tier0-platform-text-offset))] leading-4 text-primary-foreground tabular-nums">
           {activeCount}
         </span>
       ) : null}

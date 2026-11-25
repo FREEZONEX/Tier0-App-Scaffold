@@ -251,7 +251,7 @@ export function SortPopover({ fields, value, onChange, disabled = false, isDefau
       {rules.length > 0 ? (
         <>
           {rules.length > 1 ? (
-            <span className="inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded-[4px] bg-muted px-1 text-[11px] leading-4 text-muted-foreground tabular-nums">
+            <span className="inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded-[4px] bg-muted px-1 text-[length:calc(11px_+_var(--tier0-platform-text-offset))] leading-4 text-muted-foreground tabular-nums">
               +{rules.length - 1}
             </span>
           ) : null}

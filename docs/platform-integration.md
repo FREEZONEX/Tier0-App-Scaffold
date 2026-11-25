@@ -2,12 +2,15 @@
 
 ## Tier0 SDK (`@tier0/sdk-v2`)
 
-The unified `@tier0/sdk-v2` is the npm release `0.19.0`, pinned exactly in
+The unified `@tier0/sdk-v2` is pinned to `0.20.0` in
 `package.json`. It keeps the 0.10.1 data and platform contracts, accepts Stream
 request contracts that omit both `sideEffect` and `idempotency`, and accepts
 only employee visitors. The lockfile records its registry URL and
 integrity, and tests check both; installation alone does not prove a live
 deployment.
+For local verification before SDK publication, install the exact SDK
+tarball through the local npm cache. Verify the registry artifact and refresh
+the lockfile integrity before distributing the scaffold.
 The SDK must preserve `directoryPath` in collection ensure payloads (Backend
 `app-collections/2`); follow [the directory rollout plan](collection-directory-release.md)
 before distributing the template or deploying its backend dependency.
@@ -16,6 +19,28 @@ Read `node_modules/@tier0/sdk-v2/skills/tier0-sdk-v2/SKILL.md` before SDK
 work, then follow its nested domain Skill for the operation. The installed
 package's types and Skills describe this version; an SDK repository update
 alone neither upgrades the App nor refreshes platform-managed Skills.
+
+### Platform text size
+
+New Apps mount `PlatformTextSizeSync` in `src/routes/__root.tsx` to read the
+embedded platform host's S, M or L preference through `@tier0/sdk-v2/page-runtime`.
+This requires front door runtime 2.3.0 or later. Direct opens and older hosts
+use the App's default style. The preference changes typography in place and
+keeps the current route, focus and unsubmitted form state.
+
+Use the shared semantic text classes and control tokens for visible headings,
+labels, tables, inputs, buttons and dialogs. When a design needs a custom
+font size, apply `var(--tier0-platform-text-offset, 0px)` to its base size and
+allow long text to wrap. Keep print layouts and custom chart rendering on their
+own layout contracts.
+
+To align an existing App, pin the SDK and update its lockfile, then copy
+`src/lib/platform-text-size.ts` and mount `<PlatformTextSizeSync />` once in
+its root document. Keep the front door script in the root head and adapt the
+existing typography tokens in `src/styles/globals.css`, including mobile
+variants. Open the App through Launchpad and verify S, L and M with an active
+form and a dialog. Verify that a direct open uses the App defaults. Redeploy
+the aligned App through its existing release workflow.
 
 HTTP Sources use `http-api` with `config.role: client | server`. New Source
 configurations omit `configVersion`; native Stream documents use

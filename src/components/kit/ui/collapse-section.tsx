@@ -59,7 +59,7 @@ export function CollapseSection({
             type="button"
             aria-expanded={expanded}
             aria-controls={contentId}
-            className="group grid min-w-0 flex-1 grid-cols-[12px_minmax(0,1fr)] items-center gap-x-2 rounded-[4px] px-1.5 py-1.5 text-left text-[15px] font-semibold leading-6 text-foreground outline-none transition-colors hover:bg-muted focus-visible:bg-muted focus-visible:text-foreground"
+            className="group grid min-w-0 flex-1 grid-cols-[12px_minmax(0,1fr)] items-center gap-x-2 rounded-[4px] px-1.5 py-1.5 text-left text-[length:calc(15px_+_var(--tier0-platform-text-offset))] font-semibold leading-6 text-foreground outline-none transition-colors hover:bg-muted focus-visible:bg-muted focus-visible:text-foreground"
             onClick={() => {
               setSettled(false);
               setOpen(!isOpen);
@@ -78,7 +78,7 @@ export function CollapseSection({
             <span className="min-w-0">{title}</span>
           </button>
         ) : (
-          <h3 className="min-w-0 truncate text-[15px] font-semibold leading-6 text-foreground">
+          <h3 className="min-w-0 truncate text-[length:calc(15px_+_var(--tier0-platform-text-offset))] font-semibold leading-6 text-foreground">
             {title}
           </h3>
         )}
