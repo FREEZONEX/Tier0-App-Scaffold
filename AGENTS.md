@@ -164,7 +164,8 @@ Use three layers:
 1. `src/routes/api/**`: authenticate, parse with Zod, call a service, return a
    response through `withErrors`.
 2. `src/services/**`: business invariants, lifecycle transitions, data
-   access through `@/lib/data`, and audit side effects.
+   access through `@/lib/data`, and audit side effects when the domain requires
+   them.
 3. `src/data/collections.ts`: collection declarations (Zod schemas, unique
    and TTL indexes, seed) and the types derived from them.
 
@@ -198,7 +199,12 @@ API, limits, examples, error codes and tier0 MCP operations are in
   `src/data/collections.ts` and list it in `collections`. Storage schemas use
   the supported Zod subset only; `npm run build` fails with the replacement
   for anything else. Never declare `_id` / `_meta`.
-- `indexes` holds only unique business keys and TTL. The platform creates,
+- `indexes` holds only genuine business unique keys and TTL — omit it by
+  default. All indexes share the workspace's 500-index physical quota (each
+  unique key uses 1, a business-field TTL uses 2, archived collections keep
+  their indexes, and App declarations evict platform query indexes). Prefer a
+  natural unique key as `_id` instead of adding a redundant `unique` index, and
+  do not add `unique` on every code or label field. The platform creates,
   rebuilds and drops query indexes from real filters, sorts and `$lookup`
   joins: never declare plain or `gin` indexes for lists, and never add one
   before a `$lookup`. Slow queries show up as `slowShapes` in
@@ -217,10 +223,15 @@ API, limits, examples, error codes and tier0 MCP operations are in
 - Seed: fixed `_id`s, coherent across lifecycle states, written **once** when a
   collection is created; editing `seed` never reseeds. Never insert baseline
   data from services.
-- Model documents, not tables: embed what changes with the record and reference
-  shared entities by ID. Keep a display snapshot when the business needs the
-  historical value; a scoped `$lookup` can supply current related values.
-  Use one collection per business object kind.
+- Model documents, not tables, and keep the collection set lean: embed bounded
+  child items, approval/status history, notes and per-record details inside the
+  parent document, and keep static code tables/enums in code rather than
+  separate collections. Reference shared entities by ID (with a display snapshot
+  when history matters, or a scoped `$lookup` for current values). Declare a
+  separate collection only for an independently managed business object or an
+  unbounded ledger/log that must be queried on its own — do not create join
+  tables, per-page collections, unrequested `audit_logs`, or `counters`
+  collections when gapless sequential numbering is not required.
 - Read efficiently: push filtering, joins and statistics into the database;
   combine independent, single-page reads with `data.queryBatch`. Resolve
   dependencies first, then batch the next reads; a screen may need several
@@ -253,8 +264,10 @@ API, limits, examples, error codes and tier0 MCP operations are in
   are worker operations through the tier0 MCP, never runtime code.
 
 An imported or older App's own SQL database is App-owned persistence: rewrite
-its callers to collections and remove the driver, ORM and connection settings
-instead of connecting to the old database or asking for its configuration.
+its callers to collections — consolidating child, join and static lookup tables
+into the document model rather than mapping SQL tables 1:1 — and remove the
+driver, ORM and connection settings instead of connecting to the old database or
+asking for its configuration.
 `npm run build` fails while `src/` or `server.mjs` still reads `DATABASE_URL*`,
 `DIRECT_DATABASE_URL`, `DB_SCHEMA`, `PG*` or `POSTGRES_*` from the environment,
 or `package.json` still depends on a database driver or ORM. Only a database the user explicitly keeps as an
@@ -648,8 +661,9 @@ Do not bypass completion with `vite build` alone.
 - Every exposed action is reachable, permissioned, validated, persisted, and
   reports success/error; dangerous actions confirm impact.
 - Service boundaries, state transitions, consistency patterns (conditional
-  updates, `expectedRevision`, `data.transact`) and audit effects hold; every
-  collection is declared, listed and seeded in `src/data/collections.ts`.
+  updates, `expectedRevision`, `data.transact`) and required audit effects hold;
+  the collection and index set stays lean and every collection is declared,
+  listed and seeded in `src/data/collections.ts`.
 - Role matrix, metadata, `roles.json`, navigation, UI actions, and API guards
   agree; multiple roles grant the permission union.
 - Loading, error/retry, empty, and populated states are visible and usable.
