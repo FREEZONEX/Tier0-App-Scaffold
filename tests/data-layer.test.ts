@@ -106,6 +106,18 @@ describe("route handlers", () => {
     assert.equal(response.headers.get("Retry-After"), null);
     assert.equal((await response.json()).code, "OUTCOME_UNKNOWN");
   });
+
+  it("forwards EXTERNAL_COLLECTION_UNBOUND (503) for unbound external alias references without calling ensure", async () => {
+    const mock = mockUns({
+      "/uns/app/context": ok({ appId: "app-1", name: "App", revision: 1, dataState: "ready", platformPermissions: [], limits: {}, collections: [] }),
+    });
+    const data = client(mock);
+    const response = await withErrors(async () => Response.json(await data.collection({ alias: "equipment_master" }).findOne({})))();
+    assert.equal(response.status, 503);
+    const body = await response.json();
+    assert.equal(body.code, "EXTERNAL_COLLECTION_UNBOUND");
+    assert.equal(mock.calls(ENSURE).length, 0);
+  });
 });
 
 describe("request abort signal", () => {

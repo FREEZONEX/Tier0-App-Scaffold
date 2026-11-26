@@ -195,10 +195,22 @@ the deployed App use the **same** collections and the same records. The full
 API, limits, examples, error codes and tier0 MCP operations are in
 `docs/app-data.md`; read it before data work. Rules that always hold:
 
-- Declare every collection (`directoryPath`, Zod storage schema, indexes, `seed`) in
+- Declare every App-owned collection (`directoryPath`, Zod storage schema, indexes, `seed`) in
   `src/data/collections.ts` and list it in `collections`. Storage schemas use
   the supported Zod subset only; `npm run build` fails with the replacement
   for anything else. Never declare `_id` / `_meta`.
+- External authorized collections (owned by the workspace or another App) are
+  **never** added to `src/data/collections.ts` and must **never** hard-code a
+  physical `collectionId` UUID in App source code. Always assign a stable
+  `alias` in the App data policy grant (unique per App, case-insensitive, never
+  colliding with an owned collection alias) and access records through
+  `data.collection({ alias: "<context.alias>", schema? })` (and time-series
+  `sample*` calls through `await data.resolveCollectionId({ alias: "<context.alias>" })`).
+  The SDK resolves `{ alias }` via `/uns/app/context`, never calls `ensure` or
+  `seed`, refreshes on admin rebind without restart, and throws `DataError`
+  with `code: "EXTERNAL_COLLECTION_UNBOUND"` (HTTP 503) when unbound or
+  revoked; handle that code in the UI with a clear "data source not bound yet"
+  empty state instead of crashing.
 - `indexes` holds only genuine business unique keys and TTL — omit it by
   default. All indexes share the workspace's 500-index physical quota (each
   unique key uses 1, a business-field TTL uses 2, archived collections keep
