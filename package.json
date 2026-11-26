@@ -47,7 +47,7 @@
     "@fontsource/inter": "^5.2.8",
     "@tanstack/react-router": "^1.168.0",
     "@tanstack/react-start": "^1.167.0",
-    "@tier0/sdk-v2": "0.20.0",
+    "@tier0/sdk-v2": "0.21.0",
     "ai": "^7.0.173",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
