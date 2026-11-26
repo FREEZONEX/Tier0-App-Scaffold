@@ -66,7 +66,7 @@ export const workOrders = defineCollection({
     notes: z.string().optional(),
     dueAt: z.string(),                        // ISO instant from toISOString()
   }),
-  indexes: [{ path: "code", unique: true }],  // business keys and TTL only
+  indexes: [{ path: "code", unique: true }],  // optional; omit unless a true business uniqueness rule or TTL is needed
   seed: [
     { _id: "wo-001", code: "WO-001", status: "RELEASED", targetQty: 50,
       line: { id: "line-1", name: "Line 1" }, items: [], dueAt: seedTimestamp(2) },
@@ -110,29 +110,37 @@ export const createWorkOrderInput = workOrders.schema
   .extend({ code: z.string().trim().min(1).max(32) });
 ```
 
-Indexes declare business rules only: unique keys and TTL. A unique key is
-`{ path, unique: true }` or compound `{ paths, unique: true }` (≤3 distinct
-paths); paths follow object properties only, so `items.sku` (a field inside
-array items) cannot be a key — keep such a value in a top-level field.
-Do not declare indexes for queries. The platform watches the App's real
-filters, sorts and `$lookup` joins and creates, rebuilds and drops the query
-indexes itself; a plain `{ path }` or `kind: "gin"` entry is accepted only as a
-hint (older Apps keep working; `indexStatus` reports it `managedBy: "platform"`
-and `ready`, unique and TTL entries `managedBy: "app"`). A workspace holds
-at most 500 indexes in total (unique, TTL and the platform's query indexes);
-there is no per-collection or per-App index limit. To see why a query is slow,
-read the collection's `slowShapes` in `/uns/app/context` (see Collections
-through the tier0 MCP) instead of adding indexes.
+Indexes declare genuine business rules only: unique keys and TTL. Omit
+`indexes` by default. A unique key is `{ path, unique: true }` or compound
+`{ paths, unique: true }` (≤3 distinct paths); paths follow object properties
+only, so `items.sku` (a field inside array items) cannot be a key — keep such a
+value in a top-level field. Do not declare indexes for queries. The platform
+watches the App's real filters, sorts and `$lookup` joins and creates, rebuilds
+and drops the query indexes itself; a plain `{ path }` or `kind: "gin"` entry is
+accepted only as a hint (older Apps keep working; `indexStatus` reports it
+`managedBy: "platform"` and `ready`, unique and TTL entries `managedBy: "app"`).
+A workspace holds at most 500 physical indexes in total (unique, TTL and the
+platform's query indexes), with no per-collection or per-App limit: each unique
+declaration uses 1 physical index, a TTL declaration on a business field uses 2
+(`_j` and `_v`), archived collections keep their indexes, and App-declared
+indexes evict platform query indexes when the workspace approaches 500. Prefer
+storing a natural unique key in `_id` instead of adding a redundant `unique`
+index, and declare `unique` only for true concurrent-write uniqueness invariants
+rather than every code or display label. To see why a query is slow, read the
+collection's `slowShapes` in `/uns/app/context` (see Collections through the
+tier0 MCP) instead of adding indexes.
 
-TTL: records that should disappear on their own (login codes, short-lived
-reservations, transient sensor alerts) get one TTL index instead of a cleanup
+TTL: only when records must disappear on their own (login codes, short-lived
+reservations, transient sensor alerts), use one TTL index instead of a cleanup
 job — `{ path: "issuedAt", expireAfterSeconds: 300 }` on a
 `z.number().int()` field holding Unix milliseconds (`Date.now()`; ISO strings
-cannot expire). UNS deletes a record `expireAfterSeconds` (60–31536000) after
-that instant, physically and with up to minutes of delay, so reads still
-compare the time themselves; records without the field never expire. One TTL
-index per collection, on a single `path` and not `unique`. ensure may add a
-TTL or lengthen it; shortening or removing it takes `schema:replace`.
+cannot expire). Remember that a TTL index on a business field consumes 2
+physical indexes from the shared 500-index workspace quota. UNS deletes a record
+`expireAfterSeconds` (60–31536000) after that instant, physically and with up to
+minutes of delay, so reads still compare the time themselves; records without
+the field never expire. One TTL index per collection, on a single `path` and not
+`unique`. ensure may add a TTL or lengthen it; shortening or removing it takes
+`schema:replace`.
 
 Seed: baseline records with fixed `_id`s, coherent across lifecycle states,
 referencing each other by those IDs (`requireSeedRef()`), dates from
@@ -144,9 +152,18 @@ Never insert baseline data from services (on startup, or when a list is empty).
 
 ## Model documents, not tables
 
+- Keep the collection set minimal for the business scope. Do not map relational
+  tables 1:1 into collections: merge child tables, join tables and static lookup
+  tables into the owning document or application code.
 - Embed what belongs to one record and changes with it (order lines, checklist
-  steps, approval history) as arrays inside that document; one write keeps it
-  consistent. Keep arrays bounded.
+  steps, comments, approval/status history) as bounded arrays inside that
+  document; one write keeps it consistent.
+- Keep static dictionaries, categories and enums in code unless users must
+  create and edit them at runtime.
+- Do not create a standalone `audit_logs` or `history` collection unless the
+  domain explicitly requires cross-record audit queries; for single-record
+  history, embed a bounded history array on the document or rely on
+  `_meta.updatedAt` / `_meta.revision`.
 - Reference shared entities by ID. Store a display snapshot
   (`customer: { id, name }`) when the business needs the historical value.
   A scoped `$lookup` can read current related values. Keep authorization
@@ -154,7 +171,8 @@ Never insert baseline data from services (on startup, or when a list is empty).
   project only needed fields; the join needs no index declaration.
   List pages may use scoped joins within the pipeline's row and byte budgets;
   do not replace a database join with one network request per record.
-- One collection per business object kind, not per screen.
+- Declare a separate collection only for an independently managed business
+  object kind or an unbounded ledger/log queried on its own — never per screen.
 - Use `_meta.createdAt` / `_meta.updatedAt` for "newest first"; they are kept by
   UNS.
 
@@ -353,15 +371,20 @@ duplicating.
   `null` means the record is missing or already moved — answer 409.
 - Concurrent edits: send `_meta.revision` from the edit form as
   `expectedRevision`; `VERSION_CONFLICT` (409) means reload and retry.
-- Cross-document invariants (stock + reservation, order + audit entry): one
-  `data.transact([...])` (≤200 steps) with `record.check` / `record.update` /
-  `record.create` steps, `dependsOn` and `bindings`; a `record.query` step can
-  assert `expectCount: { min, max }`. It commits all or nothing; it is not a
-  session, so there is no read-then-decide inside it. Step `data` never holds
-  `_id` (set `id` on the step); fields filled by `bindings` are checked when
-  UNS commits, every literal field is validated before sending.
-- Counters and sequence numbers: declare a counters collection and use
-  `findOneAndUpdate({ _id: "work_orders" }, { $inc: { value: 1 } }, { upsert: true })`.
+- Cross-document invariants (e.g. stock + reservation, balance + movement
+  ledger): one `data.transact([...])` (≤200 steps) with `record.check` /
+  `record.update` / `record.create` steps, `dependsOn` and `bindings`; a
+  `record.query` step can assert `expectCount: { min, max }`. It commits all or
+  nothing; it is not a session, so there is no read-then-decide inside it. Step
+  `data` never holds `_id` (set `id` on the step); fields filled by `bindings`
+  are checked when UNS commits, every literal field is validated before sending.
+- Counters and sequence numbers: declare a single shared counters collection
+  (`findOneAndUpdate({ _id: "work_orders" }, { $inc: { value: 1 } }, { upsert: true })`)
+  only when the business genuinely requires strictly contiguous sequential
+  numbers (reuse one collection across document types via `_id`, never one
+  collection per sequence). When gapless numbering is not required, generate
+  readable IDs (e.g. prefix + date/timestamp + short random suffix) without
+  adding a counter collection.
 - An upsert filter must contain `_id` or every field of a **ready** unique index
   (`UPSERT_REQUIRES_UNIQUE_INDEX` otherwise; a new unique index builds
   asynchronously).

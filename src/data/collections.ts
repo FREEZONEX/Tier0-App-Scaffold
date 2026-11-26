@@ -20,9 +20,13 @@
  * `.nullable()`, `.default()`, string formats or length limits — keep those
  * in API input schemas. `npm run build` rejects anything UNS cannot store.
  *
- * `indexes` declares business rules only: unique keys and at most one TTL.
- * The platform builds query indexes (filters, sorts, `$lookup` join keys)
- * from real traffic; do not declare them.
+ * Keep collections and indexes lean: embed bounded child items/history on the
+ * parent document and keep static lookups in code instead of splitting extra
+ * collections. Omit `indexes` by default — declare only genuine business unique
+ * keys and at most one TTL (all indexes share a 500-index workspace quota, and
+ * archived collections retain their indexes; prefer natural `_id` keys where
+ * suitable). The platform builds query indexes (filters, sorts, `$lookup` join
+ * keys) from real traffic; do not declare them.
  */
 import type { CollectionDefinition } from "@tier0/sdk-v2/data/define";
 
@@ -47,7 +51,7 @@ import type { CollectionDefinition } from "@tier0/sdk-v2/data/define";
 //     notes: z.string().optional(),                          // optional = may be absent
 //     scheduledAt: z.string(),                               // ISO instant from toISOString()
 //   }),
-//   indexes: [{ path: "code", unique: true }], // unique keys and TTL only
+//   indexes: [{ path: "code", unique: true }], // optional: genuine unique keys and TTL only
 //   seed: [
 //     {
 //       _id: "wo-001",
