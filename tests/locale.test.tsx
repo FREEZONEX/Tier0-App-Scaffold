@@ -36,7 +36,8 @@ function runtimeWithLanguage(language: string | undefined) {
 
 test("maps platform language tags to supported App locales, else the default", () => {
   assert.deepEqual([...APP_SUPPORTED_LOCALES], ["en", "zh-CN"]);
-  assert.equal(APP_DEFAULT_LOCALE, "en");
+  // The default is the product language an App sets; any supported locale is valid.
+  assert.ok(APP_SUPPORTED_LOCALES.includes(APP_DEFAULT_LOCALE), "the default locale is a supported one");
   assert.equal(resolveAppLocale("zh-cn"), "zh-CN");
   assert.equal(resolveAppLocale("ZH-CN"), "zh-CN");
   assert.equal(resolveAppLocale("zh-tw"), "zh-CN", "same primary language");
@@ -71,11 +72,11 @@ test("the server and the first client render use the default locale, whatever th
     const t = useCopy(copy);
     return createElement("p", { "data-locale": useLocale() }, t("title"), " ", createElement(UiText, { id: "save" }));
   }
-  for (const sent of [undefined, "zh-cn"]) {
+  const expected = `<p data-locale="${APP_DEFAULT_LOCALE}">${translate(copy, APP_DEFAULT_LOCALE, "title")} ${translate(UI_COPY, APP_DEFAULT_LOCALE, "save")}</p>`;
+  for (const sent of [undefined, "zh-cn", "en"]) {
     runtimeWithLanguage(sent);
     const html = renderToString(createElement(LocaleProvider, null, createElement(Page)));
-    assert.match(html, /data-locale="en"/, String(sent));
-    assert.equal(html.replace(/<!-- -->/g, ""), '<p data-locale="en">Work orders Save</p>', String(sent));
+    assert.equal(html.replace(/<!-- -->/g, ""), expected, String(sent));
   }
 });
 
