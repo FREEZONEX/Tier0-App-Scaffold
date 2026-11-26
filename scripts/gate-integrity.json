@@ -34,7 +34,7 @@
     "scripts/legacy-db-gate.mjs": "14e141fc96e47b57b32f92ef600165d47be337c537a066b35c8d669a28a842cb",
     "src/lib/data/index.ts": "33278612e5cba21e1251ea07014f6360f6878ca5e019204c7023efc4e80c2f5c",
     "src/lib/data/query.ts": "08cb4d6e95b77c5de03a02c120934bd231afb0d88ff2ee0d7dbdf3a9c9e2f72a",
-    "src/lib/data/changes.ts": "87e57dd1bbdc37fd02946b3bd26a58e3c30120cabb0d5f2a592c07e1e8abaea5",
+    "src/lib/data/changes.ts": "5774fd49f9835aae6946e7b8b2728318b8774c9ba8d2a93562ccf978d5497998",
     "src/routes/api/uns/subscribe.ts": "74b0e0f72be8a5166b56639a0f4e8c9868cc93b709ea695a5b9335a0073c7448",
     "src/start.ts": "0032eedabd67de58acb9135fe56b3e6538f32dfe01f52c892345296a76ef6c78",
     "src/lib/auth.ts": "c1db810652b41e057c82ce9e65b60af486e5bf601e738687fdcc3e16bb74ecc6",

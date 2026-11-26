@@ -204,6 +204,49 @@ Also available: `insertMany`, `updateMany`, `replaceOne`, `deleteOne`,
 (`insertOne` / `updateOne` / `replaceOne` / `deleteOne`), `distinct`, and
 `data.transact(...)`.
 
+### External authorized collections
+
+When the App reads or writes a workspace collection or another App's collection
+granted in `appDataPolicy`, **do not** declare it in `src/data/collections.ts`
+and **never hard-code its physical `collectionId` UUID in source code**
+(hard-coded IDs break template preview, cross-workspace import, and live
+rebinding). Instead, give the grant a stable `alias` in `appDataPolicy` (unique
+per App, case-insensitive, never colliding with an owned collection alias) and
+reference it by `{ alias }`:
+
+```ts
+import { z } from "zod";
+import { data } from "@/lib/data";
+
+const equipmentSchema = z.object({
+  code: z.string(),
+  name: z.string(),
+});
+
+// Resolved at runtime from /uns/app/context; never ensured or seeded.
+const equipment = data.collection({ alias: "equipment_master", schema: equipmentSchema });
+
+export async function listEquipment() {
+  return equipment.find({}, { limit: 50 }).toArray();
+}
+
+// For time-series sample* operations, resolve the physical collectionId dynamically:
+export async function getTelemetryCollectionId() {
+  return data.resolveCollectionId({ alias: "telemetry_readings" });
+}
+```
+
+- Works across `collection()`, `queryBatch`, `transact`, `aggregate` (`$lookup.from` /
+  `$unionWith.from`), and live updates (`useRecordChanges(["equipment_master"], reload)`).
+- When a workspace admin rebinds the `alias` to another collection in App settings →
+  Data, the SDK detects stale IDs and refreshes `/uns/app/context` automatically
+  without restarting the App.
+- When the alias is unbound (e.g. deferred on import, revoked, or source App trashed),
+  the SDK throws `DataError` with `code: "EXTERNAL_COLLECTION_UNBOUND"` (HTTP 503,
+  `details: { alias }`), which `withErrors` forwards as `{ error, code, requestId }`.
+  Render a clear empty/configuration-pending state in the UI when receiving
+  `code === "EXTERNAL_COLLECTION_UNBOUND"`.
+
 Combine independent, single-page reads (a list with its total, status chips,
 a lookup list) with `data.queryBatch`: up to 20 reads in
 one request, all from the same snapshot, typed by name. Resolve the service's
@@ -571,4 +614,5 @@ to list new operations in `tier0_search`.
 | `data.reason` on record calls | `COLLECTION_NOT_GRANTED` (403): the grant does not cover the collection or operation; `COLLECTION_NOT_FOUND` (403/404): archived or deleted — the App's data layer re-ensures on both; `APP_PERMISSION_MISSING` (403, `data.missingPermission`): the key lacks e.g. `uns.delete`. Judge by these codes, never by message text. |
 | `DUPLICATE` (409, restore) | An active collection already uses the alias (`data.activeCollectionId`); archive it first. |
 | `FORBIDDEN` (403) | The key may not do this (another App's or a shared collection), or it was revoked. |
+| `EXTERNAL_COLLECTION_UNBOUND` (503) | An external `{ alias }` reference is not currently bound in `appDataPolicy` (deferred on import, revoked, or source collection unavailable). Never ensured automatically; guide the user/admin to bind or clone a collection with that alias in App settings → Data. |
 | `APP_NOT_READY` (503) | The platform is still preparing a freshly imported App; retry shortly. |

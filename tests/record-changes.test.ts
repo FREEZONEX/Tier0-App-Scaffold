@@ -132,4 +132,27 @@ describe("changeFilter", () => {
   it("answers 404 while the App declares no collections", () => {
     assert.throws(() => changeFilter(subscribe(""), []), status(404));
   });
+
+  it("accepts external collection aliases via explicit list or allowExternalAliases without breaking declared validation", () => {
+    assert.deepEqual(
+      changeFilter(subscribe("?collections=orders,equipment_master"), ["orders"], ["equipment_master"]),
+      { collections: ["orders", "equipment_master"], recordIds: [] },
+    );
+    assert.deepEqual(
+      changeFilter(subscribe("?collections=Equipment_Master"), [], ["equipment_master"]),
+      { collections: ["Equipment_Master"], recordIds: [] },
+    );
+    assert.deepEqual(
+      changeFilter(subscribe("?collections=equipment_master"), ["orders"], { allowExternalAliases: true }),
+      { collections: ["equipment_master"], recordIds: [] },
+    );
+    assert.throws(
+      () => changeFilter(subscribe("?collections=1bad"), ["orders"], { allowExternalAliases: true }),
+      status(400),
+    );
+    assert.equal(
+      matchesFilter({ collections: ["Equipment_Master"], recordIds: [] }, change("r-1", "equipment_master")),
+      true,
+    );
+  });
 });

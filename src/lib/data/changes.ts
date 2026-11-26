@@ -29,23 +29,31 @@
  * App's collections; the browser reloads through the App's API, where the
  * App's role rules apply.
  */
-import { createChangeRelay, type ChangeRelay, type RecordChange } from "@tier0/sdk-v2/data";
+import { ALIAS_PATTERN, createChangeRelay, type ChangeRelay, type RecordChange } from "@tier0/sdk-v2/data";
 import type { CollectionDefinition } from "@tier0/sdk-v2/data/define";
 import { collections } from "../../data/collections";
 import { HttpError } from "../route-handlers";
 import { data } from "./index";
 
 export interface ChangeFilter {
-  /** Collection aliases; every declared collection when empty. */
+  /** Collection aliases; every declared collection (plus bound readable external collections) when empty. */
   collections: readonly string[];
   /** Only these records when non-empty. */
   recordIds: readonly string[];
 }
 
+export interface ChangeFilterOptions {
+  /** Additional external collection aliases permitted in `?collections=`. */
+  externalAliases?: readonly string[];
+  /** Permit any syntactically valid external alias (`ALIAS_PATTERN`); upstream still subscribes only to granted collections. */
+  allowExternalAliases?: boolean;
+}
+
 /** Whether a change is one the browser asked for. */
 export function matchesFilter(filter: ChangeFilter, change: RecordChange): boolean {
+  const target = change.collection.toLowerCase();
   return (
-    (filter.collections.length === 0 || filter.collections.includes(change.collection)) &&
+    (filter.collections.length === 0 || filter.collections.some((alias) => alias.toLowerCase() === target)) &&
     (filter.recordIds.length === 0 || filter.recordIds.includes(change.recordId))
   );
 }
@@ -58,16 +66,29 @@ function listParam(url: URL, name: string): string[] {
 
 /**
  * The filter a subscribe request asks for, checked against the `declared`
- * collection aliases: `?collections=<alias,...>` (every declared collection
- * when absent) and `?recordIds=<id,...>` (≤100). 404 when nothing is declared.
+ * collection aliases and optional external aliases: `?collections=<alias,...>`
+ * (all subscribed collections when absent) and `?recordIds=<id,...>` (≤100).
+ * 404 when nothing is declared and no external aliases are permitted.
  */
-export function changeFilter(request: Request, declared: readonly string[]): ChangeFilter {
+export function changeFilter(
+  request: Request,
+  declared: readonly string[],
+  externalOrOptions: readonly string[] | ChangeFilterOptions = [],
+): ChangeFilter {
+  const options: ChangeFilterOptions = Array.isArray(externalOrOptions)
+    ? { externalAliases: externalOrOptions as readonly string[] }
+    : (externalOrOptions as ChangeFilterOptions);
+  const externalAliases = options.externalAliases ?? [];
+  const allowExternalAliases = options.allowExternalAliases === true;
   const url = new URL(request.url);
   const filter: ChangeFilter = { collections: listParam(url, "collections"), recordIds: listParam(url, "recordIds") };
-  const unknown = filter.collections.filter((alias) => !declared.includes(alias));
+  const allowed = new Set([...declared, ...externalAliases].map((alias) => alias.toLowerCase()));
+  const unknown = filter.collections.filter(
+    (alias) => !allowed.has(alias.toLowerCase()) && !(allowExternalAliases && ALIAS_PATTERN.test(alias)),
+  );
   if (unknown.length > 0) throw new HttpError(400, `Unknown collection alias: ${unknown.join(", ")}`);
   if (filter.recordIds.length > MAX_RECORD_IDS) throw new HttpError(400, `At most ${MAX_RECORD_IDS} recordIds per subscription`);
-  if (declared.length === 0) throw new HttpError(404, "This App declares no collections");
+  if (allowed.size === 0 && !allowExternalAliases) throw new HttpError(404, "This App declares no collections");
   return filter;
 }
 
@@ -75,15 +96,20 @@ let relay: ChangeRelay | undefined;
 
 /**
  * `/api/uns/subscribe` for the request, filtered by `changeFilter` over the
- * App's declared collections and by `canSee`, and resumed from
- * `Last-Event-ID`. Authenticate before calling it.
+ * App's declared collections and bound readable external collections, and by
+ * `canSee`, and resumed from `Last-Event-ID`. Authenticate before calling it.
  */
-export function streamChanges(request: Request, canSee: (change: RecordChange) => boolean): Response {
+export function streamChanges(
+  request: Request,
+  canSee: (change: RecordChange) => boolean,
+  options?: { externalAliases?: readonly string[] },
+): Response {
   const filter = changeFilter(
     request,
     (collections as readonly CollectionDefinition[]).map((collection) => collection.alias),
+    options?.externalAliases ? { externalAliases: options.externalAliases } : { allowExternalAliases: true },
   );
-  relay ??= createChangeRelay(data);
+  relay ??= createChangeRelay(data, { includeExternal: true });
   return relay.stream({
     filter: (change) => matchesFilter(filter, change) && canSee(change),
     lastEventId: request.headers.get("Last-Event-ID"),
