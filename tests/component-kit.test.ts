@@ -7,7 +7,7 @@ import { createKitApi } from '../src/lib/component-kit/api-client';
 import { validateFormSections, validateRows, sumColumn } from '../src/lib/component-kit/form-model';
 import type { FieldDef, SectionDef } from '../src/lib/component-kit/types';
 import { formatNumber, parseNumberText, isTypingNumber } from '../src/components/kit/ui/number-utils';
-import { fileExtension, isPdfFile } from '../src/components/kit/ui/file-utils';
+import { dataUrlToBlob, fileExtension, isPdfFile, isSafeFileUrl, objectUrlFor } from '../src/components/kit/ui/file-utils';
 import { validateCodeRuleDraft } from '../src/components/editors/code-rules/code-rule-model';
 import { Avatar } from '../src/components/kit/ui/avatar';
 import { UiText } from '../src/lib/locale';
@@ -29,6 +29,14 @@ test('decimal typing and file extension parsing survive extraction', () => {
  assert.equal(isTypingNumber('1.25',{precision:1}),false);
  assert.equal(fileExtension('报告.PDF'),'pdf');
  assert.equal(isPdfFile({name:'报告.PDF',url:'demo.pdf'}),true);
+ assert.equal(isPdfFile({name:'spec.pdf',type:'application/pdf',url:'data:text/html;base64,PHNjcmlwdD48L3NjcmlwdD4='}),false);
+ assert.equal(isPdfFile({name:'spec.pdf',type:'application/pdf',url:'javascript:alert(1)'}),false);
+ assert.equal(isSafeFileUrl('javascript:alert(1)'),false);
+ assert.equal(isSafeFileUrl('https://example.com/a.pdf'),true);
+ assert.equal(dataUrlToBlob('data:text/html;base64,PGgxPk9LPC9oMT4=')?.type,'application/octet-stream');
+ assert.equal(dataUrlToBlob('data:image/svg+xml;base64,PHN2Zy8+')?.type,'application/octet-stream');
+ assert.equal(dataUrlToBlob('data:application/pdf;base64,JVBERi0=')?.type,'application/pdf');
+ assert.equal(objectUrlFor({uid:'1',name:'spec.pdf',url:'javascript:alert(1)'}).url,'');
 });
 test('transport adapters are instance-scoped and preserve request payloads', async () => {
  const seen: unknown[]=[];

@@ -23,10 +23,51 @@ export function isImageFile(file: Pick<FileValue, "name" | "type" | "url">): boo
   return ["png", "jpg", "jpeg", "gif", "webp", "bmp", "svg"].includes(fileExtension(file.name));
 }
 
+const ACTIVE_INLINE_MIMES = new Set([
+  "text/html",
+  "application/xhtml+xml",
+  "image/svg+xml",
+  "text/javascript",
+  "application/javascript",
+  "application/ecmascript",
+  "text/xml",
+  "application/xml",
+]);
+
+function parseDataUrlMime(url: string): string | null {
+  const match = /^data:([^;,]*)/i.exec(url);
+  if (!match) return null;
+  return match[1].trim().toLowerCase();
+}
+
+function hasControlChar(value: string): boolean {
+  for (let i = 0; i < value.length; i += 1) {
+    const code = value.charCodeAt(i);
+    if (code < 0x20 || code === 0x7f) return true;
+  }
+  return false;
+}
+
+/** Reject dangerous schemes (e.g. javascript:, vbscript:) before rendering or downloading. */
+export function isSafeFileUrl(url: string | undefined): boolean {
+  if (!url) return false;
+  const trimmed = url.trim();
+  if (!trimmed || hasControlChar(trimmed)) return false;
+  if (trimmed.startsWith("/")) return !trimmed.startsWith("//") && !trimmed.includes("\\");
+  if (/^(https?|blob|data):/i.test(trimmed)) return true;
+  // Relative path without scheme (e.g. "demo.pdf" or "assets/doc.pdf")
+  return !/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed) && !trimmed.includes("\\");
+}
+
 export function isPdfFile(file: Pick<FileValue, "name" | "type" | "url">): boolean {
+  if (file.url && !isSafeFileUrl(file.url)) return false;
+  if (file.url?.trim().toLowerCase().startsWith("data:")) {
+    const dataMime = parseDataUrlMime(file.url.trim());
+    if (dataMime && dataMime !== "application/pdf") return false;
+  }
   return (
     file.type === "application/pdf" ||
-    file.url?.startsWith("data:application/pdf") === true ||
+    file.url?.trim().toLowerCase().startsWith("data:application/pdf") === true ||
     fileExtension(file.name) === "pdf"
   );
 }
@@ -71,11 +112,12 @@ export async function fileToValue(file: File): Promise<FileValue> {
   };
 }
 
-/** data: URL → Blob (null for other URLs). */
+/** data: URL → Blob (null for other URLs). Active scriptable MIMEs are clamped to octet-stream. */
 export function dataUrlToBlob(url: string): Blob | null {
   const match = /^data:([^;,]*)(;base64)?,(.*)$/s.exec(url);
   if (!match) return null;
-  const mime = match[1] || "application/octet-stream";
+  const rawMime = (match[1] || "application/octet-stream").trim().toLowerCase();
+  const mime = ACTIVE_INLINE_MIMES.has(rawMime) ? "application/octet-stream" : rawMime;
   const payload = match[3];
   if (match[2]) {
     const binary = atob(payload);
@@ -88,14 +130,17 @@ export function dataUrlToBlob(url: string): Blob | null {
 
 /** Browser-openable URL for a file value; revoke with `release()` when done. */
 export function objectUrlFor(file: FileValue): { url: string; release: () => void } {
-  const blob = file.url.startsWith("data:") ? dataUrlToBlob(file.url) : null;
-  if (!blob) return { url: file.url, release: () => undefined };
+  if (!isSafeFileUrl(file.url)) return { url: "", release: () => undefined };
+  const trimmed = file.url.trim();
+  const blob = trimmed.toLowerCase().startsWith("data:") ? dataUrlToBlob(trimmed) : null;
+  if (!blob) return { url: trimmed, release: () => undefined };
   const url = URL.createObjectURL(blob);
   return { url, release: () => URL.revokeObjectURL(url) };
 }
 
 export function downloadFileValue(file: FileValue) {
   const { url, release } = objectUrlFor(file);
+  if (!url) return;
   const link = document.createElement("a");
   link.href = url;
   link.download = file.name || "download";
